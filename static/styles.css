@@ -1,0 +1,10 @@
+/* Custom styles for Report-Submission */
+.table th, .table td {
+    vertical-align: middle;
+}
+.btn-group {
+    margin-bottom: 1rem;
+}
+.alert {
+    margin-top: 1rem;
+}
