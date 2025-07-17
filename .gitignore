@@ -197,3 +197,7 @@ coverage/
 *.pem
 *.key
 *.cert
+/schema.sql
+/project_idea
+/Talimul Report 2025.xlsx
+/Talimul Report 2025(Full).csv
