@@ -1,0 +1,257 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Team Report System</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios@1.6.7/dist/axios.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-hook-form@7.51.0/dist/index.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.21.4/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+    const { useForm } = ReactHookForm;
+
+    // Main App Component
+    function App() {
+      const [user, setUser] = useState(null);
+      const [token, setToken] = useState(localStorage.getItem('token') || '');
+
+      useEffect(() => {
+        if (token) {
+          axios.get('http://localhost:5000/api/auth/me', {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+          .then(res => setUser(res.data))
+          .catch(() => {
+            setToken('');
+            localStorage.removeItem('token');
+          });
+        }
+      }, [token]);
+
+      if (!user) return <Login setToken={setToken} />;
+      if (user.role === 'member') return <MemberForm user={user} token={token} />;
+      if (user.role === 'leader' || user.role === 'superior') return <MasterReport user={user} token={token} />;
+      return null;
+    }
+
+    // Login Component
+    function Login({ setToken }) {
+      const { register, handleSubmit, formState: { errors } } = useForm();
+      const [error, setError] = useState('');
+
+      const onSubmit = async (data) => {
+        try {
+          const res = await axios.post('http://localhost:5000/api/auth/login', data);
+          setToken(res.data.token);
+          localStorage.setItem('token', res.data.token);
+        } catch (err) {
+          setError('Invalid credentials');
+        }
+      };
+
+      return (
+        <div className="flex items-center justify-center h-screen bg-gray-100">
+          <div className="bg-white p-8 rounded shadow-md w-96">
+            <h2 className="text-2xl font-bold mb-4">Login</h2>
+            {error && <p className="text-red-500 mb-4">{error}</p>}
+            <div>
+              <input
+                {...register('email', { required: 'Email is required' })}
+                type="email"
+                placeholder="Email"
+                className="w-full p-2 mb-4 border rounded"
+              />
+              {errors.email && <p className="text-red-500">{errors.email.message}</p>}
+              <input
+                {...register('password', { required: 'Password is required' })}
+                type="password"
+                placeholder="Password"
+                className="w-full p-2 mb-4 border rounded"
+              />
+              {errors.password && <p className="text-red-500">{errors.password.message}</p>}
+              <button
+                onClick={handleSubmit(onSubmit)}
+                className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+              >
+                Login
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Member Form Component
+    function MemberForm({ user, token }) {
+      const { register, handleSubmit, formState: { errors } } = useForm();
+      const [success, setSuccess] = useState('');
+
+      const onSubmit = async (data) => {
+        try {
+          await axios.post('http://localhost:5000/api/reports', data, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          setSuccess('Report submitted successfully');
+        } catch (err) {
+          setSuccess('Error submitting report');
+        }
+      };
+
+      return (
+        <div className="p-8">
+          <h2 className="text-2xl font-bold mb-4">Submit Report - {user.email}</h2>
+          {success && <p className="text-green-500 mb-4">{success}</p>}
+          <div>
+            <input
+              {...register('category', { required: 'Category is required' })}
+              placeholder="Category"
+              className="w-full p-2 mb-4 border rounded"
+            />
+            {errors.category && <p className="text-red-500">{errors.category.message}</p>}
+            <input
+              {...register('value', { required: 'Value is required', valueAsNumber: true })}
+              type="number"
+              placeholder="Value"
+              className="w-full p-2 mb-4 border rounded"
+            />
+            {errors.value && <p className="text-red-500">{errors.value.message}</p>}
+            <textarea
+              {...register('description')}
+              placeholder="Description"
+              className="w-full p-2 mb-4 border rounded"
+            />
+            <button
+              onClick={handleSubmit(onSubmit)}
+              className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+            >
+              Submit Report
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Master Report Component
+    function MasterReport({ user, token }) {
+      const [reports, setReports] = useState([]);
+      const [format, setFormat] = useState('pdf');
+
+      useEffect(() => {
+        axios.get('http://localhost:5000/api/reports', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        .then(res => setReports(res.data))
+        .catch(err => console.error(err));
+      }, [token]);
+
+      const downloadReport = async () => {
+        try {
+          const res = await axios.get(`http://localhost:5000/api/reports/master?format=${format}`, {
+            headers: { Authorization: `Bearer ${token}` },
+            responseType: 'blob'
+          });
+          const url = window.URL.createObjectURL(new Blob([res.data]));
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', `master-report.${format}`);
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+        } catch (err) {
+          console.error('Error downloading report');
+        }
+      };
+
+      return (
+        <div className="p-8">
+          <h2 className="text-2xl font-bold mb-4">Master Report - {user.email}</h2>
+          <select
+            value={format}
+            onChange={(e) => setFormat(e.target.value)}
+            className="mb-4 p-2 border rounded"
+          >
+            <option value="pdf">PDF</option>
+            <option value="xlsx">Excel</option>
+            <option value="jpg">JPG</option>
+          </select>
+          <button
+            onClick={downloadReport}
+            className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+          >
+            Download Master Report
+          </button>
+          <table className="w-full mt-4 border">
+            <thead>
+              <tr className="bg-gray-200">
+                <th className="p-2">Category</th>
+                <th className="p-2">Total Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(reports.reduce((acc, report) => {
+                acc[report.category] = (acc[report.category] || 0) + report.value;
+                return acc;
+              }, {})).map(([category, total]) => (
+                <tr key={category}>
+                  <td className="p-2 border">{category}</td>
+                  <td className="p-2 border">{total}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    // Render the app
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
