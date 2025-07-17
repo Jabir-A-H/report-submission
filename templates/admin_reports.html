@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="bn">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>অ্যাডমিন রিপোর্টসমূহ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="w-full max-w-5xl mx-auto p-4">
+      <div class="bg-white rounded-lg shadow-lg p-8">
+        <h3 class="text-2xl font-bold mb-6 text-center">
+          সকল রিপোর্ট (অ্যাডমিন)
+        </h3>
+        <div class="overflow-x-auto">
+          <table class="min-w-full border border-gray-300 rounded">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-4 py-2 border-b">ইউজার</th>
+                <th class="px-4 py-2 border-b">মাস</th>
+                <th class="px-4 py-2 border-b">বছর</th>
+                <th class="px-4 py-2 border-b">দায়িত্বপ্রাপ্ত</th>
+                <th class="px-4 py-2 border-b">লকড?</th>
+                <th class="px-4 py-2 border-b">সম্পাদনা</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for r in reports %}
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-2 border-b">
+                  {{ r.user.username or r.user.email }}
+                </td>
+                <td class="px-4 py-2 border-b">{{ r.month }}</td>
+                <td class="px-4 py-2 border-b">{{ r.year }}</td>
+                <td class="px-4 py-2 border-b">{{ r.responsible_name }}</td>
+                <td class="px-4 py-2 border-b">
+                  {% if r.edit_locked %}<span class="text-red-600 font-bold"
+                    >হ্যাঁ</span
+                  >{% else %}<span class="text-green-600 font-bold">না</span>{%
+                  endif %}
+                </td>
+                <td class="px-4 py-2 border-b text-center">
+                  <a
+                    href="/admin/report/{{ r.id }}"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded"
+                    >দেখুন/এডিট</a
+                  >
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="text-center mt-6">
+          <a
+            href="/master_report"
+            class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded"
+            >মাস্টার রিপোর্ট</a
+          >
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
