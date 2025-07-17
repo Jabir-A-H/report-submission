@@ -1,0 +1,2 @@
+# report-submision
+Report-Submission is a web application that streamlines report management by automating data collection and aggregation. Users log in to submit structured, Excel-like forms, which are stored securely in a database. Authorized users can view and compile a master report based on custom conditions (e.g., summing by category), exporting it as PDF, Excel, or JPG. Role-based authentication ensures only designated users access the final report, enhancing efficiency and data accuracy.
