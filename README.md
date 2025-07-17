@@ -1,137 +1,119 @@
 # Report-Submission
 
-**Report-Submission** is a web application designed to automate the collection, aggregation, and presentation of team reports, replacing manual Google Sheets workflows. Users log in to submit structured, Excel-like forms, which are securely stored in a database. Authorized users can generate a summarized master report based on custom conditions (e.g., summing values by category) and export it as PDF, Excel, or JPG. Role-based authentication ensures only designated users access the final report, improving efficiency and data accuracy.
+**Report-Submission** automates report collection and aggregation for a small team. Users log in to submit Excel-like forms, stored in a SQLite database. Authorized users generate a master report based on custom conditions (e.g., summing by category) and export it as PDF, Excel, or JPG. Role-based access ensures secure viewing, streamlining manual workflows.
 
 ## Features
-- **User Authentication**: Secure login with JWT, supporting roles (submitter, manager, executive).
-- **Form Submission**: Excel-like forms for data entry, customizable to match existing Google Sheets structures.
-- **Master Report**: Aggregates data based on user-defined conditions, viewable only by authorized users.
-- **Export Options**: Download reports as PDF, Excel, or JPG.
-- **Database Storage**: MongoDB stores form submissions for reliable data management.
-- **Responsive UI**: Built with React and Tailwind CSS for a modern, user-friendly interface.
+- Secure login with roles (submitter, manager, executive).
+- Excel-like form for data submission, tailored to unique report formats.
+- Master report generation with custom aggregation logic.
+- Export reports as PDF, Excel, or JPG.
+- Lightweight SQLite database for simple data management.
+- Responsive UI with Bootstrap for ease of use.
 
 ## Tech Stack
-- **Frontend**: React, Tailwind CSS, React Hook Form, Axios
-- **Backend**: Node.js, Express, MongoDB, JWT
-- **Libraries**: `exceljs` (Excel export), `pdfkit` (PDF generation)
-- **Deployment**: Local or cloud (e.g., Heroku for backend, Vercel for frontend)
+- **Frontend**: HTML, CSS (Bootstrap), JavaScript (vanilla)
+- **Backend**: Flask (Python), SQLite
+- **Libraries**: pandas (Excel), reportlab (PDF), html2canvas (JPG), Flask-Login (authentication)
+- **Deployment**: Local or PythonAnywhere/Render
 
 ## Prerequisites
-- Node.js (v16 or higher)
-- MongoDB (local or cloud, e.g., MongoDB Atlas)
+- Python 3.8+
+- SQLite (included with Python)
 - Git
-- A modern web browser (e.g., Chrome, Firefox)
+- A modern web browser
 
 ## Installation
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/your-username/report-submission.git
+   git clone https://github.com/Jabir-A-H/report-submission.git
    cd report-submission
    ```
 
-2. **Backend Setup**:
-   - Navigate to the backend directory (if structured separately):
-     ```bash
-     cd backend
-     ```
+2. **Set Up Python Environment**:
    - Install dependencies:
      ```bash
-     npm install
+     pip install flask flask-login pandas reportlab
      ```
-   - Create a `.env` file in the backend directory:
+   - Create a `.env` file:
      ```env
-     PORT=5000
-     MONGODB_URI=mongodb://localhost:27017/report-submission
-     JWT_SECRET=your-secure-secret
-     ```
-   - Start MongoDB locally or update `MONGODB_URI` for a cloud database.
-   - Run the backend:
-     ```bash
-     node server.js
+     FLASK_APP=app.py
+     SECRET_KEY=your-secure-secret
      ```
 
-3. **Frontend Setup**:
-   - Navigate to the frontend directory (if structured separately):
+3. **Initialize Database**:
+   - Run the initialization script to create the SQLite database (`reports.db`):
      ```bash
-     cd frontend
+     python init_db.py
      ```
-   - Install dependencies:
-     ```bash
-     npm install
-     ```
-   - Start the development server:
-     ```bash
-     npm start
-     ```
-   - Alternatively, serve the `index.html` file directly if using the standalone version.
-
-4. **Database Initialization**:
-   - Connect to MongoDB (e.g., via MongoDB Compass or CLI).
-   - Create initial users with roles (example using MongoDB CLI):
-     ```javascript
-     use report-submission
-     db.users.insertMany([
-       { email: "submitter@example.com", password: "$2a$10$...", role: "submitter" },
-       { email: "manager@example.com", password: "$2a$10$...", role: "manager" },
-       { email: "executive@example.com", password: "$2a$10$...", role: "executive" }
+   - Add initial users (example):
+     ```python
+     from app import db, User
+     from werkzeug.security import generate_password_hash
+     db.create_all()
+     db.session.add_all([
+         User(email="submitter@example.com", password=generate_password_hash("password"), role="submitter"),
+         User(email="manager@example.com", password=generate_password_hash("password"), role="manager"),
+         User(email="executive@example.com", password=generate_password_hash("password"), role="executive")
      ])
+     db.session.commit()
      ```
-     Note: Replace passwords with hashed versions using `bcrypt.hashSync("password", 10)`.
+
+4. **Run the App**:
+   - Start the Flask server:
+     ```bash
+     flask run
+     ```
+   - Open `http://localhost:5000` in a browser.
 
 ## Usage
 
 1. **Login**:
-   - Open the app in a browser (e.g., `http://localhost:3000` for React dev server or `index.html`).
-   - Log in with credentials (e.g., `submitter@example.com`, password: `password`).
+   - Navigate to `http://localhost:5000` and log in (e.g., `submitter@example.com`, password: `password`).
 
-2. **Submitting Reports**:
-   - Users with the "submitter" role can access the form page.
-   - Fill out fields (e.g., category, value, description) and submit.
-   - Data is saved to MongoDB and linked to the user.
+2. **Submit Reports**:
+   - Submitter role: Access the form page, enter data (e.g., category, value, description), and submit.
+   - Data is stored in SQLite.
 
-3. **Viewing Master Report**:
-   - Users with "manager" or "executive" roles can view the master report.
-   - The report summarizes data (e.g., sums by category) in a table.
-   - Select export format (PDF, Excel, JPG) and download.
+3. **View Master Report**:
+   - Manager/executive role: View the summarized report (e.g., sums by category).
+   - Export as PDF, Excel, or JPG via download buttons.
 
 4. **Customization**:
-   - Update form fields in the frontend (`MemberForm` component) to match your Google Sheets structure.
-   - Modify aggregation logic in the backend (`/api/reports/master`) for specific conditions (e.g., filter by date, exclude outliers).
+   - Edit `templates/form.html` to match your report fields.
+   - Update `routes.py` (e.g., `/master_report`) for custom aggregation logic.
+   - Adjust `static/styles.css` or Bootstrap classes for UI tweaks.
 
 ## Project Structure
 ```
 report-submission/
-├── backend/
-│   ├── server.js           # Express server and API routes
-│   ├── node_modules/       # Backend dependencies
-│   ├── package.json
-│   └── .env               # Environment variables
-├── frontend/
-│   ├── src/               # React components and logic
-│   ├── public/            # Static files (e.g., index.html)
-│   ├── node_modules/      # Frontend dependencies
-│   └── package.json
-├── .gitignore             # Git ignore file
-└── README.md              # This file
+├── app.py                 # Flask app and routes
+├── init_db.py            # Database initialization
+├── templates/            # HTML templates (form.html, report.html, login.html)
+├── static/               # CSS, JavaScript (Bootstrap, html2canvas)
+├── reports.db            # SQLite database
+├── requirements.txt       # Python dependencies
+├── .env                 # Environment variables
+├── .gitignore           # Git ignore file
+└── README.md            # This file
 ```
 
 ## Customization
-- **Form Fields**: Edit the `reportSchema` in `server.js` and `MemberForm` in `index.html` to match your sheet columns.
-- **Aggregation Logic**: Update the `/api/reports/master` endpoint in `server.js` to implement your specific conditions (e.g., weighted sums, date filters).
-- **Export Formats**: JPG export requires additional setup (e.g., `pdf2pic` or `html2canvas`). Contact for assistance.
-- **Styling**: Adjust Tailwind CSS classes in `index.html` for UI customization.
+- **Form Fields**: Modify `templates/form.html` and the `Report` model in `app.py` to match your Google Sheets columns.
+- **Aggregation Logic**: Update the `/master_report` route in `app.py` with your specific conditions (e.g., sum by category, filter by date).
+- **Exports**: PDF/Excel handled by `reportlab`/`pandas`. JPG uses `html2canvas` to capture the report table.
+- **Styling**: Customize Bootstrap classes in `templates/*.html` or add CSS in `static/styles.css`.
 
 ## Deployment
-- **Backend**: Deploy to Heroku, AWS, or DigitalOcean. Update `MONGODB_URI` and `JWT_SECRET` in production.
-- **Frontend**: Host on Vercel, Netlify, or serve `index.html` via a static server.
-- **Database**: Use MongoDB Atlas for cloud hosting or a local MongoDB instance.
+- **Local**: Run `flask run` on a local machine.
+- **Cloud**: Deploy to PythonAnywhere or Render. Copy `reports.db` and update `.env`.
+- **Database**: SQLite is embedded, no separate server needed.
 
 ## Security Notes
-- Replace `JWT_SECRET` with a strong, unique key in production.
-- Use HTTPS for API requests in production.
-- Hash passwords before storing (handled by `bcrypt` in the backend).
-- Restrict database access to authorized IPs.
+- Replace `SECRET_KEY` with a strong value in production.
+- Use HTTPS for production deployments.
+- Hash passwords (handled by `Flask-Login`).
+- Restrict SQLite file access (e.g., file permissions).
 
 ## Contributing
 1. Fork the repository.
