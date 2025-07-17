@@ -10,11 +10,11 @@
   <body class="bg-gray-100 min-h-screen flex items-center justify-center">
     <div class="w-full max-w-md mx-auto p-4">
       <div class="bg-white rounded-lg shadow-lg p-8">
-        <h3 class="text-2xl font-bold mb-6 text-center">লগইন করুন</h3>
-        {% if error %}
-        <div
+  <body class="bg-gradient-to-br from-cyan-100 via-blue-50 to-white min-h-screen flex items-center justify-center">
+    <div class="w-full max-w-md mx-auto p-2 sm:p-4 fade-in">
+      <div class="bg-white/90 rounded-2xl shadow-2xl p-4 sm:p-8 card-animate backdrop-blur-md border border-blue-100">
           class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"
-        >
+        <h3 class="text-2xl sm:text-3xl font-extrabold mb-8 text-center text-cyan-700 tracking-tight drop-shadow">লগইন করুন</h3>
           {{ error }}
         </div>
         {% endif %}
@@ -25,36 +25,19 @@
               type="email"
               id="email"
               name="email"
-              required
-              autofocus
-              class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
+            <label for="email" class="block font-semibold mb-1">ইমেইল</label>
+            <input type="email" id="email" name="email" required autofocus class="w-full border border-gray-300 rounded px-3 py-2 input-focus bg-white/80 text-base" />
           </div>
-          <div class="mb-4">
-            <label for="password" class="block font-semibold mb-1"
-              >পাসওয়ার্ড</label
-            >
-            <input
-              type="password"
-              id="password"
-              name="password"
-              required
-              class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
+          <div>
+            <label for="password" class="block font-semibold mb-1">পাসওয়ার্ড</label>
+            <input type="password" id="password" name="password" required class="w-full border border-gray-300 rounded px-3 py-2 input-focus bg-white/80 text-base" />
           </div>
-          <button
-            type="submit"
-            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          >
-            লগইন
-          </button>
+          <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 btn-animate text-white font-bold py-2 px-4 rounded-lg shadow-lg text-base tracking-wide">লগইন</button>
         </form>
-      </div>
-      {% if current_user.is_authenticated %}
-      <div class="text-center mt-4">
-        <a href="/logout" class="text-blue-600 hover:underline">লগআউট</a>
-      </div>
       {% endif %}
     </div>
   </body>
 </html>
+        <a href="/logout" class="text-cyan-700 hover:underline font-semibold transition-colors duration-200">লগআউট</a>
+      </div>
+            />

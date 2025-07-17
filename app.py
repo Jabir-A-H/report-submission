@@ -1,58 +1,130 @@
+# --- Auto-save endpoint for draft saving ---
+from flask import jsonify
+
+
+@app.route("/autosave", methods=["POST"])
+@login_required
+def autosave():
+    report_id = request.form.get("id")
+    if report_id:
+        report = Report.query.get(report_id)
+        if not report or (
+            report.user_id != current_user.id and current_user.role != "admin"
+        ):
+            return jsonify({"error": "Unauthorized"}), 403
+        # Update fields (header only for now, can be extended)
+        if hasattr(report, "header") and report.header:
+            for field in [
+                "total_teachers",
+                "teacher_increase",
+                "teacher_decrease",
+                "certified_teachers",
+                "trained_teachers",
+                "unit_count",
+                "teachers_taking_classes_1",
+                "teachers_taking_classes_2",
+                "units_with_teachers",
+            ]:
+                val = request.form.get(field)
+                if val is not None:
+                    setattr(report.header, field, val)
+        report.month = request.form.get("month") or report.month
+        report.year = request.form.get("year") or report.year
+        report.responsible_name = (
+            request.form.get("responsible_name") or report.responsible_name
+        )
+        db.session.commit()
+        return jsonify({"status": "saved"})
+    else:
+        # New draft: create a new report if needed (optional, or just ignore)
+        return jsonify({"status": "no-id"})
+
+
 # --- ADMIN: View, edit, unlock, comment, audit trail ---
-@app.route('/admin/reports')
+@app.route("/admin/reports")
 @login_required
 def admin_reports():
-    if current_user.role != 'admin':
-        return redirect(url_for('form'))
+    if current_user.role != "admin":
+        return redirect(url_for("form"))
     reports = Report.query.order_by(Report.year.desc(), Report.month.desc()).all()
-    return render_template('admin_reports.html', reports=reports)
+    return render_template("admin_reports.html", reports=reports)
 
-@app.route('/admin/report/<int:report_id>', methods=['GET', 'POST'])
+
+@app.route("/admin/report/<int:report_id>", methods=["GET", "POST"])
 @login_required
 def admin_edit_report(report_id):
-    if current_user.role != 'admin':
-        return redirect(url_for('form'))
+    if current_user.role != "admin":
+        return redirect(url_for("form"))
     report = Report.query.get_or_404(report_id)
-    audit_trail = ReportEdit.query.filter_by(report_id=report.id).order_by(ReportEdit.edit_time.desc()).all()
-    if request.method == 'POST':
+    audit_trail = (
+        ReportEdit.query.filter_by(report_id=report.id)
+        .order_by(ReportEdit.edit_time.desc())
+        .all()
+    )
+    if request.method == "POST":
         # Unlock/lock
-        if 'unlock' in request.form:
+        if "unlock" in request.form:
             report.edit_locked = False
             db.session.commit()
-            return render_template('form.html', report=report, audit_trail=audit_trail, success='Report unlocked for user.')
-        if 'lock' in request.form:
+            return render_template(
+                "form.html",
+                report=report,
+                audit_trail=audit_trail,
+                success="Report unlocked for user.",
+            )
+        if "lock" in request.form:
             report.edit_locked = True
             db.session.commit()
-            return render_template('form.html', report=report, audit_trail=audit_trail, success='Report locked.')
+            return render_template(
+                "form.html",
+                report=report,
+                audit_trail=audit_trail,
+                success="Report locked.",
+            )
         # Admin comment
-        admin_comment = request.form.get('admin_comment')
+        admin_comment = request.form.get("admin_comment")
         if admin_comment is not None:
             report.admin_comment = admin_comment
             db.session.commit()
-            return render_template('form.html', report=report, audit_trail=audit_trail, success='Admin comment updated.')
-    return render_template('form.html', report=report, audit_trail=audit_trail)
+            return render_template(
+                "form.html",
+                report=report,
+                audit_trail=audit_trail,
+                success="Admin comment updated.",
+            )
+    return render_template("form.html", report=report, audit_trail=audit_trail)
+
 
 # --- MASTER REPORT: Aggregation and Export ---
 import calendar
-@app.route('/master_report', methods=['GET'])
+
+
+@app.route("/master_report", methods=["GET"])
 @login_required
 def master_report():
-    if current_user.role != 'admin':
-        return render_template('report.html', error='Unauthorized access.'), 403
+    if current_user.role != "admin":
+        return render_template("report.html", error="Unauthorized access."), 403
     # Filter by period
-    month = request.args.get('month')
-    year = request.args.get('year')
-    period = request.args.get('period', 'monthly')
+    month = request.args.get("month")
+    year = request.args.get("year")
+    period = request.args.get("period", "monthly")
     query = Report.query
     if year:
         query = query.filter_by(year=int(year))
-    if period == 'monthly' and month:
+    if period == "monthly" and month:
         query = query.filter_by(month=month)
     reports = query.all()
     # Aggregate header fields
     header_fields = [
-        'total_teachers', 'teacher_increase', 'teacher_decrease', 'certified_teachers',
-        'trained_teachers', 'unit_count', 'teachers_taking_classes_1', 'teachers_taking_classes_2', 'units_with_teachers'
+        "total_teachers",
+        "teacher_increase",
+        "teacher_decrease",
+        "certified_teachers",
+        "trained_teachers",
+        "unit_count",
+        "teachers_taking_classes_1",
+        "teachers_taking_classes_2",
+        "units_with_teachers",
     ]
     agg = {f: 0 for f in header_fields}
     for r in reports:
@@ -60,26 +132,37 @@ def master_report():
             for f in header_fields:
                 agg[f] += getattr(r.header, f, 0) or 0
     # TODO: Aggregate other sections as needed
-    return render_template('report.html', report_data=[{'category': k, 'total_value': v} for k, v in agg.items()])
+    return render_template(
+        "report.html",
+        report_data=[{"category": k, "total_value": v} for k, v in agg.items()],
+    )
 
-@app.route('/export/<format>')
+
+@app.route("/export/<format>")
 @login_required
 def export_report(format):
-    if current_user.role != 'admin':
-        return 'Unauthorized', 403
+    if current_user.role != "admin":
+        return "Unauthorized", 403
     # Use same aggregation as master_report
-    month = request.args.get('month')
-    year = request.args.get('year')
-    period = request.args.get('period', 'monthly')
+    month = request.args.get("month")
+    year = request.args.get("year")
+    period = request.args.get("period", "monthly")
     query = Report.query
     if year:
         query = query.filter_by(year=int(year))
-    if period == 'monthly' and month:
+    if period == "monthly" and month:
         query = query.filter_by(month=month)
     reports = query.all()
     header_fields = [
-        'total_teachers', 'teacher_increase', 'teacher_decrease', 'certified_teachers',
-        'trained_teachers', 'unit_count', 'teachers_taking_classes_1', 'teachers_taking_classes_2', 'units_with_teachers'
+        "total_teachers",
+        "teacher_increase",
+        "teacher_decrease",
+        "certified_teachers",
+        "trained_teachers",
+        "unit_count",
+        "teachers_taking_classes_1",
+        "teachers_taking_classes_2",
+        "units_with_teachers",
     ]
     agg = {f: 0 for f in header_fields}
     for r in reports:
@@ -90,23 +173,29 @@ def export_report(format):
     from io import BytesIO
     from reportlab.lib.pagesizes import letter
     from reportlab.pdfgen import canvas
-    if format == 'excel':
-        df = pd.DataFrame([{'category': k, 'total_value': v} for k, v in agg.items()])
+
+    if format == "excel":
+        df = pd.DataFrame([{"category": k, "total_value": v} for k, v in agg.items()])
         output = BytesIO()
-        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
             df.to_excel(writer, index=False)
         output.seek(0)
-        return send_file(output, as_attachment=True, download_name='master_report.xlsx', mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    elif format == 'pdf':
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name="master_report.xlsx",
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+    elif format == "pdf":
         output = BytesIO()
         c = canvas.Canvas(output, pagesize=letter)
         width, height = letter
-        c.setFont('Helvetica-Bold', 16)
-        c.drawString(30, height - 40, 'Master Report')
-        c.setFont('Helvetica', 12)
+        c.setFont("Helvetica-Bold", 16)
+        c.drawString(30, height - 40, "Master Report")
+        c.setFont("Helvetica", 12)
         y = height - 80
-        c.drawString(30, y, 'Category')
-        c.drawString(200, y, 'Total Value')
+        c.drawString(30, y, "Category")
+        c.drawString(200, y, "Total Value")
         y -= 20
         for k, v in agg.items():
             c.drawString(30, y, str(k))
@@ -117,9 +206,16 @@ def export_report(format):
                 y = height - 40
         c.save()
         output.seek(0)
-        return send_file(output, as_attachment=True, download_name='master_report.pdf', mimetype='application/pdf')
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name="master_report.pdf",
+            mimetype="application/pdf",
+        )
     else:
-        return 'Invalid format', 400
+        return "Invalid format", 400
+
+
 from flask import (
     Flask,
     render_template,
@@ -320,8 +416,6 @@ def form():
     report = None
     audit_trail = []
     if request.method == "POST":
-        form_mode = request.form.get("form_mode", "full")
-        step = request.form.get("step")
         # --- Parse header fields ---
         header_data = {
             "total_teachers": request.form.get("total_teachers"),
@@ -341,21 +435,25 @@ def form():
             dept_type = request.form.get(f"class_dept_type_{i}")
             if not dept_type:
                 break
-            classes.append({
-                "dept_type": dept_type,
-                "number": request.form.get(f"class_number_{i}"),
-                "increase": request.form.get(f"class_increase_{i}"),
-                "decrease": request.form.get(f"class_decrease_{i}"),
-                "sessions": request.form.get(f"class_sessions_{i}"),
-                "students": request.form.get(f"class_students_{i}"),
-                "attendance": request.form.get(f"class_attendance_{i}"),
-                "status_board": request.form.get(f"class_status_board_{i}"),
-                "status_qayda": request.form.get(f"class_status_qayda_{i}"),
-                "status_ampara": request.form.get(f"class_status_ampara_{i}"),
-                "status_quran": request.form.get(f"class_status_quran_{i}"),
-                "completed": request.form.get(f"class_completed_{i}"),
-                "correctly_learned": request.form.get(f"class_correctly_learned_{i}"),
-            })
+            classes.append(
+                {
+                    "dept_type": dept_type,
+                    "number": request.form.get(f"class_number_{i}"),
+                    "increase": request.form.get(f"class_increase_{i}"),
+                    "decrease": request.form.get(f"class_decrease_{i}"),
+                    "sessions": request.form.get(f"class_sessions_{i}"),
+                    "students": request.form.get(f"class_students_{i}"),
+                    "attendance": request.form.get(f"class_attendance_{i}"),
+                    "status_board": request.form.get(f"class_status_board_{i}"),
+                    "status_qayda": request.form.get(f"class_status_qayda_{i}"),
+                    "status_ampara": request.form.get(f"class_status_ampara_{i}"),
+                    "status_quran": request.form.get(f"class_status_quran_{i}"),
+                    "completed": request.form.get(f"class_completed_{i}"),
+                    "correctly_learned": request.form.get(
+                        f"class_correctly_learned_{i}"
+                    ),
+                }
+            )
             i += 1
         # --- Parse meetings ---
         meetings = []
@@ -364,16 +462,24 @@ def form():
             meeting_type = request.form.get(f"meeting_type_{i}")
             if not meeting_type:
                 break
-            meetings.append({
-                "meeting_type": meeting_type,
-                "city_count": request.form.get(f"meeting_city_count_{i}"),
-                "city_avg_attendance": request.form.get(f"meeting_city_avg_attendance_{i}"),
-                "thana_count": request.form.get(f"meeting_thana_count_{i}"),
-                "thana_avg_attendance": request.form.get(f"meeting_thana_avg_attendance_{i}"),
-                "ward_count": request.form.get(f"meeting_ward_count_{i}"),
-                "ward_avg_attendance": request.form.get(f"meeting_ward_avg_attendance_{i}"),
-                "comments": request.form.get(f"meeting_comments_{i}"),
-            })
+            meetings.append(
+                {
+                    "meeting_type": meeting_type,
+                    "city_count": request.form.get(f"meeting_city_count_{i}"),
+                    "city_avg_attendance": request.form.get(
+                        f"meeting_city_avg_attendance_{i}"
+                    ),
+                    "thana_count": request.form.get(f"meeting_thana_count_{i}"),
+                    "thana_avg_attendance": request.form.get(
+                        f"meeting_thana_avg_attendance_{i}"
+                    ),
+                    "ward_count": request.form.get(f"meeting_ward_count_{i}"),
+                    "ward_avg_attendance": request.form.get(
+                        f"meeting_ward_avg_attendance_{i}"
+                    ),
+                    "comments": request.form.get(f"meeting_comments_{i}"),
+                }
+            )
             i += 1
         # --- Parse manpower ---
         manpower = []
@@ -382,11 +488,15 @@ def form():
             category = request.form.get(f"manpower_category_{i}")
             if not category:
                 break
-            manpower.append({
-                "category": category,
-                "count": request.form.get(f"manpower_count_{i}"),
-                "additional_count": request.form.get(f"manpower_additional_count_{i}"),
-            })
+            manpower.append(
+                {
+                    "category": category,
+                    "count": request.form.get(f"manpower_count_{i}"),
+                    "additional_count": request.form.get(
+                        f"manpower_additional_count_{i}"
+                    ),
+                }
+            )
             i += 1
         # --- Parse efforts ---
         efforts = []
@@ -395,20 +505,31 @@ def form():
             category = request.form.get(f"effort_category_{i}")
             if not category:
                 break
-            efforts.append({
-                "category": category,
-                "teaching_count": request.form.get(f"effort_teaching_count_{i}"),
-                "taught_count": request.form.get(f"effort_taught_count_{i}"),
-            })
+            efforts.append(
+                {
+                    "category": category,
+                    "teaching_count": request.form.get(f"effort_teaching_count_{i}"),
+                    "taught_count": request.form.get(f"effort_taught_count_{i}"),
+                }
+            )
             i += 1
         # Validate required header fields
         missing = [k for k, v in header_data.items() if v is None or v == ""]
         if missing:
-            return render_template("form.html", error=f"Missing fields: {', '.join(missing)}", report=report, audit_trail=audit_trail)
+            return render_template(
+                "form.html",
+                error=f"Missing fields: {', '.join(missing)}",
+                report=report,
+                audit_trail=audit_trail,
+            )
         # Save or update report
         if editing and report:
             # Save old values for audit
-            old_header = {k: getattr(report.header, k) for k in header_data} if hasattr(report, "header") and report.header else {}
+            old_header = (
+                {k: getattr(report.header, k) for k in header_data}
+                if hasattr(report, "header") and report.header
+                else {}
+            )
             # Update report fields
             report.month = request.form.get("month")
             report.year = request.form.get("year")
@@ -438,22 +559,31 @@ def form():
                 db.session.add(ReportIndividualEffort(report_id=report.id, **ef))
             db.session.commit()
             # Log audit
-            log_report_edit(report.id, current_user.id, {
-                "old_header": old_header,
-                "new_header": header_data,
-                "classes": classes,
-                "meetings": meetings,
-                "manpower": manpower,
-                "efforts": efforts
-            })
-            return render_template("form.html", success="Report updated.", report=report, audit_trail=audit_trail)
+            log_report_edit(
+                report.id,
+                current_user.id,
+                {
+                    "old_header": old_header,
+                    "new_header": header_data,
+                    "classes": classes,
+                    "meetings": meetings,
+                    "manpower": manpower,
+                    "efforts": efforts,
+                },
+            )
+            return render_template(
+                "form.html",
+                success="Report updated.",
+                report=report,
+                audit_trail=audit_trail,
+            )
         else:
             # New report
             report = Report(
                 user_id=current_user.id,
                 month=request.form.get("month"),
                 year=request.form.get("year"),
-                responsible_name=request.form.get("responsible_name")
+                responsible_name=request.form.get("responsible_name"),
             )
             db.session.add(report)
             db.session.commit()
@@ -468,65 +598,16 @@ def form():
             for ef in efforts:
                 db.session.add(ReportIndividualEffort(report_id=report.id, **ef))
             db.session.commit()
-            log_report_edit(report.id, current_user.id, {
-                "new_header": header_data,
-                "classes": classes,
-                "meetings": meetings,
-                "manpower": manpower,
-                "efforts": efforts
-            })
-            return render_template("form.html", success="Report submitted.", report=report, audit_trail=audit_trail)
-                ),
-                "units_with_teachers": request.form.get("units_with_teachers"),
-            },
-            # TODO: Add classes, meetings, manpower, efforts
-        }
-        # Validate required fields (demo: header only)
-        missing = [k for k, v in data["header"].items() if v is None or v == ""]
-        if missing:
-            return render_template(
-                "form.html",
-                error=f"Missing fields: {', '.join(missing)}",
-                report=report,
-                audit_trail=audit_trail,
-            )
-        # Save or update report
-        if editing and report:
-            # Save old values for audit
-            old = (
-                {k: getattr(report.header, k) for k in data["header"]}
-                if hasattr(report, "header")
-                else {}
-            )
-            # Update report fields
-            report.month = data["month"]
-            report.year = data["year"]
-            report.responsible_name = data["responsible_name"]
-            # Update header
-            if hasattr(report, "header") and report.header:
-                for k, v in data["header"].items():
-                    setattr(report.header, k, v)
-            else:
-                header = ReportHeader(report_id=report.id, **data["header"])
-                db.session.add(header)
-            db.session.commit()
-            # Log audit
             log_report_edit(
-                report.id, current_user.id, {"old": old, "new": data["header"]}
-            )
-            return render_template(
-                "form.html",
-                success="Report updated.",
-                report=report,
-                audit_trail=audit_trail,
-            )
-        else:
-            # New report
-            report = Report(
-                user_id=current_user.id,
-                month=data["month"],
-                year=data["year"],
-                responsible_name=data["responsible_name"],
+                report.id,
+                current_user.id,
+                {
+                    "new_header": header_data,
+                    "classes": classes,
+                    "meetings": meetings,
+                    "manpower": manpower,
+                    "efforts": efforts,
+                },
             )
             db.session.add(report)
             db.session.commit()

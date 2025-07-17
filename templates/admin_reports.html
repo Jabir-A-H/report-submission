@@ -35,27 +35,27 @@
                 <td class="px-4 py-2 border-b">{{ r.year }}</td>
                 <td class="px-4 py-2 border-b">{{ r.responsible_name }}</td>
                 <td class="px-4 py-2 border-b">
-                  {% if r.edit_locked %}<span class="text-red-600 font-bold"
-                    >হ্যাঁ</span
-                  >{% else %}<span class="text-green-600 font-bold">না</span>{%
+  <body class="bg-gradient-to-br from-cyan-100 via-blue-50 to-white min-h-screen flex items-center justify-center">
+    <div class="w-full max-w-5xl mx-auto p-2 sm:p-4 fade-in">
+      <div class="bg-white/90 rounded-2xl shadow-2xl p-2 sm:p-8 card-animate backdrop-blur-md border border-blue-100">
                   endif %}
                 </td>
                 <td class="px-4 py-2 border-b text-center">
                   <a
-                    href="/admin/report/{{ r.id }}"
-                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded"
+          <table class="min-w-full border-separate border-spacing-y-1 border-0 rounded shadow text-xs sm:text-sm">
+            <thead class="bg-cyan-50">
                     >দেখুন/এডিট</a
-                  >
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+                <th class="px-4 py-2 border-b">ইউজার</th>
+                <th class="px-4 py-2 border-b">মাস</th>
+                <th class="px-4 py-2 border-b">বছর</th>
+                <th class="px-4 py-2 border-b">দায়িত্বপ্রাপ্ত</th>
+                <th class="px-4 py-2 border-b">লকড?</th>
+                <th class="px-4 py-2 border-b">সম্পাদনা</th>
         </div>
         <div class="text-center mt-6">
           <a
             href="/master_report"
-            class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded"
+              <tr class="table-row-animate">
             >মাস্টার রিপোর্ট</a
           >
         </div>

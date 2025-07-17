@@ -12,9 +12,9 @@
       <div class="bg-white rounded-lg shadow-lg p-8">
         <h3 class="text-2xl font-bold mb-6 text-center">মাস্টার রিপোর্ট</h3>
 
-<!DOCTYPE html>
-<html lang="bn">
-<head>
+  <body class="bg-gradient-to-br from-cyan-100 via-blue-50 to-white min-h-screen flex items-center justify-center">
+    <div class="w-full max-w-4xl mx-auto p-2 sm:p-4 fade-in">
+      <div class="bg-white/90 rounded-2xl shadow-2xl p-2 sm:p-8 card-animate backdrop-blur-md border border-blue-100">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>মাস্টার রিপোর্ট</title>
@@ -25,7 +25,7 @@
   <div class="w-full max-w-4xl mx-auto p-4">
     <div class="bg-white rounded-lg shadow-lg p-8">
       <h3 class="text-2xl font-bold mb-6 text-center">মাস্টার রিপোর্ট</h3>
-      <div id="alert-box">
+      <form method="get" action="/master_report" class="flex flex-wrap gap-2 sm:gap-4 mb-6 items-end">
         {% if error %}
         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{{ error }}</div>
         {% endif %}
@@ -41,21 +41,22 @@
         </div>
         <div>
           <label class="block font-semibold mb-1">মাস</label>
-          <input type="text" name="month" value="{{ request.args.get('month', '') }}" class="border border-gray-300 rounded px-3 py-2 w-28" placeholder="e.g. 3" />
-        </div>
-        <div>
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full sm:w-auto">ফিল্টার</button>
+        <button type="button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full sm:w-auto mt-2 sm:mt-0" onclick="downloadReport('pdf')">PDF ডাউনলোড</button>
+        <button type="button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full sm:w-auto mt-2 sm:mt-0" onclick="downloadReport('excel')">Excel ডাউনলোড</button>
           <label class="block font-semibold mb-1">পিরিয়ড</label>
           <select name="period" class="border border-gray-300 rounded px-3 py-2">
-            <option value="monthly" {% if request.args.get('period', 'monthly') == 'monthly' %}selected{% endif %}>মাসিক</option>
-            <option value="yearly" {% if request.args.get('period') == 'yearly' %}selected{% endif %}>বার্ষিক</option>
+      <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white/80">
+        <table class="min-w-full border-separate border-spacing-y-1 border-0 rounded shadow text-xs sm:text-sm">
+          <thead class="bg-cyan-50">
           </select>
-        </div>
-        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">ফিল্টার</button>
-        <button type="button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" onclick="downloadReport('pdf')">PDF ডাউনলোড</button>
+              <th class="px-4 py-2 border-b">ক্ষেত্র</th>
+              <th class="px-4 py-2 border-b">মোট মান</th>
+            </tr>
         <button type="button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" onclick="downloadReport('excel')">Excel ডাউনলোড</button>
       </form>
       <div class="overflow-x-auto">
-        <table class="min-w-full border border-gray-300 rounded">
+              <tr class="table-row-animate">
           <thead class="bg-gray-100">
             <tr>
               <th class="px-4 py-2 border-b">ক্ষেত্র</th>
