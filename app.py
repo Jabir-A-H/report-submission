@@ -1,173 +1,145 @@
-# --- Auto-save endpoint for draft saving ---
-from flask import jsonify
-
-
-@app.route("/autosave", methods=["POST"])
+# --- Logout route ---
+@app.route("/logout")
 @login_required
-def autosave():
-    report_id = request.form.get("id")
-    if report_id:
-        report = Report.query.get(report_id)
-        if not report or (
-            report.user_id != current_user.id and current_user.role != "admin"
-        ):
-            return jsonify({"error": "Unauthorized"}), 403
-        # Update fields (header only for now, can be extended)
-        if hasattr(report, "header") and report.header:
-            for field in [
-                "total_teachers",
-                "teacher_increase",
-                "teacher_decrease",
-                "certified_teachers",
-                "trained_teachers",
-                "unit_count",
-                "teachers_taking_classes_1",
-                "teachers_taking_classes_2",
-                "units_with_teachers",
-            ]:
-                val = request.form.get(field)
-                if val is not None:
-                    setattr(report.header, field, val)
-        report.month = request.form.get("month") or report.month
-        report.year = request.form.get("year") or report.year
-        report.responsible_name = (
-            request.form.get("responsible_name") or report.responsible_name
-        )
-        db.session.commit()
-        return jsonify({"status": "saved"})
-    else:
-        # New draft: create a new report if needed (optional, or just ignore)
-        return jsonify({"status": "no-id"})
+def logout():
+    """
+    Log out the current user and redirect to login page.
+    """
+    logout_user()
+    return redirect(url_for("login"))
 
+"""
+Main Flask application for report submission and aggregation.
+Handles user/admin authentication, report CRUD, audit trail, export, and admin zone management.
+Database models are defined with SQLAlchemy ORM.
+"""
 
+from flask import (
+    Flask, render_template, request, redirect, url_for, send_file, Response, jsonify
+)
+from flask_login import (
+    LoginManager, UserMixin, login_user, login_required, current_user
+)
+from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+import pandas as pd
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from io import BytesIO
+import os
+import calendar
+import json
 
+# --- Flask app and DB setup ---
+app = Flask(__name__)
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "your-secure-secret")
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///reports.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db = SQLAlchemy(app)
+login_manager = LoginManager(app)
+login_manager.login_view = "login"
 
-# --- ADMIN: View, edit, unlock, comment, audit trail ---
-@app.route("/admin/reports")
-@login_required
-def admin_reports():
-    if current_user.role != "admin":
-        return redirect(url_for("form"))
-    reports = Report.query.order_by(Report.year.desc(), Report.month.desc()).all()
-    return render_template("admin_reports.html", reports=reports)
-
-
-@app.route("/admin/report/<int:report_id>", methods=["GET", "POST"])
-@login_required
-def admin_edit_report(report_id):
-    if current_user.role != "admin":
-        return redirect(url_for("form"))
-    report = Report.query.get_or_404(report_id)
-    audit_trail = (
-        ReportEdit.query.filter_by(report_id=report.id)
-        .order_by(ReportEdit.edit_time.desc())
-        .all()
-    )
-
+# --- End of setup and imports ---
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "your-secure-secret")
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///reports.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db = SQLAlchemy(app)
+login_manager = LoginManager(app)
+login_manager.login_view = "login"
 
 class Zone(db.Model):
+    """Zone model for admin-editable zone list."""
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
 
     def __repr__(self):
         return f"<Zone {self.name}>"
 
-    if request.method == "POST":
-        # Unlock/lock
-        if "unlock" in request.form:
-            report.edit_locked = False
-            db.session.commit()
-            return render_template(
-                "form.html",
-                report=report,
-                audit_trail=audit_trail,
-                success="Report unlocked for user.",
-            )
-        if "lock" in request.form:
-            report.edit_locked = True
-            db.session.commit()
-            return render_template(
-                "form.html",
-                report=report,
-                audit_trail=audit_trail,
-                success="Report locked.",
-            )
-        # Admin comment
-        admin_comment = request.form.get("admin_comment")
-        if admin_comment is not None:
-            report.admin_comment = admin_comment
-            db.session.commit()
-            return render_template(
-                "form.html",
-                report=report,
-                audit_trail=audit_trail,
-                success="Admin comment updated.",
-            )
-    return render_template("form.html", report=report, audit_trail=audit_trail)
+    def __repr__(self):
+        return f"<Zone {self.name}>"
 
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    """User registration page. Zone list is dynamic. Admin must approve new users."""
+    zones = Zone.query.order_by(Zone.name).all()
+    if request.method == "POST":
+        username = request.form.get("username")
+        email = request.form.get("email")
+        password = request.form.get("password")
+        zone_id = request.form.get("zone")
+        ward = request.form.get("ward")
+        if not (username and email and password and zone_id and ward):
+            return render_template("register.html", error="সব তথ্য দিন", zones=zones)
+        if User.query.filter((User.username == username) | (User.email == email)).first():
+            return render_template("register.html", error="ইউজারনেম বা ইমেইল আগে থেকেই আছে", zones=zones)
+        user = User(
+            username=username,
+            email=email,
+            password=generate_password_hash(password),
+            role="user",
+            zone_id=int(zone_id),
+            ward=int(ward),
+            is_active=False,
+        )
+        db.session.add(user)
+        db.session.commit()
+        return render_template("register.html", success="রেজিস্ট্রেশন সফল! এডমিন অনুমোদনের পর লগইন করতে পারবেন।", zones=zones)
+    return render_template("register.html", zones=zones)
 
 # --- MASTER REPORT: Aggregation and Export ---
 import calendar
 
-
-@app.route("/master_report", methods=["GET"])
+@app.route("/autosave", methods=["POST"])
 @login_required
-def master_report():
-    if current_user.role != "admin":
-        return render_template("report.html", error="Unauthorized access."), 403
-    # Filter by period
-    month = request.args.get("month")
-    year = request.args.get("year")
-    period = request.args.get("period", "monthly")
-    query = Report.query
-    if year:
-        query = query.filter_by(year=int(year))
-    if period == "monthly" and month:
-        query = query.filter_by(month=month)
-    reports = query.all()
-    # Aggregate header fields
-    header_fields = [
-        "total_teachers",
-        "teacher_increase",
-        "teacher_decrease",
-        "certified_teachers",
-        "trained_teachers",
-        "unit_count",
-        "teachers_taking_classes_1",
-        "teachers_taking_classes_2",
-        "units_with_teachers",
-    ]
-    agg = {f: 0 for f in header_fields}
-    for r in reports:
-        if r.header:
-            for f in header_fields:
-                agg[f] += getattr(r.header, f, 0) or 0
-    # TODO: Aggregate other sections as needed
-    return render_template(
+def autosave():
+    """Auto-save endpoint for report drafts. Only header fields are currently supported."""
+    report_id = request.form.get("id")
+    if report_id:
+        report = Report.query.get(report_id)
+        if not report or (report.user_id != current_user.id and current_user.role != "admin"):
+            return jsonify({"error": "Unauthorized"}), 403
+        # Update header fields if present
+        if hasattr(report, "header") and report.header:
+            for field in [
+                "total_teachers", "teacher_increase", "teacher_decrease", "certified_teachers",
+                "trained_teachers", "unit_count", "teachers_taking_classes_1", "teachers_taking_classes_2", "units_with_teachers"
+            ]:
+                val = request.form.get(field)
+                if val is not None:
+                    setattr(report.header, field, val)
+        report.month = request.form.get("month") or report.month
+        report.year = request.form.get("year") or report.year
+        report.responsible_name = request.form.get("responsible_name") or report.responsible_name
+        db.session.commit()
+        return jsonify({"status": "saved"})
+    else:
+        # No report ID provided
+        return jsonify({"status": "no-id"})
         "report.html",
         report_data=[{"category": k, "total_value": v} for k, v in agg.items()],
     )
 
-
-@app.route("/export/<format>")
+@app.route("/admin/reports")
 @login_required
-def export_report(format):
+def admin_reports():
+    """Admin view of all reports for review, edit, and audit."""
     if current_user.role != "admin":
-        return "Unauthorized", 403
+        return redirect(url_for("form"))
+    reports = Report.query.order_by(Report.year.desc(), Report.month.desc()).all()
+    return render_template("admin_reports.html", reports=reports)
     # Use same aggregation as master_report
     month = request.args.get("month")
-    year = request.args.get("year")
-    period = request.args.get("period", "monthly")
-    query = Report.query
-    if year:
-        query = query.filter_by(year=int(year))
-    if period == "monthly" and month:
-        query = query.filter_by(month=month)
-    reports = query.all()
-    header_fields = [
-        "total_teachers",
-        "teacher_increase",
+
+@app.route("/admin/report/<int:report_id>", methods=["GET", "POST"])
+@login_required
+def admin_edit_report(report_id):
+    """Admin can view and edit a specific report, unlock/lock, and add comments."""
+    if current_user.role != "admin":
+        return redirect(url_for("form"))
+    report = Report.query.get_or_404(report_id)
+    audit_trail = ReportEdit.query.filter_by(report_id=report.id).order_by(ReportEdit.edit_time.desc()).all()
+    # POST logic for unlock/lock/comment is handled in the form route, not here
+    return render_template("form.html", report=report, audit_trail=audit_trail)
         "teacher_decrease",
         "certified_teachers",
         "trained_teachers",
@@ -272,69 +244,55 @@ class User(UserMixin, db.Model):
     zone_id = db.Column(db.Integer, db.ForeignKey("zone.id"), nullable=False)
     zone = db.relationship("Zone", backref="users")
 
-
-# --- Registration route ---
-from werkzeug.security import generate_password_hash
-
-
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    zones = Zone.query.order_by(Zone.name).all()
-    if request.method == "POST":
-        username = request.form.get("username")
-        email = request.form.get("email")
-        password = request.form.get("password")
-        zone_id = request.form.get("zone")
-        ward = request.form.get("ward")
-        if not (username and email and password and zone_id and ward):
-            return render_template("register.html", error="সব তথ্য দিন", zones=zones)
-        if User.query.filter(
-            (User.username == username) | (User.email == email)
-        ).first():
-            return render_template(
-                "register.html", error="ইউজারনেম বা ইমেইল আগে থেকেই আছে", zones=zones
-            )
-        user = User(
-            username=username,
-            email=email,
-            password=generate_password_hash(password),
-            role="user",
-            zone_id=int(zone_id),
-            ward=int(ward),
-            is_active=False,
-        )
-        db.session.add(user)
-        db.session.commit()
-        return render_template(
-            "register.html",
-            success="রেজিস্ট্রেশন সফল! এডমিন অনুমোদনের পর লগইন করতে পারবেন।",
-            zones=zones,
-        )
-    return render_template("register.html", zones=zones)
-
-
 # --- Admin: Approve users ---
-@app.route("/admin/users")
+
+# --- ADMIN: Approve users, manage zones ---
+@app.route("/admin/users", methods=["GET", "POST"])
 @login_required
 def admin_users():
+    """Admin page to approve users and manage zones."""
     if current_user.role != "admin":
         return "Unauthorized", 403
-    users = User.query.all()
-    return render_template("admin_users.html", users=users)
+    if request.method == "POST":
+        # Approve or delete user
+        if "approve" in request.form:
+            user_id = int(request.form["approve"])
+            user = User.query.get(user_id)
+            if user:
+                user.is_active = True
+                db.session.commit()
+        elif "delete" in request.form:
+            user_id = int(request.form["delete"])
+            user = User.query.get(user_id)
+            if user:
+                db.session.delete(user)
+                db.session.commit()
+        elif "add_zone" in request.form:
+            zone_name = request.form.get("zone_name")
+            if zone_name and not Zone.query.filter_by(name=zone_name).first():
+                db.session.add(Zone(name=zone_name))
+                db.session.commit()
+        elif "delete_zone" in request.form:
+            zone_id = int(request.form["delete_zone"])
+            zone = Zone.query.get(zone_id)
+            if zone:
+                db.session.delete(zone)
+                db.session.commit()
+    users = User.query.order_by(User.id.desc()).all()
+    zones = Zone.query.order_by(Zone.name).all()
+    return render_template("admin_users.html", users=users, zones=zones)
 
 
 @app.route("/admin/approve_user/<int:user_id>", methods=["POST"])
 @login_required
 def approve_user(user_id):
+    """Admin endpoint to approve a user (AJAX or form POST)."""
     if current_user.role != "admin":
         return "Unauthorized", 403
     user = User.query.get_or_404(user_id)
     user.is_active = True
     db.session.commit()
     return "approved"
-    ward = db.Column(db.Integer, nullable=True)
-    reports = db.relationship("Report", backref="user", lazy=True)
-    edits = db.relationship("ReportEdit", backref="editor", lazy=True)
 
 
 class Report(db.Model):
@@ -448,20 +406,27 @@ def load_user(user_id):
     return None
 
 
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    """
+    User login page. Only active (admin-approved) users can log in.
+    Redirects admin to master report, users to form.
+    """
     if request.method == "POST":
-        email = request.form["email"]
-        password = request.form["password"]
+        email = request.form.get("email")
+        password = request.form.get("password")
         user = User.query.filter_by(email=email).first()
         if user and check_password_hash(user.password, password):
+            if not user.is_active:
+                return render_template("login.html", error="এডমিন অনুমোদন বাকি")
             login_user(user)
             if user.role == "admin":
                 return redirect(url_for("master_report"))
             else:
                 return redirect(url_for("form"))
         else:
-            return render_template("login.html", error="Invalid credentials")
+            return render_template("login.html", error="ভুল ইমেইল বা পাসওয়ার্ড")
     return render_template("login.html")
 
 
@@ -484,130 +449,113 @@ def log_report_edit(report_id, editor_id, changes, comment=None):
 from sqlalchemy.orm import joinedload
 
 
+
 @app.route("/form", methods=["GET", "POST"])
 @login_required
 def form():
-    # Determine if admin is editing another user's report
+    """
+    Multi-section report submission and edit form.
+    Handles both new and existing reports, admin edit, audit trail, and validation.
+    """
     report_id = request.args.get("id")
     is_admin = current_user.role == "admin"
     editing = False
     report = None
     audit_trail = []
+
+    # If editing, load report and audit trail
+    if report_id:
+        report = Report.query.options(db.joinedload(Report.header)).get(report_id)
+        if report:
+            editing = True
+            audit_trail = ReportEdit.query.filter_by(report_id=report.id).order_by(ReportEdit.edit_time.desc()).all()
+            # Only allow user or admin to edit
+            if not (is_admin or report.user_id == current_user.id):
+                return render_template("form.html", error="Unauthorized", report=None, audit_trail=[])
+
     if request.method == "POST":
         # --- Parse header fields ---
-        header_data = {
-            "total_teachers": request.form.get("total_teachers"),
-            "teacher_increase": request.form.get("teacher_increase"),
-            "teacher_decrease": request.form.get("teacher_decrease"),
-            "certified_teachers": request.form.get("certified_teachers"),
-            "trained_teachers": request.form.get("trained_teachers"),
-            "unit_count": request.form.get("unit_count"),
-            "teachers_taking_classes_1": request.form.get("teachers_taking_classes_1"),
-            "teachers_taking_classes_2": request.form.get("teachers_taking_classes_2"),
-            "units_with_teachers": request.form.get("units_with_teachers"),
-        }
+        header_data = {k: request.form.get(k) for k in [
+            "total_teachers", "teacher_increase", "teacher_decrease", "certified_teachers",
+            "trained_teachers", "unit_count", "teachers_taking_classes_1", "teachers_taking_classes_2", "units_with_teachers"
+        ]}
+
         # --- Parse classes ---
-        classes = []
-        i = 0
+        classes, i = [], 0
         while True:
             dept_type = request.form.get(f"class_dept_type_{i}")
             if not dept_type:
                 break
-            classes.append(
-                {
-                    "dept_type": dept_type,
-                    "number": request.form.get(f"class_number_{i}"),
-                    "increase": request.form.get(f"class_increase_{i}"),
-                    "decrease": request.form.get(f"class_decrease_{i}"),
-                    "sessions": request.form.get(f"class_sessions_{i}"),
-                    "students": request.form.get(f"class_students_{i}"),
-                    "attendance": request.form.get(f"class_attendance_{i}"),
-                    "status_board": request.form.get(f"class_status_board_{i}"),
-                    "status_qayda": request.form.get(f"class_status_qayda_{i}"),
-                    "status_ampara": request.form.get(f"class_status_ampara_{i}"),
-                    "status_quran": request.form.get(f"class_status_quran_{i}"),
-                    "completed": request.form.get(f"class_completed_{i}"),
-                    "correctly_learned": request.form.get(
-                        f"class_correctly_learned_{i}"
-                    ),
-                }
-            )
+            classes.append({
+                "dept_type": dept_type,
+                "number": request.form.get(f"class_number_{i}"),
+                "increase": request.form.get(f"class_increase_{i}"),
+                "decrease": request.form.get(f"class_decrease_{i}"),
+                "sessions": request.form.get(f"class_sessions_{i}"),
+                "students": request.form.get(f"class_students_{i}"),
+                "attendance": request.form.get(f"class_attendance_{i}"),
+                "status_board": request.form.get(f"class_status_board_{i}"),
+                "status_qayda": request.form.get(f"class_status_qayda_{i}"),
+                "status_ampara": request.form.get(f"class_status_ampara_{i}"),
+                "status_quran": request.form.get(f"class_status_quran_{i}"),
+                "completed": request.form.get(f"class_completed_{i}"),
+                "correctly_learned": request.form.get(f"class_correctly_learned_{i}")
+            })
             i += 1
+
         # --- Parse meetings ---
-        meetings = []
-        i = 0
+        meetings, i = [], 0
         while True:
             meeting_type = request.form.get(f"meeting_type_{i}")
             if not meeting_type:
                 break
-            meetings.append(
-                {
-                    "meeting_type": meeting_type,
-                    "city_count": request.form.get(f"meeting_city_count_{i}"),
-                    "city_avg_attendance": request.form.get(
-                        f"meeting_city_avg_attendance_{i}"
-                    ),
-                    "thana_count": request.form.get(f"meeting_thana_count_{i}"),
-                    "thana_avg_attendance": request.form.get(
-                        f"meeting_thana_avg_attendance_{i}"
-                    ),
-                    "ward_count": request.form.get(f"meeting_ward_count_{i}"),
-                    "ward_avg_attendance": request.form.get(
-                        f"meeting_ward_avg_attendance_{i}"
-                    ),
-                    "comments": request.form.get(f"meeting_comments_{i}"),
-                }
-            )
+            meetings.append({
+                "meeting_type": meeting_type,
+                "city_count": request.form.get(f"meeting_city_count_{i}"),
+                "city_avg_attendance": request.form.get(f"meeting_city_avg_attendance_{i}"),
+                "thana_count": request.form.get(f"meeting_thana_count_{i}"),
+                "thana_avg_attendance": request.form.get(f"meeting_thana_avg_attendance_{i}"),
+                "ward_count": request.form.get(f"meeting_ward_count_{i}"),
+                "ward_avg_attendance": request.form.get(f"meeting_ward_avg_attendance_{i}"),
+                "comments": request.form.get(f"meeting_comments_{i}")
+            })
             i += 1
+
         # --- Parse manpower ---
-        manpower = []
-        i = 0
+        manpower, i = [], 0
         while True:
             category = request.form.get(f"manpower_category_{i}")
             if not category:
                 break
-            manpower.append(
-                {
-                    "category": category,
-                    "count": request.form.get(f"manpower_count_{i}"),
-                    "additional_count": request.form.get(
-                        f"manpower_additional_count_{i}"
-                    ),
-                }
-            )
+            manpower.append({
+                "category": category,
+                "count": request.form.get(f"manpower_count_{i}"),
+                "additional_count": request.form.get(f"manpower_additional_count_{i}")
+            })
             i += 1
+
         # --- Parse efforts ---
-        efforts = []
-        i = 0
+        efforts, i = [], 0
         while True:
             category = request.form.get(f"effort_category_{i}")
             if not category:
                 break
-            efforts.append(
-                {
-                    "category": category,
-                    "teaching_count": request.form.get(f"effort_teaching_count_{i}"),
-                    "taught_count": request.form.get(f"effort_taught_count_{i}"),
-                }
-            )
+            efforts.append({
+                "category": category,
+                "teaching_count": request.form.get(f"effort_teaching_count_{i}"),
+                "taught_count": request.form.get(f"effort_taught_count_{i}")
+            })
             i += 1
+
         # Validate required header fields
         missing = [k for k, v in header_data.items() if v is None or v == ""]
         if missing:
-            return render_template(
-                "form.html",
-                error=f"Missing fields: {', '.join(missing)}",
-                report=report,
-                audit_trail=audit_trail,
-            )
+            return render_template("form.html", error=f"Missing fields: {', '.join(missing)}", report=report, audit_trail=audit_trail)
+
         # Save or update report
         if editing and report:
             # Save old values for audit
-            old_header = (
-                {k: getattr(report.header, k) for k in header_data}
-                if hasattr(report, "header") and report.header
-                else {}
-            )
+            old_header = {k: getattr(report.header, k) for k in header_data} if hasattr(report, "header") and report.header else {}
             # Update report fields
             report.month = request.form.get("month")
             report.year = request.form.get("year")
@@ -637,31 +585,22 @@ def form():
                 db.session.add(ReportIndividualEffort(report_id=report.id, **ef))
             db.session.commit()
             # Log audit
-            log_report_edit(
-                report.id,
-                current_user.id,
-                {
-                    "old_header": old_header,
-                    "new_header": header_data,
-                    "classes": classes,
-                    "meetings": meetings,
-                    "manpower": manpower,
-                    "efforts": efforts,
-                },
-            )
-            return render_template(
-                "form.html",
-                success="Report updated.",
-                report=report,
-                audit_trail=audit_trail,
-            )
+            log_report_edit(report.id, current_user.id, {
+                "old_header": old_header,
+                "new_header": header_data,
+                "classes": classes,
+                "meetings": meetings,
+                "manpower": manpower,
+                "efforts": efforts,
+            })
+            return render_template("form.html", success="Report updated.", report=report, audit_trail=audit_trail)
         else:
             # New report
             report = Report(
                 user_id=current_user.id,
                 month=request.form.get("month"),
                 year=request.form.get("year"),
-                responsible_name=request.form.get("responsible_name"),
+                responsible_name=request.form.get("responsible_name")
             )
             db.session.add(report)
             db.session.commit()
@@ -676,66 +615,64 @@ def form():
             for ef in efforts:
                 db.session.add(ReportIndividualEffort(report_id=report.id, **ef))
             db.session.commit()
-            log_report_edit(
-                report.id,
-                current_user.id,
-                {
-                    "new_header": header_data,
-                    "classes": classes,
-                    "meetings": meetings,
-                    "manpower": manpower,
-                    "efforts": efforts,
-                },
-            )
-            db.session.add(report)
-            db.session.commit()
-            header = ReportHeader(report_id=report.id, **data["header"])
-            db.session.add(header)
-            db.session.commit()
-            log_report_edit(report.id, current_user.id, {"new": data["header"]})
-            return render_template(
-                "form.html",
-                success="Report submitted.",
-                report=report,
-                audit_trail=audit_trail,
-            )
+            log_report_edit(report.id, current_user.id, {
+                "new_header": header_data,
+                "classes": classes,
+                "meetings": meetings,
+                "manpower": manpower,
+                "efforts": efforts,
+            })
+            return render_template("form.html", success="Report submitted.", report=report, audit_trail=audit_trail)
+
     # GET: render form, prefill if editing
     return render_template("form.html", report=report, audit_trail=audit_trail)
+
 
 
 @app.route("/master_report")
 @login_required
 def master_report():
+    """
+    Admin-only: Aggregate all report headers for master summary view.
+    Returns totals for each header field across all reports.
+    """
     if current_user.role != "admin":
         return render_template("report.html", error="Unauthorized access."), 403
-    reports = Report.query.all()
-    df = pd.DataFrame([{"category": r.category, "value": r.value} for r in reports])
-    if df.empty:
-        report_data = []
-    else:
-        agg = df.groupby("category").sum().reset_index()
-        report_data = agg.rename(columns={"value": "total_value"}).to_dict(
-            orient="records"
-        )
+    reports = Report.query.options(db.joinedload(Report.header)).all()
+    header_fields = [
+        "total_teachers", "teacher_increase", "teacher_decrease", "certified_teachers",
+        "trained_teachers", "unit_count", "teachers_taking_classes_1", "teachers_taking_classes_2", "units_with_teachers"
+    ]
+    agg = {f: 0 for f in header_fields}
+    for r in reports:
+        if r.header:
+            for f in header_fields:
+                agg[f] += getattr(r.header, f, 0) or 0
+    report_data = [{"category": k, "total_value": v} for k, v in agg.items()]
     return render_template("report.html", report_data=report_data)
+
 
 
 @app.route("/export/<format>")
 @login_required
 def export(format):
+    """
+    Admin-only: Export master report as Excel or PDF.
+    Aggregates all report headers and outputs in requested format.
+    """
     if current_user.role != "admin":
         return "Unauthorized", 403
-    reports = Report.query.all()
-    df = pd.DataFrame([{"category": r.category, "value": r.value} for r in reports])
-    if df.empty:
-        df = pd.DataFrame(columns=["category", "total_value"])
-    else:
-        df = (
-            df.groupby("category")
-            .sum()
-            .reset_index()
-            .rename(columns={"value": "total_value"})
-        )
+    reports = Report.query.options(db.joinedload(Report.header)).all()
+    header_fields = [
+        "total_teachers", "teacher_increase", "teacher_decrease", "certified_teachers",
+        "trained_teachers", "unit_count", "teachers_taking_classes_1", "teachers_taking_classes_2", "units_with_teachers"
+    ]
+    agg = {f: 0 for f in header_fields}
+    for r in reports:
+        if r.header:
+            for f in header_fields:
+                agg[f] += getattr(r.header, f, 0) or 0
+    df = pd.DataFrame([{"category": k, "total_value": v} for k, v in agg.items()])
     if format == "excel":
         output = BytesIO()
         with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
@@ -777,8 +714,12 @@ def export(format):
         return "Invalid format", 400
 
 
+
 @app.route("/")
 def index():
+    """
+    Home route: Redirects authenticated users to their dashboard, else to login.
+    """
     if current_user.is_authenticated:
         if current_user.role == "admin":
             return redirect(url_for("master_report"))
