@@ -199,3 +199,4 @@ coverage/
 *.cert
 /schema.sql
 /project_idea_extras
+/.flake8

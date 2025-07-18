@@ -40,6 +40,9 @@ def autosave():
         return jsonify({"status": "no-id"})
 
 
+from werkzeug.security import generate_password_hash, check_password_hash
+
+
 # --- ADMIN: View, edit, unlock, comment, audit trail ---
 @app.route("/admin/reports")
 @login_required
@@ -61,6 +64,15 @@ def admin_edit_report(report_id):
         .order_by(ReportEdit.edit_time.desc())
         .all()
     )
+
+
+class Zone(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+
+    def __repr__(self):
+        return f"<Zone {self.name}>"
+
     if request.method == "POST":
         # Unlock/lock
         if "unlock" in request.form:
@@ -256,7 +268,70 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
     role = db.Column(db.String(10), nullable=False)  # user or admin
-    zone = db.Column(db.String(50), nullable=True)
+    is_active = db.Column(db.Boolean, default=False)  # Must be approved by admin
+    zone_id = db.Column(db.Integer, db.ForeignKey("zone.id"), nullable=False)
+    zone = db.relationship("Zone", backref="users")
+
+
+# --- Registration route ---
+from werkzeug.security import generate_password_hash
+
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    zones = Zone.query.order_by(Zone.name).all()
+    if request.method == "POST":
+        username = request.form.get("username")
+        email = request.form.get("email")
+        password = request.form.get("password")
+        zone_id = request.form.get("zone")
+        ward = request.form.get("ward")
+        if not (username and email and password and zone_id and ward):
+            return render_template("register.html", error="সব তথ্য দিন", zones=zones)
+        if User.query.filter(
+            (User.username == username) | (User.email == email)
+        ).first():
+            return render_template(
+                "register.html", error="ইউজারনেম বা ইমেইল আগে থেকেই আছে", zones=zones
+            )
+        user = User(
+            username=username,
+            email=email,
+            password=generate_password_hash(password),
+            role="user",
+            zone_id=int(zone_id),
+            ward=int(ward),
+            is_active=False,
+        )
+        db.session.add(user)
+        db.session.commit()
+        return render_template(
+            "register.html",
+            success="রেজিস্ট্রেশন সফল! এডমিন অনুমোদনের পর লগইন করতে পারবেন।",
+            zones=zones,
+        )
+    return render_template("register.html", zones=zones)
+
+
+# --- Admin: Approve users ---
+@app.route("/admin/users")
+@login_required
+def admin_users():
+    if current_user.role != "admin":
+        return "Unauthorized", 403
+    users = User.query.all()
+    return render_template("admin_users.html", users=users)
+
+
+@app.route("/admin/approve_user/<int:user_id>", methods=["POST"])
+@login_required
+def approve_user(user_id):
+    if current_user.role != "admin":
+        return "Unauthorized", 403
+    user = User.query.get_or_404(user_id)
+    user.is_active = True
+    db.session.commit()
+    return "approved"
     ward = db.Column(db.Integer, nullable=True)
     reports = db.relationship("Report", backref="user", lazy=True)
     edits = db.relationship("ReportEdit", backref="editor", lazy=True)
@@ -367,7 +442,10 @@ class ReportEdit(db.Model):
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    user = User.query.get(int(user_id))
+    if user and user.is_active:
+        return user
+    return None
 
 
 @app.route("/login", methods=["GET", "POST"])
