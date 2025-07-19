@@ -18,37 +18,43 @@ def init_db():
         default_zone = Zone(name="Default Zone")
         db.session.add(default_zone)
         db.session.commit()
-        # Add sample users, all assigned to the default zone and ward 1
+        # Add sample users, all assigned to the default zone
         users = [
             User(
-                username="user1",
+                id=98,
+                name="User One",
+                mobile_number="01711111111",
                 email="user1@example.com",
                 password=generate_password_hash("password"),
                 role="user",
                 zone_id=default_zone.id,
-                ward=1,
                 is_active=True,
             ),
             User(
-                username="user2",
+                id=100,
+                name="User Two",
+                mobile_number="01722222222",
                 email="user2@example.com",
                 password=generate_password_hash("password"),
                 role="user",
                 zone_id=default_zone.id,
-                ward=2,
                 is_active=True,
             ),
             User(
-                username="admin",
+                id=99,
+                name="Admin",
+                mobile_number="01733333333",
                 email="admin@example.com",
                 password=generate_password_hash("password"),
                 role="admin",
                 zone_id=default_zone.id,
-                ward=99,
                 is_active=True,
             ),
         ]
         db.session.bulk_save_objects(users)
+        db.session.commit()
+        # Set sqlite_sequence for user table to 102 so next id is 103
+        db.session.execute("UPDATE sqlite_sequence SET seq = 102 WHERE name = 'user';")
         db.session.commit()
         print("Database initialized with sample users and a default zone.")
 

@@ -14,9 +14,9 @@
         <div>
           <label for="zone" class="block font-semibold mb-1">জোন</label>
           <select id="zone" name="zone" required class="w-full border border-gray-300 rounded px-3 py-2 input-focus bg-white/80 text-base">
-            <option value="">-- জোন নির্বাচন করুন --</option>
+            <option value="">-- জন নির্বাচন করুন --</option>
             {% for zone in zones %}
-              <option value="{{ zone.name }}">{{ zone.name }}</option>
+              <option value="{{ zone.id }}">{{ zone.name }}</option>
             {% endfor %}
           </select>
         </div>
@@ -39,17 +39,26 @@
         {% endif %}
         <form method="post" class="space-y-6">
           <div>
-            <label for="username" class="block font-semibold mb-1"
-              >ইউজারনেম</label
-            >
+            <label for="name" class="block font-semibold mb-1">নাম</label>
             <input
               type="text"
-              id="username"
-              name="username"
+              id="name"
+              name="name"
               required
               class="w-full border border-gray-300 rounded px-3 py-2 input-focus bg-white/80 text-base"
             />
           </div>
+          <div>
+            <label for="mobile_number" class="block font-semibold mb-1">মোবাইল নম্বর</label>
+            <input
+              type="text"
+              id="mobile_number"
+              name="mobile_number"
+              required
+              class="w-full border border-gray-300 rounded px-3 py-2 input-focus bg-white/80 text-base"
+            />
+          </div>
+          <!-- Username field removed as per new schema. -->
           <div>
             <label for="email" class="block font-semibold mb-1">ইমেইল</label>
             <input
@@ -73,25 +82,7 @@
             />
           </div>
           <div>
-            <label for="zone" class="block font-semibold mb-1">জোন</label>
-            <input
-              type="text"
-              id="zone"
-              name="zone"
-              required
-              class="w-full border border-gray-300 rounded px-3 py-2 input-focus bg-white/80 text-base"
-            />
-          </div>
-          <div>
-            <label for="ward" class="block font-semibold mb-1">ওয়ার্ড</label>
-            <input
-              type="number"
-              id="ward"
-              name="ward"
-              required
-              class="w-full border border-gray-300 rounded px-3 py-2 input-focus bg-white/80 text-base"
-            />
-          </div>
+          <!-- Zone and ward fields removed from registration. Ward will be collected in report form only. -->
           <button
             type="submit"
             class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 btn-animate text-white font-bold py-2 px-4 rounded-lg shadow-lg text-base tracking-wide"

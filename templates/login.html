@@ -13,20 +13,16 @@
   <body class="bg-gradient-to-br from-cyan-100 via-blue-50 to-white min-h-screen flex items-center justify-center">
     <div class="w-full max-w-md mx-auto p-2 sm:p-4 fade-in">
       <div class="bg-white/90 rounded-2xl shadow-2xl p-4 sm:p-8 card-animate backdrop-blur-md border border-blue-100">
-          class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"
-        <h3 class="text-2xl sm:text-3xl font-extrabold mb-8 text-center text-cyan-700 tracking-tight drop-shadow">লগইন করুন</h3>
+        {% if error %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           {{ error }}
         </div>
         {% endif %}
+        <h3 class="text-2xl sm:text-3xl font-extrabold mb-8 text-center text-cyan-700 tracking-tight drop-shadow">লগইন করুন</h3>
         <form method="post" action="/login">
           <div class="mb-4">
-            <label for="email" class="block font-semibold mb-1">ইমেইল</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-            <label for="email" class="block font-semibold mb-1">ইমেইল</label>
-            <input type="email" id="email" name="email" required autofocus class="w-full border border-gray-300 rounded px-3 py-2 input-focus bg-white/80 text-base" />
+            <label for="email" class="block font-semibold mb-1">ইমেইল / মোবাইল / ইউজার আইডি</label>
+            <input type="text" id="email" name="email" required autofocus placeholder="ইমেইল, ১১-সংখ্যার মোবাইল, বা ইউজার আইডি" class="w-full border border-gray-300 rounded px-3 py-2 input-focus bg-white/80 text-base" />
           </div>
           <div>
             <label for="password" class="block font-semibold mb-1">পাসওয়ার্ড</label>
@@ -34,10 +30,7 @@
           </div>
           <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 btn-animate text-white font-bold py-2 px-4 rounded-lg shadow-lg text-base tracking-wide">লগইন</button>
         </form>
-      {% endif %}
+      </div>
     </div>
   </body>
 </html>
-        <a href="/logout" class="text-cyan-700 hover:underline font-semibold transition-colors duration-200">লগআউট</a>
-      </div>
-            />

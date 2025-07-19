@@ -150,14 +150,14 @@ class User(UserMixin, db.Model):
     """User model for authentication and authorization."""
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=True)
+    name = db.Column(db.String(120), nullable=False)
+    mobile_number = db.Column(db.String(11), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
     role = db.Column(db.String(10), nullable=False)  # user or admin
     is_active = db.Column(db.Boolean, default=False)  # Must be approved by admin
     zone_id = db.Column(db.Integer, db.ForeignKey("zone.id"), nullable=False)
     zone = db.relationship("Zone", backref="users")
-    ward = db.Column(db.Integer, nullable=False)
 
 
 # --- Logout route ---
@@ -341,9 +341,23 @@ def login():
     Redirects admin to master report, users to form.
     """
     if request.method == "POST":
-        email = request.form.get("email")
+        login_input = request.form.get("email")  # reuse the same field for all
         password = request.form.get("password")
-        user = User.query.filter_by(email=email).first()
+        user = None
+        # Try email
+        if login_input and "@" in login_input:
+            user = User.query.filter_by(email=login_input).first()
+        # Try mobile number (11 digits, starts with 01)
+        elif (
+            login_input
+            and login_input.isdigit()
+            and len(login_input) == 11
+            and login_input.startswith("01")
+        ):
+            user = User.query.filter_by(mobile_number=login_input).first()
+        # Try user id (must be int and at least 3 digits)
+        elif login_input and login_input.isdigit() and len(login_input) >= 3:
+            user = User.query.filter_by(id=int(login_input)).first()
         if user and check_password_hash(user.password, password):
             if not user.is_active:
                 return render_template("login.html", error="এডমিন অনুমোদন বাকি")
@@ -353,7 +367,9 @@ def login():
             else:
                 return redirect(url_for("form"))
         else:
-            return render_template("login.html", error="ভুল ইমেইল বা পাসওয়ার্ড")
+            return render_template(
+                "login.html", error="ভুল ইমেইল, মোবাইল, আইডি বা পাসওয়ার্ড"
+            )
     return render_template("login.html")
 
 

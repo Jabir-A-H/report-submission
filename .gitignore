@@ -200,3 +200,4 @@ coverage/
 /schema.sql
 /project_idea_extras
 /.flake8
+/TODO.md

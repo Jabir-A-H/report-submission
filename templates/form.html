@@ -151,6 +151,11 @@
                   <!-- Add new row button/logic can be added with JS -->
                 </tbody>
               </table>
+            <!-- Add ward field to report header section -->
+            <div class="mb-4">
+              <label for="header_ward" class="block font-semibold mb-1">ওয়ার্ড নম্বর</label>
+              <input type="number" id="header_ward" name="header_ward" value="{{ report.header.ward if report and report.header else '' }}" required class="w-32 border border-gray-300 rounded px-3 py-2" />
+            </div>
             </div>
           </div>
 

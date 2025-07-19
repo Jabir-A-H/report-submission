@@ -19,14 +19,14 @@ classDiagram
         string name
     }
     class User {
-        int id
-        string username
-        string email
-        string password
-        string role
-        boolean is_active
+        int id // 3-digit autoincrement
+        string name // not null
+        string mobile_number // unique, not null, 11 digits, starts with 01
+        string email // unique, not null
+        string password // not null
+        string role // user/admin, not null
+        boolean is_active // default False
         int zone_id
-        int ward
     }
     class Report {
         int id
@@ -41,6 +41,7 @@ classDiagram
     class ReportHeader {
         int id
         int report_id
+        int ward
         int total_teachers
         int teacher_increase
         int teacher_decrease
@@ -125,14 +126,14 @@ erDiagram
         string name
     }
     USER {
-        int id PK
-        string username
-        string email
-        string password
-        string role
-        boolean is_active
+        int id PK // 3-digit autoincrement
+        string name // not null
+        string mobile_number // unique, not null, 11 digits, starts with 01
+        string email // unique, not null
+        string password // not null
+        string role // user/admin, not null
+        boolean is_active // default False
         int zone_id FK
-        int ward
     }
     REPORT {
         int id PK
@@ -147,6 +148,7 @@ erDiagram
     REPORTHEADER {
         int id PK
         int report_id FK
+        int ward
         int total_teachers
         int teacher_increase
         int teacher_decrease
@@ -260,14 +262,14 @@ flowchart TD
 
 ## User
 
-- id (PK): Integer
-- username: String (unique, nullable)
+- id (PK): Integer (3-digit autoincrement)
+- name: String (not null)
+- mobile_number: String (unique, not null, 11 digits, starts with 01)
 - email: String (unique, not null)
 - password: String (not null)
 - role: String (user/admin, not null)
 - is_active: Boolean (default False)
 - zone_id (FK): Integer → Zone.id
-- ward: Integer (not null)
 - reports: Relationship to Report (one-to-many, via user_id)
 
 ## Report
@@ -291,6 +293,7 @@ flowchart TD
 
 - id (PK): Integer
 - report_id (FK): Integer → Report.id
+- ward: Integer (not null)
 - total_teachers: Integer
 - teacher_increase: Integer
 - teacher_decrease: Integer

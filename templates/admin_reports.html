@@ -18,6 +18,8 @@
             <thead class="bg-gray-100">
               <tr>
                 <th class="px-4 py-2 border-b">ইউজার</th>
+                <th class="px-4 py-2 border-b">জোন</th>
+                <th class="px-4 py-2 border-b">ওয়ার্ড</th>
                 <th class="px-4 py-2 border-b">মাস</th>
                 <th class="px-4 py-2 border-b">বছর</th>
                 <th class="px-4 py-2 border-b">দায়িত্বপ্রাপ্ত</th>
@@ -28,9 +30,9 @@
             <tbody>
               {% for r in reports %}
               <tr class="hover:bg-gray-50">
-                <td class="px-4 py-2 border-b">
-                  {{ r.user.username or r.user.email }}
-                </td>
+                <td class="px-4 py-2 border-b">{{ r.user.email }}</td>
+                <td class="px-4 py-2 border-b">{{ r.user.zone.name }}</td>
+                <!-- Ward removed from user -->
                 <td class="px-4 py-2 border-b">{{ r.month }}</td>
                 <td class="px-4 py-2 border-b">{{ r.year }}</td>
                 <td class="px-4 py-2 border-b">{{ r.responsible_name }}</td>

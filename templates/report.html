@@ -41,45 +41,59 @@
         </div>
         <div>
           <label class="block font-semibold mb-1">মাস</label>
+          <input type="text" name="month" value="{{ request.args.get('month', '') }}" class="border border-gray-300 rounded px-3 py-2 w-28" />
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">জোন</label>
+          <select name="zone_id" class="border border-gray-300 rounded px-3 py-2">
+            <option value="">সব</option>
+            {% for zone in zones %}
+              <option value="{{ zone.id }}" {% if request.args.get('zone_id') == zone.id|string %}selected{% endif %}>{{ zone.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">ওয়ার্ড</label>
+          <input type="number" name="ward" value="{{ request.args.get('ward', '') }}" class="border border-gray-300 rounded px-3 py-2 w-20" />
+        </div>
         <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full sm:w-auto">ফিল্টার</button>
         <button type="button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full sm:w-auto mt-2 sm:mt-0" onclick="downloadReport('pdf')">PDF ডাউনলোড</button>
         <button type="button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full sm:w-auto mt-2 sm:mt-0" onclick="downloadReport('excel')">Excel ডাউনলোড</button>
-          <label class="block font-semibold mb-1">পিরিয়ড</label>
-          <select name="period" class="border border-gray-300 rounded px-3 py-2">
+      </form>
       <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white/80">
         <table class="min-w-full border-separate border-spacing-y-1 border-0 rounded shadow text-xs sm:text-sm">
           <thead class="bg-cyan-50">
-          </select>
-              <th class="px-4 py-2 border-b">ক্ষেত্র</th>
-              <th class="px-4 py-2 border-b">মোট মান</th>
-            </tr>
-        <button type="button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" onclick="downloadReport('excel')">Excel ডাউনলোড</button>
-      </form>
-      <div class="overflow-x-auto">
-              <tr class="table-row-animate">
-          <thead class="bg-gray-100">
             <tr>
-              <th class="px-4 py-2 border-b">ক্ষেত্র</th>
-              <th class="px-4 py-2 border-b">মোট মান</th>
+              <th class="px-4 py-2 border-b">ইউজার</th>
+              <th class="px-4 py-2 border-b">জোন</th>
+              <th class="px-4 py-2 border-b">ওয়ার্ড</th>
+              <th class="px-4 py-2 border-b">মাস</th>
+              <th class="px-4 py-2 border-b">বছর</th>
+              <th class="px-4 py-2 border-b">দায়িত্বপ্রাপ্ত</th>
+              <th class="px-4 py-2 border-b">লকড?</th>
             </tr>
           </thead>
           <tbody>
-            {% for row in report_data %}
+            {% for r in reports %}
             <tr class="hover:bg-gray-50">
-              <td class="px-4 py-2 border-b">{{ row['category'] }}</td>
-              <td class="px-4 py-2 border-b">{{ row['total_value'] }}</td>
+              <td class="px-4 py-2 border-b">{{ r.user.email }}</td>
+              <td class="px-4 py-2 border-b">{{ r.user.zone.name }}</td>
+              <!-- Ward removed from user -->
+              <td class="px-4 py-2 border-b">{{ r.month }}</td>
+              <td class="px-4 py-2 border-b">{{ r.year }}</td>
+              <td class="px-4 py-2 border-b">{{ r.responsible_name }}</td>
+              <td class="px-4 py-2 border-b">{{ 'হ্যাঁ' if r.edit_locked else 'না' }}</td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
+      <div class="text-center mt-4">
+        <a href="/logout" class="text-blue-600 hover:underline">লগআউট</a>
+      </div>
     </div>
-    <div class="text-center mt-4">
-      <a href="/logout" class="text-blue-600 hover:underline">লগআউট</a>
-    </div>
-  </div>
-  <script src="/static/scripts.js"></script>
-</body>
+    <script src="/static/scripts.js"></script>
+  </body>
 </html>
     </div>
     <script src="/static/scripts.js"></script>

@@ -39,10 +39,10 @@
             <tbody>
               {% for user in users %}
               <tr class="table-row-animate">
-                <td class="px-4 py-2 border-b">{{ user.username }}</td>
+                <!-- Username removed -->
                 <td class="px-4 py-2 border-b">{{ user.email }}</td>
-                <td class="px-4 py-2 border-b">{{ user.zone }}</td>
-                <td class="px-4 py-2 border-b">{{ user.ward }}</td>
+                <td class="px-4 py-2 border-b">{{ user.zone.name }}</td>
+                <!-- Ward removed from user -->
                 <td class="px-4 py-2 border-b">{{ user.role }}</td>
                 <td class="px-4 py-2 border-b">
                   {% if user.is_active %}
