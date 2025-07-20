@@ -1,9 +1,13 @@
 no, the ui is not correct as well, i now want only an multi step wizard for report submission. i dont need users to submit report in one page. Right now i am not focusing on the editing part. just the basic report database. and thats why use following names for the report parts-
 
+Full workflow plan
+
 Users will first set a month that they are working on after loging in, they can not do anything before they set the month and year. After this, they can continue to fill out the miultipage form.
-ReportSummary
+
+Database tables:
+ReportHeader
 ReportCourse
-ReportOrg
+ReportOrganizational
 ReportPersonal
 ReportMeeting
 ReportExtra
@@ -11,7 +15,7 @@ ReportComment
 
 
 here following are the table headers that i want for each table-
-ReportSummary
+ReportHeader
     Responsible Name (string)
     Thana (string)
     Ward (string)
@@ -26,7 +30,7 @@ ReportSummary
     Units With Muallima (integer)
 
 ReportCourse
-    Category (string, admin can change it)
+    Category (string, admin can add remove from the predefined list)
     Number (integer only)
     Increase (integer)
     Decrease (integer)
@@ -40,21 +44,23 @@ ReportCourse
     Completed (integer)
     Correctly Learned (integer)
 
-ReportOrg
-    Category (string, admin can change it)
-    Number (integer only)
+ReportOrganizational
+    Category (string, admin can add remove from the predefined list)
+    Number (integer)
     Increase (integer)
     Amount (not necesary for all entries)
     Comments
 
 ReportPersonal
-    Category (string, admin can change it)
+    Category (string, admin can add remove from the predefined list)
     Rukon (integer)
     Kormi (integer)
     ShokrioShohojogi (integer)
 
 ReportMeeting
-    Category (string, admin can change it)
+    Category (string, admin can add remove from the predefined list)
+    City Count (integer, only admin can change this value in the main aggregated file)
+    City Avg Attendance (integer, only admin can change this value in the main aggregated file)
     Thana Count (integer)
     Thana Avg Attendance (integer)
     Ward Count (integer)
@@ -62,86 +68,73 @@ ReportMeeting
     Comments (string)
 
 ReportExtra
-    Category (string, admin can change it)
-        Moktob Count
-        Moktob Increase
-        Moktob Local
-        Moktob City
-        Sofor City
-        Sofor Thana Committee
-        Sofor Thana Representative
-        Sofor Ward Representative
+    Category (string, admin can add remove from the predefined list)
     Number (integer)
 
 ReportComment
     Report Month
     Monthly Comment
+    Tri Monthly Comment
+    Six Monthly Comment
+    Yearly Comment
 
 
 
+Entries predefined in the categories field of each table (can be edited by admin)
+ReportCourse
+    Category
+        বিশিষ্টদের
+        সাধারণদের
+        কর্মীদের
+        ইউনিট সভানেত্রী
+        অগ্রসরদের
+        রুকনদের অনুশীলনী ক্লাস
+        তারবিয়াত বৈঠক
+        পারিবারিক ই তা. কুরআন
+        শিশু- তা’লিমুল কুরআন
+        নিরক্ষর- তা’লিমুস সলাত
 
+ReportOrganizational
+    Category
+        দাওয়াত দান
+        কতজন ইসলামের আদর্শ মেনে  চলার চেষ্টা করছেন
+        সহযোগী হয়েছে
+        সম্মতি দিয়েছেন
+        সক্রিয় সহযোগী
+        কর্মী
+        রুকন
+        দাওয়াতী ইউনিট
+        ইউনিট
+        সূধী
+        এককালীন
+        জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)
+        বই বিলি
+        বই বিক্রি
 
+ReportPersonal
+    Category
+        কতজন শিখাচ্ছেন
+        কতজনকে শিখাচ্ছেন
+        কতজন ওয়ালামাকে দাওয়াত দিয়েছেন
+        কতজন সহযোগীকে দাওয়াত দিয়েছেন
+        কতজন সক্রিয় সহযোগীকে দাওয়াত দিয়েছেন
+        কর্মী হয়েছেন কতজন
+        রুকন হয়েছেন কতজন
 
+ReportMeeting
+    Category
+        কমিটি বৈঠক হয়েছে
+        মুয়াল্লিমাদের নিয়ে বৈঠক
+        CM/MO (only admin can change this value in the main aggregated file)
 
+ReportExtra
+    Category
+        Moktob Count
+        Moktob Increase
+        Moktob Local
+        Moktob City (only admin can change this value in the main aggregated file)
+        Sofor City
+        Sofor Thana Committee
+        Sofor Thana Representative
+        Sofor Ward Representative
 
-class ReportHeader(db.Model):
-    """Header section of a report, stores summary Muallima/unit stats."""
-
-    id = db.Column(db.Integer, primary_key=True)
-    report_id = db.Column(db.Integer, db.ForeignKey("report.id"), nullable=False)
-    total_Muallima = db.Column(db.Integer, nullable=False)
-    Muallima_increase = db.Column(db.Integer, nullable=False)
-    Muallima_decrease = db.Column(db.Integer, nullable=False)
-    certified_Muallima = db.Column(db.Integer, nullable=False)
-    trained_Muallima = db.Column(db.Integer, nullable=False)
-    unit_count = db.Column(db.Integer, nullable=False)
-    Muallima_taking_classes_1 = db.Column(db.Integer, nullable=False)
-    Muallima_taking_classes_2 = db.Column(db.Integer, nullable=False)
-    units_with_Muallima = db.Column(db.Integer, nullable=False)
-
-
-class ReportClass(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    report_id = db.Column(db.Integer, db.ForeignKey("report.id"), nullable=False)
-    dept_type = db.Column(db.String(50), nullable=False)
-    number = db.Column(db.Integer, nullable=False)
-    increase = db.Column(db.Integer, nullable=False)
-    decrease = db.Column(db.Integer, nullable=False)
-    sessions = db.Column(db.Integer, nullable=False)
-    students = db.Column(db.Integer, nullable=False)
-    attendance = db.Column(db.Integer, nullable=False)
-    status_board = db.Column(db.Integer, nullable=False)
-    status_qayda = db.Column(db.Integer, nullable=False)
-    status_ampara = db.Column(db.Integer, nullable=False)
-    status_quran = db.Column(db.Integer, nullable=False)
-    completed = db.Column(db.Integer, nullable=False)
-    correctly_learned = db.Column(db.Integer, nullable=False)
-
-
-class ReportMeeting(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    report_id = db.Column(db.Integer, db.ForeignKey("report.id"), nullable=False)
-    meeting_type = db.Column(db.String(50), nullable=False)
-    city_count = db.Column(db.Integer, nullable=False)
-    city_avg_attendance = db.Column(db.Integer, nullable=False)
-    thana_count = db.Column(db.Integer, nullable=False)
-    thana_avg_attendance = db.Column(db.Integer, nullable=False)
-    ward_count = db.Column(db.Integer, nullable=False)
-    ward_avg_attendance = db.Column(db.Integer, nullable=False)
-    comments = db.Column(db.Text, nullable=True)
-
-
-class ReportManpower(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    report_id = db.Column(db.Integer, db.ForeignKey("report.id"), nullable=False)
-    category = db.Column(db.String(50), nullable=False)
-    count = db.Column(db.Integer, nullable=False)
-    additional_count = db.Column(db.Integer, nullable=True)
-
-
-class ReportIndividualEffort(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    report_id = db.Column(db.Integer, db.ForeignKey("report.id"), nullable=False)
-    category = db.Column(db.String(50), nullable=False)
-    teaching_count = db.Column(db.Integer, nullable=False)
-    taught_count = db.Column(db.Integer, nullable=False)
