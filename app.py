@@ -3,14 +3,14 @@
 # Database models are defined with SQLAlchemy ORM.
 
 from __future__ import annotations
-
+from typing import Optional
 from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify
 import json
-from flask_login import (
+from flask_login import (  # type: ignore
     LoginManager,
     UserMixin,
-    login_user,
-    login_required,
+    login_user,  # type: ignore
+    login_required,  # type: ignore
     current_user,
     logout_user,
 )
@@ -30,135 +30,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///reports.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
-login_manager.login_view = "login"
-
-
-class Zone(db.Model):
-    """Zone model for admin-editable zone list."""
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True, nullable=False)
-
-    def __repr__(self):
-        return f"<Zone {self.name}>"
-
-
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    """User registration page. Zone list is dynamic. Admin must approve new users."""
-    zones = Zone.query.order_by(Zone.name).all()
-    if request.method == "POST":
-        name = request.form.get("name")
-        mobile_number = request.form.get("mobile_number")
-        zone_id = request.form.get("zone")
-        email = request.form.get("email")
-        password = request.form.get("password")
-
-        # Validate required fields
-        if not (email and password and zone_id and name and mobile_number):
-            return render_template("register.html", error="সব তথ্য দিন", zones=zones)
-
-        # Validate unique email
-        if User.query.filter_by(email=email).first():
-            return render_template(
-                "register.html", error="ইমেইল আগে থেকেই আছে", zones=zones
-            )
-
-        # Validate zone_id exists
-        if not Zone.query.get(zone_id):
-            return render_template("register.html", error="সঠিক জোন সিলেক্ট করুন", zones=zones)
-
-        # Create and save the user
-        try:
-            user = User(
-                name=name,
-                mobile_number=mobile_number,
-                email=email,
-                password=generate_password_hash(password),
-                role="user",
-                zone_id=int(zone_id),
-                active=False,
-            )
-            db.session.add(user)
-            db.session.commit()
-        except Exception:
-            db.session.rollback()
-            return render_template("register.html", error="ডাটাবেস ত্রুটি", zones=zones)
-
-        return render_template(
-            "register.html",
-            success="রেজিস্ট্রেশন সফল! এডমিন অনুমোদনের পর লগইন করতে পারবেন।",
-            zones=zones,
-        )
-    return render_template("register.html", zones=zones)
-
-
-# --- Auto-save endpoint for report drafts ---
-@app.route("/autosave", methods=["POST"])
-@login_required
-def autosave():
-    """Auto-save endpoint for report drafts. Only header fields are currently supported."""
-    report_id = request.form.get("id")
-    if report_id:
-        report = Report.query.get(report_id)
-        if not report or (
-            report.user_id != current_user.id and current_user.role != "admin"
-        ):
-            return jsonify({"error": "Unauthorized"}), 403
-        # Update header fields if present
-        if hasattr(report, "header") and report.header:
-            for field in [
-                "total_teachers",
-                "teacher_increase",
-                "teacher_decrease",
-                "certified_teachers",
-                "trained_teachers",
-                "unit_count",
-                "teachers_taking_classes_1",
-                "teachers_taking_classes_2",
-                "units_with_teachers",
-            ]:
-                val = request.form.get(field)
-                if val is not None:
-                    setattr(report.header, field, val)
-        report.month = request.form.get("month") or report.month
-        report.year = request.form.get("year") or report.year
-        report.responsible_name = (
-            request.form.get("responsible_name") or report.responsible_name
-        )
-        db.session.commit()
-        return jsonify({"status": "saved"})
-    else:
-        # No report ID provided
-        return jsonify({"status": "no-id"})
-
-
-# --- Admin view of all reports for review, edit, and audit ---
-@app.route("/admin/reports")
-@login_required
-def admin_reports():
-    """Admin view of all reports for review, edit, and audit."""
-    if current_user.role != "admin":
-        return redirect(url_for("form"))
-    reports = Report.query.order_by(Report.year.desc(), Report.month.desc()).all()
-    return render_template("admin_reports.html", reports=reports)
-
-
-# --- Admin can view and edit a specific report, unlock/lock, and add comments ---
-@app.route("/admin/report/<int:report_id>", methods=["GET", "POST"])
-@login_required
-def admin_edit_report(report_id: int):
-    """Admin can view and edit a specific report, unlock/lock, and add comments."""
-    if current_user.role != "admin":
-        return redirect(url_for("form"))
-    report = Report.query.get_or_404(report_id)
-    audit_trail: List["ReportEdit"] = (
-        ReportEdit.query.filter_by(report_id=report.id)
-        .order_by(ReportEdit.edit_time.desc())
-        .all()
-    )
-    # POST logic for unlock/lock/comment is handled in the form route, not here
-    return render_template("form.html", report=report, audit_trail=audit_trail)
+login_manager.login_view = "login"  # type: ignore
 
 
 # --- MODELS ---
@@ -174,8 +46,9 @@ class User(UserMixin, db.Model):
     active = db.Column(db.Boolean, default=False)  # Must be approved by admin
 
     @property
-    def is_active(self):
+    def is_active(self) -> bool:  # type: ignore
         return self.active
+
     zone_id = db.Column(db.Integer, db.ForeignKey("zone.id"), nullable=False)
     zone = db.relationship("Zone", backref="users")
 
@@ -198,96 +71,14 @@ class User(UserMixin, db.Model):
         self.active = active
 
 
-# --- Logout route ---
-@app.route("/logout")
-@login_required
-def logout():
-    """Log out the current user and redirect to login page."""
-    logout_user()
-    return redirect(url_for("login"))
-
-
-# --- Admin: Approve users, manage zones ---
-@app.route("/admin/users", methods=["GET", "POST"])
-@login_required
-def admin_users():
-    """Admin page to approve users and manage zones."""
-    if current_user.role != "admin":
-        return "Unauthorized", 403
-    if request.method == "POST":
-        # Approve or delete user
-        if "approve" in request.form:
-            user_id = int(request.form["approve"])
-            user = User.query.get(user_id)
-            if user:
-                user.is_active = True
-                db.session.commit()
-        elif "delete" in request.form:
-            user_id = int(request.form["delete"])
-            user = User.query.get(user_id)
-            if user:
-                db.session.delete(user)
-                db.session.commit()
-        elif "add_zone" in request.form:
-            zone_name = request.form.get("zone_name")
-            if zone_name and not Zone.query.filter_by(name=zone_name).first():
-                db.session.add(Zone(name=zone_name))
-                db.session.commit()
-        elif "delete_zone" in request.form:
-            zone_id = int(request.form["delete_zone"])
-            zone = Zone.query.get(zone_id)
-            if zone:
-                db.session.delete(zone)
-                db.session.commit()
-    users = User.query.order_by(User.id.desc()).all()
-    zones = Zone.query.order_by(Zone.name).all()
-    return render_template("admin_users.html", users=users, zones=zones)
-
-
-@app.route("/admin/approve_user/<int:user_id>", methods=["POST"])
-@login_required
-def approve_user(user_id: int):
-    """Admin endpoint to approve a user (AJAX or form POST)."""
-    if current_user.role != "admin":
-        return "Unauthorized", 403
-    user = User.query.get_or_404(user_id)
-    user.is_active = True
-    db.session.commit()
-    return "approved"
-
-
-class Report(db.Model):
-    """Main report model, links to all report sections and audit trail."""
+class Zone(db.Model):
+    """Zone model for admin-editable zone list."""
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    month = db.Column(db.String(20), nullable=False)
-    year = db.Column(db.Integer, nullable=False)
-    responsible_name = db.Column(db.String(120), nullable=False)
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    edit_locked = db.Column(db.Boolean, default=False)  # If True, user cannot edit
-    admin_comment = db.Column(db.Text, nullable=True)
-    header = db.relationship(
-        "ReportHeader", backref="report", uselist=False, cascade="all, delete-orphan"
-    )
-    classes = db.relationship(
-        "ReportClass", backref="report", lazy=True, cascade="all, delete-orphan"
-    )
-    meetings = db.relationship(
-        "ReportMeeting", backref="report", lazy=True, cascade="all, delete-orphan"
-    )
-    manpower = db.relationship(
-        "ReportManpower", backref="report", lazy=True, cascade="all, delete-orphan"
-    )
-    efforts = db.relationship(
-        "ReportIndividualEffort",
-        backref="report",
-        lazy=True,
-        cascade="all, delete-orphan",
-    )
-    edits = db.relationship(
-        "ReportEdit", backref="report", lazy=True, cascade="all, delete-orphan"
-    )
+    name = db.Column(db.String(100), unique=True, nullable=False)
+
+    def __repr__(self):
+        return f"<Zone {self.name}>"
 
 
 # --- ReportHeader model (missing, but required for header relationship) ---
@@ -364,9 +155,228 @@ class ReportEdit(db.Model):
     comment = db.Column(db.Text, nullable=True)
 
 
-@login_manager.user_loader
-def load_user(user_id):
-    user = User.query.get(int(user_id))
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    """User registration page. Zone list is dynamic. Admin must approve new users."""
+    zones = Zone.query.order_by(Zone.name).all()  # type: ignore
+    if request.method == "POST":
+        name = request.form.get("name")
+        mobile_number = request.form.get("mobile_number")
+        zone_id = request.form.get("zone")
+        email = request.form.get("email")
+        password = request.form.get("password")
+
+        # Validate required fields
+        if not (email and password and zone_id and name and mobile_number):
+            return render_template("register.html", error="সব তথ্য দিন", zones=zones)
+
+        # Validate unique email
+        if User.query.filter_by(email=email).first():
+            return render_template(
+                "register.html", error="ইমেইল আগে থেকেই আছে", zones=zones
+            )
+
+        # Validate zone_id exists
+        if not Zone.query.get(zone_id):
+            return render_template(
+                "register.html", error="সঠিক জোন সিলেক্ট করুন", zones=zones
+            )
+
+        # Create and save the user
+        try:
+            user = User(
+                name=name,
+                mobile_number=mobile_number,
+                email=email,
+                password=generate_password_hash(password),
+                role="user",
+                zone_id=int(zone_id),
+                active=False,
+            )
+            db.session.add(user)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            return render_template("register.html", error="ডাটাবেস ত্রুটি", zones=zones)
+
+        return render_template(
+            "register.html",
+            success="রেজিস্ট্রেশন সফল! এডমিন অনুমোদনের পর লগইন করতে পারবেন।",
+            zones=zones,
+        )
+    return render_template("register.html", zones=zones)
+
+
+# --- Auto-save endpoint for report drafts ---
+@app.route("/autosave", methods=["POST"])
+@login_required
+def autosave():
+    """Auto-save endpoint for report drafts. Only header fields are currently supported."""
+    report_id = request.form.get("id")
+    if report_id:
+        report = Report.query.get(report_id)
+        if not report or (
+            report.user_id != current_user.id and current_user.role != "admin"
+        ):
+            return jsonify({"error": "Unauthorized"}), 403
+        # Update header fields if present
+        if hasattr(report, "header") and report.header:
+            for field in [
+                "total_teachers",
+                "teacher_increase",
+                "teacher_decrease",
+                "certified_teachers",
+                "trained_teachers",
+                "unit_count",
+                "teachers_taking_classes_1",
+                "teachers_taking_classes_2",
+                "units_with_teachers",
+            ]:
+                val = request.form.get(field)
+                if val is not None:
+                    setattr(report.header, field, val)
+        report.month = request.form.get("month") or report.month
+        report.year = request.form.get("year") or report.year
+        report.responsible_name = (
+            request.form.get("responsible_name") or report.responsible_name
+        )
+        db.session.commit()
+        return jsonify({"status": "saved"})
+    else:
+        # No report ID provided
+        return jsonify({"status": "no-id"})
+
+
+# --- Admin view of all reports for review, edit, and audit ---
+@app.route("/admin/reports")
+@login_required
+def admin_reports():
+    """Admin view of all reports for review, edit, and audit."""
+    if current_user.role != "admin":
+        return redirect(url_for("form"))
+    reports = Report.query.order_by(Report.year.desc(), Report.month.desc()).all()  # type: ignore
+    return render_template("admin_reports.html", reports=reports)
+
+
+# --- Admin can view and edit a specific report, unlock/lock, and add comments ---
+@app.route("/admin/report/<int:report_id>", methods=["GET", "POST"])
+@login_required
+def admin_edit_report(report_id: int):
+    """Admin can view and edit a specific report, unlock/lock, and add comments."""
+    if current_user.role != "admin":
+        return redirect(url_for("form"))
+    report = Report.query.get_or_404(report_id)
+    audit_trail: List[ReportEdit] = (  # type: ignore
+        ReportEdit.query.filter_by(report_id=report.id)
+        .order_by(ReportEdit.edit_time.desc())
+        .all()
+    )
+    # POST logic for unlock/lock/comment is handled in the form route, not here
+    return render_template("form.html", report=report, audit_trail=audit_trail)
+
+
+# --- Logout route ---
+@app.route("/logout")
+@login_required
+def logout():
+    """Log out the current user and redirect to login page."""
+    logout_user()
+    return redirect(url_for("login"))
+
+
+# --- Admin: Approve users, manage zones ---
+@app.route("/admin/users", methods=["GET", "POST"])
+@login_required
+def admin_users():
+    """Admin page to approve users and manage zones."""
+    if current_user.role != "admin":
+        return "Unauthorized", 403
+    if request.method == "POST":
+        # Approve or delete user
+        if "approve" in request.form:
+            user_id = int(request.form["approve"])
+            user = User.query.get(user_id)
+            if user:
+                user.active = True
+                db.session.commit()
+        elif "delete" in request.form:
+            user_id = int(request.form["delete"])
+            user = User.query.get(user_id)
+            if user:
+                db.session.delete(user)
+                db.session.commit()
+        elif "add_zone" in request.form:
+            zone_name = request.form.get("zone_name")
+            if zone_name and not Zone.query.filter_by(name=zone_name).first():
+                db.session.add(Zone(name=zone_name))  # type: ignore
+                db.session.commit()
+        elif "delete_zone" in request.form:
+            zone_id = int(request.form["delete_zone"])
+            zone = Zone.query.get(zone_id)
+            if zone:
+                if zone.users:  # Check if any users are assigned to this zone
+                    return render_template(
+                        "admin_users.html",
+                        users=User.query.order_by(User.id.desc()).all(),
+                        zones=Zone.query.order_by(Zone.name).all(),
+                        error="Cannot delete zone: users are assigned to this zone.",
+                    )
+                db.session.delete(zone)
+                db.session.commit()
+    users = User.query.order_by(User.id.desc()).all()  # type: ignore
+    zones = Zone.query.order_by(Zone.name).all()  # type: ignore
+    return render_template("admin_users.html", users=users, zones=zones)
+
+
+@app.route("/admin/approve_user/<int:user_id>", methods=["POST"])
+@login_required
+def approve_user(user_id: int):
+    """Admin endpoint to approve a user (AJAX or form POST)."""
+    if current_user.role != "admin":
+        return "Unauthorized", 403
+    user = User.query.get_or_404(user_id)
+    user.is_active = True
+    db.session.commit()
+    return "approved"
+
+
+class Report(db.Model):
+    """Main report model, links to all report sections and audit trail."""
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    month = db.Column(db.String(20), nullable=False)
+    year = db.Column(db.Integer, nullable=False)
+    responsible_name = db.Column(db.String(120), nullable=False)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    edit_locked = db.Column(db.Boolean, default=False)  # If True, user cannot edit
+    admin_comment = db.Column(db.Text, nullable=True)
+    header = db.relationship(
+        "ReportHeader", backref="report", uselist=False, cascade="all, delete-orphan"
+    )
+    classes = db.relationship(
+        "ReportClass", backref="report", lazy=True, cascade="all, delete-orphan"
+    )
+    meetings = db.relationship(
+        "ReportMeeting", backref="report", lazy=True, cascade="all, delete-orphan"
+    )
+    manpower = db.relationship(
+        "ReportManpower", backref="report", lazy=True, cascade="all, delete-orphan"
+    )
+    efforts = db.relationship(
+        "ReportIndividualEffort",
+        backref="report",
+        lazy=True,
+        cascade="all, delete-orphan",
+    )
+    edits = db.relationship(
+        "ReportEdit", backref="report", lazy=True, cascade="all, delete-orphan"
+    )
+
+
+@login_manager.user_loader  # type: ignore
+def load_user(user_id: str) -> Optional["User"]:
+    user: Optional[User] = User.query.get(int(user_id))
     if user and user.is_active:
         return user
     return None
@@ -379,28 +389,27 @@ def login():
     Redirects admin to master report, users to form.
     """
     if request.method == "POST":
-        login_input = request.form.get("email")  # reuse the same field for all
+        identifier = request.form.get("email")
         password = request.form.get("password")
-        user = None
-        # Try email
-        if login_input and "@" in login_input:
-            user = User.query.filter_by(email=login_input).first()
-        # Try mobile number (11 digits, starts with 01)
+        if not password:
+            return render_template("login.html", error="পাসওয়ার্ড দিন")
+        user: Optional[User] = None
+        if identifier and "@" in identifier:
+            user = User.query.filter_by(email=identifier).first()  # type: ignore
         elif (
-            login_input
-            and login_input.isdigit()
-            and len(login_input) == 11
-            and login_input.startswith("01")
+            identifier
+            and identifier.isdigit()
+            and len(identifier) == 11
+            and identifier.startswith("01")
         ):
-            user = User.query.filter_by(mobile_number=login_input).first()
-        # Try user id (must be int and at least 3 digits)
-        elif login_input and login_input.isdigit() and len(login_input) >= 3:
-            user = User.query.filter_by(id=int(login_input)).first()
-        if user and check_password_hash(user.password, password):
-            if not user.is_active:
+            user = User.query.filter_by(mobile_number=identifier).first()  # type: ignore
+        elif identifier and identifier.isdigit() and len(identifier) >= 3:
+            user = User.query.filter_by(id=int(identifier)).first()  # type: ignore
+        if user is not None and user.password is not None and check_password_hash(user.password, password):  # type: ignore
+            if not user.is_active:  # type: ignore
                 return render_template("login.html", error="এডমিন অনুমোদন বাকি")
-            login_user(user)
-            if user.role == "admin":
+            login_user(user)  # type: ignore
+            if user.role == "admin":  # type: ignore
                 return redirect(url_for("master_report"))
             else:
                 return redirect(url_for("form"))
@@ -414,13 +423,13 @@ def login():
 # --- Helper: Audit Logging ---
 
 
-def log_report_edit(report_id, editor_id, changes, comment=None):
+def log_report_edit(report_id, editor_id, changes, comment=None):  # type: ignore
     """Log an edit to a report for audit trail."""
     edit = ReportEdit(
-        report_id=report_id,
-        editor_id=editor_id,
-        changes=json.dumps(changes, ensure_ascii=False),
-        comment=comment,
+        report_id=report_id,  # type: ignore
+        editor_id=editor_id,  # type: ignore
+        changes=json.dumps(changes, ensure_ascii=False),  # type: ignore
+        comment=comment,  # type: ignore
     )
     db.session.add(edit)
     db.session.commit()
