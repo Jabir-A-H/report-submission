@@ -2,6 +2,8 @@
 # Handles user/admin authentication, report CRUD, audit trail, export, and admin zone management.
 # Database models are defined with SQLAlchemy ORM.
 
+from __future__ import annotations
+
 from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify
 import json
 from flask_login import (
@@ -19,6 +21,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from io import BytesIO
 import os
+from typing import List
 
 # --- Flask app and DB setup ---
 app = Flask(__name__)
@@ -45,30 +48,43 @@ def register():
     """User registration page. Zone list is dynamic. Admin must approve new users."""
     zones = Zone.query.order_by(Zone.name).all()
     if request.method == "POST":
-        username = request.form.get("username")
+        name = request.form.get("name")
+        mobile_number = request.form.get("mobile_number")
+        zone_id = request.form.get("zone")
         email = request.form.get("email")
         password = request.form.get("password")
-        zone_id = request.form.get("zone")
-        ward = request.form.get("ward")
-        if not (username and email and password and zone_id and ward):
+
+        # Validate required fields
+        if not (email and password and zone_id and name and mobile_number):
             return render_template("register.html", error="সব তথ্য দিন", zones=zones)
-        if User.query.filter(
-            (User.username == username) | (User.email == email)
-        ).first():
+
+        # Validate unique email
+        if User.query.filter_by(email=email).first():
             return render_template(
-                "register.html", error="ইউজারনেম বা ইমেইল আগে থেকেই আছে", zones=zones
+                "register.html", error="ইমেইল আগে থেকেই আছে", zones=zones
             )
-        user = User(
-            username=username,
-            email=email,
-            password=generate_password_hash(password),
-            role="user",
-            zone_id=int(zone_id),
-            ward=int(ward),
-            is_active=False,
-        )
-        db.session.add(user)
-        db.session.commit()
+
+        # Validate zone_id exists
+        if not Zone.query.get(zone_id):
+            return render_template("register.html", error="সঠিক জোন সিলেক্ট করুন", zones=zones)
+
+        # Create and save the user
+        try:
+            user = User(
+                name=name,
+                mobile_number=mobile_number,
+                email=email,
+                password=generate_password_hash(password),
+                role="user",
+                zone_id=int(zone_id),
+                active=False,
+            )
+            db.session.add(user)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            return render_template("register.html", error="ডাটাবেস ত্রুটি", zones=zones)
+
         return render_template(
             "register.html",
             success="রেজিস্ট্রেশন সফল! এডমিন অনুমোদনের পর লগইন করতে পারবেন।",
@@ -131,12 +147,12 @@ def admin_reports():
 # --- Admin can view and edit a specific report, unlock/lock, and add comments ---
 @app.route("/admin/report/<int:report_id>", methods=["GET", "POST"])
 @login_required
-def admin_edit_report(report_id):
+def admin_edit_report(report_id: int):
     """Admin can view and edit a specific report, unlock/lock, and add comments."""
     if current_user.role != "admin":
         return redirect(url_for("form"))
     report = Report.query.get_or_404(report_id)
-    audit_trail = (
+    audit_trail: List["ReportEdit"] = (
         ReportEdit.query.filter_by(report_id=report.id)
         .order_by(ReportEdit.edit_time.desc())
         .all()
@@ -155,9 +171,31 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
     role = db.Column(db.String(10), nullable=False)  # user or admin
-    is_active = db.Column(db.Boolean, default=False)  # Must be approved by admin
+    active = db.Column(db.Boolean, default=False)  # Must be approved by admin
+
+    @property
+    def is_active(self):
+        return self.active
     zone_id = db.Column(db.Integer, db.ForeignKey("zone.id"), nullable=False)
     zone = db.relationship("Zone", backref="users")
+
+    def __init__(
+        self,
+        name: str,
+        mobile_number: str,
+        email: str,
+        password: str,
+        role: str,
+        zone_id: int,
+        active: bool = False,
+    ):
+        self.name = name
+        self.mobile_number = mobile_number
+        self.email = email
+        self.password = password
+        self.role = role
+        self.zone_id = zone_id
+        self.active = active
 
 
 # --- Logout route ---
@@ -208,7 +246,7 @@ def admin_users():
 
 @app.route("/admin/approve_user/<int:user_id>", methods=["POST"])
 @login_required
-def approve_user(user_id):
+def approve_user(user_id: int):
     """Admin endpoint to approve a user (AJAX or form POST)."""
     if current_user.role != "admin":
         return "Unauthorized", 403
