@@ -1,52 +1,81 @@
 no, the ui is not correct as well, i now want only an multi step wizard for report submission. i dont need users to submit report in one page. Right now i am not focusing on the editing part. just the basic report database. and thats why use following names for the report parts-
+
+Users will first set a month that they are working on after loging in, they can not do anything before they set the month and year. After this, they can continue to fill out the miultipage form.
 ReportSummary
 ReportCourse
 ReportOrg
 ReportPersonal
 ReportMeeting
 ReportExtra
+ReportComment
 
 
 here following are the table headers that i want for each table-
 ReportSummary
-    Responsible Name
-    Thana
-    Ward
-    Total Muallima
-    Muallima Increase
-    Muallima Decrease
-    Certified Muallima
-    Certified Muallima Taking Classes
-    Trained Muallima
-    Trained Muallima Taking Classes
-    Total Unit
-    Units With Muallima
+    Responsible Name (string)
+    Thana (string)
+    Ward (string)
+    Total Muallima (integer)
+    Muallima Increase (integer)
+    Muallima Decrease (integer)
+    Certified Muallima (integer)
+    Certified Muallima Taking Classes (integer)
+    Trained Muallima (integer)
+    Trained Muallima Taking Classes (integer)
+    Total Unit (integer)
+    Units With Muallima (integer)
 
 ReportCourse
-    Type (admin can change it)
-    Number
-    Increase
-    Decrease
-    Sessions
-    Students
-    Attendance
-    Status Board
-    Status Qayda
-    Status Ampara
-    Status Quran
-    Completed
-    Correctly Learned
+    Category (string, admin can change it)
+    Number (integer only)
+    Increase (integer)
+    Decrease (integer)
+    Sessions (integer)
+    Students (integer)
+    Attendance (integer)
+    Status Board (integer)
+    Status Qayda (integer)
+    Status Ampara (integer)
+    Status Quran (integer)
+    Completed (integer)
+    Correctly Learned (integer)
 
 ReportOrg
-    Dawah and Organization
-    Number
-    Increase
+    Category (string, admin can change it)
+    Number (integer only)
+    Increase (integer)
     Amount (not necesary for all entries)
     Comments
 
+ReportPersonal
+    Category (string, admin can change it)
+    Rukon (integer)
+    Kormi (integer)
+    ShokrioShohojogi (integer)
 
+ReportMeeting
+    Category (string, admin can change it)
+    Thana Count (integer)
+    Thana Avg Attendance (integer)
+    Ward Count (integer)
+    Ward Avg Attendance (integer)
+    Comments (string)
 
+ReportExtra
+    Category (string, admin can change it)
+        Moktob Count
+        Moktob Increase
+        Moktob Local
+        Moktob City
+        Sofor City
+        Sofor Thana Committee
+        Sofor Thana Representative
+        Sofor Ward Representative
+    Number (integer)
 
+ReportComment
+    Report Month
+    Monthly Comment
 
 
 
