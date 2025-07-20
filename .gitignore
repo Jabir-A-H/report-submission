@@ -197,7 +197,7 @@ coverage/
 *.pem
 *.key
 *.cert
-/schema.sql
+
+# extra
 /project_idea_extras
 /.flake8
-/TODO.md
