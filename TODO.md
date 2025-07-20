@@ -2,7 +2,7 @@ no, the ui is not correct as well, i now want only an multi step wizard for repo
 
 Full workflow plan
 
-Users will first set a month that they are working on after loging in, they can not do anything before they set the month and year. After this, they can continue to fill out the miultipage form.
+Users will first set a month that they are working on after loging in, they can not do anything before they set the month and year. After this, they can continue to fill out the miultipage form. all edits are autosaved immediately. They can also edit the report later, and if they change the month and year after setting it, they can edit past reports too given that they have permission. Also, there will be a progress indicator showing which step of the form they are on. Also, there will be a option to select quarterly, half yearly, yearly report option that is the summation of individuals zone reports of that time period.
 
 Database tables:
 ReportHeader
