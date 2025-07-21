@@ -3,24 +3,25 @@
 
 ---
 
+
 ## Table of Contents
 1. Overview
 2. User Roles
-3. Authentication & Registration
-4. Zones Management
-5. Report Structure & Workflow
-6. Data Model
-7. Admin Features
-8. User Features
-9. Data Export
-10. Security & Validation
-11. UI/UX
-12. Next Features Implementation Plan
-13. Not Included / Out of Scope
-14. User Stories (Examples)
-15. Technical Stack
-16. Deployment
-17. Maintenance
+3. Report Workflow & UI/UX
+4. Authentication & Registration
+5. Zones Management
+6. Feature Details
+    - Admin Features
+    - User Features
+    - Data Export
+7. Data Model (Entity-Relationship Overview)
+8. Enumerated/Predefined Values
+9. Security & Validation
+10. Not Included / Out of Scope
+11. User Stories (Examples)
+12. Technical Stack
+13. Deployment
+14. Maintenance
 
 
 ## 1. Overview
@@ -35,7 +36,8 @@ A web application for monthly, quarterly, half-yearly, and yearly report submiss
 ---
 
 
-## 3. Authentication & Registration
+
+## 4. Authentication & Registration
 ### Registration Workflow
 1. User visits the registration page (`/register`).
 2. User fills out:
@@ -69,10 +71,53 @@ A web application for monthly, quarterly, half-yearly, and yearly report submiss
 5. On failure, show error: "Invalid credentials or not approved"
 
 
+## 3. Report Workflow & UI/UX
+### Report Structure & Workflow
+- User selects period (month/year) on dashboard or section page
+- Period types: Monthly, 1st quarterly, half-yearly, 2nd quarterly, yearly
+- User logs in and is redirected to `/report_dashboard` for the current period.
+- Dashboard displays all report sections as cards/links, each with:
+    - Section name, icon, completion status (complete/incomplete)
+    - Link to fill/edit that section
+- User can click any section in any order.
+- Each section is a separate page/form:
+    - Header: Responsible person, thana, ward, muallima/unit stats
+    - Courses: Table input, add/remove rows, select category, enter numbers
+    - Organizational: Table input, add/remove rows, select category, enter numbers/comments
+    - Personal: Table input, add/remove rows, select category, enter numbers
+    - Meetings: Table input, add/remove rows, select category, enter counts/attendance/comments
+    - Extras: Table input, add/remove rows, select category, enter numbers
+    - Comments: Textareas for each period type
+- Each form autosaves on field change (AJAX to `/autosave` with section and data).
+- User can navigate between sections at any time; progress is saved.
+- When all required sections are complete, dashboard shows "Ready for review" or similar.
+
+#### Report Locking & Editing
+- When user submits all sections, admin can review and lock the report.
+- Locked reports cannot be edited by user unless admin unlocks.
+- Users can always view their own and their zone's reports (read-only if locked).
+
+#### Admin Review Workflow
+- Admin visits `/admin/reports` to see all submitted reports.
+- Admin can filter/sort by period, zone, user.
+- Admin can view/edit any section of any report.
+- Admin can lock/unlock reports, add comments, and export data.
+
+### UI/UX (Detailed)
+- Responsive, modern UI (Tailwind CSS, mobile-friendly)
+- Bengali language support throughout (all labels, messages, and templates)
+- Clear error/success messages (inline and global alerts)
+- Section navigation from dashboard (cards/links, icons, completion status)
+- Consistent layout for all forms and tables
+- Loading indicators for autosave and data fetches
+- Accessible design (keyboard navigation)
+
+
 ---
 
 
-## 4. Zones Management
+
+## 5. Zones Management
 ### Admin Zone Management Workflow
 1. Admin visits `/admin/users`
 2. Admin sees a list of all zones and users
@@ -87,18 +132,17 @@ A web application for monthly, quarterly, half-yearly, and yearly report submiss
 ---
 
 
-## 5. Report Structure & Workflow
-### Report Periods
+
+## 3. Report Workflow & UI/UX
+### Report Structure & Workflow
 - User selects period (month/year) on dashboard or section page
 - Period types: Monthly, 1st quarterly, half-yearly, 2nd quarterly, yearly
-
-### Section-Based Workflow
-1. User logs in and is redirected to `/report_dashboard` for the current period
-2. Dashboard displays all report sections as cards/links, each with:
+- User logs in and is redirected to `/report_dashboard` for the current period.
+- Dashboard displays all report sections as cards/links, each with:
     - Section name, icon, completion status (complete/incomplete)
     - Link to fill/edit that section
-3. User can click any section in any order
-4. Each section is a separate page/form:
+- User can click any section in any order.
+- Each section is a separate page/form:
     - Header: Responsible person, thana, ward, muallima/unit stats
     - Courses: Table input, add/remove rows, select category, enter numbers
     - Organizational: Table input, add/remove rows, select category, enter numbers/comments
@@ -106,47 +150,61 @@ A web application for monthly, quarterly, half-yearly, and yearly report submiss
     - Meetings: Table input, add/remove rows, select category, enter counts/attendance/comments
     - Extras: Table input, add/remove rows, select category, enter numbers
     - Comments: Textareas for each period type
-5. Each form autosaves on field change (AJAX to `/autosave` with section and data)
-6. User can navigate between sections at any time; progress is saved
-7. When all required sections are complete, dashboard shows "Ready for review" or similar
+- Each form autosaves on field change (AJAX to `/autosave` with section and data).
+- User can navigate between sections at any time; progress is saved.
+- When all required sections are complete, dashboard shows "Ready for review" or similar.
 
-### Report Locking & Editing
-1. When user submits all sections, admin can review and lock the report
-2. Locked reports cannot be edited by user unless admin unlocks
-3. Users can always view their own and their zone's reports (read-only if locked)
+#### Report Locking & Editing
+- When user submits all sections, admin can review and lock the report.
+- Locked reports cannot be edited by user unless admin unlocks.
+- Users can always view their own and their zone's reports (read-only if locked).
 
-### Admin Review Workflow
-1. Admin visits `/admin/reports` to see all submitted reports
-2. Admin can filter/sort by period, zone, user
-3. Admin can view/edit any section of any report
-4. Admin can lock/unlock reports, add comments, and export data
+#### Admin Review Workflow
+- Admin visits `/admin/reports` to see all submitted reports.
+- Admin can filter/sort by period, zone, user.
+- Admin can view/edit any section of any report.
+- Admin can lock/unlock reports, add comments, and export data.
+
+### UI/UX (Detailed)
+- Responsive, modern UI (Tailwind CSS, mobile-friendly)
+- Bengali language support throughout (all labels, messages, and templates)
+- Clear error/success messages (inline and global alerts)
+- Section navigation from dashboard (cards/links, icons, completion status)
+- Consistent layout for all forms and tables
+- Loading indicators for autosave and data fetches
+- Accessible design (keyboard navigation)
 
 
 ---
 
 
-## 6. Data Model (Entity-Relationship Overview)
-- **User**: id, name, email, password, role, active, zone_id
-    - Each user belongs to one zone
-    - Can submit multiple reports (one per period)
-- **Zone**: id, name
-    - Has many users
-- **Report**: id, user.id, zone.id, month, year, period_type, created_at, updated_at
-    - Belongs to one zone
-    - Has one header, many courses, many organizational, many personal, many meetings, many extras, one comment
-- **ReportHeader**: id, report.id, responsible_name, thana, ward, muallima/unit stats
-- **ReportCourse**: id, report.id, category, number, increase, decrease, sessions, students, attendance, status fields, completed, correctly_learned
-- **ReportOrganizational**: id, report.id, category, number, increase, amount, comments
-- **ReportPersonal**: id, report.id, category, rukon, kormi, shokrio_shohojogi
-- **ReportMeeting**: id, report.id, category, city/thana/ward counts and attendance, comments
-- **ReportExtra**: id, report.id, category, number
-- **ReportComment**: id, report.id, report_month, monthly/1st quarterly/half yearly/2nd quarterly/yearly_comment
+
+
+## 7. Data Model (Entity-Relationship Overview)
+> **Note:** For all detailed table structures, field definitions, and enumerated/predefined values, refer to `TODO.md` (section 2, Database Tables Overview). This file only summarizes the entity relationships and does not repeat detailed schema. Always check `TODO.md` for the authoritative, up-to-date schema and categories.
+
+- **User**: see detailed table structure in TODO.md (section 2, Database Tables Overview)
+- **Zone**: see detailed table structure in TODO.md (section 2, Database Tables Overview)
+- **Report**: see detailed table structure in TODO.md (section 2, Database Tables Overview)
+- **ReportHeader**: see detailed table structure in TODO.md (section 2, Database Tables Overview)
+- **ReportCourse**: see detailed table structure in TODO.md (section 2, Database Tables Overview)
+- **ReportOrganizational**: see detailed table structure in TODO.md (section 2, Database Tables Overview)
+- **ReportPersonal**: see detailed table structure in TODO.md (section 2, Database Tables Overview)
+- **ReportMeeting**: see detailed table structure in TODO.md (section 2, Database Tables Overview)
+- **ReportExtra**: see detailed table structure in TODO.md (section 2, Database Tables Overview)
+- **ReportComment**: see detailed table structure in TODO.md (section 2, Database Tables Overview)
 
 ### Data Integrity & Validation
-- All foreign keys are enforced
-- Unique constraints on email, zone name
-- All numeric fields validated for type
-- all inumeric fields are integ, the reports has no float/fraction number in them.
+- All foreign keys are enforced.
+- Unique constraints on email, zone name.
+- All numeric fields validated for type and range.
+- All numeric fields are integers; the reports have no float/fraction numbers.
+
+## 8. Enumerated/Predefined Values
+See `TODO.md` for the full list of categories, period types, and admin-editable values.
+
+## 8. Enumerated/Predefined Values
+See `TODO.md` for the full list of categories, period types, and admin-editable values.
 
 ---
 
