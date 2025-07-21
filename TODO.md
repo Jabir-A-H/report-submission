@@ -1,39 +1,38 @@
 
-# Report Submission Database Design & Workflow
+
+# Report Submission Database Design & Data Model
 
 ---
 
-## 1. Workflow & Rationale
+## 1. System Workflow & Rationale
 
+The system is designed for efficient, section-based report submission and review. Key workflow features:
 
-- The system uses a multi-step wizard: each report section (Header, Courses, Organizational, Personal, Meetings, Extras, Comments) is a separate page, accessible in any order from the dashboard.
-- Users must select the reporting period (month/year and type) before accessing or editing any report.
-- Each zone has one report per period; all users in a zone can view and edit the same up-to-date report for that period.
-- All section forms autosave on every field change (an explicit save button for making sure they fill out all required fields; instant feedback).
-- Users can freely navigate between sections.
-- Users can view and edit past periods reports for their zone.
-- Admins can review, edit, lock/unlock, and export any report; admin-only fields are access-controlled.
-- UI is responsive, mobile-friendly, and supports Bengali; clear error/success messages and loading indicators are provided.
-- Admin only fields are hidden from regular users and can only be edited via access control.
-- Edit history/audit trail and real-time collaboration are not included for simplicity.
+- **Multi-step wizard:** Each report section (Header, Courses, Organizational, Personal, Meetings, Extras, Comments) is a separate page, accessible in any order from the dashboard.
+- **Reporting period selection:** Users must select the reporting period (month/year and type) before accessing or editing any report.
+- **Zone-based reporting:** Each zone has one report per period; all users in a zone can view and edit the same up-to-date report for that period.
+- **Autosave:** All section forms autosave on every field change (with an explicit save button for making sure they fill out all required fields and instant feedback).
+- **Flexible navigation:** Users can freely navigate between sections and view/edit past period reports for their zone.
+- **Admin controls:** Admins can review, edit, and export any report. Admin-only fields are access-controlled and hidden from regular users.
+- **UI/UX:** Responsive, mobile-friendly, Bengali support, clear error/success messages, and loading indicators.
+- **Simplicity:** Edit history/audit trail and real-time collaboration are not included for simplicity.
 
 ---
-
-here following are the table headers that i want for each table-
 
 ## 2. Database Tables Overview
 
-Tables:
-- User
-- Zone
-- Report
-- ReportHeader
-- ReportCourse
-- ReportOrganizational
-- ReportPersonal
-- ReportMeeting
-- ReportExtra
-- ReportComment
+The following tables define the normalized data model for the report submission system:
+
+- **User**
+- **Zone**
+- **Report**
+- **ReportHeader**
+- **ReportCourse**
+- **ReportOrganizational**
+- **ReportPersonal**
+- **ReportMeeting**
+- **ReportExtra**
+- **ReportComment**
 
 ---
 
@@ -188,7 +187,8 @@ Tables:
 
 ---
 
-## 3. Enumerated/Predefined Values (Admin Editable)
+
+## 4. Enumerated/Predefined Values (Admin Editable)
 
 ### Zone.name
 - শ্যামপুর জোন
@@ -250,12 +250,12 @@ Tables:
 - মুয়াল্লিমাদের নিয়ে বৈঠক
 - Committee Orientation
 - Muallima Orientation
-(users only see and edit the first two items in ReportMeeting.category)
+> *Users only see and edit the first two items in ReportMeeting.category*
 
 ### ReportExtra.category
 - Moktob Count
 - Moktob Increase
-- Moktob City (only admin can edit this value in the main aggregated summary report file)
+- Moktob City *(only admin can edit this value in the main aggregated summary report file)*
 - Moktob Local
 - Sofor City
 - Sofor Thana Committee

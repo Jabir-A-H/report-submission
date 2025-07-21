@@ -1,4 +1,5 @@
 
+
 # Report Submission Website: Feature & Workflow Design Document
 
 ---
@@ -6,9 +7,9 @@
 ## Table of Contents
 1. Overview
 2. User Roles
-3. Report Workflow & UI/UX
-4. Authentication & Registration
-5. Zones Management
+3. Authentication & Registration
+4. Zones Management
+5. Report Workflow & UI/UX
 6. Feature Details
     - Admin Features
     - User Features
@@ -22,6 +23,7 @@
 13. Deployment
 14. Maintenance
 
+---
 
 ## 1. Overview
 A web application for monthly, quarterly, half-yearly, and yearly report submission, review, and aggregation for an educational/admin organization. The system supports user registration, authentication, multi-section report entry, autosave, admin review, and data export.
@@ -88,7 +90,8 @@ A web application for monthly, quarterly, half-yearly, and yearly report submiss
 
 
 
-## 3. Report Workflow & UI/UX
+## 5. Report Workflow & UI/UX
+
 ### Report Structure & Workflow
 - User selects period (month/year) on dashboard or section page
 - Period types: Monthly, 1st quarterly, half-yearly, 2nd quarterly, yearly
@@ -129,30 +132,31 @@ A web application for monthly, quarterly, half-yearly, and yearly report submiss
 - Loading indicators for autosave and data fetches
 - Accessible design (keyboard navigation)
 
-
 ---
 
 
 
-## 7. Data Model (Entity-Relationship Overview)
-> **Note:** For all detailed table structures, field definitions, and enumerated/predefined values, refer to `TODO.md` (section 2, Database Tables Overview). This file only summarizes the entity relationships and does not repeat detailed schema. Always check `TODO.md` for the authoritative, up-to-date schema and categories.
 
-- **User**: see detailed table structure in TODO.md (section 2, Database Tables Overview)
-- **Zone**: see detailed table structure in TODO.md (section 2, Database Tables Overview)
-- **Report**: see detailed table structure in TODO.md (section 2, Database Tables Overview)
-- **ReportHeader**: see detailed table structure in TODO.md (section 2, Database Tables Overview)
-- **ReportCourse**: see detailed table structure in TODO.md (section 2, Database Tables Overview)
-- **ReportOrganizational**: see detailed table structure in TODO.md (section 2, Database Tables Overview)
-- **ReportPersonal**: see detailed table structure in TODO.md (section 2, Database Tables Overview)
-- **ReportMeeting**: see detailed table structure in TODO.md (section 2, Database Tables Overview)
-- **ReportExtra**: see detailed table structure in TODO.md (section 2, Database Tables Overview)
-- **ReportComment**: see detailed table structure in TODO.md (section 2, Database Tables Overview)
+## 7. Data Model (Entity-Relationship Overview)
+> **Note:** For all detailed table structures, field definitions, and enumerated/predefined values, refer to `TODO.md` (section 3, Table Structures). This file only summarizes the entity relationships and does not repeat detailed schema. Always check `TODO.md` for the authoritative, up-to-date schema and categories.
+
+- **User**: see detailed table structure in TODO.md (section 3, Table Structures)
+- **Zone**: see detailed table structure in TODO.md (section 3, Table Structures)
+- **Report**: see detailed table structure in TODO.md (section 3, Table Structures)
+- **ReportHeader**: see detailed table structure in TODO.md (section 3, Table Structures)
+- **ReportCourse**: see detailed table structure in TODO.md (section 3, Table Structures)
+- **ReportOrganizational**: see detailed table structure in TODO.md (section 3, Table Structures)
+- **ReportPersonal**: see detailed table structure in TODO.md (section 3, Table Structures)
+- **ReportMeeting**: see detailed table structure in TODO.md (section 3, Table Structures)
+- **ReportExtra**: see detailed table structure in TODO.md (section 3, Table Structures)
+- **ReportComment**: see detailed table structure in TODO.md (section 3, Table Structures)
 
 ### Data Integrity & Validation
 - All foreign keys are enforced.
 - Unique constraints on email, zone name.
 - All numeric fields validated for type.
 - All numeric fields are integers; the reports have no float/fraction numbers.
+
 
 ## 8. Enumerated/Predefined Values
 See `TODO.md` for the full list of categories, period types, and admin-editable values.
@@ -208,6 +212,7 @@ See `TODO.md` for the full list of categories, period types, and admin-editable 
 ---
 
 
+
 ## 11. UI/UX (Detailed)
 - Responsive, modern UI (Tailwind CSS, mobile-friendly)
 - Bengali language support throughout (all labels, messages, and templates)
@@ -217,11 +222,11 @@ See `TODO.md` for the full list of categories, period types, and admin-editable 
 - Loading indicators for autosave and data fetches
 - Accessible design (keyboard navigation)
 
-
 ---
 
 
-## 12.  Features
+
+## 12. Features
 - Customizable categories (admin-editable, add/remove categories for each section)
 - User profile management (edit name, mobile, email, password)
 
@@ -274,7 +279,8 @@ See `TODO.md` for the full list of categories, period types, and admin-editable 
 
 ---
 
-## 17. Maintenance
+
+## 14. Maintenance
 - Codebase uses `# type: ignore` for SQLAlchemy dynamic attributes to reduce editor noise
 - All models, routes, and templates are modular and maintainable
 - Automated tests for core workflows (pytest, unittest)
