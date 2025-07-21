@@ -130,14 +130,18 @@ Tables:
 
 
 ### ReportPersonal
-| Field             | Type   | Constraints               | Description          |
-| ----------------- | ------ | ------------------------- | -------------------- |
-| id                | int    | PK                        |                      |
-| report_id         | int    | FK to Report.id, NOT NULL |                      |
-| category          | string | NOT NULL                  | See categories below |
-| rukon             | int    | NOT NULL                  |                      |
-| kormi             | int    | NOT NULL                  |                      |
-| shokrio_shohojogi | int    | NOT NULL                  |                      |
+| Field                   | Type   | Constraints               | Description                             |
+| ----------------------- | ------ | ------------------------- | --------------------------------------- |
+| id                      | int    | PK                        |                                         |
+| report_id               | int    | FK to Report.id, NOT NULL |                                         |
+| category                | string | NOT NULL                  | রুকন, কর্মী, সক্রিয় সহযোগী                     |
+| teaching                | int    | NOT NULL                  | কতজন শিখাচ্ছেন                              |
+| learning                | int    | NOT NULL                  | কতজনকে শিখাচ্ছেন                             |
+| olama_invited           | int    | NOT NULL                  | কতজন ওয়ালামাকে দাওয়াত দিয়েছেন                    |
+| became_shohojogi        | int    | NOT NULL                  | দাওয়াত প্রাপ্ত ওয়ালামার মধ্যে সহযোগী হয়েছেন কতজন      |
+| became_sokrio_shohojogi | int    | NOT NULL                  | দাওয়াত প্রাপ্ত ওয়ালামার মধ্যে সক্রিয় সহযোগী হয়েছেন কতজন |
+| became_kormi            | int    | NOT NULL                  | দাওয়াত প্রাপ্ত ওয়ালামার মধ্যে কর্মী হয়েছেন কতজন       |
+| became_rukon            | int    | NOT NULL                  | দাওয়াত প্রাপ্ত ওয়ালামার মধ্যে রুকন হয়েছেন কতজন       |
 
 
 
@@ -237,23 +241,21 @@ Tables:
 - বই বিক্রি
 
 ### ReportPersonal.category
-- কতজন শিখাচ্ছেন
-- কতজনকে শিখাচ্ছেন
-- কতজন ওয়ালামাকে দাওয়াত দিয়েছেন
-- দাওয়াত প্রাপ্ত ওয়ালামার মধ্যে সহযোগী হয়েছেন কতজন
-- দাওয়াত প্রাপ্ত ওয়ালামার মধ্যে সক্রিয় সহযোগীকে হয়েছেন কতজন
-- দাওয়াত প্রাপ্ত ওয়ালামার মধ্যে কর্মী হয়েছেন কতজন
-- দাওয়াত প্রাপ্ত ওয়ালামার মধ্যে রুকন হয়েছেন কতজন
+- রুকন
+- কর্মী
+- সক্রিয় সহযোগী
 
 ### ReportMeeting.category
 - কমিটি বৈঠক হয়েছে
 - মুয়াল্লিমাদের নিয়ে বৈঠক
-- CM/MO (only admin can edit this value in the main aggregated file)
+- Committee Orientation
+- Muallima Orientation
+(users only see and edit the first two items in ReportMeeting.category)
 
 ### ReportExtra.category
 - Moktob Count
 - Moktob Increase
-- Moktob City (only admin can edit this value in the main aggregated file)
+- Moktob City (only admin can edit this value in the main aggregated summary report file)
 - Moktob Local
 - Sofor City
 - Sofor Thana Committee
