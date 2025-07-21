@@ -1,3 +1,34 @@
+# ...existing code...
+
+# --- MODELS ---
+
+
+@app.route("/form", methods=["GET"])
+@login_required
+def form():
+    """
+    Multi-section report submission and edit form (legacy, now read-only).
+    Use the section-based routes for editing.
+    """
+    report_id = request.args.get("id")
+    is_admin = current_user.role == "admin"
+    report = None
+    audit_trail = []
+    if report_id:
+        report = Report.query.options(db.joinedload(Report.header)).get(report_id)
+        if report:
+            audit_trail = (
+                ReportEdit.query.filter_by(report_id=report.id)
+                .order_by(ReportEdit.edit_time.desc())
+                .all()
+            )
+            if not (is_admin or report.user_id == current_user.id):
+                return render_template(
+                    "form.html", error="Unauthorized", report=None, audit_trail=[]
+                )
+    return render_template("form.html", report=report, audit_trail=audit_trail)
+
+
 # Main Flask application for report submission and aggregation.
 # Handles user/admin authentication, report CRUD, audit trail, export, and admin zone management.
 # Database models are defined with SQLAlchemy ORM.
@@ -6,14 +37,7 @@ from __future__ import annotations
 from typing import Optional
 from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify
 import json
-from flask_login import (  # type: ignore
-    LoginManager,
-    UserMixin,
-    login_user,  # type: ignore
-    login_required,  # type: ignore
-    current_user,
-    logout_user,
-)
+from flask_login import LoginManager, UserMixin, login_user, login_required, current_user, logout_user  # type: ignore
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 import pandas as pd
@@ -21,7 +45,6 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from io import BytesIO
 import os
-from typing import List
 
 # --- Flask app and DB setup ---
 app = Flask(__name__)
@@ -33,218 +56,920 @@ login_manager = LoginManager(app)
 login_manager.login_view = "login"  # type: ignore
 
 
-# --- MODELS ---
-class User(UserMixin, db.Model):
-    """User model for authentication and authorization."""
+# --- Report Dashboard (shows all sections with completion status) ---
+@app.route("/report_dashboard")
+@login_required
+def report_dashboard():
+    """Dashboard showing all report sections and their completion status."""
+    month = request.args.get("month")
+    year = request.args.get("year")
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), nullable=False)
-    mobile_number = db.Column(db.String(11), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(200), nullable=False)
-    role = db.Column(db.String(10), nullable=False)  # user or admin
-    active = db.Column(db.Boolean, default=False)  # Must be approved by admin
+    if not month or not year:
+        from datetime import datetime
 
-    @property
-    def is_active(self) -> bool:  # type: ignore
-        return self.active
+        now = datetime.now()
+        month = now.month
+        year = now.year
 
-    zone_id = db.Column(db.Integer, db.ForeignKey("zone.id"), nullable=False)
-    zone = db.relationship("Zone", backref="users")
+    # Get or create report for current month/year
+    report = Report.query.filter_by(
+        user_id=current_user.id, month=int(month), year=int(year)
+    ).first()
 
-    def __init__(
-        self,
-        name: str,
-        mobile_number: str,
-        email: str,
-        password: str,
-        role: str,
-        zone_id: int,
-        active: bool = False,
-    ):
-        self.name = name
-        self.mobile_number = mobile_number
-        self.email = email
-        self.password = password
-        self.role = role
-        self.zone_id = zone_id
-        self.active = active
-
-
-class Zone(db.Model):
-    """Zone model for admin-editable zone list."""
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True, nullable=False)
-
-    def __repr__(self):
-        return f"<Zone {self.name}>"
-
-
-# --- ReportHeader model (missing, but required for header relationship) ---
-class ReportHeader(db.Model):
-    """Header section of a report, stores summary teacher/unit stats."""
-
-    id = db.Column(db.Integer, primary_key=True)
-    report_id = db.Column(db.Integer, db.ForeignKey("report.id"), nullable=False)
-    total_teachers = db.Column(db.Integer, nullable=False)
-    teacher_increase = db.Column(db.Integer, nullable=False)
-    teacher_decrease = db.Column(db.Integer, nullable=False)
-    certified_teachers = db.Column(db.Integer, nullable=False)
-    trained_teachers = db.Column(db.Integer, nullable=False)
-    unit_count = db.Column(db.Integer, nullable=False)
-    teachers_taking_classes_1 = db.Column(db.Integer, nullable=False)
-    teachers_taking_classes_2 = db.Column(db.Integer, nullable=False)
-    units_with_teachers = db.Column(db.Integer, nullable=False)
-
-
-class ReportClass(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    report_id = db.Column(db.Integer, db.ForeignKey("report.id"), nullable=False)
-    dept_type = db.Column(db.String(50), nullable=False)
-    number = db.Column(db.Integer, nullable=False)
-    increase = db.Column(db.Integer, nullable=False)
-    decrease = db.Column(db.Integer, nullable=False)
-    sessions = db.Column(db.Integer, nullable=False)
-    students = db.Column(db.Integer, nullable=False)
-    attendance = db.Column(db.Integer, nullable=False)
-    status_board = db.Column(db.Integer, nullable=False)
-    status_qayda = db.Column(db.Integer, nullable=False)
-    status_ampara = db.Column(db.Integer, nullable=False)
-    status_quran = db.Column(db.Integer, nullable=False)
-    completed = db.Column(db.Integer, nullable=False)
-    correctly_learned = db.Column(db.Integer, nullable=False)
-
-
-class ReportMeeting(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    report_id = db.Column(db.Integer, db.ForeignKey("report.id"), nullable=False)
-    meeting_type = db.Column(db.String(50), nullable=False)
-    city_count = db.Column(db.Integer, nullable=False)
-    city_avg_attendance = db.Column(db.Integer, nullable=False)
-    thana_count = db.Column(db.Integer, nullable=False)
-    thana_avg_attendance = db.Column(db.Integer, nullable=False)
-    ward_count = db.Column(db.Integer, nullable=False)
-    ward_avg_attendance = db.Column(db.Integer, nullable=False)
-    comments = db.Column(db.Text, nullable=True)
-
-
-class ReportManpower(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    report_id = db.Column(db.Integer, db.ForeignKey("report.id"), nullable=False)
-    category = db.Column(db.String(50), nullable=False)
-    count = db.Column(db.Integer, nullable=False)
-    additional_count = db.Column(db.Integer, nullable=True)
-
-
-class ReportIndividualEffort(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    report_id = db.Column(db.Integer, db.ForeignKey("report.id"), nullable=False)
-    category = db.Column(db.String(50), nullable=False)
-    teaching_count = db.Column(db.Integer, nullable=False)
-    taught_count = db.Column(db.Integer, nullable=False)
-
-
-# Audit trail for edits
-class ReportEdit(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    report_id = db.Column(db.Integer, db.ForeignKey("report.id"), nullable=False)
-    editor_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    edit_time = db.Column(db.DateTime, default=db.func.current_timestamp())
-    changes = db.Column(db.Text, nullable=False)  # JSON string describing changes
-    comment = db.Column(db.Text, nullable=True)
-
-
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    """User registration page. Zone list is dynamic. Admin must approve new users."""
-    zones = Zone.query.order_by(Zone.name).all()  # type: ignore
-    if request.method == "POST":
-        name = request.form.get("name")
-        mobile_number = request.form.get("mobile_number")
-        zone_id = request.form.get("zone")
-        email = request.form.get("email")
-        password = request.form.get("password")
-
-        # Validate required fields
-        if not (email and password and zone_id and name and mobile_number):
-            return render_template("register.html", error="সব তথ্য দিন", zones=zones)
-
-        # Validate unique email
-        if User.query.filter_by(email=email).first():
-            return render_template(
-                "register.html", error="ইমেইল আগে থেকেই আছে", zones=zones
-            )
-
-        # Validate zone_id exists
-        if not Zone.query.get(zone_id):
-            return render_template(
-                "register.html", error="সঠিক জোন সিলেক্ট করুন", zones=zones
-            )
-
-        # Create and save the user
-        try:
-            user = User(
-                name=name,
-                mobile_number=mobile_number,
-                email=email,
-                password=generate_password_hash(password),
-                role="user",
-                zone_id=int(zone_id),
-                active=False,
-            )
-            db.session.add(user)
-            db.session.commit()
-        except Exception:
-            db.session.rollback()
-            return render_template("register.html", error="ডাটাবেস ত্রুটি", zones=zones)
-
-        return render_template(
-            "register.html",
-            success="রেজিস্ট্রেশন সফল! এডমিন অনুমোদনের পর লগইন করতে পারবেন।",
-            zones=zones,
+    if not report:
+        report = Report(
+            user_id=current_user.id,
+            zone_id=current_user.zone_id,
+            month=int(month),
+            year=int(year),
         )
-    return render_template("register.html", zones=zones)
+        db.session.add(report)
+        db.session.commit()
+
+    # Check completion status for each section
+    sections = [
+        {
+            "name": "মূল তথ্য",
+            "url": f"/report_header?month={month}&year={year}",
+            "completed": bool(report.header),
+            "icon": "📋",
+        },
+        {
+            "name": "শিক্ষামূলক কোর্স",
+            "url": f"/report_courses?month={month}&year={year}",
+            "completed": len(report.courses) > 0,
+            "icon": "📚",
+        },
+        {
+            "name": "সাংগঠনিক কার্যক্রম",
+            "url": f"/report_organizational?month={month}&year={year}",
+            "completed": len(report.organizational) > 0,
+            "icon": "🏢",
+        },
+        {
+            "name": "ব্যক্তিগত উন্নয়ন",
+            "url": f"/report_personal?month={month}&year={year}",
+            "completed": len(report.personal) > 0,
+            "icon": "👤",
+        },
+        {
+            "name": "মিটিং/সভা",
+            "url": f"/report_meetings?month={month}&year={year}",
+            "completed": len(report.meetings) > 0,
+            "icon": "🤝",
+        },
+        {
+            "name": "অতিরিক্ত কার্যক্রম",
+            "url": f"/report_extras?month={month}&year={year}",
+            "completed": len(report.extras) > 0,
+            "icon": "➕",
+        },
+        {
+            "name": "মন্তব্য ও পরামর্শ",
+            "url": f"/report_comments?month={month}&year={year}",
+            "completed": bool(report.comments),
+            "icon": "💬",
+        },
+    ]
+
+    return render_template(
+        "report_dashboard.html",
+        sections=sections,
+        report=report,
+        month=month,
+        year=year,
+        report_month_year=f"{get_month_name(int(month))} {year}",
+    )
 
 
-# --- Auto-save endpoint for report drafts ---
+# --- Individual Report Section Routes ---
+
+
+@app.route("/report_header", methods=["GET", "POST"])
+@login_required
+def report_header():
+    """Header section form."""
+    month = request.args.get("month")
+    year = request.args.get("year")
+
+    if not month or not year:
+        from datetime import datetime
+
+        now = datetime.now()
+        month = now.month
+        year = now.year
+
+    # Get or create report
+    report = Report.query.filter_by(
+        user_id=current_user.id, month=int(month), year=int(year)
+    ).first()
+
+    if not report:
+        report = Report(
+            user_id=current_user.id,
+            zone_id=current_user.zone_id,
+            month=int(month),
+            year=int(year),
+        )
+        db.session.add(report)
+        db.session.commit()
+
+    if request.method == "POST":
+        try:
+            # Create or update header
+            if not report.header:
+                report.header = ReportHeader(report_id=report.id)
+                db.session.add(report.header)
+
+            # Update header fields
+            for field in [
+                "responsible_name",
+                "thana",
+                "ward",
+                "total_muallima",
+                "muallima_increase",
+                "muallima_decrease",
+                "certified_muallima",
+                "certified_muallima_taking_classes",
+                "trained_muallima",
+                "trained_muallima_taking_classes",
+                "total_unit",
+                "units_with_muallima",
+            ]:
+                value = request.form.get(field, "")
+                if field in [
+                    "total_muallima",
+                    "muallima_increase",
+                    "muallima_decrease",
+                    "certified_muallima",
+                    "certified_muallima_taking_classes",
+                    "trained_muallima",
+                    "trained_muallima_taking_classes",
+                    "total_unit",
+                    "units_with_muallima",
+                ]:
+                    value = int(value) if value else 0
+                setattr(report.header, field, value)
+
+            db.session.commit()
+            return redirect(
+                f"/report_header?month={month}&year={year}&success=তথ্য সংরক্ষিত হয়েছে"
+            )
+
+        except Exception as e:
+            db.session.rollback()
+            return render_template(
+                "sections/header.html",
+                report=report,
+                month=month,
+                year=year,
+                error=f"তথ্য সংরক্ষণে ত্রুটি: {str(e)}",
+            )
+
+    success = request.args.get("success")
+    error = request.args.get("error")
+
+    return render_template(
+        "sections/header.html",
+        report=report,
+        month=month,
+        year=year,
+        success=success,
+        error=error,
+    )
+
+
+@app.route("/report_courses", methods=["GET", "POST"])
+@login_required
+def report_courses():
+    """Courses section form."""
+    month = request.args.get("month")
+    year = request.args.get("year")
+
+    if not month or not year:
+        from datetime import datetime
+
+        now = datetime.now()
+        month = now.month
+        year = now.year
+
+    # Get or create report
+    report = Report.query.filter_by(
+        user_id=current_user.id, month=int(month), year=int(year)
+    ).first()
+
+    if not report:
+        report = Report(
+            user_id=current_user.id,
+            zone_id=current_user.zone_id,
+            month=int(month),
+            year=int(year),
+        )
+        db.session.add(report)
+        db.session.commit()
+
+    if request.method == "POST":
+        try:
+            # Clear existing courses
+            ReportCourse.query.filter_by(report_id=report.id).delete()
+
+            # Add new courses
+            categories = request.form.getlist("category[]")
+            numbers = request.form.getlist("number[]")
+            increases = request.form.getlist("increase[]")
+            decreases = request.form.getlist("decrease[]")
+            sessions = request.form.getlist("sessions[]")
+            students = request.form.getlist("students[]")
+            attendances = request.form.getlist("attendance[]")
+            status_boards = request.form.getlist("status_board[]")
+            status_qaydas = request.form.getlist("status_qayda[]")
+            status_amparas = request.form.getlist("status_ampara[]")
+            status_qurans = request.form.getlist("status_quran[]")
+            completeds = request.form.getlist("completed[]")
+            correctly_learneds = request.form.getlist("correctly_learned[]")
+
+            for i in range(len(categories)):
+                if categories[i]:
+                    course = ReportCourse(
+                        report_id=report.id,
+                        category=categories[i],
+                        number=int(numbers[i]) if numbers[i] else 0,
+                        increase=int(increases[i]) if increases[i] else 0,
+                        decrease=int(decreases[i]) if decreases[i] else 0,
+                        sessions=int(sessions[i]) if sessions[i] else 0,
+                        students=int(students[i]) if students[i] else 0,
+                        attendance=int(attendances[i]) if attendances[i] else 0,
+                        status_board=int(status_boards[i]) if status_boards[i] else 0,
+                        status_qayda=int(status_qaydas[i]) if status_qaydas[i] else 0,
+                        status_ampara=(
+                            int(status_amparas[i]) if status_amparas[i] else 0
+                        ),
+                        status_quran=int(status_qurans[i]) if status_qurans[i] else 0,
+                        completed=int(completeds[i]) if completeds[i] else 0,
+                        correctly_learned=(
+                            int(correctly_learneds[i]) if correctly_learneds[i] else 0
+                        ),
+                    )
+                    db.session.add(course)
+
+            db.session.commit()
+            return redirect(
+                f"/report_courses?month={month}&year={year}&success=কোর্স তথ্য সংরক্ষিত হয়েছে"
+            )
+
+        except Exception as e:
+            db.session.rollback()
+            return render_template(
+                "sections/courses.html",
+                report=report,
+                month=month,
+                year=year,
+                categories=COURSE_CATEGORIES,
+                error=f"তথ্য সংরক্ষণে ত্রুটি: {str(e)}",
+            )
+
+    success = request.args.get("success")
+    error = request.args.get("error")
+
+    return render_template(
+        "sections/courses.html",
+        report=report,
+        month=month,
+        year=year,
+        categories=COURSE_CATEGORIES,
+        success=success,
+        error=error,
+    )
+
+
+@app.route("/report_organizational", methods=["GET", "POST"])
+@login_required
+def report_organizational():
+    """Organizational activities section form."""
+    month = request.args.get("month")
+    year = request.args.get("year")
+
+    if not month or not year:
+        from datetime import datetime
+
+        now = datetime.now()
+        month = now.month
+        year = now.year
+
+    # Get or create report
+    report = Report.query.filter_by(
+        user_id=current_user.id, month=int(month), year=int(year)
+    ).first()
+
+    if not report:
+        report = Report(
+            user_id=current_user.id,
+            zone_id=current_user.zone_id,
+            month=int(month),
+            year=int(year),
+        )
+        db.session.add(report)
+        db.session.commit()
+
+    if request.method == "POST":
+        try:
+            # Clear existing organizational activities
+            ReportOrganizational.query.filter_by(report_id=report.id).delete()
+
+            # Add new activities
+            categories = request.form.getlist("category[]")
+            numbers = request.form.getlist("number[]")
+            increases = request.form.getlist("increase[]")
+            amounts = request.form.getlist("amount[]")
+            comments = request.form.getlist("comments[]")
+
+            for i in range(len(categories)):
+                if categories[i]:
+                    activity = ReportOrganizational(
+                        report_id=report.id,
+                        category=categories[i],
+                        number=int(numbers[i]) if numbers[i] else 0,
+                        increase=int(increases[i]) if increases[i] else 0,
+                        amount=int(amounts[i]) if amounts[i] else None,
+                        comments=comments[i] if i < len(comments) else "",
+                    )
+                    db.session.add(activity)
+
+            db.session.commit()
+            return redirect(
+                f"/report_organizational?month={month}&year={year}&success=সাংগঠনিক তথ্য সংরক্ষিত হয়েছে"
+            )
+
+        except Exception as e:
+            db.session.rollback()
+            return render_template(
+                "sections/organizational.html",
+                report=report,
+                month=month,
+                year=year,
+                categories=ORGANIZATIONAL_CATEGORIES,
+                error=f"তথ্য সংরক্ষণে ত্রুটি: {str(e)}",
+            )
+
+    success = request.args.get("success")
+    error = request.args.get("error")
+
+    return render_template(
+        "sections/organizational.html",
+        report=report,
+        month=month,
+        year=year,
+        categories=ORGANIZATIONAL_CATEGORIES,
+        success=success,
+        error=error,
+    )
+
+
+@app.route("/report_personal", methods=["GET", "POST"])
+@login_required
+def report_personal():
+    """Personal development section form."""
+    month = request.args.get("month")
+    year = request.args.get("year")
+
+    if not month or not year:
+        from datetime import datetime
+
+        now = datetime.now()
+        month = now.month
+        year = now.year
+
+    # Get or create report
+    report = Report.query.filter_by(
+        user_id=current_user.id, month=int(month), year=int(year)
+    ).first()
+
+    if not report:
+        report = Report(
+            user_id=current_user.id,
+            zone_id=current_user.zone_id,
+            month=int(month),
+            year=int(year),
+        )
+        db.session.add(report)
+        db.session.commit()
+
+    if request.method == "POST":
+        try:
+            # Clear existing personal activities
+            ReportPersonal.query.filter_by(report_id=report.id).delete()
+
+            # Add new activities
+            categories = request.form.getlist("category[]")
+            rukons = request.form.getlist("rukon[]")
+            kormis = request.form.getlist("kormi[]")
+            shokrio_shohojogis = request.form.getlist("shokrio_shohojogi[]")
+
+            for i in range(len(categories)):
+                if categories[i]:
+                    activity = ReportPersonal(
+                        report_id=report.id,
+                        category=categories[i],
+                        rukon=int(rukons[i]) if rukons[i] else 0,
+                        kormi=int(kormis[i]) if kormis[i] else 0,
+                        shokrio_shohojogi=(
+                            int(shokrio_shohojogis[i]) if shokrio_shohojogis[i] else 0
+                        ),
+                    )
+                    db.session.add(activity)
+
+            db.session.commit()
+            return redirect(
+                f"/report_personal?month={month}&year={year}&success=ব্যক্তিগত তথ্য সংরক্ষিত হয়েছে"
+            )
+
+        except Exception as e:
+            db.session.rollback()
+            return render_template(
+                "sections/personal.html",
+                report=report,
+                month=month,
+                year=year,
+                categories=PERSONAL_CATEGORIES,
+                error=f"তথ্য সংরক্ষণে ত্রুটি: {str(e)}",
+            )
+
+    success = request.args.get("success")
+    error = request.args.get("error")
+
+    return render_template(
+        "sections/personal.html",
+        report=report,
+        month=month,
+        year=year,
+        categories=PERSONAL_CATEGORIES,
+        success=success,
+        error=error,
+    )
+
+
+@app.route("/report_meetings", methods=["GET", "POST"])
+@login_required
+def report_meetings():
+    """Meetings section form."""
+    month = request.args.get("month")
+    year = request.args.get("year")
+
+    if not month or not year:
+        from datetime import datetime
+
+        now = datetime.now()
+        month = now.month
+        year = now.year
+
+    # Get or create report
+    report = Report.query.filter_by(
+        user_id=current_user.id, month=int(month), year=int(year)
+    ).first()
+
+    if not report:
+        report = Report(
+            user_id=current_user.id,
+            zone_id=current_user.zone_id,
+            month=int(month),
+            year=int(year),
+        )
+        db.session.add(report)
+        db.session.commit()
+
+    if request.method == "POST":
+        try:
+            # Clear existing meetings
+            ReportMeeting.query.filter_by(report_id=report.id).delete()
+
+            # Add new meetings
+            categories = request.form.getlist("category[]")
+            city_counts = request.form.getlist("city_count[]")
+            city_avg_attendances = request.form.getlist("city_avg_attendance[]")
+            thana_counts = request.form.getlist("thana_count[]")
+            thana_avg_attendances = request.form.getlist("thana_avg_attendance[]")
+            ward_counts = request.form.getlist("ward_count[]")
+            ward_avg_attendances = request.form.getlist("ward_avg_attendance[]")
+            comments = request.form.getlist("comments[]")
+
+            for i in range(len(categories)):
+                if categories[i]:
+                    meeting = ReportMeeting(
+                        report_id=report.id,
+                        category=categories[i],
+                        city_count=int(city_counts[i]) if city_counts[i] else 0,
+                        city_avg_attendance=(
+                            int(city_avg_attendances[i])
+                            if city_avg_attendances[i]
+                            else 0
+                        ),
+                        thana_count=int(thana_counts[i]) if thana_counts[i] else 0,
+                        thana_avg_attendance=(
+                            int(thana_avg_attendances[i])
+                            if thana_avg_attendances[i]
+                            else 0
+                        ),
+                        ward_count=int(ward_counts[i]) if ward_counts[i] else 0,
+                        ward_avg_attendance=(
+                            int(ward_avg_attendances[i])
+                            if ward_avg_attendances[i]
+                            else 0
+                        ),
+                        comments=comments[i] if i < len(comments) else "",
+                    )
+                    db.session.add(meeting)
+
+            db.session.commit()
+            return redirect(
+                f"/report_meetings?month={month}&year={year}&success=মিটিং তথ্য সংরক্ষিত হয়েছে"
+            )
+
+        except Exception as e:
+            db.session.rollback()
+            return render_template(
+                "sections/meetings.html",
+                report=report,
+                month=month,
+                year=year,
+                categories=MEETING_CATEGORIES,
+                error=f"তথ্য সংরক্ষণে ত্রুটি: {str(e)}",
+            )
+
+    success = request.args.get("success")
+    error = request.args.get("error")
+
+    return render_template(
+        "sections/meetings.html",
+        report=report,
+        month=month,
+        year=year,
+        categories=MEETING_CATEGORIES,
+        success=success,
+        error=error,
+    )
+
+
+@app.route("/report_extras", methods=["GET", "POST"])
+@login_required
+def report_extras():
+    """Extra activities section form."""
+    month = request.args.get("month")
+    year = request.args.get("year")
+
+    if not month or not year:
+        from datetime import datetime
+
+        now = datetime.now()
+        month = now.month
+        year = now.year
+
+    # Get or create report
+    report = Report.query.filter_by(
+        user_id=current_user.id, month=int(month), year=int(year)
+    ).first()
+
+    if not report:
+        report = Report(
+            user_id=current_user.id,
+            zone_id=current_user.zone_id,
+            month=int(month),
+            year=int(year),
+        )
+        db.session.add(report)
+        db.session.commit()
+
+    if request.method == "POST":
+        try:
+            # Clear existing extras
+            ReportExtra.query.filter_by(report_id=report.id).delete()
+
+            # Add new extras
+            categories = request.form.getlist("category[]")
+            numbers = request.form.getlist("number[]")
+
+            for i in range(len(categories)):
+                if categories[i]:
+                    extra = ReportExtra(
+                        report_id=report.id,
+                        category=categories[i],
+                        number=int(numbers[i]) if numbers[i] else 0,
+                    )
+                    db.session.add(extra)
+
+            db.session.commit()
+            return redirect(
+                f"/report_extras?month={month}&year={year}&success=অতিরিক্ত তথ্য সংরক্ষিত হয়েছে"
+            )
+
+        except Exception as e:
+            db.session.rollback()
+            return render_template(
+                "sections/extras.html",
+                report=report,
+                month=month,
+                year=year,
+                categories=EXTRA_CATEGORIES,
+                error=f"তথ্য সংরক্ষণে ত্রুটি: {str(e)}",
+            )
+
+    success = request.args.get("success")
+    error = request.args.get("error")
+
+    return render_template(
+        "sections/extras.html",
+        report=report,
+        month=month,
+        year=year,
+        categories=EXTRA_CATEGORIES,
+        success=success,
+        error=error,
+    )
+
+
+@app.route("/report_comments", methods=["GET", "POST"])
+@login_required
+def report_comments():
+    """Comments section form."""
+    month = request.args.get("month")
+    year = request.args.get("year")
+
+    if not month or not year:
+        from datetime import datetime
+
+        now = datetime.now()
+        month = now.month
+        year = now.year
+
+    # Get or create report
+    report = Report.query.filter_by(
+        user_id=current_user.id, month=int(month), year=int(year)
+    ).first()
+
+    if not report:
+        report = Report(
+            user_id=current_user.id,
+            zone_id=current_user.zone_id,
+            month=int(month),
+            year=int(year),
+        )
+        db.session.add(report)
+        db.session.commit()
+
+    if request.method == "POST":
+        try:
+            if not report.comments:
+                report.comments = ReportComment(report_id=report.id)
+                db.session.add(report.comments)
+
+            report.comments.report_month = get_month_name(int(month))
+            report.comments.monthly_comment = request.form.get("monthly_comment", "")
+            report.comments.tri_monthly_comment = request.form.get(
+                "tri_monthly_comment", ""
+            )
+            report.comments.six_monthly_comment = request.form.get(
+                "six_monthly_comment", ""
+            )
+            report.comments.yearly_comment = request.form.get("yearly_comment", "")
+
+            db.session.commit()
+            return redirect(
+                f"/report_comments?month={month}&year={year}&success=মন্তব্য সংরক্ষিত হয়েছে"
+            )
+
+        except Exception as e:
+            db.session.rollback()
+            return render_template(
+                "sections/comments.html",
+                report=report,
+                month=month,
+                year=year,
+                error=f"তথ্য সংরক্ষণে ত্রুটি: {str(e)}",
+            )
+
+    success = request.args.get("success")
+    error = request.args.get("error")
+
+    return render_template(
+        "sections/comments.html",
+        report=report,
+        month=month,
+        year=year,
+        success=success,
+        error=error,
+    )
+
+
+def get_month_name(month_num):
+    """Get Bengali month name from number."""
+    months = {
+        1: "জানুয়ারি",
+        2: "ফেব্রুয়ারি",
+        3: "মার্চ",
+        4: "এপ্রিল",
+        5: "মে",
+        6: "জুন",
+        7: "জুলাই",
+        8: "আগস্ট",
+        9: "সেপ্টেম্বর",
+        10: "অক্টোবর",
+        11: "নভেম্বর",
+        12: "ডিসেম্বর",
+    }
+    return months.get(month_num, str(month_num))
+
+
 @app.route("/autosave", methods=["POST"])
 @login_required
 def autosave():
-    """Auto-save endpoint for report drafts. Only header fields are currently supported."""
+    """Auto-save endpoint for report drafts. Supports all report sections."""
     report_id = request.form.get("id")
-    if report_id:
-        report = Report.query.get(report_id)
-        if not report or (
-            report.user_id != current_user.id and current_user.role != "admin"
-        ):
-            return jsonify({"error": "Unauthorized"}), 403
-        # Update header fields if present
-        if hasattr(report, "header") and report.header:
+    section = request.form.get("section")
+    if not report_id or not section:
+        return jsonify({"status": "no-id-or-section"})
+    report = Report.query.get(report_id)
+    if not report or (
+        report.user_id != current_user.id and current_user.role != "admin"
+    ):
+        return jsonify({"error": "Unauthorized"}), 403
+
+    try:
+        if section == "header":
+            if hasattr(report, "header") and report.header:
+                header = report.header
+            else:
+                header = ReportHeader(report_id=report.id)
+                db.session.add(header)
+                report.header = header
             for field in [
-                "total_teachers",
-                "teacher_increase",
-                "teacher_decrease",
-                "certified_teachers",
-                "trained_teachers",
-                "unit_count",
-                "teachers_taking_classes_1",
-                "teachers_taking_classes_2",
-                "units_with_teachers",
+                "responsible_name",
+                "thana",
+                "ward",
+                "total_muallima",
+                "muallima_increase",
+                "muallima_decrease",
+                "certified_muallima",
+                "certified_muallima_taking_classes",
+                "trained_muallima",
+                "trained_muallima_taking_classes",
+                "total_unit",
+                "units_with_muallima",
             ]:
                 val = request.form.get(field)
                 if val is not None:
-                    setattr(report.header, field, val)
-        report.month = request.form.get("month") or report.month
-        report.year = request.form.get("year") or report.year
-        report.responsible_name = (
-            request.form.get("responsible_name") or report.responsible_name
-        )
+                    if field in [
+                        "total_muallima",
+                        "muallima_increase",
+                        "muallima_decrease",
+                        "certified_muallima",
+                        "certified_muallima_taking_classes",
+                        "trained_muallima",
+                        "trained_muallima_taking_classes",
+                        "total_unit",
+                        "units_with_muallima",
+                    ]:
+                        val = int(val) if val else 0
+                    setattr(header, field, val)
+        elif section == "courses":
+            # Clear and re-add all courses
+            ReportCourse.query.filter_by(report_id=report.id).delete()
+            categories = request.form.getlist("category[]")
+            numbers = request.form.getlist("number[]")
+            increases = request.form.getlist("increase[]")
+            decreases = request.form.getlist("decrease[]")
+            sessions = request.form.getlist("sessions[]")
+            students = request.form.getlist("students[]")
+            attendances = request.form.getlist("attendance[]")
+            status_boards = request.form.getlist("status_board[]")
+            status_qaydas = request.form.getlist("status_qayda[]")
+            status_amparas = request.form.getlist("status_ampara[]")
+            status_qurans = request.form.getlist("status_quran[]")
+            completeds = request.form.getlist("completed[]")
+            correctly_learneds = request.form.getlist("correctly_learned[]")
+            for i in range(len(categories)):
+                if categories[i]:
+                    course = ReportCourse(
+                        report_id=report.id,
+                        category=categories[i],
+                        number=int(numbers[i]) if numbers[i] else 0,
+                        increase=int(increases[i]) if increases[i] else 0,
+                        decrease=int(decreases[i]) if decreases[i] else 0,
+                        sessions=int(sessions[i]) if sessions[i] else 0,
+                        students=int(students[i]) if students[i] else 0,
+                        attendance=int(attendances[i]) if attendances[i] else 0,
+                        status_board=int(status_boards[i]) if status_boards[i] else 0,
+                        status_qayda=int(status_qaydas[i]) if status_qaydas[i] else 0,
+                        status_ampara=(
+                            int(status_amparas[i]) if status_amparas[i] else 0
+                        ),
+                        status_quran=int(status_qurans[i]) if status_qurans[i] else 0,
+                        completed=int(completeds[i]) if completeds[i] else 0,
+                        correctly_learned=(
+                            int(correctly_learneds[i]) if correctly_learneds[i] else 0
+                        ),
+                    )
+                    db.session.add(course)
+        elif section == "organizational":
+            ReportOrganizational.query.filter_by(report_id=report.id).delete()
+            categories = request.form.getlist("category[]")
+            numbers = request.form.getlist("number[]")
+            increases = request.form.getlist("increase[]")
+            amounts = request.form.getlist("amount[]")
+            comments = request.form.getlist("comments[]")
+            for i in range(len(categories)):
+                if categories[i]:
+                    activity = ReportOrganizational(
+                        report_id=report.id,
+                        category=categories[i],
+                        number=int(numbers[i]) if numbers[i] else 0,
+                        increase=int(increases[i]) if increases[i] else 0,
+                        amount=int(amounts[i]) if amounts[i] else None,
+                        comments=comments[i] if i < len(comments) else "",
+                    )
+                    db.session.add(activity)
+        elif section == "personal":
+            ReportPersonal.query.filter_by(report_id=report.id).delete()
+            categories = request.form.getlist("category[]")
+            rukons = request.form.getlist("rukon[]")
+            kormis = request.form.getlist("kormi[]")
+            shokrio_shohojogis = request.form.getlist("shokrio_shohojogi[]")
+            for i in range(len(categories)):
+                if categories[i]:
+                    activity = ReportPersonal(
+                        report_id=report.id,
+                        category=categories[i],
+                        rukon=int(rukons[i]) if rukons[i] else 0,
+                        kormi=int(kormis[i]) if kormis[i] else 0,
+                        shokrio_shohojogi=(
+                            int(shokrio_shohojogis[i]) if shokrio_shohojogis[i] else 0
+                        ),
+                    )
+                    db.session.add(activity)
+        elif section == "meetings":
+            ReportMeeting.query.filter_by(report_id=report.id).delete()
+            categories = request.form.getlist("category[]")
+            city_counts = request.form.getlist("city_count[]")
+            city_avg_attendances = request.form.getlist("city_avg_attendance[]")
+            thana_counts = request.form.getlist("thana_count[]")
+            thana_avg_attendances = request.form.getlist("thana_avg_attendance[]")
+            ward_counts = request.form.getlist("ward_count[]")
+            ward_avg_attendances = request.form.getlist("ward_avg_attendance[]")
+            comments = request.form.getlist("comments[]")
+            for i in range(len(categories)):
+                if categories[i]:
+                    meeting = ReportMeeting(
+                        report_id=report.id,
+                        category=categories[i],
+                        city_count=int(city_counts[i]) if city_counts[i] else 0,
+                        city_avg_attendance=(
+                            int(city_avg_attendances[i])
+                            if city_avg_attendances[i]
+                            else 0
+                        ),
+                        thana_count=int(thana_counts[i]) if thana_counts[i] else 0,
+                        thana_avg_attendance=(
+                            int(thana_avg_attendances[i])
+                            if thana_avg_attendances[i]
+                            else 0
+                        ),
+                        ward_count=int(ward_counts[i]) if ward_counts[i] else 0,
+                        ward_avg_attendance=(
+                            int(ward_avg_attendances[i])
+                            if ward_avg_attendances[i]
+                            else 0
+                        ),
+                        comments=comments[i] if i < len(comments) else "",
+                    )
+                    db.session.add(meeting)
+        elif section == "extras":
+            ReportExtra.query.filter_by(report_id=report.id).delete()
+            categories = request.form.getlist("category[]")
+            numbers = request.form.getlist("number[]")
+            for i in range(len(categories)):
+                if categories[i]:
+                    extra = ReportExtra(
+                        report_id=report.id,
+                        category=categories[i],
+                        number=int(numbers[i]) if numbers[i] else 0,
+                    )
+                    db.session.add(extra)
+        elif section == "comments":
+            if not report.comments:
+                report.comments = ReportComment(report_id=report.id)
+                db.session.add(report.comments)
+            report.comments.report_month = request.form.get("report_month", "")
+            report.comments.monthly_comment = request.form.get("monthly_comment", "")
+            report.comments.tri_monthly_comment = request.form.get(
+                "tri_monthly_comment", ""
+            )
+            report.comments.six_monthly_comment = request.form.get(
+                "six_monthly_comment", ""
+            )
+            report.comments.yearly_comment = request.form.get("yearly_comment", "")
         db.session.commit()
         return jsonify({"status": "saved"})
-    else:
-        # No report ID provided
-        return jsonify({"status": "no-id"})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"status": "error", "error": str(e)})
 
 
 # --- Admin view of all reports for review, edit, and audit ---
@@ -335,43 +1060,58 @@ def approve_user(user_id: int):
     if current_user.role != "admin":
         return "Unauthorized", 403
     user = User.query.get_or_404(user_id)
-    user.is_active = True
+    user.active = True
     db.session.commit()
     return "approved"
 
 
 class Report(db.Model):
-    """Main report model, links to all report sections and audit trail."""
+    """Main report model, links to all report sections."""
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    month = db.Column(db.String(20), nullable=False)
+    zone_id = db.Column(db.Integer, db.ForeignKey("zone.id"), nullable=False)
+    month = db.Column(db.Integer, nullable=False)  # 1-12
     year = db.Column(db.Integer, nullable=False)
-    responsible_name = db.Column(db.String(120), nullable=False)
+    period_type = db.Column(
+        db.String(20), nullable=False, default="monthly"
+    )  # monthly, quarterly, half-yearly, yearly
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    edit_locked = db.Column(db.Boolean, default=False)  # If True, user cannot edit
-    admin_comment = db.Column(db.Text, nullable=True)
+    updated_at = db.Column(
+        db.DateTime,
+        default=db.func.current_timestamp(),
+        onupdate=db.func.current_timestamp(),
+    )
+
+    # Relationships to new models
     header = db.relationship(
         "ReportHeader", backref="report", uselist=False, cascade="all, delete-orphan"
-    )
-    classes = db.relationship(
-        "ReportClass", backref="report", lazy=True, cascade="all, delete-orphan"
-    )
-    meetings = db.relationship(
-        "ReportMeeting", backref="report", lazy=True, cascade="all, delete-orphan"
-    )
-    manpower = db.relationship(
-        "ReportManpower", backref="report", lazy=True, cascade="all, delete-orphan"
-    )
-    efforts = db.relationship(
-        "ReportIndividualEffort",
+    )  # type: ignore
+    courses = db.relationship(
+        "ReportCourse", backref="report", lazy=True, cascade="all, delete-orphan"
+    )  # type: ignore
+    organizational = db.relationship(
+        "ReportOrganizational",
         backref="report",
         lazy=True,
         cascade="all, delete-orphan",
-    )
-    edits = db.relationship(
-        "ReportEdit", backref="report", lazy=True, cascade="all, delete-orphan"
-    )
+    )  # type: ignore
+    personal = db.relationship(
+        "ReportPersonal", backref="report", lazy=True, cascade="all, delete-orphan"
+    )  # type: ignore
+    meetings = db.relationship(
+        "ReportMeeting", backref="report", lazy=True, cascade="all, delete-orphan"
+    )  # type: ignore
+    extras = db.relationship(
+        "ReportExtra", backref="report", lazy=True, cascade="all, delete-orphan"
+    )  # type: ignore
+    comments = db.relationship(
+        "ReportComment", backref="report", uselist=False, cascade="all, delete-orphan"
+    )  # type: ignore
+
+    # Relationships
+    user = db.relationship("User", backref="reports")  # type: ignore
+    zone = db.relationship("Zone", backref="zone_reports")  # type: ignore
 
 
 @login_manager.user_loader  # type: ignore
@@ -438,242 +1178,30 @@ def log_report_edit(report_id, editor_id, changes, comment=None):  # type: ignor
 # --- Multi-section, wizard/full, edit, admin edit, audit, permission logic ---
 
 
-@app.route("/form", methods=["GET", "POST"])
+# --- Multi-section report submission and edit form (legacy, now read-only) ---
+@app.route("/form", methods=["GET"])
 @login_required
 def form():
     """
-    Multi-section report submission and edit form.
-    Handles both new and existing reports, admin edit, audit trail, and validation.
+    Multi-section report submission and edit form (legacy, now read-only).
+    Use the section-based routes for editing.
     """
     report_id = request.args.get("id")
     is_admin = current_user.role == "admin"
-    editing = False
     report = None
     audit_trail = []
-
-    # If editing, load report and audit trail
     if report_id:
         report = Report.query.options(db.joinedload(Report.header)).get(report_id)
         if report:
-            editing = True
             audit_trail = (
                 ReportEdit.query.filter_by(report_id=report.id)
                 .order_by(ReportEdit.edit_time.desc())
                 .all()
             )
-            # Only allow user or admin to edit
             if not (is_admin or report.user_id == current_user.id):
                 return render_template(
                     "form.html", error="Unauthorized", report=None, audit_trail=[]
                 )
-
-    if request.method == "POST":
-        # --- Parse header fields ---
-        header_data = {
-            k: request.form.get(k)
-            for k in [
-                "total_teachers",
-                "teacher_increase",
-                "teacher_decrease",
-                "certified_teachers",
-                "trained_teachers",
-                "unit_count",
-                "teachers_taking_classes_1",
-                "teachers_taking_classes_2",
-                "units_with_teachers",
-            ]
-        }
-
-        # --- Parse classes ---
-        classes, i = [], 0
-        while True:
-            dept_type = request.form.get(f"class_dept_type_{i}")
-            if not dept_type:
-                break
-            classes.append(
-                {
-                    "dept_type": dept_type,
-                    "number": request.form.get(f"class_number_{i}"),
-                    "increase": request.form.get(f"class_increase_{i}"),
-                    "decrease": request.form.get(f"class_decrease_{i}"),
-                    "sessions": request.form.get(f"class_sessions_{i}"),
-                    "students": request.form.get(f"class_students_{i}"),
-                    "attendance": request.form.get(f"class_attendance_{i}"),
-                    "status_board": request.form.get(f"class_status_board_{i}"),
-                    "status_qayda": request.form.get(f"class_status_qayda_{i}"),
-                    "status_ampara": request.form.get(f"class_status_ampara_{i}"),
-                    "status_quran": request.form.get(f"class_status_quran_{i}"),
-                    "completed": request.form.get(f"class_completed_{i}"),
-                    "correctly_learned": request.form.get(
-                        f"class_correctly_learned_{i}"
-                    ),
-                }
-            )
-            i += 1
-
-        # --- Parse meetings ---
-        meetings, i = [], 0
-        while True:
-            meeting_type = request.form.get(f"meeting_type_{i}")
-            if not meeting_type:
-                break
-            meetings.append(
-                {
-                    "meeting_type": meeting_type,
-                    "city_count": request.form.get(f"meeting_city_count_{i}"),
-                    "city_avg_attendance": request.form.get(
-                        f"meeting_city_avg_attendance_{i}"
-                    ),
-                    "thana_count": request.form.get(f"meeting_thana_count_{i}"),
-                    "thana_avg_attendance": request.form.get(
-                        f"meeting_thana_avg_attendance_{i}"
-                    ),
-                    "ward_count": request.form.get(f"meeting_ward_count_{i}"),
-                    "ward_avg_attendance": request.form.get(
-                        f"meeting_ward_avg_attendance_{i}"
-                    ),
-                    "comments": request.form.get(f"meeting_comments_{i}"),
-                }
-            )
-            i += 1
-
-        # --- Parse manpower ---
-        manpower, i = [], 0
-        while True:
-            category = request.form.get(f"manpower_category_{i}")
-            if not category:
-                break
-            manpower.append(
-                {
-                    "category": category,
-                    "count": request.form.get(f"manpower_count_{i}"),
-                    "additional_count": request.form.get(
-                        f"manpower_additional_count_{i}"
-                    ),
-                }
-            )
-            i += 1
-
-        # --- Parse efforts ---
-        efforts, i = [], 0
-        while True:
-            category = request.form.get(f"effort_category_{i}")
-            if not category:
-                break
-            efforts.append(
-                {
-                    "category": category,
-                    "teaching_count": request.form.get(f"effort_teaching_count_{i}"),
-                    "taught_count": request.form.get(f"effort_taught_count_{i}"),
-                }
-            )
-            i += 1
-
-        # Validate required header fields
-        missing = [k for k, v in header_data.items() if v is None or v == ""]
-        if missing:
-            return render_template(
-                "form.html",
-                error=f"Missing fields: {', '.join(missing)}",
-                report=report,
-                audit_trail=audit_trail,
-            )
-
-        # Save or update report
-        if editing and report:
-            # Save old values for audit
-            old_header = (
-                {k: getattr(report.header, k) for k in header_data}
-                if hasattr(report, "header") and report.header
-                else {}
-            )
-            # Update report fields
-            report.month = request.form.get("month")
-            report.year = request.form.get("year")
-            report.responsible_name = request.form.get("responsible_name")
-            # Update header
-            if hasattr(report, "header") and report.header:
-                for k, v in header_data.items():
-                    setattr(report.header, k, v)
-            else:
-                header = ReportHeader(report_id=report.id, **header_data)
-                db.session.add(header)
-            # Update classes
-            report.classes.clear()
-            for c in classes:
-                db.session.add(ReportClass(report_id=report.id, **c))
-            # Update meetings
-            report.meetings.clear()
-            for m in meetings:
-                db.session.add(ReportMeeting(report_id=report.id, **m))
-            # Update manpower
-            report.manpower.clear()
-            for mp in manpower:
-                db.session.add(ReportManpower(report_id=report.id, **mp))
-            # Update efforts
-            report.efforts.clear()
-            for ef in efforts:
-                db.session.add(ReportIndividualEffort(report_id=report.id, **ef))
-            db.session.commit()
-            # Log audit
-            log_report_edit(
-                report.id,
-                current_user.id,
-                {
-                    "old_header": old_header,
-                    "new_header": header_data,
-                    "classes": classes,
-                    "meetings": meetings,
-                    "manpower": manpower,
-                    "efforts": efforts,
-                },
-            )
-            return render_template(
-                "form.html",
-                success="Report updated.",
-                report=report,
-                audit_trail=audit_trail,
-            )
-        else:
-            # New report
-            report = Report(
-                user_id=current_user.id,
-                month=request.form.get("month"),
-                year=request.form.get("year"),
-                responsible_name=request.form.get("responsible_name"),
-            )
-            db.session.add(report)
-            db.session.commit()
-            header = ReportHeader(report_id=report.id, **header_data)
-            db.session.add(header)
-            for c in classes:
-                db.session.add(ReportClass(report_id=report.id, **c))
-            for m in meetings:
-                db.session.add(ReportMeeting(report_id=report.id, **m))
-            for mp in manpower:
-                db.session.add(ReportManpower(report_id=report.id, **mp))
-            for ef in efforts:
-                db.session.add(ReportIndividualEffort(report_id=report.id, **ef))
-            db.session.commit()
-            log_report_edit(
-                report.id,
-                current_user.id,
-                {
-                    "new_header": header_data,
-                    "classes": classes,
-                    "meetings": meetings,
-                    "manpower": manpower,
-                    "efforts": efforts,
-                },
-            )
-            return render_template(
-                "form.html",
-                success="Report submitted.",
-                report=report,
-                audit_trail=audit_trail,
-            )
-
-    # GET: render form, prefill if editing
     return render_template("form.html", report=report, audit_trail=audit_trail)
 
 
@@ -784,7 +1312,7 @@ def index():
         if current_user.role == "admin":
             return redirect(url_for("master_report"))
         else:
-            return redirect(url_for("form"))
+            return redirect(url_for("report_dashboard"))
     return redirect(url_for("login"))
 
 

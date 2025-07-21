@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="bn">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>মূল তথ্য - রিপোর্ট</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <link rel="stylesheet" href="/static/modern-animations.css" />
+  </head>
+  <body
+    class="bg-gradient-to-br from-cyan-100 via-blue-50 to-white min-h-screen"
+  >
+    <div class="container mx-auto px-4 py-8">
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-cyan-700 mb-2">মূল তথ্য</h1>
+        <p class="text-gray-600">{{ get_month_name(month|int) }} {{ year }}</p>
+        <div class="mt-4">
+          <a
+            href="/report_dashboard?month={{ month }}&year={{ year }}"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            ← ড্যাশবোর্ডে ফিরে যান
+          </a>
+        </div>
+      </div>
+
+      <!-- Main content -->
+      <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+          <!-- Alert messages -->
+          {% if error %}
+          <div
+            class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6"
+          >
+            {{ error }}
+          </div>
+          {% endif %} {% if success %}
+          <div
+            class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6"
+          >
+            {{ success }}
+          </div>
+          {% endif %}
+
+          <form method="post">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  for="responsible_name"
+                  class="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  দায়িত্বশীলের নাম *
+                </label>
+                <input
+                  type="text"
+                  id="responsible_name"
+                  name="responsible_name"
+                  value="{{ report.header.responsible_name if report.header else '' }}"
+                  required
+                  class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label
+                  for="thana"
+                  class="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  থানা *
+                </label>
+                <input
+                  type="text"
+                  id="thana"
+                  name="thana"
+                  value="{{ report.header.thana if report.header else '' }}"
+                  required
+                  class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label
+                  for="ward"
+                  class="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  ওয়ার্ড *
+                </label>
+                <input
+                  type="text"
+                  id="ward"
+                  name="ward"
+                  value="{{ report.header.ward if report.header else '' }}"
+                  required
+                  class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label
+                  for="total_muallima"
+                  class="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  মোট মুয়াল্লিমা সংখ্যা
+                </label>
+                <input
+                  type="number"
+                  id="total_muallima"
+                  name="total_muallima"
+                  min="0"
+                  value="{{ report.header.total_muallima if report.header else 0 }}"
+                  class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label
+                  for="muallima_increase"
+                  class="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  মুয়াল্লিমা বৃদ্ধি
+                </label>
+                <input
+                  type="number"
+                  id="muallima_increase"
+                  name="muallima_increase"
+                  min="0"
+                  value="{{ report.header.muallima_increase if report.header else 0 }}"
+                  class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label
+                  for="muallima_decrease"
+                  class="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  মুয়াল্লিমা হ্রাস
+                </label>
+                <input
+                  type="number"
+                  id="muallima_decrease"
+                  name="muallima_decrease"
+                  min="0"
+                  value="{{ report.header.muallima_decrease if report.header else 0 }}"
+                  class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label
+                  for="certified_muallima"
+                  class="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  প্রশিক্ষিত মুয়াল্লিমা
+                </label>
+                <input
+                  type="number"
+                  id="certified_muallima"
+                  name="certified_muallima"
+                  min="0"
+                  value="{{ report.header.certified_muallima if report.header else 0 }}"
+                  class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label
+                  for="certified_muallima_taking_classes"
+                  class="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  প্রশিক্ষিত মুয়াল্লিমা (ক্লাস নিচ্ছেন)
+                </label>
+                <input
+                  type="number"
+                  id="certified_muallima_taking_classes"
+                  name="certified_muallima_taking_classes"
+                  min="0"
+                  value="{{ report.header.certified_muallima_taking_classes if report.header else 0 }}"
+                  class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label
+                  for="trained_muallima"
+                  class="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  ট্রেইনিং প্রাপ্ত মুয়াল্লিমা
+                </label>
+                <input
+                  type="number"
+                  id="trained_muallima"
+                  name="trained_muallima"
+                  min="0"
+                  value="{{ report.header.trained_muallima if report.header else 0 }}"
+                  class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label
+                  for="trained_muallima_taking_classes"
+                  class="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  ট্রেইনিং প্রাপ্ত মুয়াল্লিমা (ক্লাস নিচ্ছেন)
+                </label>
+                <input
+                  type="number"
+                  id="trained_muallima_taking_classes"
+                  name="trained_muallima_taking_classes"
+                  min="0"
+                  value="{{ report.header.trained_muallima_taking_classes if report.header else 0 }}"
+                  class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label
+                  for="total_unit"
+                  class="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  মোট ইউনিট
+                </label>
+                <input
+                  type="number"
+                  id="total_unit"
+                  name="total_unit"
+                  min="0"
+                  value="{{ report.header.total_unit if report.header else 0 }}"
+                  class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label
+                  for="units_with_muallima"
+                  class="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  মুয়াল্লিমা সহ ইউনিট
+                </label>
+                <input
+                  type="number"
+                  id="units_with_muallima"
+                  name="units_with_muallima"
+                  min="0"
+                  value="{{ report.header.units_with_muallima if report.header else 0 }}"
+                  class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            <div class="flex justify-between mt-8 pt-6 border-t">
+              <a
+                href="/report_dashboard?month={{ month }}&year={{ year }}"
+                class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+              >
+                বাতিল
+              </a>
+              <button
+                type="submit"
+                class="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
+              >
+                সংরক্ষণ করুন
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/scripts.js"></script>
+  </body>
+</html>

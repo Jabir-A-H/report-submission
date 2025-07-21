@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>শিক্ষামূলক কোর্স - রিপোর্ট</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="stylesheet" href="/static/modern-animations.css" />
+</head>
+<body class="bg-gradient-to-br from-cyan-100 via-blue-50 to-white min-h-screen">
+  
+  <div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-cyan-700 mb-2">শিক্ষামূলক কোর্স</h1>
+      <p class="text-gray-600">{{ get_month_name(month|int) }} {{ year }}</p>
+      <div class="mt-4">
+        <a href="/report_dashboard?month={{ month }}&year={{ year }}" 
+           class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          ← ড্যাশবোর্ডে ফিরে যান
+        </a>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="max-w-6xl mx-auto">
+      <div class="bg-white rounded-2xl shadow-xl p-8">
+        
+        <!-- Alert messages -->
+        {% if error %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">{{ error }}</div>
+        {% endif %}
+        {% if success %}
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">{{ success }}</div>
+        {% endif %}
+
+        <form method="post">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-semibold text-gray-700">কোর্স তালিকা</h3>
+            <button type="button" id="add-course" 
+                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+              নতুন কোর্স যুক্ত করুন
+            </button>
+          </div>
+
+          <div id="courses-container">
+            {% if report.courses and report.courses|length > 0 %}
+              {% for course in report.courses %}
+              <div class="course-item bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div class="lg:col-span-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">বিভাগ</label>
+                    <select name="category[]" required
+                            class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                      <option value="">বিভাগ নির্বাচন করুন</option>
+                      {% for category in categories %}
+                      <option value="{{ category }}" {% if course.category == category %}selected{% endif %}>
+                        {{ category }}
+                      </option>
+                      {% endfor %}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">সংখ্যা</label>
+                    <input type="number" name="number[]" value="{{ course.number }}" min="0"
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">বৃদ্ধি</label>
+                    <input type="number" name="increase[]" value="{{ course.increase }}" min="0"
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">হ্রাস</label>
+                    <input type="number" name="decrease[]" value="{{ course.decrease }}" min="0"
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">সেশন</label>
+                    <input type="number" name="sessions[]" value="{{ course.sessions }}" min="0"
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ছাত্র</label>
+                    <input type="number" name="students[]" value="{{ course.students }}" min="0"
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">উপস্থিতি</label>
+                    <input type="number" name="attendance[]" value="{{ course.attendance }}" min="0"
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">বোর্ড স্ট্যাটাস</label>
+                    <input type="number" name="status_board[]" value="{{ course.status_board }}" min="0"
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">কায়দা স্ট্যাটাস</label>
+                    <input type="number" name="status_qayda[]" value="{{ course.status_qayda }}" min="0"
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">আমপারা স্ট্যাটাস</label>
+                    <input type="number" name="status_ampara[]" value="{{ course.status_ampara }}" min="0"
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">কুরআন স্ট্যাটাস</label>
+                    <input type="number" name="status_quran[]" value="{{ course.status_quran }}" min="0"
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">সম্পূর্ণ</label>
+                    <input type="number" name="completed[]" value="{{ course.completed }}" min="0"
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">সঠিকভাবে শিক্ষিত</label>
+                    <input type="number" name="correctly_learned[]" value="{{ course.correctly_learned }}" min="0"
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                  </div>
+
+                  <div class="flex items-end">
+                    <button type="button" class="remove-course px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">
+                      মুছে ফেলুন
+                    </button>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="course-item bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div class="lg:col-span-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">বিভাগ</label>
+                    <select name="category[]" required
+                            class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                      <option value="">বিভাগ নির্বাচন করুন</option>
+                      {% for category in categories %}
+                      <option value="{{ category }}">{{ category }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">সংখ্যা</label>
+                    <input type="number" name="number[]" min="0" value="0"
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">বৃদ্ধি</label>
+                    <input type="number" name="increase[]" min="0" value="0"
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">হ্রাস</label>
+                    <input type="number" name="decrease[]" min="0" value="0"
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">সেশন</label>
+                    <input type="number" name="sessions[]" min="0" value="0"
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ছাত্র</label>
+                    <input type="number" name="students[]" min="0" value="0"
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">উপস্থিতি</label>
+                    <input type="number" name="attendance[]" min="0" value="0"
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">বোর্ড স্ট্যাটাস</label>
+                    <input type="number" name="status_board[]" min="0" value="0"
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">কায়দা স্ট্যাটাস</label>
+                    <input type="number" name="status_qayda[]" min="0" value="0"
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">আমপারা স্ট্যাটাস</label>
+                    <input type="number" name="status_ampara[]" min="0" value="0"
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">কুরআন স্ট্যাটাস</label>
+                    <input type="number" name="status_quran[]" min="0" value="0"
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">সম্পূর্ণ</label>
+                    <input type="number" name="completed[]" min="0" value="0"
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">সঠিকভাবে শিক্ষিত</label>
+                    <input type="number" name="correctly_learned[]" min="0" value="0"
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                  </div>
+
+                  <div class="flex items-end">
+                    <button type="button" class="remove-course px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">
+                      মুছে ফেলুন
+                    </button>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="flex justify-between mt-8 pt-6 border-t">
+            <a href="/report_dashboard?month={{ month }}&year={{ year }}" 
+               class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+              বাতিল
+            </a>
+            <button type="submit"
+                    class="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors">
+              সংরক্ষণ করুন
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  // Course management
+  document.getElementById('add-course').addEventListener('click', function() {
+    const container = document.getElementById('courses-container');
+    const courseItem = container.querySelector('.course-item').cloneNode(true);
+    
+    // Clear values
+    courseItem.querySelectorAll('input').forEach(input => input.value = input.type === 'number' ? '0' : '');
+    courseItem.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+    
+    container.appendChild(courseItem);
+    
+    // Add remove functionality to new item
+    courseItem.querySelector('.remove-course').addEventListener('click', function() {
+      if (container.children.length > 1) {
+        courseItem.remove();
+      }
+    });
+  });
+
+  // Add remove functionality to existing items
+  document.querySelectorAll('.remove-course').forEach(button => {
+    button.addEventListener('click', function() {
+      const container = document.getElementById('courses-container');
+      if (container.children.length > 1) {
+        button.closest('.course-item').remove();
+      }
+    });
+  });
+  </script>
+</body>
+</html>

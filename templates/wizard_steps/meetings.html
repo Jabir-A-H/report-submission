@@ -1,0 +1,131 @@
+<form id="step-form" method="post" action="/wizard?step=5">
+  <div class="space-y-6">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-lg font-semibold text-gray-700">মিটিং/সভা</h3>
+      <button type="button" id="add-meeting" 
+              class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+        নতুন মিটিং যুক্ত করুন
+      </button>
+    </div>
+
+    <div id="meetings-container">
+      {% if meetings and meetings|length > 0 %}
+        {% for meeting in meetings %}
+        <div class="meeting-item bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">বিভাগ</label>
+              <select name="meeting_category_id[]" required
+                      class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                <option value="">বিভাগ নির্বাচন করুন</option>
+                {% for category in meeting_categories %}
+                <option value="{{ category.id }}" 
+                        {% if meeting.category_id == category.id %}selected{% endif %}>
+                  {{ category.name }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">মিটিংের নাম</label>
+              <input type="text" name="meeting_name[]" value="{{ meeting.meeting_name }}" required
+                     class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">উপস্থিত</label>
+              <input type="number" name="attendees[]" value="{{ meeting.attendees }}" min="0"
+                     class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">সময়কাল (ঘন্টা)</label>
+              <input type="number" name="duration_hours[]" value="{{ meeting.duration_hours }}" min="0" step="0.5"
+                     class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+            </div>
+
+            <div class="lg:col-span-3"></div>
+            <div class="flex items-end">
+              <button type="button" class="remove-meeting px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">
+                মুছে ফেলুন
+              </button>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="meeting-item bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">বিভাগ</label>
+              <select name="meeting_category_id[]" required
+                      class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                <option value="">বিভাগ নির্বাচন করুন</option>
+                {% for category in meeting_categories %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">মিটিংের নাম</label>
+              <input type="text" name="meeting_name[]" required
+                     class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">উপস্থিত</label>
+              <input type="number" name="attendees[]" min="0" value="0"
+                     class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">সময়কাল (ঘন্টা)</label>
+              <input type="number" name="duration_hours[]" min="0" step="0.5" value="0"
+                     class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+            </div>
+
+            <div class="lg:col-span-3"></div>
+            <div class="flex items-end">
+              <button type="button" class="remove-meeting px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">
+                মুছে ফেলুন
+              </button>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</form>
+
+<script>
+// Meeting management
+document.getElementById('add-meeting').addEventListener('click', function() {
+  const container = document.getElementById('meetings-container');
+  const meetingItem = container.querySelector('.meeting-item').cloneNode(true);
+  
+  // Clear values
+  meetingItem.querySelectorAll('input').forEach(input => input.value = input.type === 'number' ? '0' : '');
+  meetingItem.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+  
+  container.appendChild(meetingItem);
+  
+  // Add remove functionality to new item
+  meetingItem.querySelector('.remove-meeting').addEventListener('click', function() {
+    if (container.children.length > 1) {
+      meetingItem.remove();
+    }
+  });
+});
+
+// Add remove functionality to existing items
+document.querySelectorAll('.remove-meeting').forEach(button => {
+  button.addEventListener('click', function() {
+    const container = document.getElementById('meetings-container');
+    if (container.children.length > 1) {
+      button.closest('.meeting-item').remove();
+    }
+  });
+});
+</script>

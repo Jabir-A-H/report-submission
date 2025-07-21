@@ -1,0 +1,130 @@
+<form id="step-form" method="post" action="/wizard?step=4">
+  <div class="space-y-6">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-lg font-semibold text-gray-700">ব্যক্তিগত উন্নয়ন</h3>
+      <button type="button" id="add-personal" 
+              class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+        নতুন কার্যক্রম যুক্ত করুন
+      </button>
+    </div>
+
+    <div id="personal-container">
+      {% if personal and personal|length > 0 %}
+        {% for activity in personal %}
+        <div class="personal-item bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">বিভাগ</label>
+              <select name="personal_category_id[]" required
+                      class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                <option value="">বিভাগ নির্বাচন করুন</option>
+                {% for category in personal_categories %}
+                <option value="{{ category.id }}" 
+                        {% if activity.category_id == category.id %}selected{% endif %}>
+                  {{ category.name }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">কার্যক্রমের নাম</label>
+              <input type="text" name="activity_name[]" value="{{ activity.activity_name }}" required
+                     class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">সময় (ঘন্টা)</label>
+              <input type="number" name="hours_spent[]" value="{{ activity.hours_spent }}" min="0" step="0.5"
+                     class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+            </div>
+
+            <div class="flex items-end">
+              <button type="button" class="remove-personal px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">
+                মুছে ফেলুন
+              </button>
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-1">অর্জন</label>
+              <textarea name="achievement[]" rows="3"
+                        class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">{{ activity.achievement if activity.achievement else '' }}</textarea>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="personal-item bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">বিভাগ</label>
+              <select name="personal_category_id[]" required
+                      class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+                <option value="">বিভাগ নির্বাচন করুন</option>
+                {% for category in personal_categories %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">কার্যক্রমের নাম</label>
+              <input type="text" name="activity_name[]" required
+                     class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">সময় (ঘন্টা)</label>
+              <input type="number" name="hours_spent[]" min="0" step="0.5" value="0"
+                     class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+            </div>
+
+            <div class="flex items-end">
+              <button type="button" class="remove-personal px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">
+                মুছে ফেলুন
+              </button>
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-1">অর্জন</label>
+              <textarea name="achievement[]" rows="3"
+                        class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500"></textarea>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</form>
+
+<script>
+// Personal management
+document.getElementById('add-personal').addEventListener('click', function() {
+  const container = document.getElementById('personal-container');
+  const personalItem = container.querySelector('.personal-item').cloneNode(true);
+  
+  // Clear values
+  personalItem.querySelectorAll('input').forEach(input => input.value = input.type === 'number' ? '0' : '');
+  personalItem.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+  personalItem.querySelectorAll('textarea').forEach(textarea => textarea.value = '');
+  
+  container.appendChild(personalItem);
+  
+  // Add remove functionality to new item
+  personalItem.querySelector('.remove-personal').addEventListener('click', function() {
+    if (container.children.length > 1) {
+      personalItem.remove();
+    }
+  });
+});
+
+// Add remove functionality to existing items
+document.querySelectorAll('.remove-personal').forEach(button => {
+  button.addEventListener('click', function() {
+    const container = document.getElementById('personal-container');
+    if (container.children.length > 1) {
+      button.closest('.personal-item').remove();
+    }
+  });
+});
+</script>

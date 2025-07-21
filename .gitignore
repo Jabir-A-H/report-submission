@@ -201,3 +201,4 @@ coverage/
 # extra
 /project_idea_extras
 /.flake8
+/__pycache__

@@ -1,6 +1,6 @@
 """
 Database initialization script for the report-submission app.
-Drops all tables, recreates them, and adds sample users.
+Drops all tables, recreates them, and adds sample users and categories.
 """
 
 from werkzeug.security import generate_password_hash
@@ -8,17 +8,40 @@ from app import app, db, User
 
 
 def init_db():
-    """Drop all tables, recreate them, and add sample users."""
+    """Drop all tables, recreate them, and add sample users and predefined zones."""
     with app.app_context():
         db.drop_all()
         db.create_all()
-        # Create a default zone
+
+        # Create predefined zones from TODO specification
         from app import Zone
 
-        default_zone = Zone(name="Default Zone")
-        db.session.add(default_zone)
+        zone_names = [
+            "শ্যামপুর জোন",
+            "ডেমরা জোন",
+            "যাত্রাবাড়ী পূর্ব জোন",
+            "যাত্রাবাড়ী পশ্চিম জোন",
+            "ওয়ারী জোন",
+            "সূত্রাপুর জোন",
+            "চকবাজার বংশাল জোন",
+            "লালবাগ কামরাঙ্গীর চর জোন",
+            "ধানমন্ডি জোন",
+            "মতিঝিল জোন",
+            "পল্টন জোন",
+            "খিলগাঁও জোন",
+            "সবুজবাগ মুগদা জোন",
+        ]
+
+        zones = []
+        for zone_name in zone_names:
+            zone = Zone(name=zone_name)
+            zones.append(zone)
+            db.session.add(zone)
+
         db.session.commit()
-        # Add sample users, all assigned to the default zone
+
+        # Add sample users, assigned to first zone
+        first_zone = zones[0]
         users = [
             User(
                 id=98,
@@ -27,8 +50,8 @@ def init_db():
                 email="user1@example.com",
                 password=generate_password_hash("password"),
                 role="user",
-                zone_id=default_zone.id,
-                is_active=True,
+                zone_id=first_zone.id,
+                active=True,
             ),
             User(
                 id=100,
@@ -37,8 +60,8 @@ def init_db():
                 email="user2@example.com",
                 password=generate_password_hash("password"),
                 role="user",
-                zone_id=default_zone.id,
-                is_active=True,
+                zone_id=first_zone.id,
+                active=True,
             ),
             User(
                 id=99,
@@ -47,16 +70,18 @@ def init_db():
                 email="admin@example.com",
                 password=generate_password_hash("password"),
                 role="admin",
-                zone_id=default_zone.id,
-                is_active=True,
+                zone_id=first_zone.id,
+                active=True,
             ),
         ]
         db.session.bulk_save_objects(users)
         db.session.commit()
+
         # Set sqlite_sequence for user table to 102 so next id is 103
         db.session.execute("UPDATE sqlite_sequence SET seq = 102 WHERE name = 'user';")
         db.session.commit()
-        print("Database initialized with sample users and a default zone.")
+
+        print("Database initialized with sample users and predefined zones.")
 
 
 if __name__ == "__main__":
