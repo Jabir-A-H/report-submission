@@ -1,175 +1,262 @@
-no, the ui is not correct as well, i now want only an multi step wizard for report submission. i dont need users to submit report in one page. I said thhat it should show what admin edited the last, but for simplicity i am disgarding the edit history feature altogether. and thats why use following names for the report parts-
 
-Full workflow plan
+# Report Submission Database Design & Workflow
 
-Each zone has one report. If a zone has multiple users, they can all see the same up to date report. Users will first set a month that they are working on after logging in, they can not do anything before they set the month and year. After this, they can continue to fill out the multi-page form. all edits are auto-saved immediately. They can also edit the report later, and if they change the month and year after setting it, they can view past reports too and edit them given that they have permission. Also, there will be a progress indicator showing which step of the form they are on. Also, there will be a option to select quarterly, half yearly, yearly report option that is the summation of individuals zone reports of that time period. Use access control for admin editable fields.
+---
 
-Database tables for Report Submission Process:
-User
-Zone
-Report
-ReportHeader
-ReportCourse
-ReportOrganizational
-ReportPersonal
-ReportMeeting
-ReportExtra
-ReportComment
+## 1. Workflow & Rationale
 
 
-here following are the table headers that i want for each table- (add id for each table as PK)
+- The system uses a multi-step wizard: each report section (Header, Courses, Organizational, Personal, Meetings, Extras, Comments) is a separate page, accessible in any order from the dashboard.
+- Users must select the reporting period (month/year and type) before accessing or editing any report.
+- Each zone has one report per period; all users in a zone can view and edit the same up-to-date report for that period.
+- All section forms autosave on every field change (an explicit save button for making sure they fill out all required fields; instant feedback).
+- Users can freely navigate between sections.
+- Users can view and edit past periods reports for their zone.
+- Admins can review, edit, lock/unlock, and export any report; admin-only fields are access-controlled.
+- UI is responsive, mobile-friendly, and supports Bengali; clear error/success messages and loading indicators are provided.
+- Admin only fields are hidden from regular users and can only be edited via access control.
+- Edit history/audit trail and real-time collaboration are not included for simplicity.
 
-User (the current one is [app.py](app.py) looks good to me)
-    name
-    mobile number
-    email
-    password
-    role (user/admin)
-    active (default False)
+---
 
-Zone (the current one is [app.py](app.py) looks good to me)
-    name (unique, string, admin can add remove from the predefined list)
+here following are the table headers that i want for each table-
 
-Report (not sure how this will work...)
-    (the main report model that links to all report sections)
+## 2. Database Tables Overview
 
+Tables:
+- User
+- Zone
+- Report
+- ReportHeader
+- ReportCourse
+- ReportOrganizational
+- ReportPersonal
+- ReportMeeting
+- ReportExtra
+- ReportComment
 
-ReportHeader
-    Responsible Name (string)
-    Thana (string)
-    Ward (string)
-    Total Muallima (integer)
-    Muallima Increase (integer)
-    Muallima Decrease (integer)
-    Certified Muallima (integer)
-    Certified Muallima Taking Classes (integer)
-    Trained Muallima (integer)
-    Trained Muallima Taking Classes (integer)
-    Total Unit (integer)
-    Units With Muallima (integer)
-
-ReportCourse
-    Category (string, admin can add remove from the predefined list)
-    Number (integer only)
-    Increase (integer)
-    Decrease (integer)
-    Sessions (integer)
-    Students (integer)
-    Attendance (integer)
-    Status Board (integer)
-    Status Qayda (integer)
-    Status Ampara (integer)
-    Status Quran (integer)
-    Completed (integer)
-    Correctly Learned (integer)
-
-ReportOrganizational
-    Category (string, admin can add remove from the predefined list)
-    Number (integer)
-    Increase (integer)
-    Amount (not necesary for all entries)
-    Comments
-
-ReportPersonal
-    Category (string, admin can add remove from the predefined list)
-    Rukon (integer)
-    Kormi (integer)
-    ShokrioShohojogi (integer)
-
-ReportMeeting
-    Category (string, admin can add remove from the predefined list)
-    City Count (integer, only admin can change this value in the main aggregated file)
-    City Avg Attendance (integer, only admin can change this value in the main aggregated file)
-    Thana Count (integer)
-    Thana Avg Attendance (integer)
-    Ward Count (integer)
-    Ward Avg Attendance (integer)
-    Comments (string)
-
-ReportExtra
-    Category (string, admin can add remove from the predefined list)
-    Number (integer)
-
-ReportComment
-    Report Month
-    Monthly Comment
-    Tri Monthly Comment
-    Six Monthly Comment
-    Yearly Comment
+---
 
 
 
-Entries predefined in the categories field of each table (can be edited by admin)
-Zone
-    name
-        শ্যামপুর জোন
-        ডেমরা জোন
-        যাত্রাবাড়ী পূর্ব জোন
-        যাত্রাবাড়ী পশ্চিম জোন
-        ওয়ারী জোন
-        সূত্রাপুর জোন
-        চকবাজার বংশাল জোন
-        লালবাগ কামরাঙ্গীর চর জোন
-        ধানমন্ডি জোন
-        মতিঝিল জোন
-        পল্টন জোন
-        খিলগাঁও জোন
-        সবুজবাগ মুগদা জোন
+### User
+| Field    | Type   | Constraints             | Description      |
+| -------- | ------ | ----------------------- | ---------------- |
+| id       | int    | PK                      | User ID          |
+| name     | string | NOT NULL                |                  |
+| email    | string | UNIQUE, NOT NULL        |                  |
+| password | string | NOT NULL                | Hashed           |
+| role     | string | CHECK (user/admin)      | User or admin    |
+| active   | bool   | DEFAULT False           | Must be approved |
+| zone_id  | int    | FK to Zone.id, NOT NULL | User's zone      |
 
-ReportCourse
-    Category
-        বিশিষ্টদের
-        সাধারণদের
-        কর্মীদের
-        ইউনিট সভানেত্রী
-        অগ্রসরদের
-        রুকনদের অনুশীলনী ক্লাস
-        তারবিয়াত বৈঠক
-        পারিবারিক ইউনিটে তা’লীমুল কুরআন
-        শিশু- তা’লিমুল কুরআন
-        নিরক্ষর- তা’লিমুস সলাত
 
-ReportOrganizational
-    Category
-        দাওয়াত দান
-        কতজন ইসলামের আদর্শ মেনে  চলার চেষ্টা করছেন
-        সহযোগী হয়েছে
-        সম্মতি দিয়েছেন
-        সক্রিয় সহযোগী
-        কর্মী
-        রুকন
-        দাওয়াতী ইউনিট
-        ইউনিট
-        সূধী
-        এককালীন
-        জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)
-        বই বিলি
-        বই বিক্রি
 
-ReportPersonal
-    Category
-        কতজন শিখাচ্ছেন
-        কতজনকে শিখাচ্ছেন
-        কতজন ওয়ালামাকে দাওয়াত দিয়েছেন
-        দাওয়াত প্রাপ্ত ওয়ালামার মধ্যে সহযোগী হয়েছেন কতজন
-        দাওয়াত প্রাপ্ত ওয়ালামার মধ্যে সক্রিয় সহযোগীকে হয়েছেন কতজন
-        দাওয়াত প্রাপ্ত ওয়ালামার মধ্যে কর্মী হয়েছেন কতজন
-        দাওয়াত প্রাপ্ত ওয়ালামার মধ্যে রুকন হয়েছেন কতজন
+### Zone
+| Field | Type   | Constraints      | Description |
+| ----- | ------ | ---------------- | ----------- |
+| id    | int    | PK               | Zone ID     |
+| name  | string | UNIQUE, NOT NULL | Zone name   |
 
-ReportMeeting
-    Category
-        কমিটি বৈঠক হয়েছে
-        মুয়াল্লিমাদের নিয়ে বৈঠক
-        CM/MO (only admin can change this value in the main aggregated file)
 
-ReportExtra
-    Category
-        Moktob Count
-        Moktob Increase
-        Moktob Local
-        Moktob City (only admin can change this value in the main aggregated file)
-        Sofor City
-        Sofor Thana Committee
-        Sofor Thana Representative
-        Sofor Ward Representative
+
+### Report
+| Field       | Type   | Constraints                        | Description                                                |
+| ----------- | ------ | ---------------------------------- | ---------------------------------------------------------- |
+| id          | int    | PK                                 | Report ID                                                  |
+| user_id     | int    | FK to User.id, NOT NULL            | Who created/last edited                                    |
+| zone_id     | int    | FK to Zone.id, NOT NULL            | Zone for this report                                       |
+| month       | int    | NOT NULL                           | Reporting month (1-12)                                     |
+| year        | int    | NOT NULL                           | Reporting year                                             |
+| period_type | string | CHECK (see below), NOT NULL        | monthly, 1st quarterly, half-yearly, 2nd quarterly, yearly |
+| created_at  | date   | DEFAULT now()                      |                                                            |
+| updated_at  | date   | DEFAULT now(), auto-update on edit |                                                            |
+
+
+
+
+### ReportHeader
+| Field                             | Type   | Constraints               | Description |
+| --------------------------------- | ------ | ------------------------- | ----------- |
+| id                                | int    | PK                        | Header ID   |
+| report_id                         | int    | FK to Report.id, NOT NULL |             |
+| responsible_name                  | string | NOT NULL                  |             |
+| thana                             | string | NOT NULL                  |             |
+| ward                              | int    | NOT NULL                  |             |
+| total_muallima                    | int    | NOT NULL                  |             |
+| muallima_increase                 | int    | NOT NULL                  |             |
+| muallima_decrease                 | int    | NOT NULL                  |             |
+| certified_muallima                | int    | NOT NULL                  |             |
+| certified_muallima_taking_classes | int    | NOT NULL                  |             |
+| trained_muallima                  | int    | NOT NULL                  |             |
+| trained_muallima_taking_classes   | int    | NOT NULL                  |             |
+| total_unit                        | int    | NOT NULL                  |             |
+| units_with_muallima               | int    | NOT NULL                  |             |
+
+
+
+### ReportCourse
+| Field             | Type   | Constraints               | Description          |
+| ----------------- | ------ | ------------------------- | -------------------- |
+| id                | int    | PK                        |                      |
+| report_id         | int    | FK to Report.id, NOT NULL |                      |
+| category          | string | NOT NULL                  | See categories below |
+| number            | int    | NOT NULL                  |                      |
+| increase          | int    | NOT NULL                  |                      |
+| decrease          | int    | NOT NULL                  |                      |
+| sessions          | int    | NOT NULL                  |                      |
+| students          | int    | NOT NULL                  |                      |
+| attendance        | int    | NOT NULL                  |                      |
+| status_board      | int    | NOT NULL                  |                      |
+| status_qayda      | int    | NOT NULL                  |                      |
+| status_ampara     | int    | NOT NULL                  |                      |
+| status_quran      | int    | NOT NULL                  |                      |
+| completed         | int    | NOT NULL                  |                      |
+| correctly_learned | int    | NOT NULL                  |                      |
+
+
+
+### ReportOrganizational
+| Field     | Type   | Constraints               | Description          |
+| --------- | ------ | ------------------------- | -------------------- |
+| id        | int    | PK                        |                      |
+| report_id | int    | FK to Report.id, NOT NULL |                      |
+| category  | string | NOT NULL                  | See categories below |
+| number    | int    | NOT NULL                  |                      |
+| increase  | int    | NOT NULL                  |                      |
+| amount    | int    | NULLABLE                  |                      |
+| comments  | string | NULLABLE                  |                      |
+
+
+
+### ReportPersonal
+| Field             | Type   | Constraints               | Description          |
+| ----------------- | ------ | ------------------------- | -------------------- |
+| id                | int    | PK                        |                      |
+| report_id         | int    | FK to Report.id, NOT NULL |                      |
+| category          | string | NOT NULL                  | See categories below |
+| rukon             | int    | NOT NULL                  |                      |
+| kormi             | int    | NOT NULL                  |                      |
+| shokrio_shohojogi | int    | NOT NULL                  |                      |
+
+
+
+### ReportMeeting
+| Field                | Type   | Constraints               | Description               |
+| -------------------- | ------ | ------------------------- | ------------------------- |
+| id                   | int    | PK                        |                           |
+| report_id            | int    | FK to Report.id, NOT NULL |                           |
+| category             | string | NOT NULL                  | See categories below      |
+| city_count           | int    | NOT NULL                  | Admin-only in aggregation |
+| city_avg_attendance  | int    | NOT NULL                  | Admin-only in aggregation |
+| thana_count          | int    | NOT NULL                  |                           |
+| thana_avg_attendance | int    | NOT NULL                  |                           |
+| ward_count           | int    | NOT NULL                  |                           |
+| ward_avg_attendance  | int    | NOT NULL                  |                           |
+| comments             | string | NULLABLE                  |                           |
+
+
+
+### ReportExtra
+| Field     | Type   | Constraints               | Description          |
+| --------- | ------ | ------------------------- | -------------------- |
+| id        | int    | PK                        |                      |
+| report_id | int    | FK to Report.id, NOT NULL |                      |
+| category  | string | NOT NULL                  | See categories below |
+| number    | int    | NOT NULL                  |                      |
+
+
+
+
+### ReportComment
+| Field                    | Type   | Constraints               | Description               |
+| ------------------------ | ------ | ------------------------- | ------------------------- |
+| id                       | int    | PK                        |                           |
+| report_id                | int    | FK to Report.id, NOT NULL |                           |
+| monthly_comment          | string | NOT NULL                  | For monthly reports       |
+| first_quarterly_comment  | string | NOT NULL                  | For 1st quarterly reports |
+| half_yearly_comment      | string | NOT NULL                  | For half-yearly reports   |
+| second_quarterly_comment | string | NOT NULL                  | For 2nd quarterly reports |
+| yearly_comment           | string | NOT NULL                  | For yearly reports        |
+
+
+
+
+---
+
+## 3. Enumerated/Predefined Values (Admin Editable)
+
+### Zone.name
+- শ্যামপুর জোন
+- ডেমরা জোন
+- যাত্রাবাড়ী পূর্ব জোন
+- যাত্রাবাড়ী পশ্চিম জোন
+- ওয়ারী জোন
+- সূত্রাপুর জোন
+- চকবাজার বংশাল জোন
+- লালবাগ কামরাঙ্গীর চর জোন
+- ধানমন্ডি জোন
+- মতিঝিল জোন
+- পল্টন জোন
+- খিলগাঁও জোন
+- সবুজবাগ মুগদা জোন
+
+### Report.period_type
+- monthly
+- 1st quarterly
+- half-yearly
+- 2nd quarterly
+- yearly
+
+### ReportCourse.category
+- বিশিষ্টদের
+- সাধারণদের
+- কর্মীদের
+- ইউনিট সভানেত্রী
+- অগ্রসরদের
+- রুকনদের অনুশীলনী ক্লাস
+- তারবিয়াত বৈঠক
+- পারিবারিক ইউনিটে তা’লীমুল কুরআন
+- শিশু- তা’লিমুল কুরআন
+- নিরক্ষর- তা’লিমুস সলাত
+
+### ReportOrganizational.category
+- দাওয়াত দান
+- কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন
+- সহযোগী হয়েছে
+- সম্মতি দিয়েছেন
+- সক্রিয় সহযোগী
+- কর্মী
+- রুকন
+- দাওয়াতী ইউনিট
+- ইউনিট
+- সূধী
+- এককালীন
+- জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)
+- বই বিলি
+- বই বিক্রি
+
+### ReportPersonal.category
+- কতজন শিখাচ্ছেন
+- কতজনকে শিখাচ্ছেন
+- কতজন ওয়ালামাকে দাওয়াত দিয়েছেন
+- দাওয়াত প্রাপ্ত ওয়ালামার মধ্যে সহযোগী হয়েছেন কতজন
+- দাওয়াত প্রাপ্ত ওয়ালামার মধ্যে সক্রিয় সহযোগীকে হয়েছেন কতজন
+- দাওয়াত প্রাপ্ত ওয়ালামার মধ্যে কর্মী হয়েছেন কতজন
+- দাওয়াত প্রাপ্ত ওয়ালামার মধ্যে রুকন হয়েছেন কতজন
+
+### ReportMeeting.category
+- কমিটি বৈঠক হয়েছে
+- মুয়াল্লিমাদের নিয়ে বৈঠক
+- CM/MO (only admin can edit this value in the main aggregated file)
+
+### ReportExtra.category
+- Moktob Count
+- Moktob Increase
+- Moktob City (only admin can edit this value in the main aggregated file)
+- Moktob Local
+- Sofor City
+- Sofor Thana Committee
+- Sofor Thana Representative
+- Sofor Ward Representative
 
