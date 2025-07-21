@@ -3,7 +3,6 @@
 
 ---
 
-
 ## Table of Contents
 1. Overview
 2. User Roles
@@ -36,8 +35,7 @@ A web application for monthly, quarterly, half-yearly, and yearly report submiss
 ---
 
 
-
-## 4. Authentication & Registration
+## 3. Authentication & Registration
 ### Registration Workflow
 1. User visits the registration page (`/register`).
 2. User fills out:
@@ -71,53 +69,10 @@ A web application for monthly, quarterly, half-yearly, and yearly report submiss
 5. On failure, show error: "Invalid credentials or not approved"
 
 
-## 3. Report Workflow & UI/UX
-### Report Structure & Workflow
-- User selects period (month/year) on dashboard or section page
-- Period types: Monthly, 1st quarterly, half-yearly, 2nd quarterly, yearly
-- User logs in and is redirected to `/report_dashboard` for the current period.
-- Dashboard displays all report sections as cards/links, each with:
-    - Section name, icon, completion status (complete/incomplete)
-    - Link to fill/edit that section
-- User can click any section in any order.
-- Each section is a separate page/form:
-    - Header: Responsible person, thana, ward, muallima/unit stats
-    - Courses: Table input, add/remove rows, select category, enter numbers
-    - Organizational: Table input, add/remove rows, select category, enter numbers/comments
-    - Personal: Table input, add/remove rows, select category, enter numbers
-    - Meetings: Table input, add/remove rows, select category, enter counts/attendance/comments
-    - Extras: Table input, add/remove rows, select category, enter numbers
-    - Comments: Textareas for each period type
-- Each form autosaves on field change (AJAX to `/autosave` with section and data).
-- User can navigate between sections at any time; progress is saved.
-- When all required sections are complete, dashboard shows "Ready for review" or similar.
-
-#### Report Locking & Editing
-- When user submits all sections, admin can review and lock the report.
-- Locked reports cannot be edited by user unless admin unlocks.
-- Users can always view their own and their zone's reports (read-only if locked).
-
-#### Admin Review Workflow
-- Admin visits `/admin/reports` to see all submitted reports.
-- Admin can filter/sort by period, zone, user.
-- Admin can view/edit any section of any report.
-- Admin can lock/unlock reports, add comments, and export data.
-
-### UI/UX (Detailed)
-- Responsive, modern UI (Tailwind CSS, mobile-friendly)
-- Bengali language support throughout (all labels, messages, and templates)
-- Clear error/success messages (inline and global alerts)
-- Section navigation from dashboard (cards/links, icons, completion status)
-- Consistent layout for all forms and tables
-- Loading indicators for autosave and data fetches
-- Accessible design (keyboard navigation)
-
-
 ---
 
 
-
-## 5. Zones Management
+## 4. Zones Management
 ### Admin Zone Management Workflow
 1. Admin visits `/admin/users`
 2. Admin sees a list of all zones and users
@@ -179,7 +134,6 @@ A web application for monthly, quarterly, half-yearly, and yearly report submiss
 
 
 
-
 ## 7. Data Model (Entity-Relationship Overview)
 > **Note:** For all detailed table structures, field definitions, and enumerated/predefined values, refer to `TODO.md` (section 2, Database Tables Overview). This file only summarizes the entity relationships and does not repeat detailed schema. Always check `TODO.md` for the authoritative, up-to-date schema and categories.
 
@@ -197,11 +151,8 @@ A web application for monthly, quarterly, half-yearly, and yearly report submiss
 ### Data Integrity & Validation
 - All foreign keys are enforced.
 - Unique constraints on email, zone name.
-- All numeric fields validated for type and range.
+- All numeric fields validated for type.
 - All numeric fields are integers; the reports have no float/fraction numbers.
-
-## 8. Enumerated/Predefined Values
-See `TODO.md` for the full list of categories, period types, and admin-editable values.
 
 ## 8. Enumerated/Predefined Values
 See `TODO.md` for the full list of categories, period types, and admin-editable values.
