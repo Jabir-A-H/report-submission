@@ -1,28 +1,25 @@
 Need to update any tables in database?
-period fixing
+period fixing, call it report type
 
 # 📄 Site Map (Index Format)
 
-- **Home** (`/`)
-- **Register** (`/register`)
-- **Login** (`/login`)
-- **Report Dashboard** (`/report_dashboard`)
-  - **Period Selector** (always visible at top): Select month, year, and period type
-  - Header Section (`/report/header`)
-  - Courses Section (`/report/courses`)
-  - Organizational Section (`/report/organizational`)
-  - Personal Section (`/report/personal`)
-  - Meetings Section (`/report/meetings`)
-  - Extras Section (`/report/extras`)
-  - Comments Section (`/report/comments`)
-- **At a Glance / Summary Report** (`/report`)
-  - All users: See their zone's aggregated/summary report for the selected period
-  - Admin: See summary/aggregated report for all zones and periods
-  - Includes a **Download** button (Excel/PDF) on this page (not a separate page)
-- **Admin Dashboard** (`/admin/dashboard`)
-  - Users Management (`/admin/users`)
-  - Zones Management (`/admin/zones`)
-  - Reports Management (`/admin/reports`)
-- **Help / FAQ** (`/help`)
-- **Logout** (`/logout`)
+- **Login** (`/login`): User authentication page for registered users.
+- **Register** (`/register`): New user registration form (requires admin approval).
+- **Report Dashboard** (`/`): Main user landing page after login. Lets users select the active period and shows navigation to all report sections and summary.
+  - **Period Selector** (always visible at top): Choose month, year, and period type to view/edit reports.
+- **At a Glance / Summary Report** (`/report`): Aggregated/summary report for the selected period. Users see their zone's data; admins see all zones. Includes a download button (Excel/PDF).
+- **Report Sections**: Individual forms for each part of the report.
+  - Header Section (`/report/header`): Responsible person, location, and teacher statistics.
+  - Courses Section (`/report/courses`): Educational program details, enrollment, and progress.
+  - Organizational Section (`/report/organizational`): Membership and organizational activities.
+  - Personal Section (`/report/personal`): Individual teaching activities.
+  - Meetings Section (`/report/meetings`): Meeting types and attendance data.
+  - Extras Section (`/report/extras`): Additional activities and programs.
+  - Comments Section (`/report/comments`): Period-specific narrative comments.
+- **Admin Dashboard** (`/admin`): Admin landing page with management tools.
+  - Users Management (`/admin/users`): Approve/reject users, view user list and status.
+  - Zones Management (`/admin/zones`): Create, delete, and manage zones.
+  - Reports Management (`/admin/reports`): View, filter, and edit all reports.
+- **Help / FAQ** (`/help`): Help page with frequently asked questions and guidance.
+- **Logout** (`/logout`): Log out of the system.
 
