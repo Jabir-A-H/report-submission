@@ -1,5 +1,35 @@
-Need to update any tables in database?
-period fixing, call it report type
+# period fixing, instead of calling it period, call it report type. make the datababse table attributes reflect this change.
+## রিপোর্টের ধরণ: 
+মাসিক
+ত্রৈমাসিক
+ষান্মাসিক
+নয়-মাসিক
+বার্ষিক
+    If মাসিক is selected, then the report type will be মাসিক and the month will be selected from the dropdown.
+    If ত্রৈমাসিক is selected, then the report type will be ত্রৈমাসিক and the month will be the summary report of month জানুয়ারি, ফেব্রুয়ারি, and মার্চ.
+    If ষান্মাসিক is selected, then the report type will be ষান্মাসিক and the month will be the summary report of month জানুয়ারি, ফেব্রুয়ারি, মার্চ, এপ্রিল, মে, and জুন.
+    If নয়-মাসিক is selected, then the report type will be নয়-মাসিক and the month will be the summary report of month জানুয়ারি, ফেব্রুয়ারি, মার্চ, এপ্রিল, মে, জুন, জুলাই, আগস্ট, and সেপ্টেম্বর.
+    If বার্ষিক is selected, then the report type will be বার্ষিক and the month will be the summary report of all 12 months.
+
+## Dropdown menu for the মাসিক months in Bangla:
+জানুয়ারি
+ফেব্রুয়ারি
+মার্চ
+এপ্রিল
+মে
+জুন
+জুলাই
+আগস্ট
+সেপ্টেম্বর
+অক্টোবর
+নভেম্বর
+ডিসেম্বর
+
+## Year Dropdown Menu:
+- 2025
+- 2026
+
+
 
 # Site Map (Index Format)
 
