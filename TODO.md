@@ -27,7 +27,8 @@
 ### User
 | Field    | Type    | Constraints             | Description     |
 | -------- | ------- | ----------------------- | --------------- |
-| id       | Integer | PRIMARY KEY             | User ID         |
+| id       | Integer | PRIMARY KEY             | Internal DB ID  |
+| user_id  | String  | UNIQUE, NOT NULL, 3-digit | Login ID (3-digit, auto-increment, used for login) |
 | name     | String  | NOT NULL                | Full name       |
 | email    | String  | UNIQUE, NOT NULL        | Email address   |
 | password | String  | NOT NULL                | Hashed password |

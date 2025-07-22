@@ -43,6 +43,7 @@ A web application for educational organization report submission, review, and ag
 ### Registration Process
 1. **Initial Registration** (`/register`)
    - User provides: Name, Email, Password, Zone selection
+   - System auto-generates a 3-digit user_id (e.g., 001, 002, ...) for each user
    - Server validates: Format, uniqueness, required fields
    - Account created with `active=False` (pending approval)
    - User receives confirmation: *Registration successful! Await admin approval.*
@@ -53,8 +54,8 @@ A web application for educational organization report submission, review, and ag
    - Reject: Account deleted
 
 3. **Login Process** (`/login`)
-   - User enters: Email/User ID and password
-   - System validates: User exists, is active, password matches
+   - User enters: Email **or** 3-digit User ID and password
+   - System validates: User exists (by email or user_id), is active, password matches
    - Redirect: Admin → `/admin/dashboard`, User → `/report_dashboard`
 
 ### Zone Management

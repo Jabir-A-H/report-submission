@@ -39,8 +39,8 @@
 
 # Site Map (Index Format)
 
-- **Login** (`/login`): User authentication page for registered users.
-- **Register** (`/register`): New user registration form (requires admin approval).
+- **Login** (`/login`): User authentication page for registered users. Users can log in using either their email or their 3-digit user_id.
+- **Register** (`/register`): New user registration form (requires admin approval). System auto-generates a 3-digit user_id for each user.
 - **Report Dashboard** (`/`): Main landing page after login for both users and admins.
   - **Period Selector** (in dashboard): Choose report type, month (if applicable), and year. After selection, the dashboard displays navigation to all report sections and the summary for that period. (The selector is not always at the top; it appears in the dashboard for both users and admins.)
 - **At a Glance / Summary Report** (`/report`): Aggregated/summary report for the selected period. Users see their zone's data; admins see all zones (individual and aggregated). Includes a download button (Excel/PDF). Available to both users (for their zone) and admins (for all zones).

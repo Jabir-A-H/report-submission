@@ -20,6 +20,7 @@ classDiagram
     }
     class User {
         int id
+        string user_id  # 3-digit, unique, used for login
         string name
         string email
         string password
@@ -137,6 +138,7 @@ erDiagram
     }
     USER {
         int id PK
+        string user_id UNIQUE  # 3-digit, used for login
         string name
         string email
         string password
