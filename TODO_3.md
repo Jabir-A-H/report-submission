@@ -1,7 +1,7 @@
 Need to update any tables in database?
 period fixing, call it report type
 
-# 📄 Site Map (Index Format)
+# Site Map (Index Format)
 
 - **Login** (`/login`): User authentication page for registered users.
 - **Register** (`/register`): New user registration form (requires admin approval).
