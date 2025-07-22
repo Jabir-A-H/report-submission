@@ -1,292 +1,244 @@
-
-
-# Report Submission Website: Feature & Workflow Design Document
+# Report Submission System: Features & Workflow Design
 
 ---
 
 ## Table of Contents
-1. Overview
-2. User Roles
-3. Authentication & Registration
-4. Zones Management
-5. Report Workflow & UI/UX
-6. Feature Details
-    - Admin Features
-    - User Features
-    - Data Export
-7. Data Model (Entity-Relationship Overview)
-8. Enumerated/Predefined Values
-9. Security & Validation
-10. Not Included / Out of Scope
-11. User Stories (Examples)
-12. Technical Stack
-13. Deployment
-14. Maintenance
+1. [System Overview](#1-system-overview)
+2. [User Management](#2-user-management)
+3. [Report Workflow](#3-report-workflow)
+4. [Admin Features](#4-admin-features)
+5. [User Features](#5-user-features)
+6. [UI/UX Design](#6-uiux-design)
+7. [Security & Validation](#7-security--validation)
+8. [Technical Implementation](#8-technical-implementation)
+9. [User Stories](#9-user-stories)
+10. [System Limitations](#10-system-limitations)
 
 ---
 
-## 1. Overview
-A web application for monthly, quarterly, half-yearly, and yearly report submission, review, and aggregation for an educational/admin organization. The system supports user registration, authentication, multi-section report entry, autosave, admin review, and data export.
+## 1. System Overview
+
+### Purpose
+A web application for educational organization report submission, review, and aggregation supporting multiple reporting periods and organizational zones.
+
+### Key Features
+- **Multi-period reporting**: Monthly, quarterly, half-yearly, and yearly reports
+- **Zone-based organization**: Users assigned to specific zones
+- **Section-based reports**: 7 distinct sections per report
+- **Auto-save functionality**: No data loss during form completion
+- **Admin oversight**: Complete system management and data export
+- **Bengali language support**: Full localization for target audience
+
+### User Roles
+- **User**: Zone members who submit and edit reports
+- **Admin**: System managers who approve users, manage zones, and oversee all reports
 
 ---
 
-## 2. User Roles
-- **User**: Regular member who submits reports for their assigned zone.
-- **Admin**: Approves users, manages zones, reviews and edits all reports, exports data.
+## 2. User Management
+
+### Registration Process
+1. **Initial Registration** (`/register`)
+   - User provides: Name, Email, Password, Zone selection
+   - Server validates: Format, uniqueness, required fields
+   - Account created with `active=False` (pending approval)
+   - User receives confirmation: "Registration successful! Await admin approval."
+
+2. **Admin Approval** (`/admin/users`)
+   - Admin reviews pending registrations
+   - Approve: User becomes `active=True`, can log in
+   - Reject: Account deleted
+
+3. **Login Process** (`/login`)
+   - User enters: Email/User ID and password
+   - System validates: User exists, is active, password matches
+   - Redirect: Admin → `/admin/dashboard`, User → `/report_dashboard`
+
+### Zone Management
+- **Admin Controls** (`/admin/zones`)
+  - Add new zones (unique names)
+  - Delete zones (only if no assigned users)
+  - View zone assignments
+- **User Assignment**: Each user belongs to exactly one zone
+- **Report Association**: Each zone has one report per period
 
 ---
 
+## 3. Report Workflow
 
-## 3. Authentication & Registration
-### Registration Workflow
-1. User visits the registration page (`/register`).
-2. User fills out:
-    - Name (text, required)
-    - Mobile number (11 digits, starts with 01, required, unique)
-    - Email (required, unique)
-    - Password (required, min 8 chars, masked)
-    - Zone (dropdown, required, populated from admin-managed zones)
-3. On submit:
-    - Server validates all fields (format, uniqueness, required)
-    - If valid, user is created with `active=False` (pending approval)
-    - User sees a message: "Registration successful! Await admin approval."
-    - If invalid, user sees error messages inline for each field
-4. Admin receives notification (future: email/SMS) or sees pending users in admin panel
+### Report Structure
+Each report contains 7 sections accessible from the dashboard:
 
-### Approval Workflow
-1. Admin logs in and visits `/admin/users`
-2. Admin sees a list of pending users with approve/reject buttons
-3. On approval, user becomes `active=True` and can log in
-4. On rejection, user is deleted (optional: send notification)
+1. **Header**: Responsible person, location, teacher statistics
+2. **Courses**: Educational programs with enrollment and progress data
+3. **Organizational**: Membership and organizational activities
+4. **Personal**: Individual teaching activities  
+5. **Meetings**: Various meeting types and attendance
+6. **Extras**: Additional activities and programs
+7. **Comments**: Period-specific narrative comments
 
-### Login Workflow
-1. User visits `/login`
-2. User enters identifier (email, mobile, or user ID) and password
-3. System checks:
-    - If user exists and is active
-    - If password matches (hashed check)
-4. On success:
-    - If admin, redirect to `/master_report`
-    - If user, redirect to `/report_dashboard`
-5. On failure, show error: "Invalid credentials or not approved"
+### User Workflow
+1. **Period Selection**: Choose month/year and period type before editing
+2. **Dashboard Navigation** (`/report_dashboard`)
+   - View all sections as cards with completion status
+   - Navigate to any section in any order
+   - See overall at a glance report that they can download too
+3. **Section Editing**
+   - Individual forms for each section with auto-save
+   - A save button on each section that updates the completion status making sure all required fields are filled
+4. **Flexible Navigation**: Switch between sections without losing progress
 
+### Auto-save System
+- **Trigger**: Every field change via AJAX
+- **Endpoint**: `/autosave` with section and data
+- **Feedback**: Visual indicators for save status
+- **Recovery**: No data loss on navigation or browser issues
 
 ---
 
+## 4. Admin Features
 
-## 4. Zones Management
-### Admin Zone Management Workflow
-1. Admin visits `/admin/users`
-2. Admin sees a list of all zones and users
-3. Admin can:
-    - Add a new zone (unique name, form at top or modal)
-    - Delete a zone (only if no users are assigned; else error shown)
-    - See which users are assigned to each zone
-4. When a zone is deleted, it is removed from the dropdown for registration and report assignment
-5. All zone changes are reflected immediately in registration and report forms
+### User Administration
+- **Pending Approvals**: Review and approve/reject new registrations
+- **User Management**: View all users, their zones, and activity status
+- **Zone Management**: Create, delete, and manage organizational zones
 
+### Report Oversight
+- **View All Reports** (`/admin/reports`)
+  - Filter by period, zone
+  - Filter by various fields across all zones including period, and zone at once
+  - Access any report section for editing
+- **Edit Capabilities**: 
+  - Modify any report section system-wide
+  - Add/remove rows for categorized data
+- **Data Validation**: Ensure report completeness and accuracy
 
----
-
-
-
-## 5. Report Workflow & UI/UX
-
-### Report Structure & Workflow
-- User selects period (month/year) on dashboard or section page
-- Period types: Monthly, 1st quarterly, half-yearly, 2nd quarterly, yearly
-- User logs in and is redirected to `/report_dashboard` for the current period.
-- Dashboard displays all report sections as cards/links, each with:
-    - Section name, icon, completion status (complete/incomplete)
-    - Link to fill/edit that section
-- User can click any section in any order.
-- Each section is a separate page/form:
-    - Header: Responsible person, thana, ward, muallima/unit stats
-    - Courses: Table input, add/remove rows, select category, enter numbers
-    - Organizational: Table input, add/remove rows, select category, enter numbers/comments
-    - Personal: Table input, add/remove rows, select category, enter numbers
-    - Meetings: Table input, add/remove rows, select category, enter counts/attendance/comments
-    - Extras: Table input, add/remove rows, select category, enter numbers
-    - Comments: Textareas for each period type
-- Each form autosaves on field change (AJAX to `/autosave` with section and data).
-- User can navigate between sections at any time; progress is saved.
-- When all required sections are complete, dashboard shows "Ready for review" or similar.
-
-#### Report Locking & Editing
-- When user submits all sections, admin can review and lock the report.
-- Locked reports cannot be edited by user unless admin unlocks.
-- Users can always view their own and their zone's reports (read-only if locked).
-
-#### Admin Review Workflow
-- Admin visits `/admin/reports` to see all submitted reports.
-- Admin can filter/sort by period, zone, user.
-- Admin can view/edit any section of any report.
-- Admin can lock/unlock reports, add comments, and export data.
-
-### UI/UX (Detailed)
-- Responsive, modern UI (Tailwind CSS, mobile-friendly)
-- Bengali language support throughout (all labels, messages, and templates)
-- Clear error/success messages (inline and global alerts)
-- Section navigation from dashboard (cards/links, icons, completion status)
-- Consistent layout for all forms and tables
-- Loading indicators for autosave and data fetches
-- Accessible design (keyboard navigation)
+### Data Export
+- **Export Options**: Excel and PDF formats
+- **Filter Controls**: By period, zone, or combinations
+- **Aggregated Reports**: (More details on how to make the summary report from each zone will be provided later in the `TODO_3.md` file)
+- **Download Management**: Generated file will be downloaded directly to the user's device. the files will not be stored on the server
 
 ---
 
+## 5. User Features
 
+### Report Management
+- **Dashboard Overview**: Section completion status and navigation
+- **Multi-section Editing**: Access any section independently
+- **Progress Tracking**: Visual indicators for incomplete sections
+- **Historical Access**: View and reference previous period reports
+- **Download Management**: Generated file will be downloaded directly to the user's device. the files will not be stored on the server
 
-
-## 7. Data Model (Entity-Relationship Overview)
-> **Note:** For all detailed table structures, field definitions, and enumerated/predefined values, refer to `TODO.md` (section 3, Table Structures). This file only summarizes the entity relationships and does not repeat detailed schema. Always check `TODO.md` for the authoritative, up-to-date schema and categories.
-
-- **User**: see detailed table structure in TODO.md (section 3, Table Structures)
-- **Zone**: see detailed table structure in TODO.md (section 3, Table Structures)
-- **Report**: see detailed table structure in TODO.md (section 3, Table Structures)
-- **ReportHeader**: see detailed table structure in TODO.md (section 3, Table Structures)
-- **ReportCourse**: see detailed table structure in TODO.md (section 3, Table Structures)
-- **ReportOrganizational**: see detailed table structure in TODO.md (section 3, Table Structures)
-- **ReportPersonal**: see detailed table structure in TODO.md (section 3, Table Structures)
-- **ReportMeeting**: see detailed table structure in TODO.md (section 3, Table Structures)
-- **ReportExtra**: see detailed table structure in TODO.md (section 3, Table Structures)
-- **ReportComment**: see detailed table structure in TODO.md (section 3, Table Structures)
-
-### Data Integrity & Validation
-- All foreign keys are enforced.
-- Unique constraints on email, zone name.
-- All numeric fields validated for type.
-- All numeric fields are integers; the reports have no float/fraction numbers.
-
-
-## 8. Enumerated/Predefined Values
-See `TODO.md` for the full list of categories, period types, and admin-editable values.
+### Data Entry
+- **Form Validation**: Client and server-side validation
+- **Auto-save**: Continuous progress saving
+- **Completion Status**: A save button on each section that updates the completion status making sure all required fields are filled
 
 ---
 
+## 6. UI/UX Design
 
-## 7. Admin Features (Detailed)
-- Approve/reject users (see pending list, approve/reject with one click)
-- Add new or delete old zones
-- View all reports (table with filters for report of any period of any zone)
-- Edit any report section (open any user's report, edit any section, save changes)
-- Export master report (Excel/PDF, select period, zone, user for export)
+### Design Principles
+- **Responsive**: Mobile-first design with Tailwind CSS
+- **Accessible**: Keyboard navigation and screen reader support
+- **Bengali Support**: Complete localization for all text and messages
+- **Intuitive Navigation**: Clear paths between sections and features
 
+### User Interface Elements
+- **Dashboard Cards**: Visual section overview
+- **Dynamic Forms**: Add/remove table rows by admin only for flexible data entry
+- **Loading Indicators**: Clear feedback for auto-save and data operations
+- **Error Handling**: Inline validation messages and global alerts
+- **Consistent Layout**: Unified header, navigation, and content structure
 
----
-
-
-## 8. User Features (Detailed)
-- Register and await approval (see status on login page if not yet approved)
-- Login with email or user ID
-- View dashboard with sections. each section is linked to a different page.
-- Fill/edit any report section in any order (navigate freely, no forced order as each section has its own page)
-- Autosave on all section forms (no data loss, instant feedback)
-- View submitted reports (past reports page, can view all previous reports for their zone)
-
-
----
-
-
-## 9. Data Export (Detailed)
-- Admin can export aggregated report data as Excel or PDF
-- Export includes:
-    - All header fields, totals
-    - Optionally, breakdowns by zone, user, or period
-- Export is available from the admin dashboard and report review pages
-- Download links are provided after export is generated
-(exact format for the summary report made from users report will be given later.)
-
+### User Experience Flow
+- **Registration**: Simple form with clear validation feedback
+- **Login**: Flexible identifier acceptance (email/ID)
+- **Dashboard**: Immediate overview of report status and next actions
+- **Section Editing**: Focused forms with persistent navigation options
+- **Admin Interface**: Comprehensive but organized management tools
 
 ---
 
+## 7. Security & Validation
 
-## 10. Security & Validation (Detailed)
-- Passwords are hashed (never stored in plain text)
-- Only active users can log in (pending users are blocked)
-- Only admin can access admin features (role check on all admin routes)
-- Users can only edit/view their own reports (except admin, who can edit all)
-- All forms validate required fields and data types (server and client side)
-- 
+### Authentication & Authorization
+- **Password Security**: Bcrypt hashing, minimum 8 characters
+- **Session Management**: Flask-Login for secure session handling
+- **Role-based Access**: Strict separation of user and admin capabilities
+- **Zone Restrictions**: Users limited to their assigned zone data
 
+### Data Validation
+- **Input Sanitization**: Server-side validation for all form inputs
+- **Type Checking**: Numeric fields validated as integers
+- **Business Rules**: Logical constraints on numeric relationships
 
----
-
-
-
-## 11. UI/UX (Detailed)
-- Responsive, modern UI (Tailwind CSS, mobile-friendly)
-- Bengali language support throughout (all labels, messages, and templates)
-- Clear error/success messages (inline and global alerts)
-- Section navigation from dashboard (cards/links, icons, completion status)
-- Consistent layout for all forms and tables
-- Loading indicators for autosave and data fetches
-- Accessible design (keyboard navigation)
+### Security Measures
+- **SQL Injection Prevention**: SQLAlchemy ORM parameter binding
+- **CSRF Protection**: Token validation on all state-changing operations
+- **Access Control**: Route-level permission checking
+- **Data Integrity**: Foreign key constraints and referential integrity
 
 ---
 
+## 8. Technical Implementation
 
+### Technology Stack
+- **Backend**: Python 3.8+, Flask, SQLAlchemy, Flask-Login
+- **Database**: SQLite (development), PostgreSQL/MySQL (production)
+- **Frontend**: Jinja2 templates, Tailwind CSS, JavaScript (AJAX)
+- **Export**: Pandas for data processing, ReportLab for PDF generation
+- **Testing**: pytest for automated testing, coverage reporting
 
-## 12. Features
-- Customizable categories (admin-editable, add/remove categories for each section)
-- User profile management (edit name, mobile, email, password)
-
-
----
-
-
-## 13. Not Included / Out of Scope
-- Tracking changes history
-- Audit trail
-- Progress/completion indicators for each section
-- Multi-language support (other than Bengali/English)
-- Real-time collaborative editing
-- API for mobile app integration
-- Advanced data analytics/visualization
-- email/SMS Notification system ( for approvals, reminders)
-- no report lock feature
-- View user edit history and report submission completion stats
-
-
+### Development Standards
+- **Code Quality**: Black formatting, flake8 linting
+- **Type Hints**: SQLAlchemy dynamic attributes with `# type: ignore`
+- **Documentation**: Comprehensive inline documentation
+- **Modular Design**: Separated models, routes, templates, and utilities
 
 ---
 
+## 9. User Stories
 
-## 14. User Stories (Examples)
-- As a user, I can register and submit my monthly report in sections, saving as I go.
-- As a user, I can see which sections of my report are complete and which need attention.
-- As a user, I can view all my previous reports and their lock status.
-- As a user, I can request admin to unlock a report for further editing.
-- As an admin, I can approve users, manage zones, and export all report data.
-- As an admin, I can review and edit any report in the system.
-- As an admin, I can lock/unlock reports and add comments for users.
+### User Registration & Authentication
+- **As a new user**, I can register with my details and await admin approval
+- **As a registered user**, I can log in with my email or user ID
+- **As an admin**, I can approve or reject pending user registrations
 
+### Report Management
+- **As a user**, I can create and edit reports for my zone in any section order
+- **As a user**, I can see which report sections are complete or need attention
+- **As a user**, I can view my zone's historical reports for reference
+- **As a user**, I can download my zone's completed report in PDF or Excel format
+- **As an admin**, I can view, edit, and export any report in the system
 
----
-
-
-## 15. Technical Stack
-- Python, Flask, SQLAlchemy, Flask-Login
-- SQLite (default), can be upgraded to PostgreSQL/MySQL
-- Jinja2 templates, Tailwind CSS
-- Pandas, ReportLab for export
-
+### System Administration
+- **As an admin**, I can create and manage organizational zones
+- **As an admin**, I can assign users to zones and manage their access
+- **As an admin**, I can export aggregated report data in multiple formats
 
 ---
 
+## 10. System Limitations
 
+### Excluded Features (makes the project complex to implement)
+- **Change Tracking**: No audit trail or edit history
+- **Real-time Collaboration**: No simultaneous multi-user editing
+- **Advanced Analytics**: No built-in charts or statistical analysis
+- **Notification System**: No email/SMS alerts for approvals or deadlines
+- **Mobile App**: Web-only interface, no native mobile application
+- **Multi-language**: Bengali/English only, no additional language support
+- **Report Locking**: No mechanism to prevent editing of submitted reports
+- **Version Control**: No backup or rollback capabilities for report data
 
-
+### Design Decisions
+- **Simplicity Over Features**: Focus on core functionality without complexity
+- **Single Zone Assignment**: Users belong to one zone only
+- **Collaborative Reports**: One report per zone per period, edited by all zone users
+- **Admin Override**: Admins can edit any data without restrictions
+- **Dynamic Tables**: Add/remove rows for categorized data by admin only
 
 ---
 
-
-## 14. Maintenance
-- Codebase uses `# type: ignore` for SQLAlchemy dynamic attributes to reduce editor noise
-- All models, routes, and templates are modular and maintainable
-- Automated tests for core workflows (pytest, unittest)
-- Linting and formatting enforced (black, flake8)
-- Documentation updated with every major feature
-
----
-
-*This document should be updated as features are added or changed.*
+*For detailed database schema and enumerated values, refer to `TODO.md`.*
