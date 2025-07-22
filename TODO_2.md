@@ -85,19 +85,19 @@ Each report contains 7 sections accessible from the dashboard:
    - See overall at a glance report that they can download too
 3. **Section Editing**
    - Individual forms for each section with auto-save
-   - A save button on each section that updates the completion status making sure all required fields are filled
+   - A save button on each section that updates the completion status by checking if all required fields are filled (completion is determined dynamically; no extra field is stored in the database)
 4. **Flexible Navigation**: Switch between sections without losing progress
+5. **Filter Controls**: By period, zone, or combinations
+6. **Download Management**: Generated file will be downloaded directly to the user's device. The files will not be stored on the server
+7. **Historical Access**: View and reference previous period reports
+
 
 ### Auto-save System
 - **Trigger**: Every field change via AJAX
-- **Endpoint**: `/autosave` with section and data
 - **Feedback**: Visual indicators for save status
 - **Recovery**: No data loss on navigation or browser issues
 
----
-
 ## 4. Admin Features
-
 ### User Administration
 - **Pending Approvals**: Review and approve/reject new registrations
 - **User Management**: View all users, their zones, and activity status
@@ -113,12 +113,6 @@ Each report contains 7 sections accessible from the dashboard:
   - Add/remove rows for categorized data
 - **Data Validation**: Ensure report completeness and accuracy
 
-### Data Export
-- **Export Options**: Excel and PDF formats
-- **Filter Controls**: By period, zone, or combinations
-- **Aggregated Reports**: (More details on how to make the summary report from each zone will be provided later in the `TODO_3.md` file)
-- **Download Management**: Generated file will be downloaded directly to the user's device. the files will not be stored on the server
-
 ---
 
 ## 5. User Features
@@ -128,14 +122,12 @@ Each report contains 7 sections accessible from the dashboard:
 - **Multi-section Editing**: Access any section independently
 - **Progress Tracking**: Visual indicators for incomplete sections
 - **Historical Access**: View and reference previous period reports
-- **Download Management**: Generated file will be downloaded directly to the user's device. the files will not be stored on the server
 
 ### Data Entry
 - **Form Validation**: Client and server-side validation
 - **Auto-save**: Continuous progress saving
 - **Completion Status**: A save button on each section that updates the completion status making sure all required fields are filled
 
----
 
 ## 6. UI/UX Design
 
@@ -159,7 +151,6 @@ Each report contains 7 sections accessible from the dashboard:
 - **Section Editing**: Focused forms with persistent navigation options
 - **Admin Interface**: Comprehensive but organized management tools
 
----
 
 ## 7. Security & Validation
 
@@ -222,15 +213,18 @@ Each report contains 7 sections accessible from the dashboard:
 
 ## 10. System Limitations
 
-### Excluded Features (makes the project complex to implement)
-- **Change Tracking**: No audit trail or edit history
-- **Real-time Collaboration**: No simultaneous multi-user editing
-- **Advanced Analytics**: No built-in charts or statistical analysis
-- **Notification System**: No email/SMS alerts for approvals or deadlines
-- **Mobile App**: Web-only interface, no native mobile application
-- **Multi-language**: Bengali/English only, no additional language support
-- **Report Locking**: No mechanism to prevent editing of submitted reports
-- **Version Control**: No backup or rollback capabilities for report data
+
+### Not Used / Excluded Features
+- **Mobile Number**: Not used for registration or login; not stored in the user table.
+- **Last Edited User Tracking**: The system does not track which user last edited a report.
+- **Change Tracking**: No audit trail or edit history.
+- **Real-time Collaboration**: No simultaneous multi-user editing.
+- **Advanced Analytics**: No built-in charts or statistical analysis.
+- **Notification System**: No email/SMS alerts for approvals or deadlines.
+- **Mobile App**: Web-only interface, no native mobile application.
+- **Multi-language**: Bengali/English only, no additional language support.
+- **Report Locking**: No mechanism to prevent editing of submitted reports.
+- **Version Control**: No backup or rollback capabilities for report data.
 
 ### Design Decisions
 - **Simplicity Over Features**: Focus on core functionality without complexity
@@ -242,3 +236,4 @@ Each report contains 7 sections accessible from the dashboard:
 ---
 
 *For detailed database schema and enumerated values, refer to `TODO.md`.*
+More details on how to make the summary report from each zone will be provided later in the `TODO_3.md` file
