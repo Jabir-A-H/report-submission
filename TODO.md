@@ -14,7 +14,7 @@
 
 ### Core Workflow
 - **Multi-section reports**: Each report contains 7 sections (Header, Courses, Organizational, Personal, Meetings, Extras, Comments)
-- **Period-based reporting**: Monthly, quarterly (1st & 2nd), half-yearly, and yearly reports
+- **Flexible report types**: Supports মাসিক (monthly), ত্রৈমাসিক (quarterly), ষান্মাসিক (half-yearly), নয়-মাসিক (nine-month), and বার্ষিক (yearly) reports, with dynamic summarization and dropdown selection for month/year as appropriate
 - **Zone-based structure**: Each zone submits one report per period; all zone users collaborate on the same report
 - **Flexible navigation**: Users can edit any section in any order from the dashboard
 - **Auto-save functionality**: All forms auto-save on field changes
@@ -42,15 +42,15 @@
 | name  | String  | UNIQUE, NOT NULL | Zone name   |
 
 ### Report
-| Field       | Type     | Constraints                | Description           |
-| ----------- | -------- | -------------------------- | --------------------- |
-| id          | Integer  | PRIMARY KEY                | Report ID             |
-| zone_id     | Integer  | FK to Zone.id, NOT NULL    | Report zone           |
-| month       | Integer  | NOT NULL, CHECK (1-12)     | Reporting month       |
-| year        | Integer  | NOT NULL                   | Reporting year        |
-| period_type | String   | NOT NULL, CHECK (see enum) | Report period type    |
-| created_at  | DateTime | DEFAULT CURRENT_TIMESTAMP  | Creation timestamp    |
-| updated_at  | DateTime | DEFAULT CURRENT_TIMESTAMP  | Last update timestamp |
+| Field       | Type     | Constraints                | Description                              |
+| ----------- | -------- | -------------------------- | ---------------------------------------- |
+| id          | Integer  | PRIMARY KEY                | Report ID                                |
+| zone_id     | Integer  | FK to Zone.id, NOT NULL    | Report zone                              |
+| month       | Integer  | NOT NULL, CHECK (1-12)     | Reporting month (used only for মাসিক type) |
+| year        | Integer  | NOT NULL                   | Reporting year                           |
+| report_type | String   | NOT NULL, CHECK (see enum) | Report type (see below)                  |
+| created_at  | DateTime | DEFAULT CURRENT_TIMESTAMP  | Creation timestamp                       |
+| updated_at  | DateTime | DEFAULT CURRENT_TIMESTAMP  | Last update timestamp                    |
 
 ### ReportHeader
 | Field                             | Type    | Constraints               | Description                  |
@@ -137,26 +137,31 @@
 | number    | Integer | NOT NULL, DEFAULT 0       | Count/quantity    |
 
 ### ReportComment
-| Field                    | Type    | Constraints               | Description          |
-| ------------------------ | ------- | ------------------------- | -------------------- |
-| id                       | Integer | PRIMARY KEY               | Comment ID           |
-| report_id                | Integer | FK to Report.id, NOT NULL | Parent report        |
-| monthly_comment          | Text    | NULLABLE                  | Monthly report notes |
-| first_quarterly_comment  | Text    | NULLABLE                  | Q1 report notes      |
-| half_yearly_comment      | Text    | NULLABLE                  | Half-yearly notes    |
-| second_quarterly_comment | Text    | NULLABLE                  | Q2 report notes      |
-| yearly_comment           | Text    | NULLABLE                  | Yearly report notes  |
+| Field     | Type    | Constraints               | Description                                                                     |
+| --------- | ------- | ------------------------- | ------------------------------------------------------------------------------- |
+| id        | Integer | PRIMARY KEY               | Comment ID                                                                      |
+| report_id | Integer | FK to Report.id, NOT NULL | Parent report                                                                   |
+| comment   | Text    | NULLABLE                  | Main comment for this report (zone, year, report_type, and month if applicable) |
 
 ---
 
 ## 3. Enumerated Values
 
-### Report Period Types (Report.period_type)
-- `monthly` - Monthly reports
-- `1st quarterly` - First quarter reports  
-- `half-yearly` - Half-year reports
-- `2nd quarterly` - Second quarter reports
-- `yearly` - Annual reports
+### Report Types (Report.report_type)
+- মাসিক (Monthly): User selects a month (Bangla month dropdown: জানুয়ারি–ডিসেম্বর) and year. Data is for the selected month only.
+- ত্রৈমাসিক (Quarterly): Summarizes Jan-Mar for the selected year.
+- ষান্মাসিক (Half-yearly): Summarizes Jan-Jun for the selected year.
+- নয়-মাসিক (Nine-month): Summarizes Jan-Sep for the selected year.
+- বার্ষিক (Yearly): Summarizes Jan-Dec for the selected year.
+
+
+
+**Behavior & UI:**
+- The report type selector is a dropdown on the dashboard. When মাসিক is selected, a month dropdown appears. For other types, only year is selectable.
+- Dropdowns for months and years are dynamically populated. If no month/year is selected, defaults to the current month/year.
+- Validation ensures the selected month/year is valid for the chosen report type.
+- The summarization logic for each type is detailed in `TODO_3.md`.
+- The `ReportComment` table includes fields for comments specific to each report type and month, so users can provide relevant context.
 
 ### Zone Names (Zone.name)
 - শ্যামপুর জোন
@@ -227,25 +232,24 @@
 ## 4. Data Integrity & Constraints
 
 ### Unique Constraints
-- User.email
-- Zone.name
-- Report(zone_id, month, year, period_type) - One report per zone per period
+- **User.email**: Must be unique
+- **Zone.name**: Must be unique
+- **Report**: Combination of (zone_id, month, year, report_type) must be unique (one report per zone per period)
 
 ### Foreign Key Relationships
-- User.zone_id → Zone.id
-- Report.user_id → User.id
-- Report.zone_id → Zone.id
-- All Report* tables → Report.id
+- **User.zone_id** → Zone.id
+- **Report.zone_id** → Zone.id
+- **All Report* tables.report_id** → Report.id
 
 ### Validation Rules
-- Email: Valid email format
-- Passwords: Minimum 8 characters
-- All numeric fields: Non-negative integers
-- Month: Between 1-12
-- Year: Valid 4-digit year
+- **Email**: Must be a valid email format
+- **Passwords**: Minimum 6 characters
+- **All numeric fields**: Non-negative integers
+- **Month**: Between 1-12 (used only for মাসিক type)
+- **Year**: Valid 4-digit year
 
 ### Access Control
 - Users can only view/edit reports for their assigned zone
-- Admin can view/edit all reports and manage system settings
+- Admins can view/edit all reports and manage system settings
 - City-level data in meetings is admin-only
 
