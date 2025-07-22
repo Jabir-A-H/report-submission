@@ -23,3 +23,6 @@ period fixing, call it report type
 - **Help / FAQ** (`/help`): Help page with frequently asked questions and guidance.
 - **Logout** (`/logout`): Log out of the system.
 
+# Summary report conditions
+-to be added
+
