@@ -22,7 +22,7 @@
 A web application for educational organization report submission, review, and aggregation supporting multiple reporting periods and organizational zones.
 
 ### Key Features
-- **Multi-period reporting**: Monthly, quarterly, half-yearly, and yearly reports
+- **Flexible report types**: Supports মাসিক (monthly), ত্রৈমাসিক (quarterly), ষান্মাসিক (half-yearly), নয়-মাসিক (nine-month), and বার্ষিক (yearly) reports, with dynamic summarization and dropdown selection for month/year as appropriate
 - **Zone-based organization**: Users assigned to specific zones
 - **Section-based reports**: 7 distinct sections per report
 - **Auto-save functionality**: No data loss during form completion
@@ -78,8 +78,8 @@ Each report contains 7 sections accessible from the dashboard:
 7. **Comments**: Period-specific narrative comments
 
 ### User Workflow
-1. **Period Selection**: Choose month/year and period type before editing
-2. **Dashboard Navigation** (`/report_dashboard`)
+1. **Report Type Selection**: Choose report type (মাসিক, ত্রৈমাসিক, ষান্মাসিক, নয়-মাসিক, বার্ষিক) and year. If মাসিক is selected, also choose month. Dropdowns are dynamically populated and validated.
+2. **Dashboard Navigation** (`/`)
    - View all sections as cards with completion status
    - Navigate to any section in any order
    - See overall at a glance report that they can download too
@@ -88,7 +88,11 @@ Each report contains 7 sections accessible from the dashboard:
    - A save button on each section that updates the completion status by checking if all required fields are filled (completion is determined dynamically; no extra field is stored in the database)
 4. **Flexible Navigation**: Switch between sections without losing progress
 5. **Filter Controls**: By period, zone, or combinations
-6. **Download Management**: Generated file will be downloaded directly to the user's device. The files will not be stored on the server
+6. **Data Export**
+   - **Export Options**: Excel and PDF formats
+   - **Filter Controls**: By report type, year, month (if applicable), zone, or combinations
+   - **Aggregated Reports**: Summarization logic for each report type (মাসিক, ত্রৈমাসিক, ষান্মাসিক, নয়-মাসিক, বার্ষিক) is detailed in `TODO_3.md`.
+   - **Download Management**: Generated file will be downloaded directly to the user's device, the files will not be stored on the server
 7. **Historical Access**: View and reference previous period reports
 
 
