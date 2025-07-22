@@ -53,6 +53,12 @@
 - **Help / FAQ** (`/help`): Help page with frequently asked questions and guidance.
 - **Logout** (`/logout`): Log out of the system.
 
-# Summary report conditions
--to be added
+# Summary report conditions or summarization logic
+- For মাসিক reports, include detailed data for the selected month.
+- For ত্রৈমাসিক reports, aggregate data from the first three months of the year.
+- For ষান্মাসিক reports, aggregate data from the first six months.
+- For নয়-মাসিক reports, aggregate data from the first nine months.
+- For বার্ষিক reports, include data from all twelve months.
+
+more to be added
 
