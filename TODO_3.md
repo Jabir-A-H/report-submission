@@ -1,4 +1,4 @@
-# period fixing, instead of calling it period, call it report type. make the datababse table attributes reflect this change.
+# Report Type
 ## রিপোর্টের ধরণ: 
 মাসিক
 ত্রৈমাসিক
