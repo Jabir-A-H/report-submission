@@ -52,6 +52,7 @@ class Zone(db.Model):
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(3), unique=True, nullable=False)  # 3-digit user ID
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
@@ -174,6 +175,13 @@ def is_admin():
     return current_user.is_authenticated and current_user.role == "admin"
 
 
+# --- Utility function to generate next user_id ---
+def generate_next_user_id():
+    last_user = User.query.order_by(User.id.desc()).first()
+    next_id = 1 if not last_user else last_user.id + 1
+    return f"{next_id:03d}"
+
+
 # --- Routes ---
 
 
@@ -189,9 +197,11 @@ def dashboard():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        email = request.form["email"]
+        identifier = request.form["email"]  # Can be email or user_id
         password = request.form["password"]
-        user = User.query.filter_by(email=email).first()
+        user = User.query.filter(
+            (User.email == identifier) | (User.user_id == identifier)
+        ).first()
         if user and user.active and check_password_hash(user.password, password):
             login_user(user)
             return redirect(url_for("dashboard"))
@@ -217,8 +227,10 @@ def register():
         if User.query.filter_by(email=email).first():
             flash("Email already registered.")
             return redirect(url_for("register"))
+        user_id = generate_next_user_id()
         hashed_pw = generate_password_hash(password)
         user = User(
+            user_id=user_id,
             name=name,
             email=email,
             password=hashed_pw,
