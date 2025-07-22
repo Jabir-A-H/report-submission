@@ -61,7 +61,64 @@
 - **Help / FAQ** (`/help`): Help page with frequently asked questions and guidance.
 - **Logout** (`/logout`): Log out of the system.
 
-*This file serves as the main documentation for navigation, report workflow, and summary logic. Section and table names are aligned with the current database schema.*
+
+---
+
+# Recommended Project Directory Structure
+
+This structure is minimal and clean, suitable for a small Flask web app with the features described above:
+
+```
+report-submission/
+│
+├── app.py                  # Main Flask app entry point
+├── requirements.txt        # Python dependencies
+├── README.md               # Project overview
+├── TODO.md                 # Database schema & enumerated values
+├── TODO_2.md               # Features & workflow design
+├── TODO_3.md               # Sitemap, navigation, and project structure
+├── init_db.py              # Script to initialize the database
+├── instance/
+│   └── reports.db          # SQLite database (ignored in VCS)
+│
+├── static/                 # Static files (CSS, JS, images)
+│   ├── styles.css
+│   ├── scripts.js
+│   └── modern-animations.css
+│
+├── templates/              # Jinja2 HTML templates
+│   ├── base.html           # Base template (layout)
+│   ├── login.html
+│   ├── register.html
+│   ├── report_dashboard.html
+│   ├── report.html         # At a glance/summary
+│   ├── admin_users.html
+│   ├── admin_reports.html
+│   ├── admin_zones.html
+│   ├── admin_fields.html
+│   ├── form.html           # Generic form template
+│   └── sections/           # Section partials
+│       ├── header.html
+│       ├── courses.html
+│       ├── organizational.html
+│       ├── personal.html
+│       ├── meetings.html
+│       ├── extras.html
+│       └── comments.html
+│
+├── project_idea_extras/    # Optional: brainstorming, extra docs, data
+│
+└── __pycache__/            # Python bytecode (ignored in VCS)
+```
+
+**Notes:**
+- All admin/user logic can be handled in `app.py` or split into a small number of modules if needed (e.g., `models.py`, `routes.py`, `utils.py`).
+- For a very small user base, keep things simple: avoid unnecessary microservices or over-engineering.
+- Use `instance/` for the database and secrets (Flask convention).
+- Place all documentation in the root for easy access.
+- Static and template folders follow Flask defaults.
+
+*This file serves as the main documentation for navigation, report workflow, summary logic, and project structure. Section and table names are aligned with the current database schema.*
 
 # Summary Report Conditions or Summarization Logic
 - For মাসিক reports, include detailed data for the selected month.
