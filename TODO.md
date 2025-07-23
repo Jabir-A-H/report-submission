@@ -50,8 +50,6 @@
 | month       | Integer  | NOT NULL, CHECK (1-12)     | Reporting month (used only for মাসিক type) |
 | year        | Integer  | NOT NULL                   | Reporting year                           |
 | report_type | String   | NOT NULL, CHECK (see enum) | Report type (see below)                  |
-| created_at  | DateTime | DEFAULT CURRENT_TIMESTAMP  | Creation timestamp                       |
-| updated_at  | DateTime | DEFAULT CURRENT_TIMESTAMP  | Last update timestamp                    |
 
 ### ReportHeader
 | Field                             | Type    | Constraints               | Description                  |
