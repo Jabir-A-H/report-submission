@@ -4,43 +4,32 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>রিপোর্ট ড্যাশবোর্ড - {{ report_month_year }}</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/static/styles.css" />
   <link rel="stylesheet" href="/static/modern-animations.css" />
 </head>
-<body class="bg-gradient-to-br from-cyan-100 via-blue-50 to-white min-h-screen">
-  
-  <div class="container mx-auto px-4 py-8">
+<body class="bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen">
+  <main class="container mx-auto px-4 py-8">
     <!-- Header -->
-    <div class="text-center mb-8">
-      <h1 class="text-4xl font-bold text-cyan-700 mb-2">রিপোর্ট ড্যাশবোর্ড</h1>
+    <header class="text-center mb-8">
+      <h1 class="text-4xl font-bold text-blue-700 mb-2">রিপোর্ট ড্যাশবোর্ড</h1>
       <p class="text-xl text-gray-600 mb-4">{{ report_month_year }}</p>
-      <div class="flex justify-center gap-4">
-        <a href="/report_dashboard" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-          ড্যাশবোর্ড
-        </a>
+      <nav class="flex justify-center gap-4">
+        <a href="/report_dashboard" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">ড্যাশবোর্ড</a>
         {% if current_user.role == "admin" %}
-        <a href="/master_report" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-          মাস্টার রিপোর্ট
-        </a>
-        <a href="/admin/reports" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-          সব রিপোর্ট
-        </a>
+        <a href="/master_report" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">মাস্টার রিপোর্ট</a>
+        <a href="/admin/reports" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">সব রিপোর্ট</a>
         {% endif %}
-        <a href="/logout" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-          লগআউট
-        </a>
-      </div>
-    </div>
+        <a href="/logout" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">লগআউট</a>
+      </nav>
+    </header>
 
     <!-- Month/Year selector -->
-    <div class="max-w-md mx-auto mb-8">
+    <section class="max-w-md mx-auto mb-8">
       <form method="get" class="flex gap-2">
         <select name="month" class="flex-1 p-2 border border-gray-300 rounded-lg">
           {% for i in range(1, 13) %}
-          <option value="{{ i }}" {% if i == month|int %}selected{% endif %}>
-            {{ get_month_name(i) }}
-          </option>
+          <option value="{{ i }}" {% if i == month|int %}selected{% endif %}>{{ get_month_name(i) }}</option>
           {% endfor %}
         </select>
         <select name="year" class="flex-1 p-2 border border-gray-300 rounded-lg">
@@ -48,17 +37,15 @@
           <option value="{{ y }}" {% if y == year|int %}selected{% endif %}>{{ y }}</option>
           {% endfor %}
         </select>
-        <button type="submit" class="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors">
-          যান
-        </button>
+        <button type="submit" class="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition">যান</button>
       </form>
-    </div>
+    </section>
 
     <!-- Report sections grid -->
-    <div class="max-w-6xl mx-auto">
+    <section class="max-w-6xl mx-auto">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for section in sections %}
-        <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 animate-fade-in">
           <div class="p-6">
             <div class="flex items-center justify-between mb-4">
               <div class="text-2xl">{{ section.icon }}</div>
@@ -78,22 +65,9 @@
               </div>
               {% endif %}
             </div>
-            
             <h3 class="text-lg font-semibold text-gray-800 mb-3">{{ section.name }}</h3>
-            
-            <a href="{{ section.url }}" 
-               class="block w-full text-center py-2 px-4 
-                      {% if section.completed %}
-                      bg-green-600 hover:bg-green-700 text-white
-                      {% else %}
-                      bg-cyan-600 hover:bg-cyan-700 text-white
-                      {% endif %}
-                      rounded-lg transition-colors duration-300 font-medium">
-              {% if section.completed %}
-                দেখুন/সম্পাদনা করুন
-              {% else %}
-                শুরু করুন
-              {% endif %}
+            <a href="{{ section.url }}" class="block w-full text-center py-2 px-4 {% if section.completed %}bg-green-600 hover:bg-green-700{% else %}bg-cyan-600 hover:bg-cyan-700{% endif %} text-white rounded-lg transition font-medium">
+              {% if section.completed %} দেখুন/সম্পাদনা করুন {% else %} শুরু করুন {% endif %}
             </a>
           </div>
         </div>
@@ -102,7 +76,7 @@
     </div>
 
     <!-- Summary stats -->
-    <div class="max-w-4xl mx-auto mt-12">
+    <section class="max-w-4xl mx-auto mt-12">
       <div class="bg-white rounded-xl shadow-lg p-6">
         <h2 class="text-xl font-bold text-gray-800 mb-4">সংক্ষিপ্ত পরিসংখ্যান</h2>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -125,11 +99,11 @@
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- Recent activity or tips -->
     {% if completed_count == sections|length %}
-    <div class="max-w-4xl mx-auto mt-8">
+    <section class="max-w-4xl mx-auto mt-8">
       <div class="bg-green-50 border border-green-200 rounded-xl p-6">
         <div class="flex items-center">
           <svg class="w-8 h-8 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -141,9 +115,9 @@
           </div>
         </div>
       </div>
-    </div>
+    </section>
     {% elif completed_count > 0 %}
-    <div class="max-w-4xl mx-auto mt-8">
+    <section class="max-w-4xl mx-auto mt-8">
       <div class="bg-blue-50 border border-blue-200 rounded-xl p-6">
         <div class="flex items-center">
           <svg class="w-8 h-8 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -155,10 +129,9 @@
           </div>
         </div>
       </div>
-    </div>
+    </section>
     {% endif %}
-  </div>
-
+  </main>
   <script src="/static/scripts.js"></script>
 </body>
 </html>
