@@ -2,130 +2,187 @@
 
 ## 1. Global Layout & Structure
 - **Base Template (`base.html`)**
-  - Responsive, mobile-first layout using Tailwind CSS.
-  - Fixed top navigation bar with logo, user info, hamburger menu for mobile.
-  - Main content area centered, max-width for readability.
-  - Consistent padding, margin, and spacing across all pages.
-  - Footer with copyright, version, and contact info.
+  - Use Tailwind CSS for all layout, spacing, and responsive design.
+  - Top navigation bar is fixed, stretches full width, and collapses into a hamburger menu on mobile.
+  - Logo is always visible at the left; user info (name, ID, role, zone) at the right.
+  - Main content area is centered, with a max-width of 1200px for readability on large screens.
+  - All pages have consistent padding (px-4 py-8) and margin (mb-8 for major sections).
+  - Footer is always at the bottom, with copyright, app version, and contact info. Use muted colors and small font.
+  - Use a light background gradient for visual depth (e.g., from blue-50 to cyan-50).
+  - All pages inherit from `base.html` for consistent layout and navigation.
 
 ## 2. Navigation System
 - **Navigation Bar**
-  - Visible on all pages (except login/register).
-  - Links: Dashboard (`/`), Report Summary (`/report`), Help (`/help`), Logout (`/logout`).
-  - For admins: additional links to Users, Zones, Reports, Fields management.
-  - Hamburger menu for mobile: toggles navigation links.
-  - User info: name, ID, role, zone displayed at top right.
+  - Always visible except on login/register pages.
+  - Contains links: Dashboard (`/`), Report Summary (`/report`), Help (`/help`), Logout (`/logout`).
+  - For admins, show extra links: Users (`/admin/users`), Zones (`/admin/zones`), Reports (`/admin/reports`), Fields (`/admin/fields`).
+  - Hamburger menu appears on screens <768px, toggles navigation links vertically.
+  - User info is shown at top right, with dropdown for profile/settings (future feature).
+  - Active page is highlighted with a color accent and underline.
+  - Navigation is keyboard accessible (tab order, focus states).
 
 ## 3. Home/Dashboard Page (`index.html`)
 - **Header**
-  - Bengali title: "রিপোর্ট ড্যাশবোর্ড"
-  - Subtitle: current period (month/year)
+  - Large Bengali title: "রিপোর্ট ড্যাশবোর্ড" (font-bold, text-4xl, blue-700).
+  - Subtitle shows current period (month/year) in Bengali, below the title.
 - **Period Selector**
-  - Dropdowns for report type, month (if applicable), and year.
-  - Bengali month names, years 2020–2030.
-  - Submit button: "যান"
+  - Three dropdowns: Report Type, Month (if applicable), Year.
+  - Report Type options: মাসিক, ত্রৈমাসিক, ষান্মাসিক, নয়-মাসিক, বার্ষিক (Bengali).
+  - Month dropdown uses Bengali month names; year dropdown covers 2020–2030.
+  - Dropdowns are styled with rounded corners, border, and focus ring.
+  - Submit button: prominent, cyan background, white text, rounded, hover effect.
+  - Selector is always visible at the top of the dashboard.
 - **Section Cards Grid**
-  - 1–3 columns, responsive.
-  - Each card: icon, Bengali section name, completion status (color-coded), action button.
-  - Action button: "শুরু করুন" (Start) or "দেখুন/সম্পাদনা করুন" (View/Edit)
-  - Hover/active effects for accessibility.
+  - Responsive grid: 1 column on mobile, 2 on tablet, 3 on desktop.
+  - Each card has:
+    - Icon (large, visually distinct)
+    - Bengali section name (font-bold)
+    - Completion status: green for complete, yellow for incomplete, with icon and label
+    - Action button: "শুরু করুন" (Start) if incomplete, "দেখুন/সম্পাদনা করুন" (View/Edit) if complete
+    - Card has shadow, rounded corners, and fade-in animation
+    - Hover/active effects: card lifts, shadow deepens, button color changes
+  - Cards link to the appropriate section page, passing period params.
 - **Summary Stats**
-  - Grid of 4 stats: completed, incomplete, completion rate, total sections.
-  - Bengali labels, color-coded numbers.
+  - Four stats in a grid: completed sections, incomplete sections, completion rate (%), total sections
+  - Each stat uses a large colored number and Bengali label
+  - Stats update dynamically as sections are completed
 - **Tips/Activity**
-  - Success message if all sections complete.
-  - Progress message if some sections incomplete.
+  - If all sections complete: show green congratulatory message with icon
+  - If some incomplete: show blue progress message with icon
+  - Messages are animated and dismissible
 
 ## 4. Section Pages (`sections/*.html`)
 - **Header**
-  - Section name in Bengali, icon.
-  - Breadcrumb navigation: Home > Section
+  - Bengali section name, large icon, breadcrumb navigation (Home > Section)
+  - Breadcrumb is clickable, uses muted colors
 - **Form Layout**
-  - All fields labeled in Bengali, with tooltips/help text.
-  - Inputs: text, number, textarea, select as needed.
-  - Required fields marked with *.
-  - Auto-save indicator (spinner/checkmark) on field change.
-  - Save button: prominent, color-coded.
-  - Cancel/back button: returns to dashboard, retains period selection.
+  - All fields labeled in Bengali, with tooltips or help text for complex fields
+  - Inputs: text, number, textarea, select; all styled with rounded corners, border, and focus ring
+  - Required fields marked with * and aria-required for accessibility
+  - Auto-save indicator: spinner or checkmark appears next to field on change, fades out after save
+  - Save button: large, colored, with icon; disabled until changes are made
+  - Cancel/back button: returns to dashboard, keeps current period selection
+  - Form is responsive, fields stack vertically on mobile
 - **Validation/Error Handling**
-  - Inline error messages in Bengali.
-  - Success message on save.
+  - Inline error messages in Bengali, red text, appear below field
+  - Success message on save, green text, appears at top of form
+  - All validation is both client-side (HTML5) and server-side
 
 ## 5. Report Summary Page (`report.html`)
 - **Header**
-  - Bengali title: "রিপোর্ট সারাংশ"
-  - Subtitle: selected period
+  - Bengali title: "রিপোর্ট সারাংশ", subtitle with selected period
 - **Section Links**
-  - Card/grid links to all sections for quick navigation.
+  - Card/grid links to all sections for quick navigation, same style as dashboard
 - **Summary Table**
-  - Aggregated data for selected period.
-  - Download buttons: Excel, PDF.
-  - Bengali column headers.
+  - Aggregated data for selected period, with Bengali column headers
+  - Table is responsive, scrolls horizontally on mobile
+  - Download buttons: Excel, PDF, styled as prominent action buttons
+  - Table rows animate on hover
 - **Navigation**
-  - Back to dashboard, help, logout links.
+  - Back to dashboard, help, logout links always visible at top
 
 ## 6. Admin Pages
 - **Users Management (`admin_users.html`)**
-  - Table of users: email, zone, role, status, actions.
-  - Approve/reject buttons, color-coded status.
+  - Table of users: email, zone, role, status, actions
+  - Approve/reject buttons: color-coded, with confirmation dialog
+  - Status: green for active, yellow for pending, red for rejected
+  - Table is sortable and searchable
 - **Zones Management (`admin_zones.html`)**
-  - List of zones, add/delete zone form.
+  - List of zones, add/delete zone form
+  - Add zone: input and button, validation for uniqueness
+  - Delete zone: confirmation dialog
 - **Reports Management (`admin_reports.html`)**
-  - Table of all reports, filter by period/zone.
-  - Edit/view links for each report.
+  - Table of all reports, filter by period/zone
+  - Edit/view links for each report, color-coded by status
+  - Table supports pagination for large datasets
 - **Fields Management (`admin_fields.html`)**
-  - Dynamic table for adding/removing data categories.
+  - Dynamic table for adding/removing data categories
+  - Add/remove row buttons, inline editing
+  - Changes auto-save, with feedback indicator
 
 ## 7. Authentication Pages
 - **Login (`login.html`)**
-  - Bengali labels, email/user ID input, password input.
-  - Error messages, forgot password link.
+  - Bengali labels, email/user ID input, password input
+  - Error messages: red, appear above form
+  - Forgot password link: styled as small text below form
+  - Login button: large, blue, with icon
 - **Register (`register.html`)**
-  - Bengali labels, all required fields, zone selection.
-  - Success message on registration, pending approval notice.
+  - Bengali labels, all required fields, zone selection
+  - Success message on registration, green, appears above form
+  - Pending approval notice: yellow, appears after registration
+  - Register button: large, green, with icon
 
 ## 8. Help/FAQ Page (`help.html`)
 - **Header**
-  - Bengali title: "সহায়তা / প্রশ্ন"
+  - Bengali title: "সহায়তা / প্রশ্ন", large, bold
 - **FAQ List**
-  - Accordion or expandable list of common questions/answers.
-  - Bengali text, links to relevant pages.
+  - Accordion or expandable list of common questions/answers
+  - Bengali text, links to relevant pages
+  - Each FAQ item animates open/close
 - **Contact Info**
-  - Email, phone, or support form.
+  - Email, phone, or support form, styled as card at bottom
+  - Success/error messages for contact form
 
 ## 9. UI/UX Principles
 - **Accessibility**
-  - Keyboard navigation, screen reader support.
-  - Sufficient color contrast, large clickable areas.
+  - All interactive elements have focus states, aria-labels, and keyboard navigation
+  - Sufficient color contrast for all text and buttons
+  - Large clickable areas for touch devices
 - **Localization**
-  - All labels, messages, tooltips in Bengali.
+  - All labels, messages, tooltips, and error/success messages in Bengali
+  - Date and number formats follow Bengali conventions
 - **Responsiveness**
-  - Mobile-first, adapts to all screen sizes.
+  - Mobile-first design, adapts to all screen sizes
+  - Grid and flex layouts for dynamic resizing
 - **Feedback**
-  - Loading spinners, success/error toasts, auto-save indicators.
+  - Loading spinners for async actions, success/error toasts for saves
+  - Auto-save indicators on forms
 - **Consistency**
-  - Unified color palette, font sizes, spacing.
+  - Unified color palette, font sizes, spacing, and button styles across all pages
 
 ## 10. Visual Style Guide
 - **Colors**
   - Primary: Blue (`#2563eb`), Cyan (`#06b6d4`), Green (`#16a34a`), Red (`#dc2626`), Yellow (`#facc15`)
-  - Background: White, Blue-50, Cyan-50
+  - Background: White, Blue-50, Cyan-50, with gradients for depth
 - **Typography**
-  - Font: Noto Sans Bengali, fallback to sans-serif.
-  - Headings: bold, large size.
-  - Body: regular, readable size.
+  - Font: Noto Sans Bengali, fallback to sans-serif
+  - Headings: bold, large size, blue or cyan
+  - Body: regular, readable size, dark gray
 - **Icons**
-  - Use Heroicons or similar, with Bengali context.
+  - Use Heroicons or similar, sized for clarity, with Bengali context
+  - Icons are color-coded by section or action
 - **Buttons**
-  - Rounded corners, shadow, hover/active states.
+  - Rounded corners, shadow, hover/active states, color-coded by action
+  - Large touch targets for mobile
 
 ## 11. Example UI Flows
 - **User Login → Dashboard → Section Edit → Save → Summary → Logout**
+  - User logs in, lands on dashboard, selects period, edits sections, saves, views summary, logs out
 - **Admin Login → Dashboard → Manage Users/Zones/Reports → Edit Fields → Logout**
+  - Admin logs in, sees dashboard, manages users/zones/reports, edits fields, logs out
 - **User Registration → Pending Approval → Login → Dashboard**
+  - User registers, sees pending approval, logs in after approval, lands on dashboard
 
 ## 12. Wireframes & Mockups
-- (Attach or link to Figma/Sketch files, or include ASCII wireframes if needed)
+- Attach Figma/Sketch files or include ASCII wireframes for each page
+- Example wireframe for dashboard:
+
+```
++-------------------------------------------------------------+
+| Logo   রিপোর্ট ড্যাশবোর্ড        User Info [ID, Role, Zone] |
++-------------------------------------------------------------+
+| Period Selector: [Report Type] [Month] [Year] [যান]         |
++-------------------------------------------------------------+
+| [Section Card] [Section Card] [Section Card]                |
+| [Section Card] [Section Card] [Section Card]                |
++-------------------------------------------------------------+
+| Summary Stats: Completed | Incomplete | Rate | Total        |
++-------------------------------------------------------------+
+| Tips/Activity Message                                        |
++-------------------------------------------------------------+
+| Footer: Copyright, Version, Contact                         |
++-------------------------------------------------------------+
+```
 
 ---
 
