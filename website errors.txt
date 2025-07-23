@@ -1,6 +1,5 @@
-werkzeug.exceptions.BadRequestKeyError
-werkzeug.exceptions.BadRequestKeyError: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
-KeyError: 'email'
+ZeroDivisionError
+ZeroDivisionError: division by zero
 
 Traceback (most recent call last)
 File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\app.py", line 1536, in __call__
@@ -76,34 +75,97 @@ File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\app.py", line 902
         """Dispatches the request and on top of that performs request
         pre and postprocessing as well as HTTP exception catching and
         error handling.
-File "F:\WebDev\report-submission\app.py", line 209, in login
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask_login\utils.py", line 290, in decorated_view
+            return current_app.login_manager.unauthorized()
+ 
+        # flask 1.x compatibility
+        # current_app.ensure_sync is only available in Flask >= 2.0
+        if callable(getattr(current_app, "ensure_sync", None)):
+            return current_app.ensure_sync(func)(*args, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        return func(*args, **kwargs)
+ 
+    return decorated_view
  
  
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        identifier = request.form["email"]  # Can be email or user_id
-                     ^^^^^^^^^^^^^^^^^^^^^
-        password = request.form["password"]
-        user = User.query.filter(
-            (User.email == identifier) | (User.user_id == identifier)
-        ).first()
-        if user and user.active and check_password_hash(user.password, password):
-File "F:\WebDev\report-submission\venv\Lib\site-packages\werkzeug\datastructures\structures.py", line 238, in __getitem__
+File "F:\WebDev\report-submission\app.py", line 234, in dashboard
+                "নভেম্বর",
+                "ডিসেম্বর",
+            ]
+            return months[i - 1] if 1 <= i <= 12 else str(i)
  
-        if key in self:
-            lst = super().__getitem__(key)
-            if len(lst) > 0:  # type: ignore[arg-type]
-                return lst[0]  # type: ignore[index,no-any-return]
-        raise exceptions.BadRequestKeyError(key)
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        return render_template(
+               
+            "report_dashboard.html",
+            user=current_user,
+            month=month,
+            year=year,
+            sections=sections,
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\templating.py", line 150, in render_template
+        a list is given, the first name to exist will be rendered.
+    :param context: The variables to make available in the template.
+    """
+    app = current_app._get_current_object()  # type: ignore[attr-defined]
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
  
-    def __setitem__(self, key: K, value: V) -> None:
-        """Like :meth:`add` but removes an existing key first.
  
-        :param key: the key for the value.
-werkzeug.exceptions.BadRequestKeyError: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
-KeyError: 'email'
+def render_template_string(source: str, **context: t.Any) -> str:
+    """Render a template from the given source string with the given
+    context.
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\templating.py", line 131, in _render
+def _render(app: Flask, template: Template, context: dict[str, t.Any]) -> str:
+    app.update_template_context(context)
+    before_render_template.send(
+        app, _async_wrapper=app.ensure_sync, template=template, context=context
+    )
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+    template_rendered.send(
+        app, _async_wrapper=app.ensure_sync, template=template, context=context
+    )
+    return rv
+ 
+File "F:\WebDev\report-submission\venv\Lib\site-packages\jinja2\environment.py", line 1295, in render
+        ctx = self.new_context(dict(*args, **kwargs))
+ 
+        try:
+            return self.environment.concat(self.root_render_func(ctx))  # type: ignore
+        except Exception:
+            self.environment.handle_exception()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+    async def render_async(self, *args: t.Any, **kwargs: t.Any) -> str:
+        """This works similar to :meth:`render` but returns a coroutine
+        that when awaited returns the entire rendered template string.  This
+        requires the async feature to be enabled.
+File "F:\WebDev\report-submission\venv\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+        """Exception handling helper.  This is used internally to either raise
+        rewritten exceptions or return a rendered traceback for the template.
+        """
+        from .debug import rewrite_traceback_stack
+ 
+        raise rewrite_traceback_stack(source=source)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+    def join_path(self, template: str, parent: str) -> str:
+        """Join a template with the parent.  By default all the lookups are
+        relative to the loader root so this method returns the `template`
+        parameter unchanged, but if the paths should be relative to the
+File "F:\WebDev\report-submission\templates\report_dashboard.html", line 93, in top-level template code
+          <div class="text-center">
+            <div class="text-2xl font-bold text-yellow-600">{{ sections|length - completed_count }}</div>
+            <div class="text-sm text-gray-600">অসম্পূর্ণ বিভাগ</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold text-blue-600">{{ ((completed_count / sections|length) * 100) | round | int }}%</div>
+            <div class="text-sm text-gray-600">সম্পূর্ণতার হার</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold text-cyan-600">{{ sections|length }}</div>
+            <div class="text-sm text-gray-600">মোট বিভাগ</div>
+ZeroDivisionError: division by zero
 The debugger caught an exception in your WSGI application. You can now look at the traceback which led to the error.
 To switch between the interactive traceback and the plaintext one, you can click on the "Traceback" headline. From the text traceback you can also create a paste of it. For code execution mouse-over the frame you want to debug and click on the console icon on the right side.
 

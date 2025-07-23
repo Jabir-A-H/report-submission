@@ -90,7 +90,13 @@
             <div class="text-sm text-gray-600">অসম্পূর্ণ বিভাগ</div>
           </div>
           <div class="text-center">
-            <div class="text-2xl font-bold text-blue-600">{{ ((completed_count / sections|length) * 100) | round | int }}%</div>
+            <div class="text-2xl font-bold text-blue-600">
+              {% if sections|length > 0 %}
+                {{ ((completed_count / sections|length) * 100) | round | int }}%
+              {% else %}
+                0%
+              {% endif %}
+            </div>
             <div class="text-sm text-gray-600">সম্পূর্ণতার হার</div>
           </div>
           <div class="text-center">

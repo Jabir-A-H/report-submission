@@ -200,7 +200,46 @@ def dashboard():
     if is_admin():
         return render_template("admin_reports.html", user=current_user)
     else:
-        return render_template("report_dashboard.html", user=current_user)
+        # Get month/year from query params or set defaults
+        from datetime import datetime
+
+        month = request.args.get("month", None)
+        year = request.args.get("year", None)
+        now = datetime.now()
+        if not month:
+            month = now.month
+        if not year:
+            year = now.year
+        # Dummy sections and report_month_year for demonstration; replace with your actual logic
+        sections = []  # TODO: populate with actual section data
+        report_month_year = f"{month}/{year}"
+
+        def get_month_name(i):
+            months = [
+                "জানুয়ারি",
+                "ফেব্রুয়ারি",
+                "মার্চ",
+                "এপ্রিল",
+                "মে",
+                "জুন",
+                "জুলাই",
+                "আগস্ট",
+                "সেপ্টেম্বর",
+                "অক্টোবর",
+                "নভেম্বর",
+                "ডিসেম্বর",
+            ]
+            return months[i - 1] if 1 <= i <= 12 else str(i)
+
+        return render_template(
+            "report_dashboard.html",
+            user=current_user,
+            month=month,
+            year=year,
+            sections=sections,
+            report_month_year=report_month_year,
+            get_month_name=get_month_name,
+        )
 
 
 @app.route("/login", methods=["GET", "POST"])
