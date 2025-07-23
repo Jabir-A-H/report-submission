@@ -210,8 +210,80 @@ def dashboard():
             month = now.month
         if not year:
             year = now.year
-        # Dummy sections and report_month_year for demonstration; replace with your actual logic
-        sections = []  # TODO: populate with actual section data
+        # Build sections list with completion status and navigation URLs
+        section_defs = [
+            {
+                "name": "মূল তথ্য",
+                "icon": "📝",
+                "url": url_for("report_header", month=month, year=year),
+                "model": ReportHeader,
+            },
+            {
+                "name": "শিক্ষামূলক কোর্স",
+                "icon": "📚",
+                "url": url_for("report_courses", month=month, year=year),
+                "model": ReportCourse,
+            },
+            {
+                "name": "সাংগঠনিক তথ্য",
+                "icon": "🏢",
+                "url": url_for("report_organizational", month=month, year=year),
+                "model": ReportOrganizational,
+            },
+            {
+                "name": "ব্যক্তিগত কার্যক্রম",
+                "icon": "👩‍🏫",
+                "url": url_for("report_personal", month=month, year=year),
+                "model": ReportPersonal,
+            },
+            {
+                "name": "সভাসমূহ",
+                "icon": "🤝",
+                "url": url_for("report_meetings", month=month, year=year),
+                "model": ReportMeeting,
+            },
+            {
+                "name": "অতিরিক্ত কার্যক্রম",
+                "icon": "✨",
+                "url": url_for("report_extras", month=month, year=year),
+                "model": ReportExtra,
+            },
+            {
+                "name": "মন্তব্য",
+                "icon": "💬",
+                "url": url_for("report_comments", month=month, year=year),
+                "model": ReportComment,
+            },
+        ]
+
+        # Find the user's zone report for the selected period
+        report = Report.query.filter_by(
+            zone_id=current_user.zone_id,
+            month=month,
+            year=year,
+        ).first()
+
+        sections = []
+        for sdef in section_defs:
+            completed = False
+            if report:
+                # For uselist=False relationships
+                if hasattr(report, sdef["model"].__name__.lower()):
+                    section_obj = getattr(report, sdef["model"].__name__.lower())
+                    completed = section_obj is not None
+                else:
+                    # For uselist=True relationships
+                    rel = getattr(report, sdef["model"].__name__.lower(), None)
+                    completed = rel and len(rel) > 0
+            sections.append(
+                {
+                    "name": sdef["name"],
+                    "icon": sdef["icon"],
+                    "url": sdef["url"],
+                    "completed": completed,
+                }
+            )
+
         report_month_year = f"{month}/{year}"
 
         def get_month_name(i):
