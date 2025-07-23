@@ -28,7 +28,6 @@ from flask_login import (
     UserMixin,
 )
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
 import os
 
 from dotenv import load_dotenv
@@ -75,10 +74,6 @@ class Report(db.Model):
     month = db.Column(db.Integer, nullable=True)  # Only for মাসিক
     year = db.Column(db.Integer, nullable=False)
     report_type = db.Column(db.String(20), nullable=False)  # মাসিক, ত্রৈমাসিক, ...
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)  # type: ignore
-    updated_at = db.Column(
-        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow  # type: ignore
-    )
     header = db.relationship("ReportHeader", uselist=False, backref="report")
     courses = db.relationship("ReportCourse", backref="report", lazy=True)
     organizational = db.relationship(
@@ -132,23 +127,33 @@ class ReportOrganizational(db.Model):
     number = db.Column(db.Integer, default=0, nullable=False)
     increase = db.Column(db.Integer, default=0, nullable=False)
     amount = db.Column(db.Integer, nullable=True)
+    comments = db.Column(db.String(200), nullable=True)
 
 
 class ReportPersonal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     report_id = db.Column(db.Integer, db.ForeignKey("report.id"), nullable=False)
     category = db.Column(db.String(100), nullable=False)
-    number = db.Column(db.Integer, default=0, nullable=False)
-    increase = db.Column(db.Integer, default=0, nullable=False)
-    amount = db.Column(db.Integer, nullable=True)
+    teaching = db.Column(db.Integer, default=0, nullable=False)
+    learning = db.Column(db.Integer, default=0, nullable=False)
+    olama_invited = db.Column(db.Integer, default=0, nullable=False)
+    became_shohojogi = db.Column(db.Integer, default=0, nullable=False)
+    became_sokrio_shohojogi = db.Column(db.Integer, default=0, nullable=False)
+    became_kormi = db.Column(db.Integer, default=0, nullable=False)
+    became_rukon = db.Column(db.Integer, default=0, nullable=False)
 
 
 class ReportMeeting(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     report_id = db.Column(db.Integer, db.ForeignKey("report.id"), nullable=False)
     category = db.Column(db.String(100), nullable=False)
-    number = db.Column(db.Integer, default=0, nullable=False)
-    attendance = db.Column(db.Integer, default=0, nullable=False)
+    city_count = db.Column(db.Integer, default=0, nullable=False)
+    city_avg_attendance = db.Column(db.Integer, default=0, nullable=False)
+    thana_count = db.Column(db.Integer, default=0, nullable=False)
+    thana_avg_attendance = db.Column(db.Integer, default=0, nullable=False)
+    ward_count = db.Column(db.Integer, default=0, nullable=False)
+    ward_avg_attendance = db.Column(db.Integer, default=0, nullable=False)
+    comments = db.Column(db.Text, nullable=True)
 
 
 class ReportExtra(db.Model):
@@ -156,7 +161,6 @@ class ReportExtra(db.Model):
     report_id = db.Column(db.Integer, db.ForeignKey("report.id"), nullable=False)
     category = db.Column(db.String(100), nullable=False)
     number = db.Column(db.Integer, default=0, nullable=False)
-    details = db.Column(db.String(200), nullable=True)
 
 
 class ReportComment(db.Model):
