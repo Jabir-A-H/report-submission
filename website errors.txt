@@ -1,0 +1,215 @@
+jinja2.exceptions.TemplateSyntaxError
+jinja2.exceptions.TemplateSyntaxError: Unexpected end of template. Jinja was looking for the following tags: 'endfor' or 'else'. The innermost block that needs to be closed is 'for'.
+
+Traceback (most recent call last)
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\app.py", line 1536, in __call__
+    ) -> cabc.Iterable[bytes]:
+        """The WSGI server calls the Flask application object as the
+        WSGI application. This calls :meth:`wsgi_app`, which can be
+        wrapped to apply middleware.
+        """
+        return self.wsgi_app(environ, start_response)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\app.py", line 1514, in wsgi_app
+            try:
+                ctx.push()
+                response = self.full_dispatch_request()
+            except Exception as e:
+                error = e
+                response = self.handle_exception(e)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
+            except:  # noqa: B001
+                error = sys.exc_info()[1]
+                raise
+            return response(environ, start_response)
+        finally:
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\app.py", line 1511, in wsgi_app
+        ctx = self.request_context(environ)
+        error: BaseException | None = None
+        try:
+            try:
+                ctx.push()
+                response = self.full_dispatch_request()
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            except Exception as e:
+                error = e
+                response = self.handle_exception(e)
+            except:  # noqa: B001
+                error = sys.exc_info()[1]
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+            request_started.send(self, _async_wrapper=self.ensure_sync)
+            rv = self.preprocess_request()
+            if rv is None:
+                rv = self.dispatch_request()
+        except Exception as e:
+            rv = self.handle_user_exception(e)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        return self.finalize_request(rv)
+ 
+    def finalize_request(
+        self,
+        rv: ft.ResponseReturnValue | HTTPException,
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+ 
+        try:
+            request_started.send(self, _async_wrapper=self.ensure_sync)
+            rv = self.preprocess_request()
+            if rv is None:
+                rv = self.dispatch_request()
+                     ^^^^^^^^^^^^^^^^^^^^^^^
+        except Exception as e:
+            rv = self.handle_user_exception(e)
+        return self.finalize_request(rv)
+ 
+    def finalize_request(
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+            and req.method == "OPTIONS"
+        ):
+            return self.make_default_options_response()
+        # otherwise dispatch to the handler for that endpoint
+        view_args: dict[str, t.Any] = req.view_args  # type: ignore[assignment]
+        return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+    def full_dispatch_request(self) -> Response:
+        """Dispatches the request and on top of that performs request
+        pre and postprocessing as well as HTTP exception catching and
+        error handling.
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask_login\utils.py", line 290, in decorated_view
+            return current_app.login_manager.unauthorized()
+ 
+        # flask 1.x compatibility
+        # current_app.ensure_sync is only available in Flask >= 2.0
+        if callable(getattr(current_app, "ensure_sync", None)):
+            return current_app.ensure_sync(func)(*args, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        return func(*args, **kwargs)
+ 
+    return decorated_view
+ 
+ 
+File "F:\WebDev\report-submission\app.py", line 201, in dashboard
+ 
+@app.route("/")
+@login_required
+def dashboard():
+    if is_admin():
+        return render_template("admin_reports.html", user=current_user)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    else:
+        return render_template("report_dashboard.html", user=current_user)
+ 
+ 
+@app.route("/login", methods=["GET", "POST"])
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\templating.py", line 149, in render_template
+    :param template_name_or_list: The name of the template to render. If
+        a list is given, the first name to exist will be rendered.
+    :param context: The variables to make available in the template.
+    """
+    app = current_app._get_current_object()  # type: ignore[attr-defined]
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    return _render(app, template, context)
+ 
+ 
+def render_template_string(source: str, **context: t.Any) -> str:
+    """Render a template from the given source string with the given
+File "F:\WebDev\report-submission\venv\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+        is given, or :meth:`get_template` if one name is given.
+ 
+        .. versionadded:: 2.3
+        """
+        if isinstance(template_name_or_list, (str, Undefined)):
+            return self.get_template(template_name_or_list, parent, globals)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        elif isinstance(template_name_or_list, Template):
+            return template_name_or_list
+        return self.select_template(template_name_or_list, parent, globals)
+ 
+    def from_string(
+File "F:\WebDev\report-submission\venv\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+        if isinstance(name, Template):
+            return name
+        if parent is not None:
+            name = self.join_path(name, parent)
+ 
+        return self._load_template(name, globals)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+    @internalcode
+    def select_template(
+        self,
+        names: t.Iterable[t.Union[str, "Template"]],
+File "F:\WebDev\report-submission\venv\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+                if globals:
+                    template.globals.update(globals)
+ 
+                return template
+ 
+        template = self.loader.load(self, name, self.make_globals(globals))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+        if self.cache is not None:
+            self.cache[cache_key] = template
+        return template
+ 
+File "F:\WebDev\report-submission\venv\Lib\site-packages\jinja2\loaders.py", line 138, in load
+            code = bucket.code
+ 
+        # if we don't have code so far (not cached, no longer up to
+        # date) etc. we compile the template
+        if code is None:
+            code = environment.compile(source, name, filename)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+        # if the bytecode cache is available and the bucket doesn't
+        # have a code so far, we give the bucket the new code and put
+        # it back to the bytecode cache.
+        if bcc is not None and bucket.code is None:
+File "F:\WebDev\report-submission\venv\Lib\site-packages\jinja2\environment.py", line 771, in compile
+                return source
+            if filename is None:
+                filename = "<template>"
+            return self._compile(source, filename)
+        except TemplateSyntaxError:
+            self.handle_exception(source=source_hint)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+    def compile_expression(
+        self, source: str, undefined_to_none: bool = True
+    ) -> "TemplateExpression":
+        """A handy helper method that returns a callable that accepts keyword
+File "F:\WebDev\report-submission\venv\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+        """Exception handling helper.  This is used internally to either raise
+        rewritten exceptions or return a rendered traceback for the template.
+        """
+        from .debug import rewrite_traceback_stack
+ 
+        raise rewrite_traceback_stack(source=source)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+    def join_path(self, template: str, parent: str) -> str:
+        """Join a template with the parent.  By default all the lookups are
+        relative to the loader root so this method returns the `template`
+        parameter unchanged, but if the paths should be relative to the
+File "F:\WebDev\report-submission\templates\admin_reports.html", line 38, in template
+                <td class="px-4 py-2 border-b">{{ r.user.email }}</td>
+                <td class="px-4 py-2 border-b">{{ r.user.zone.name }}</td>
+                <!-- Ward removed from user -->
+                <td class="px-4 py-2 border-b">{{ r.month }}</td>
+                <td class="px-4 py-2 border-b">{{ r.year }}</td>
+                <td class="px-4 py-2 border-b">{{ r.responsible_name }}</td>
+                <td class="px-4 py-2 border-b">
+  <body class="bg-gradient-to-br from-cyan-100 via-blue-50 to-white min-h-screen flex items-center justify-center">
+    <div class="w-full max-w-5xl mx-auto p-2 sm:p-4 fade-in">
+      <div class="bg-white/90 rounded-2xl shadow-2xl p-2 sm:p-8 card-animate backdrop-blur-md border border-blue-100">
+                  endif %}
+jinja2.exceptions.TemplateSyntaxError: Unexpected end of template. Jinja was looking for the following tags: 'endfor' or 'else'. The innermost block that needs to be closed is 'for'.
+The debugger caught an exception in your WSGI application. You can now look at the traceback which led to the error.
+To switch between the interactive traceback and the plaintext one, you can click on the "Traceback" headline. From the text traceback you can also create a paste of it. For code execution mouse-over the frame you want to debug and click on the console icon on the right side.
+
+You can execute arbitrary Python code in the stack frames and there are some extra helpers available for introspection:
+
+dump() shows all variables in the frame
+dump(obj) dumps all that's known about the object
+Brought to you by DON'T PANIC, your friendly Werkzeug powered traceback interpreter.
