@@ -129,3 +129,8 @@ report-submission/
 
 *Exact summary logic is to be added.*
 
+4. Features
+Implement autosave for report sections (AJAX + /autosave endpoint).
+Add export/download endpoints using send_file for Excel/PDF.
+Allow admin to change user zones from the admin panel.
+Add user profile and password change functionality.
