@@ -10,21 +10,39 @@
   <body class="bg-gray-100 min-h-screen flex items-center justify-center">
     <div class="w-full max-w-4xl mx-auto p-4">
       <div class="bg-white rounded-lg shadow-lg p-8">
-        <h3 class="text-2xl font-bold mb-6 text-center">মাস্টার রিপোর্ট</h3>
-
-  <body class="bg-gradient-to-br from-cyan-100 via-blue-50 to-white min-h-screen flex items-center justify-center">
-    <div class="w-full max-w-4xl mx-auto p-2 sm:p-4 fade-in">
-      <div class="bg-white/90 rounded-2xl shadow-2xl p-2 sm:p-8 card-animate backdrop-blur-md border border-blue-100">
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>মাস্টার রিপোর্ট</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="/static/styles.css" />
-</head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
-  <div class="w-full max-w-4xl mx-auto p-4">
-    <div class="bg-white rounded-lg shadow-lg p-8">
-      <h3 class="text-2xl font-bold mb-6 text-center">মাস্টার রিপোর্ট</h3>
+        <h3 class="text-2xl font-bold mb-6 text-center">রিপোর্ট সেকশনসমূহ</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <a href="/sections/header" class="block bg-cyan-50 rounded-xl shadow hover:shadow-lg p-6 text-center transition">
+            <span class="text-2xl">📝</span>
+            <div class="font-bold text-lg mt-2">মূল তথ্য</div>
+            <div class="text-gray-600 text-sm">Header Section</div>
+          </a>
+          <a href="/sections/courses" class="block bg-cyan-50 rounded-xl shadow hover:shadow-lg p-6 text-center transition">
+            <span class="text-2xl">📚</span>
+            <div class="font-bold text-lg mt-2">শিক্ষামূলক কোর্স</div>
+            <div class="text-gray-600 text-sm">Courses Section</div>
+          </a>
+          <a href="/sections/organizational" class="block bg-cyan-50 rounded-xl shadow hover:shadow-lg p-6 text-center transition">
+            <span class="text-2xl">🏢</span>
+            <div class="font-bold text-lg mt-2">সাংগঠনিক তথ্য</div>
+            <div class="text-gray-600 text-sm">Organizational Section</div>
+          </a>
+          <a href="/sections/personal" class="block bg-cyan-50 rounded-xl shadow hover:shadow-lg p-6 text-center transition">
+            <span class="text-2xl">👩‍🏫</span>
+            <div class="font-bold text-lg mt-2">ব্যক্তিগত কার্যক্রম</div>
+            <div class="text-gray-600 text-sm">Personal Section</div>
+          </a>
+          <a href="/sections/meetings" class="block bg-cyan-50 rounded-xl shadow hover:shadow-lg p-6 text-center transition">
+            <span class="text-2xl">🤝</span>
+            <div class="font-bold text-lg mt-2">সভাসমূহ</div>
+            <div class="text-gray-600 text-sm">Meetings Section</div>
+          </a>
+          <a href="/sections/extras" class="block bg-cyan-50 rounded-xl shadow hover:shadow-lg p-6 text-center transition">
+            <span class="text-2xl">✨</span>
+            <div class="font-bold text-lg mt-2">অতিরিক্ত কার্যক্রম</div>
+            <div class="text-gray-600 text-sm">Extras Section</div>
+          </a>
+        </div>
       <form method="get" action="/master_report" class="flex flex-wrap gap-2 sm:gap-4 mb-6 items-end">
         {% if error %}
         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{{ error }}</div>
