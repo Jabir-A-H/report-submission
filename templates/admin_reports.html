@@ -32,32 +32,29 @@
               <tr class="hover:bg-gray-50">
                 <td class="px-4 py-2 border-b">{{ r.user.email }}</td>
                 <td class="px-4 py-2 border-b">{{ r.user.zone.name }}</td>
-                <!-- Ward removed from user -->
+                <td class="px-4 py-2 border-b">{{ r.ward }}</td>
                 <td class="px-4 py-2 border-b">{{ r.month }}</td>
                 <td class="px-4 py-2 border-b">{{ r.year }}</td>
                 <td class="px-4 py-2 border-b">{{ r.responsible_name }}</td>
-                <td class="px-4 py-2 border-b">
-  <body class="bg-gradient-to-br from-cyan-100 via-blue-50 to-white min-h-screen flex items-center justify-center">
-    <div class="w-full max-w-5xl mx-auto p-2 sm:p-4 fade-in">
-      <div class="bg-white/90 rounded-2xl shadow-2xl p-2 sm:p-8 card-animate backdrop-blur-md border border-blue-100">
-                  endif %}
+                <td class="px-4 py-2 border-b text-center">
+                  {% if r.locked %}✔{% else %}✗{% endif %}
                 </td>
                 <td class="px-4 py-2 border-b text-center">
                   <a
-          <table class="min-w-full border-separate border-spacing-y-1 border-0 rounded shadow text-xs sm:text-sm">
-            <thead class="bg-cyan-50">
+                    href="/report/{{ r.id }}"
+                    class="text-blue-600 hover:underline"
                     >দেখুন/এডিট</a
-                <th class="px-4 py-2 border-b">ইউজার</th>
-                <th class="px-4 py-2 border-b">মাস</th>
-                <th class="px-4 py-2 border-b">বছর</th>
-                <th class="px-4 py-2 border-b">দায়িত্বপ্রাপ্ত</th>
-                <th class="px-4 py-2 border-b">লকড?</th>
-                <th class="px-4 py-2 border-b">সম্পাদনা</th>
+                  >
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
         <div class="text-center mt-6">
           <a
             href="/master_report"
-              <tr class="table-row-animate">
+            class="bg-blue-500 text-white px-4 py-2 rounded shadow hover:bg-blue-600 transition"
             >মাস্টার রিপোর্ট</a
           >
         </div>
