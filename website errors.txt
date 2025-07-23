@@ -1,5 +1,5 @@
-ZeroDivisionError
-ZeroDivisionError: division by zero
+sqlalchemy.exc.InvalidRequestError
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Zone(zone)]'. Original exception was: Could not determine join condition between parent/child tables on relationship Zone.users - there are no foreign keys linking these tables.  Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.
 
 Traceback (most recent call last)
 File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\app.py", line 1536, in __call__
@@ -75,97 +75,215 @@ File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\app.py", line 902
         """Dispatches the request and on top of that performs request
         pre and postprocessing as well as HTTP exception catching and
         error handling.
-File "F:\WebDev\report-submission\venv\Lib\site-packages\flask_login\utils.py", line 290, in decorated_view
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask_login\utils.py", line 284, in decorated_view
+ 
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        if request.method in EXEMPT_METHODS or current_app.config.get("LOGIN_DISABLED"):
+            pass
+        elif not current_user.is_authenticated:
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
             return current_app.login_manager.unauthorized()
  
         # flask 1.x compatibility
         # current_app.ensure_sync is only available in Flask >= 2.0
         if callable(getattr(current_app, "ensure_sync", None)):
-            return current_app.ensure_sync(func)(*args, **kwargs)
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-        return func(*args, **kwargs)
+File "F:\WebDev\report-submission\venv\Lib\site-packages\werkzeug\local.py", line 318, in __get__
+                return self.class_value
  
-    return decorated_view
- 
- 
-File "F:\WebDev\report-submission\app.py", line 234, in dashboard
-                "নভেম্বর",
-                "ডিসেম্বর",
-            ]
-            return months[i - 1] if 1 <= i <= 12 else str(i)
- 
-        return render_template(
-               
-            "report_dashboard.html",
-            user=current_user,
-            month=month,
-            year=year,
-            sections=sections,
-File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\templating.py", line 150, in render_template
-        a list is given, the first name to exist will be rendered.
-    :param context: The variables to make available in the template.
-    """
-    app = current_app._get_current_object()  # type: ignore[attr-defined]
-    template = app.jinja_env.get_or_select_template(template_name_or_list)
-    return _render(app, template, context)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- 
- 
-def render_template_string(source: str, **context: t.Any) -> str:
-    """Render a template from the given source string with the given
-    context.
-File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\templating.py", line 131, in _render
-def _render(app: Flask, template: Template, context: dict[str, t.Any]) -> str:
-    app.update_template_context(context)
-    before_render_template.send(
-        app, _async_wrapper=app.ensure_sync, template=template, context=context
-    )
-    rv = template.render(context)
-         ^^^^^^^^^^^^^^^^^^^^^^^^
-    template_rendered.send(
-        app, _async_wrapper=app.ensure_sync, template=template, context=context
-    )
-    return rv
- 
-File "F:\WebDev\report-submission\venv\Lib\site-packages\jinja2\environment.py", line 1295, in render
-        ctx = self.new_context(dict(*args, **kwargs))
+            return self
  
         try:
-            return self.environment.concat(self.root_render_func(ctx))  # type: ignore
-        except Exception:
-            self.environment.handle_exception()
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            obj = instance._get_current_object()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        except RuntimeError:
+            if self.fallback is None:
+                raise
  
-    async def render_async(self, *args: t.Any, **kwargs: t.Any) -> str:
-        """This works similar to :meth:`render` but returns a coroutine
-        that when awaited returns the entire rendered template string.  This
-        requires the async feature to be enabled.
-File "F:\WebDev\report-submission\venv\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
-        """Exception handling helper.  This is used internally to either raise
-        rewritten exceptions or return a rendered traceback for the template.
+            fallback = self.fallback.__get__(instance, owner)
+File "F:\WebDev\report-submission\venv\Lib\site-packages\werkzeug\local.py", line 526, in _get_current_object
+                return get_name(obj)
+ 
+        elif callable(local):
+ 
+            def _get_current_object() -> T:
+                return get_name(local())
+                                ^^^^^^^
+ 
+        else:
+            raise TypeError(f"Don't know how to proxy '{type(local)}'.")
+ 
+        object.__setattr__(self, "_LocalProxy__wrapped", local)
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask_login\utils.py", line 25, in <lambda>
+from .signals import user_logged_out
+from .signals import user_login_confirmed
+ 
+#: A proxy for the current user. If no user is logged in, this will be an
+#: anonymous user
+current_user = LocalProxy(lambda: _get_user())
+                                  ^^^^^^^^^^^
+ 
+ 
+def encode_cookie(payload, key=None):
+    """
+    This will encode a ``str`` value into a cookie, and sign that cookie
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask_login\utils.py", line 370, in _get_user
+ 
+ 
+def _get_user():
+    if has_request_context():
+        if "_login_user" not in g:
+            current_app.login_manager._load_user()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+        return g._login_user
+ 
+    return None
+ 
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask_login\login_manager.py", line 364, in _load_user
+        user = None
+ 
+        # Load user from Flask Session
+        user_id = session.get("_user_id")
+        if user_id is not None and self._user_callback is not None:
+            user = self._user_callback(user_id)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+        # Load user from Remember Me Cookie or Request Loader
+        if user is None:
+            config = current_app.config
+            cookie_name = config.get("REMEMBER_COOKIE_NAME", COOKIE_NAME)
+File "F:\WebDev\report-submission\app.py", line 182, in load_user
+# --- Login Manager ---
+ 
+ 
+@login_manager.user_loader  # type: ignore
+def load_user(user_id):  # type: ignore
+    return User.query.get(int(user_id))  # type: ignore
+           ^^^^^^^^^^
+ 
+ 
+# --- Utility Functions ---
+ 
+ 
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask_sqlalchemy\model.py", line 22, in __get__
+ 
+    :meta private:
+    """
+ 
+    def __get__(self, obj: Model | None, cls: type[Model]) -> Query:
+        return cls.query_class(
+               
+            cls, session=cls.__fsa__.session()  # type: ignore[arg-type]
+        )
+ 
+ 
+class Model:
+File "F:\WebDev\report-submission\venv\Lib\site-packages\sqlalchemy\orm\query.py", line 276, in __init__
+        # where it stores a Query without a Session and also there are tests
+        # for the query(Entity).with_session(session) API which is likely in
+        # some old recipes, however these are legacy as select() can now be
+        # used.
+        self.session = session  # type: ignore
+        self._set_entities(entities)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+    def _set_propagate_attrs(self, values: Mapping[str, Any]) -> Self:
+        self._propagate_attrs = util.immutabledict(values)
+        return self
+ 
+File "F:\WebDev\report-submission\venv\Lib\site-packages\sqlalchemy\orm\query.py", line 289, in _set_entities
+        entities: Union[
+            _ColumnsClauseArgument[Any], Iterable[_ColumnsClauseArgument[Any]]
+        ],
+    ) -> None:
+        self._raw_columns = [
+            coercions.expect(
+            ^
+                roles.ColumnsClauseRole,
+                ent,
+                apply_propagate_attrs=self,
+                post_inspect=True,
+            )
+File "F:\WebDev\report-submission\venv\Lib\site-packages\sqlalchemy\sql\coercions.py", line 388, in expect
+            if not is_clause_element:
+                if impl._use_inspection and not disable_inspection:
+                    insp = inspection.inspect(element, raiseerr=False)
+                    if insp is not None:
+                        if post_inspect:
+                            insp._post_inspect
+                            ^^^^^^^^^^^^^^^^^^
+                        try:
+                            resolved = insp.__clause_element__()
+                        except AttributeError:
+                            impl._raise_for_expected(original_element, argname)
+ 
+File "F:\WebDev\report-submission\venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 1338, in __get__
+        def __get__(self, obj: Any, cls: Any) -> _T: ...
+ 
+        def __get__(self, obj, cls):
+            if obj is None:
+                return self
+            obj.__dict__[self.__name__] = result = self.fget(obj)
+                                                   ^^^^^^^^^^^^^^
+            obj._memoized_keys |= {self.__name__}
+            return result
+ 
+    @classmethod
+    def memoized_instancemethod(cls, fn: _F) -> _F:
+File "F:\WebDev\report-submission\venv\Lib\site-packages\sqlalchemy\orm\mapper.py", line 2724, in _post_inspect
+            coercions.expect(roles.ColumnsClauseRole, ent, keep_inspect=True)
+ 
+        This allows the inspection process run a configure mappers hook.
+ 
         """
-        from .debug import rewrite_traceback_stack
+        self._check_configure()
+        ^^^^^^^^^^^^^^^^^^^^^^^
  
-        raise rewrite_traceback_stack(source=source)
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    @HasMemoized_ro_memoized_attribute
+    def _with_polymorphic_selectable(self) -> FromClause:
+        if not self.with_polymorphic:
+            return self.persist_selectable
+File "F:\WebDev\report-submission\venv\Lib\site-packages\sqlalchemy\orm\mapper.py", line 2401, in _check_configure
+        "operation.",
+        sa_exc.SAWarning,
+    )
+    def _check_configure(self) -> None:
+        if self.registry._new_mappers:
+            _configure_registries({self.registry}, cascade=True)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
  
-    def join_path(self, template: str, parent: str) -> str:
-        """Join a template with the parent.  By default all the lookups are
-        relative to the loader root so this method returns the `template`
-        parameter unchanged, but if the paths should be relative to the
-File "F:\WebDev\report-submission\templates\report_dashboard.html", line 93, in top-level template code
-          <div class="text-center">
-            <div class="text-2xl font-bold text-yellow-600">{{ sections|length - completed_count }}</div>
-            <div class="text-sm text-gray-600">অসম্পূর্ণ বিভাগ</div>
-          </div>
-          <div class="text-center">
-            <div class="text-2xl font-bold text-blue-600">{{ ((completed_count / sections|length) * 100) | round | int }}%</div>
-            <div class="text-sm text-gray-600">সম্পূর্ণতার হার</div>
-          </div>
-          <div class="text-center">
-            <div class="text-2xl font-bold text-cyan-600">{{ sections|length }}</div>
-            <div class="text-sm text-gray-600">মোট বিভাগ</div>
-ZeroDivisionError: division by zero
+    def _post_configure_properties(self) -> None:
+        """Call the ``init()`` method on all ``MapperProperties``
+        attached to this mapper.
+ 
+File "F:\WebDev\report-submission\venv\Lib\site-packages\sqlalchemy\orm\mapper.py", line 4214, in _configure_registries
+            # initialize properties on all mappers
+            # note that _mapper_registry is unordered, which
+            # may randomly conceal/reveal issues related to
+            # the order of mapper compilation
+ 
+            _do_configure_registries(registries, cascade)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        finally:
+            _already_compiling = False
+    Mapper.dispatch._for_class(Mapper).after_configured()  # type: ignore
+ 
+ 
+File "F:\WebDev\report-submission\venv\Lib\site-packages\sqlalchemy\orm\mapper.py", line 4251, in _do_configure_registries
+                    "mappers. Triggering mapper: '%s'. "
+                    "Original exception was: %s"
+                    % (mapper, mapper._configure_failed)
+                )
+                e._configure_failed = mapper._configure_failed  # type: ignore
+                raise e
+                ^^^^^^^
+ 
+            if not mapper.configured:
+                try:
+                    mapper._post_configure_properties()
+                    mapper._expire_memoizations()
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Zone(zone)]'. Original exception was: Could not determine join condition between parent/child tables on relationship Zone.users - there are no foreign keys linking these tables. Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.
 The debugger caught an exception in your WSGI application. You can now look at the traceback which led to the error.
 To switch between the interactive traceback and the plaintext one, you can click on the "Traceback" headline. From the text traceback you can also create a paste of it. For code execution mouse-over the frame you want to debug and click on the console icon on the right side.
 
