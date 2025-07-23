@@ -29,11 +29,16 @@ from flask_login import (
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
-import os  # type: ignore
+import os
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# --- Initialize Flask App and Configurations ---
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "your-secret-key"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///instance/reports.db"
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
