@@ -3,9 +3,6 @@ def init_db():
     Database initialization script for the report-submission app.
     Drops all tables, recreates them, and adds sample users and zones.
     """
-
-
-def init_db():
     from werkzeug.security import generate_password_hash
     from app import app, db, User, Zone
 
