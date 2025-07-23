@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% block title %}Report Submission System{% endblock %}</title>
+    <title>{% block title %}রিপোর্ট সাবমিশন সিস্টেম{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='styles.css') }}"
@@ -14,14 +15,57 @@
     />
     <script src="{{ url_for('static', filename='scripts.js') }}"></script>
   </head>
-  <body>
-    <header>
-      <h1>{% block header %}Report Submission System{% endblock %}</h1>
-      <!-- Navigation, user info, etc. -->
+  <body
+    class="bg-gradient-to-br from-cyan-100 via-blue-50 to-white min-h-screen"
+  >
+    <header
+      class="bg-white/80 shadow-md py-4 px-6 flex justify-between items-center border-b border-blue-100"
+    >
+      <div class="flex items-center gap-4">
+        <a
+          href="/"
+          class="text-2xl font-bold text-cyan-700 tracking-tight drop-shadow"
+          >রিপোর্ট সাবমিশন</a
+        >
+        {% if current_user.is_authenticated %}
+        <span class="text-base text-gray-600"
+          >{{ current_user.name }} ({{ current_user.role }})</span
+        >
+        {% endif %}
+      </div>
+      <nav class="flex gap-4">
+        {% if current_user.is_authenticated %}
+        <a href="/report_dashboard" class="text-blue-600 hover:underline"
+          >ড্যাশবোর্ড</a
+        >
+        {% if current_user.role == 'admin' %}
+        <a href="/admin/reports" class="text-purple-600 hover:underline"
+          >অ্যাডমিন রিপোর্ট</a
+        >
+        <a href="/admin/users" class="text-green-600 hover:underline"
+          >ইউজার ম্যানেজ</a
+        >
+        <a href="/admin/zones" class="text-cyan-600 hover:underline"
+          >জোন ম্যানেজ</a
+        >
+        {% endif %}
+        <a href="/logout" class="text-red-600 hover:underline">লগআউট</a>
+        {% else %}
+        <a href="/login" class="text-blue-600 hover:underline">লগইন</a>
+        <a href="/register" class="text-green-600 hover:underline"
+          >নতুন রেজিস্ট্রেশন</a
+        >
+        {% endif %}
+        <a href="/help" class="text-gray-600 hover:underline">সহায়তা</a>
+      </nav>
     </header>
-    <main>{% block content %}{% endblock %}</main>
-    <footer>
-      <p>&copy; 2025 Report Submission System</p>
+    <main class="container mx-auto px-2 py-6">
+      {% block content %}{% endblock %}
+    </main>
+    <footer
+      class="bg-white/80 text-center py-4 border-t border-blue-100 text-gray-500 text-sm"
+    >
+      &copy; ২০২৫ রিপোর্ট সাবমিশন সিস্টেম
     </footer>
   </body>
 </html>
