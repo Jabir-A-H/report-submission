@@ -206,7 +206,7 @@ def dashboard():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        identifier = request.form["email"]  # Can be email or user_id
+        identifier = request.form["identifier"]  # Can be email or user_id
         password = request.form["password"]
         user = User.query.filter(
             (User.email == identifier) | (User.user_id == identifier)
