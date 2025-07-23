@@ -11,6 +11,7 @@ def init_db():
         db.create_all()
         # Predefined zones
         zone_names = [
+            "ডি সি এস",
             "শ্যামপুর জোন",
             "ডেমরা জোন",
             "যাত্রাবাড়ী পূর্ব জোন",
@@ -24,7 +25,6 @@ def init_db():
             "পল্টন জোন",
             "খিলগাঁও জোন",
             "সবুজবাগ মুগদা জোন",
-            "ডি সি এস",
         ]
         zones = []
         for name in zone_names:
@@ -33,9 +33,18 @@ def init_db():
             zones.append(zone)
         db.session.commit()
         # Add sample users
-        first_zone = zones[0]
+        first_zone = zones[1]
         dcs_zone = next(z for z in zones if z.name == "ডি সি এস")
         users = [
+            User(
+                user_id="001",
+                name="Admin",
+                email="admin@example.com",
+                password=generate_password_hash("password"),
+                role="admin",
+                zone_id=dcs_zone.id,
+                active=True,
+            ),
             User(
                 user_id="021",
                 name="User One",
@@ -52,15 +61,6 @@ def init_db():
                 password=generate_password_hash("password"),
                 role="user",
                 zone_id=first_zone.id,
-                active=True,
-            ),
-            User(
-                user_id="001",
-                name="Admin",
-                email="admin@example.com",
-                password=generate_password_hash("password"),
-                role="admin",
-                zone_id=dcs_zone.id,
                 active=True,
             ),
             User(
