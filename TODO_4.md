@@ -29,8 +29,8 @@ Update all codes in the repository to match the todo_4 mockup.
   - Subtitle shows current period (month/year) in Bengali, below the title.
 - **Period Selector**
   - Three dropdowns: Report Type, Month (if applicable), Year.
-  - Report Type options: Populate from report tbale database - মাসিক, ত্রৈমাসিক, ষান্মাসিক, নয়-মাসিক, বার্ষিক (Bengali).
-  - Populate from report tbale database - Month dropdown uses Bengali month names; year dropdown covers 2025 and 2026 (more will be added later dynamically as the backend database increases).
+  - Report Type options: Populate from report table database - মাসিক, ত্রৈমাসিক, ষান্মাসিক, নয়-মাসিক, বার্ষিক (Bengali).
+  - Populate from report table database - Month dropdown uses Bengali month names; year dropdown covers 2025 and 2026 (more will be added later dynamically as the backend database increases).
   - Dropdowns are styled with rounded corners, border, and focus ring.
   - Submit button: prominent, rounded, hover effect.
   - in dashboard/landing page, only the Selector is visible at the top of the dashboard. and the other options for section report editing is shown dynamically as users select the report type and year.
@@ -49,7 +49,7 @@ Update all codes in the repository to match the todo_4 mockup.
   - Each stat uses a large colored number and Bengali label
   - Stats update dynamically as sections are completed
 - **Tips/Activity**
-  - If all sections complete: show green congratulatory message with icon
+  - If all sections complete: show green final submission button that updates it to submitted in the admins view of all zone reports
   - If some incomplete: show blue progress message with icon
   - Messages are animated and dismissible
 
@@ -62,7 +62,7 @@ Update all codes in the repository to match the todo_4 mockup.
   - Inputs: text, number, textarea, select; all styled with rounded corners, border, and focus ring
   - Required fields marked with * and aria-required for accessibility
   - Auto-save indicator: spinner or checkmark appears next to field on change, fades out after save
-  - Save button: large, colored, with icon; disabled until changes are made
+  - Save button: large, colored, with icon; saves changes but the final submission button on report dashboard does not appear if some fields are not filled in report sections. the save button saves for any half filled report so that users can continue filling the report later.
   - Cancel/back button: returns to dashboard, keeps current period selection
   - Form is responsive, fields stack vertically on mobile
 - **Validation/Error Handling**
