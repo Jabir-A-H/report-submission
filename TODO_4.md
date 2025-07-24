@@ -63,25 +63,20 @@ Update all codes in the repository to match the todo_4 mockup.
   - Required fields marked with * and aria-required for accessibility
   - Auto-save indicator: spinner or checkmark appears next to field on change, fades out after save
   - Save button: large, colored, with icon; saves changes but the final submission button on report dashboard does not appear if some fields are not filled in report sections. the save button saves for any half filled report so that users can continue filling the report later.
-  - Cancel/back button: returns to dashboard, keeps current period selection
-  - Form is responsive, fields stack vertically on mobile
+  - Home/dashboard button: returns to dashboard, saves current edits, keeps current period selection
 - **Validation/Error Handling**
   - Inline error messages in Bengali, red text, appear below field
   - Success message on save, green text, appears at top of form
   - All validation is both client-side (HTML5) and server-side
 
 ## 5. Report Summary Page (`report.html`)
-- **Header**
-  - Bengali title: "রিপোর্ট সারাংশ", subtitle with selected period
-- **Section Links**
-  - Card/grid links to all sections for quick navigation, same style as dashboard
-- **Summary Table**
-  - Aggregated data for selected period, with Bengali column headers
+  - Bengali title: ""Report type" রিপোর্ট", title name populated from the report type dropdown, subtitle with selected period
+  - no link to anything, just a at a glance report of the report type and period selected.
+  - For admins, Aggregated data from zones for selected period, adding up all integer fields and showing total counts just like the actual database tables in a spreadsheet format.
+  - For users, just like admins, but shows details of their own zones submission
   - Table is responsive, scrolls horizontally on mobile
-  - Download buttons: Excel, PDF, styled as prominent action buttons
-  - Table rows animate on hover
-- **Navigation**
-  - Back to dashboard, help, logout links always visible at top
+  - the report page shows a report type selector with month and year dropdowns at the top, which are used to filter the report data.
+  - The download buttons (Excel, PDF) are placed after the report type, month, and year dropdowns.
 
 ## 6. Admin Pages
 - **Users Management (`admin_users.html`)**
