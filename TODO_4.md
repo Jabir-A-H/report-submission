@@ -1,3 +1,5 @@
+Update all codes in the repository to match the todo_4 mockup.
+
 # Site UI Design Document (Extreme Detail)
 
 ## 1. Global Layout & Structure
@@ -27,11 +29,11 @@
   - Subtitle shows current period (month/year) in Bengali, below the title.
 - **Period Selector**
   - Three dropdowns: Report Type, Month (if applicable), Year.
-  - Report Type options: Populate from database মাসিক, ত্রৈমাসিক, ষান্মাসিক, নয়-মাসিক, বার্ষিক (Bengali).
-  - Month dropdown uses Bengali month names; year dropdown covers 2025 and 2026 (more will be added later dynamically as the backend database increases).
+  - Report Type options: Populate from report tbale database - মাসিক, ত্রৈমাসিক, ষান্মাসিক, নয়-মাসিক, বার্ষিক (Bengali).
+  - Populate from report tbale database - Month dropdown uses Bengali month names; year dropdown covers 2025 and 2026 (more will be added later dynamically as the backend database increases).
   - Dropdowns are styled with rounded corners, border, and focus ring.
-  - Submit button: prominent, cyan background, white text, rounded, hover effect.
-  - Selector is always visible at the top of the dashboard.
+  - Submit button: prominent, rounded, hover effect.
+  - in dashboard/landing page, only the Selector is visible at the top of the dashboard. and the other options for section report editing is shown dynamically as users select the report type and year.
 - **Section Cards Grid**
   - Responsive grid: 1 column on mobile, 2 on tablet, 3 on desktop.
   - Each card has:
