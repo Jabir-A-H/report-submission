@@ -3,32 +3,32 @@
 ## 1. Global Layout & Structure
 - **Base Template (`base.html`)**
   - Use Tailwind CSS for all layout, spacing, and responsive design.
-  - Top navigation bar is fixed, stretches full width, and collapses into a hamburger menu on mobile.
-  - Logo is always visible at the left; user info (name, ID, role, zone) at the right.
-  - Main content area is centered, with a max-width of 1200px for readability on large screens.
+  - Top navigation bar is fixed, stretches full width, and collapses into a side bar like hamburger menu on mobile.
+  - Logo is always visible at the left; zone name with a drop-down menu that shows user info (name, id, email and zone name) and logout option at the right.
+  - Main content area is centered, with a max-width of 1200px for readability on large screens. but focus on mobile view as my all users use mobile.
   - All pages have consistent padding (px-4 py-8) and margin (mb-8 for major sections).
-  - Footer is always at the bottom, with copyright, app version, and contact info. Use muted colors and small font.
-  - Use a light background gradient for visual depth (e.g., from blue-50 to cyan-50).
+  - Footer is always at the bottom, with copyright, app version. Use muted colors and big, clear font for readibility.
+  - Use a light and warm background gradient for visual depth.
   - All pages inherit from `base.html` for consistent layout and navigation.
 
 ## 2. Navigation System
 - **Navigation Bar**
   - Always visible except on login/register pages.
-  - Contains links: Dashboard (`/`), Report Summary (`/report`), Help (`/help`), Logout (`/logout`).
-  - For admins, show extra links: Users (`/admin/users`), Zones (`/admin/zones`), Reports (`/admin/reports`), Fields (`/admin/fields`).
+  - Contains links: Home (`/`), Report at a glance (`/report`), Help (`/help`).
+  - For admins, show extra links: Users (`/users`), Zones (`/zones`), Zone Reports (`/zonereports`), Fields (`/fields`).
   - Hamburger menu appears on screens <768px, toggles navigation links vertically.
-  - User info is shown at top right, with dropdown for profile/settings (future feature).
+  - Zone info is shown at top right, with dropdown for profile/settings (future feature).
   - Active page is highlighted with a color accent and underline.
   - Navigation is keyboard accessible (tab order, focus states).
 
 ## 3. Home/Dashboard Page (`index.html`)
 - **Header**
-  - Large Bengali title: "রিপোর্ট ড্যাশবোর্ড" (font-bold, text-4xl, blue-700).
+  - Large Bengali title: "রিপোর্ট ড্যাশবোর্ড" (font-bold, text-4xl).
   - Subtitle shows current period (month/year) in Bengali, below the title.
 - **Period Selector**
   - Three dropdowns: Report Type, Month (if applicable), Year.
-  - Report Type options: মাসিক, ত্রৈমাসিক, ষান্মাসিক, নয়-মাসিক, বার্ষিক (Bengali).
-  - Month dropdown uses Bengali month names; year dropdown covers 2020–2030.
+  - Report Type options: Populate from database মাসিক, ত্রৈমাসিক, ষান্মাসিক, নয়-মাসিক, বার্ষিক (Bengali).
+  - Month dropdown uses Bengali month names; year dropdown covers 2025 and 2026 (more will be added later dynamically as the backend database increases).
   - Dropdowns are styled with rounded corners, border, and focus ring.
   - Submit button: prominent, cyan background, white text, rounded, hover effect.
   - Selector is always visible at the top of the dashboard.
