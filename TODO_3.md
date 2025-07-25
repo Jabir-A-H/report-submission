@@ -53,11 +53,10 @@
   - Extras Section (`/report/extras`): Additional activities and programs. *(ReportExtra)*
   - Comments Section (`/report/comments`): Period-specific narrative comments. *(ReportComment)*
 - **Admin Dashboard** (`/`): Admin dashboard provides an overview of all reports and user activities. The dashboard view is determined by login role: users see the user dashboard, admins see the admin dashboard.
-- **Admin Management** (`/admin`): Admin landing page with management tools for users, zones, reports, and editable database fields.
-  - Users Management (`/admin/users`): Approve/reject users, view user list and status.
-  - Zones Management (`/admin/zones`): Create, delete, and manage zones.
-  - Reports Management (`/admin/reports`): View, filter, and edit all reports.
-  - Fields Management (`/admin/fields`): Admins can add or remove rows in categorized data tables (e.g., ReportOrganizational, ReportMeeting, etc.) to accommodate new categories or data points.
+- **Users Management** (`/users`): Approve/reject users, view user list and status.
+- **Zones Management** (`/zones`): Create, delete, and manage zones.
+- **Reports Management** (`/zone_reports`): View, filter, and edit all reports.
+- **Fields Management** (`/fields`): Admins can add or remove rows in categorized data tables (e.g., ReportOrganizational, ReportMeeting, etc.) to accommodate new categories or data points.
 - **Help / FAQ** (`/help`): Help page with frequently asked questions and guidance.
 - **Logout** (`/logout`): Log out of the system.
 

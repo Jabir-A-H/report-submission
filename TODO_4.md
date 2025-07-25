@@ -91,6 +91,8 @@ Update all codes in the repository to match the todo_4 mockup.
 - **Reports Management (`reports.html`)**
   Dynamically shows the admins report page if the logged in user is an admin.
   - Aggregated data from all zones for selected period, adding up all integer fields and showing total counts just like the actual database tables in a spreadsheet format
+- **Zone Reports (`zonereports.html`)**
+  - Table of all zone reports, filter by report type/period/zone
   - can see individual zone reports, filter by period/zone
   - Button to Edit/view links for each report, besides the report type, month, and year dropdowns at the top before the download buttons.
 - **Fields Management (`fields.html`)**
