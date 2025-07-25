@@ -1,63 +1,77 @@
-<!DOCTYPE html>
-<html lang="bn">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>অ্যাডমিন রিপোর্টসমূহ</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="/static/styles.css" />
-  </head>
-  <body class="bg-gray-100 min-h-screen flex items-center justify-center">
-    <div class="w-full max-w-5xl mx-auto p-4">
-      <div class="bg-white rounded-lg shadow-lg p-8">
-        <h3 class="text-2xl font-bold mb-6 text-center">
-          সকল রিপোর্ট (অ্যাডমিন)
-        </h3>
-        <div class="overflow-x-auto">
-          <table class="min-w-full border border-gray-300 rounded">
-            <thead class="bg-gray-100">
-              <tr>
-                <th class="px-4 py-2 border-b">ইউজার</th>
-                <th class="px-4 py-2 border-b">জোন</th>
-                <th class="px-4 py-2 border-b">ওয়ার্ড</th>
-                <th class="px-4 py-2 border-b">মাস</th>
-                <th class="px-4 py-2 border-b">বছর</th>
-                <th class="px-4 py-2 border-b">দায়িত্বপ্রাপ্ত</th>
-                <th class="px-4 py-2 border-b">লকড?</th>
-                <th class="px-4 py-2 border-b">সম্পাদনা</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for r in reports %}
-              <tr class="hover:bg-gray-50">
-                <td class="px-4 py-2 border-b">{{ r.user.email }}</td>
-                <td class="px-4 py-2 border-b">{{ r.user.zone.name }}</td>
-                <td class="px-4 py-2 border-b">{{ r.ward }}</td>
-                <td class="px-4 py-2 border-b">{{ r.month }}</td>
-                <td class="px-4 py-2 border-b">{{ r.year }}</td>
-                <td class="px-4 py-2 border-b">{{ r.responsible_name }}</td>
-                <td class="px-4 py-2 border-b text-center">
-                  {% if r.locked %}✔{% else %}✗{% endif %}
-                </td>
-                <td class="px-4 py-2 border-b text-center">
-                  <a
-                    href="/report/{{ r.id }}"
-                    class="text-blue-600 hover:underline"
-                    >দেখুন/এডিট</a
-                  >
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        <div class="text-center mt-6">
-          <a
-            href="/master_report"
-            class="bg-blue-500 text-white px-4 py-2 rounded shadow hover:bg-blue-600 transition"
-            >মাস্টার রিপোর্ট</a
-          >
-        </div>
+{% extends 'base.html' %}
+{% block title %}রিপোর্ট ব্যবস্থাপনা{% endblock %}
+{% block content %}
+<div class="container mx-auto px-4 py-8 animate-fade-in">
+  <div class="text-center mb-8">
+    <h1 class="text-3xl font-bold text-cyan-700 mb-2">রিপোর্ট ব্যবস্থাপনা</h1>
+    <p class="text-gray-600">সমস্ত জোনের রিপোর্ট দেখুন, সম্পাদনা করুন, ও ডাউনলোড করুন</p>
+  </div>
+  <div class="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl p-8">
+    <div class="mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+      <form method="get" class="flex gap-2 items-center">
+        <select name="report_type" class="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500" aria-label="রিপোর্ট টাইপ" required>
+          <option value="">রিপোর্ট টাইপ</option>
+          {% for rtype in report_types %}
+          <option value="{{ rtype.value }}" {% if rtype.value == report_type %}selected{% endif %}>{{ rtype.label }}</option>
+          {% endfor %}
+        </select>
+        <select name="month" class="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500" aria-label="মাস" required>
+          <option value="">মাস</option>
+          {% for i in range(1, 13) %}
+          <option value="{{ i }}" {% if i == month|int %}selected{% endif %}>{{ get_month_name(i) }}</option>
+          {% endfor %}
+        </select>
+        <select name="year" class="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500" aria-label="বছর" required>
+          <option value="">বছর</option>
+          {% for y in [2025, 2026] %}
+          <option value="{{ y }}" {% if y == year|int %}selected{% endif %}>{{ y }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 font-bold">ফিল্টার</button>
+      </form>
+      <div class="flex gap-2">
+        <a href="/download_excel?report_type={{ report_type }}&month={{ month }}&year={{ year }}" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold">এক্সেল ডাউনলোড</a>
+        <a href="/download_pdf?report_type={{ report_type }}&month={{ month }}&year={{ year }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold">পিডিএফ ডাউনলোড</a>
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full border-separate border-spacing-y-1 border-0 rounded shadow text-sm">
+        <thead class="bg-cyan-50">
+          <tr class="text-cyan-700">
+            <th class="px-4 py-2 border-b">ইউজার</th>
+            <th class="px-4 py-2 border-b">জোন</th>
+            <th class="px-4 py-2 border-b">ওয়ার্ড</th>
+            <th class="px-4 py-2 border-b">মাস</th>
+            <th class="px-4 py-2 border-b">বছর</th>
+            <th class="px-4 py-2 border-b">দায়িত্বপ্রাপ্ত</th>
+            <th class="px-4 py-2 border-b">লকড?</th>
+            <th class="px-4 py-2 border-b">সম্পাদনা</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in reports %}
+          <tr class="hover:bg-cyan-50">
+            <td class="px-4 py-2 border-b">{{ r.user.email }}</td>
+            <td class="px-4 py-2 border-b">{{ r.user.zone.name }}</td>
+            <td class="px-4 py-2 border-b">{{ r.ward }}</td>
+            <td class="px-4 py-2 border-b">{{ r.month }}</td>
+            <td class="px-4 py-2 border-b">{{ r.year }}</td>
+            <td class="px-4 py-2 border-b">{{ r.responsible_name }}</td>
+            <td class="px-4 py-2 border-b text-center">{% if r.locked %}✔{% else %}✗{% endif %}</td>
+            <td class="px-4 py-2 border-b text-center">
+              <a href="/report/{{ r.id }}" class="px-3 py-1 bg-cyan-600 text-white rounded hover:bg-cyan-700">দেখুন/এডিট</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="text-center mt-6">
+      <a href="/master_report" class="px-6 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 font-bold">মাস্টার রিপোর্ট</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
       </div>
     </div>
   </body>

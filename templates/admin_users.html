@@ -1,63 +1,52 @@
-<!DOCTYPE html>
-<html lang="bn">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ইউজার অনুমোদন (অ্যাডমিন)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="/static/styles.css" />
-  </head>
-  <body
-    class="bg-gradient-to-br from-cyan-100 via-blue-50 to-white min-h-screen flex items-center justify-center"
-  >
-    <div class="w-full max-w-3xl mx-auto p-2 sm:p-4 fade-in">
-      <div
-        class="bg-white/90 rounded-2xl shadow-2xl p-2 sm:p-8 card-animate backdrop-blur-md border border-blue-100"
-      >
-        <h3
-          class="text-2xl sm:text-3xl font-extrabold mb-8 text-center text-cyan-700 tracking-tight drop-shadow"
-        >
-          ইউজার অনুমোদন
-        </h3>
-        <div
-          class="overflow-x-auto rounded-lg border border-gray-200 bg-white/80"
-        >
-          <table
-            class="min-w-full border-separate border-spacing-y-1 border-0 rounded shadow text-xs sm:text-sm"
-          >
-            <thead class="bg-cyan-50">
-              <tr class="text-cyan-700">
-                <th class="px-4 py-2 border-b">ইউজারনেম</th>
-                <th class="px-4 py-2 border-b">ইমেইল</th>
-                <th class="px-4 py-2 border-b">জোন</th>
-                <th class="px-4 py-2 border-b">ওয়ার্ড</th>
-                <th class="px-4 py-2 border-b">রোল</th>
-                <th class="px-4 py-2 border-b">স্ট্যাটাস</th>
-                <th class="px-4 py-2 border-b">অ্যাকশন</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for user in users %}
-              <tr class="table-row-animate">
-                <!-- Username removed -->
-                <td class="px-4 py-2 border-b">{{ user.email }}</td>
-                <td class="px-4 py-2 border-b">{{ user.zone.name }}</td>
-                <!-- Ward removed from user -->
-                <td class="px-4 py-2 border-b">{{ user.role }}</td>
-                <td class="px-4 py-2 border-b">
-                  {% if user.is_active %}
-                  <span class="text-green-600 font-bold">Active</span>
-                  {% else %}
-                  <span class="text-yellow-600 font-bold">Pending</span>
-                  {% endif %}
-                </td>
-                <td class="px-4 py-2 border-b">
-                  {% if not user.is_active %}
-                  <form
-                    method="post"
-                    action="/admin/approve_user/{{ user.id }}"
-                    onsubmit="return approveUser(event, {{ user.id }})"
-                  >
+{% extends 'base.html' %}
+{% block title %}ইউজার ব্যবস্থাপনা{% endblock %}
+{% block content %}
+<div class="container mx-auto px-4 py-8 animate-fade-in">
+  <div class="text-center mb-8">
+    <h1 class="text-3xl font-bold text-cyan-700 mb-2">ইউজার ব্যবস্থাপনা</h1>
+    <p class="text-gray-600">ইউজার অনুমোদন, রোল পরিবর্তন, ও মুছুন</p>
+  </div>
+  <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8">
+    <table class="min-w-full border-separate border-spacing-y-1 border-0 rounded shadow text-sm">
+      <thead class="bg-cyan-50">
+        <tr class="text-cyan-700">
+          <th class="px-4 py-2 border-b">ইমেইল</th>
+          <th class="px-4 py-2 border-b">জোন</th>
+          <th class="px-4 py-2 border-b">রোল</th>
+          <th class="px-4 py-2 border-b">স্ট্যাটাস</th>
+          <th class="px-4 py-2 border-b">অ্যাকশন</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        <tr class="hover:bg-cyan-50">
+          <td class="px-4 py-2 border-b">{{ user.email }}</td>
+          <td class="px-4 py-2 border-b">{{ user.zone.name }}</td>
+          <td class="px-4 py-2 border-b">{{ user.role }}</td>
+          <td class="px-4 py-2 border-b">
+            {% if user.is_active %}
+            <span class="text-green-600 font-bold">সক্রিয়</span>
+            {% else %}
+            <span class="text-yellow-600 font-bold">অপেক্ষমাণ</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-2 border-b">
+            {% if not user.is_active %}
+            <form method="post" action="/admin/approve_user/{{ user.id }}" onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই ইউজারটি অনুমোদন করতে চান?');">
+              <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">অনুমোদন</button>
+            </form>
+            {% endif %}
+            <form method="post" action="/admin/delete_user/{{ user.id }}" onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই ইউজারটি মুছতে চান?');">
+              <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">মুছুন</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
                     <button
                       type="submit"
                       class="bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded"
