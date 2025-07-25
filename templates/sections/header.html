@@ -11,8 +11,16 @@
   <body
     class="bg-gradient-to-br from-cyan-100 via-blue-50 to-white min-h-screen"
   >
-    <div class="container mx-auto px-4 py-8">
-      <!-- Header -->
+    <div class="container mx-auto px-4 py-8 animate-fade-in">
+      <nav class="mb-4 text-sm text-gray-500 flex items-center gap-2">
+        <a
+          href="/report_dashboard?month={{ month }}&year={{ year }}"
+          class="hover:underline"
+          >হোম</a
+        >
+        <span>/</span>
+        <span>মূল তথ্য</span>
+      </nav>
       <div class="text-center mb-8">
         <h1 class="text-3xl font-bold text-cyan-700 mb-2">মূল তথ্য</h1>
         <p class="text-gray-600">{{ get_month_name(month|int) }} {{ year }}</p>
@@ -25,10 +33,8 @@
           </a>
         </div>
       </div>
-
-      <!-- Main content -->
       <div class="max-w-4xl mx-auto">
-        <div class="bg-white rounded-2xl shadow-xl p-8">
+        <div class="bg-white rounded-2xl shadow-xl p-8 animate-fade-in">
           <!-- Alert messages -->
           {% if error %}
           <div
@@ -44,66 +50,135 @@
           </div>
           {% endif %}
 
-          <form method="post">
+          <form method="post" id="headerForm">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
+              <div class="relative">
                 <label
                   for="responsible_name"
                   class="block text-sm font-medium text-gray-700 mb-2"
+                  aria-label="দায়িত্বশীলের নাম"
+                  aria-required="true"
+                  title="এই ঘরটি পূরণ করা আবশ্যক"
+                  >দায়িত্বশীলের নাম *</label
                 >
-                  দায়িত্বশীলের নাম *
-                </label>
                 <input
                   type="text"
                   id="responsible_name"
                   name="responsible_name"
-                  value="{{ report.header.responsible_name if report.header else '' }}"
                   required
+                  value="{{ report.header.responsible_name if report.header else '' }}"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  oninput="showAutoSave('responsible_name_save')"
                 />
+                <span
+                  id="responsible_name_save"
+                  class="absolute right-2 top-2 hidden"
+                  ><svg
+                    class="w-5 h-5 text-cyan-500 animate-spin"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    ></path></svg
+                ></span>
               </div>
-
-              <div>
+              <div class="relative">
                 <label
                   for="thana"
                   class="block text-sm font-medium text-gray-700 mb-2"
+                  aria-label="থানা"
+                  aria-required="true"
+                  title="এই ঘরটি পূরণ করা আবশ্যক"
+                  >থানা *</label
                 >
-                  থানা *
-                </label>
                 <input
                   type="text"
                   id="thana"
                   name="thana"
-                  value="{{ report.header.thana if report.header else '' }}"
                   required
+                  value="{{ report.header.thana if report.header else '' }}"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  oninput="showAutoSave('thana_save')"
                 />
+                <span id="thana_save" class="absolute right-2 top-2 hidden"
+                  ><svg
+                    class="w-5 h-5 text-cyan-500 animate-spin"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    ></path></svg
+                ></span>
               </div>
-
-              <div>
+              <div class="relative">
                 <label
                   for="ward"
                   class="block text-sm font-medium text-gray-700 mb-2"
+                  aria-label="ওয়ার্ড"
+                  aria-required="true"
+                  title="এই ঘরটি পূরণ করা আবশ্যক"
+                  >ওয়ার্ড *</label
                 >
-                  ওয়ার্ড *
-                </label>
                 <input
                   type="text"
                   id="ward"
                   name="ward"
-                  value="{{ report.header.ward if report.header else '' }}"
                   required
+                  value="{{ report.header.ward if report.header else '' }}"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  oninput="showAutoSave('ward_save')"
                 />
+                <span id="ward_save" class="absolute right-2 top-2 hidden"
+                  ><svg
+                    class="w-5 h-5 text-cyan-500 animate-spin"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    ></path></svg
+                ></span>
               </div>
-
-              <div>
+              <div class="relative">
                 <label
                   for="total_muallima"
                   class="block text-sm font-medium text-gray-700 mb-2"
+                  aria-label="মোট মুয়াল্লিমা সংখ্যা"
+                  title="মোট মুয়াল্লিমা সংখ্যা"
+                  >মোট মুয়াল্লিমা সংখ্যা</label
                 >
-                  মোট মুয়াল্লিমা সংখ্যা
-                </label>
                 <input
                   type="number"
                   id="total_muallima"
@@ -111,16 +186,39 @@
                   min="0"
                   value="{{ report.header.total_muallima if report.header else 0 }}"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  oninput="showAutoSave('total_muallima_save')"
                 />
+                <span
+                  id="total_muallima_save"
+                  class="absolute right-2 top-2 hidden"
+                  ><svg
+                    class="w-5 h-5 text-cyan-500 animate-spin"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    ></path></svg
+                ></span>
               </div>
-
-              <div>
+              <div class="relative">
                 <label
                   for="muallima_increase"
                   class="block text-sm font-medium text-gray-700 mb-2"
+                  aria-label="মুয়াল্লিমা বৃদ্ধি"
+                  title="মুয়াল্লিমা বৃদ্ধি"
+                  >মুয়াল্লিমা বৃদ্ধি</label
                 >
-                  মুয়াল্লিমা বৃদ্ধি
-                </label>
                 <input
                   type="number"
                   id="muallima_increase"
@@ -128,16 +226,39 @@
                   min="0"
                   value="{{ report.header.muallima_increase if report.header else 0 }}"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  oninput="showAutoSave('muallima_increase_save')"
                 />
+                <span
+                  id="muallima_increase_save"
+                  class="absolute right-2 top-2 hidden"
+                  ><svg
+                    class="w-5 h-5 text-cyan-500 animate-spin"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    ></path></svg
+                ></span>
               </div>
-
-              <div>
+              <div class="relative">
                 <label
                   for="muallima_decrease"
                   class="block text-sm font-medium text-gray-700 mb-2"
+                  aria-label="মুয়াল্লিমা হ্রাস"
+                  title="মুয়াল্লিমা হ্রাস"
+                  >মুয়াল্লিমা হ্রাস</label
                 >
-                  মুয়াল্লিমা হ্রাস
-                </label>
                 <input
                   type="number"
                   id="muallima_decrease"
@@ -145,16 +266,39 @@
                   min="0"
                   value="{{ report.header.muallima_decrease if report.header else 0 }}"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  oninput="showAutoSave('muallima_decrease_save')"
                 />
+                <span
+                  id="muallima_decrease_save"
+                  class="absolute right-2 top-2 hidden"
+                  ><svg
+                    class="w-5 h-5 text-cyan-500 animate-spin"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    ></path></svg
+                ></span>
               </div>
-
-              <div>
+              <div class="relative">
                 <label
                   for="certified_muallima"
                   class="block text-sm font-medium text-gray-700 mb-2"
+                  aria-label="প্রশিক্ষিত মুয়াল্লিমা"
+                  title="প্রশিক্ষিত মুয়াল্লিমা"
+                  >প্রশিক্ষিত মুয়াল্লিমা</label
                 >
-                  প্রশিক্ষিত মুয়াল্লিমা
-                </label>
                 <input
                   type="number"
                   id="certified_muallima"
@@ -162,16 +306,39 @@
                   min="0"
                   value="{{ report.header.certified_muallima if report.header else 0 }}"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  oninput="showAutoSave('certified_muallima_save')"
                 />
+                <span
+                  id="certified_muallima_save"
+                  class="absolute right-2 top-2 hidden"
+                  ><svg
+                    class="w-5 h-5 text-cyan-500 animate-spin"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    ></path></svg
+                ></span>
               </div>
-
-              <div>
+              <div class="relative">
                 <label
                   for="certified_muallima_taking_classes"
                   class="block text-sm font-medium text-gray-700 mb-2"
+                  aria-label="প্রশিক্ষিত মুয়াল্লিমা (ক্লাস নিচ্ছেন)"
+                  title="প্রশিক্ষিত মুয়াল্লিমা (ক্লাস নিচ্ছেন)"
+                  >প্রশিক্ষিত মুয়াল্লিমা (ক্লাস নিচ্ছেন)</label
                 >
-                  প্রশিক্ষিত মুয়াল্লিমা (ক্লাস নিচ্ছেন)
-                </label>
                 <input
                   type="number"
                   id="certified_muallima_taking_classes"
@@ -179,16 +346,39 @@
                   min="0"
                   value="{{ report.header.certified_muallima_taking_classes if report.header else 0 }}"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  oninput="showAutoSave('certified_muallima_taking_classes_save')"
                 />
+                <span
+                  id="certified_muallima_taking_classes_save"
+                  class="absolute right-2 top-2 hidden"
+                  ><svg
+                    class="w-5 h-5 text-cyan-500 animate-spin"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    ></path></svg
+                ></span>
               </div>
-
-              <div>
+              <div class="relative">
                 <label
                   for="trained_muallima"
                   class="block text-sm font-medium text-gray-700 mb-2"
+                  aria-label="ট্রেইনিং প্রাপ্ত মুয়াল্লিমা"
+                  title="ট্রেইনিং প্রাপ্ত মুয়াল্লিমা"
+                  >ট্রেইনিং প্রাপ্ত মুয়াল্লিমা</label
                 >
-                  ট্রেইনিং প্রাপ্ত মুয়াল্লিমা
-                </label>
                 <input
                   type="number"
                   id="trained_muallima"
@@ -196,16 +386,39 @@
                   min="0"
                   value="{{ report.header.trained_muallima if report.header else 0 }}"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  oninput="showAutoSave('trained_muallima_save')"
                 />
+                <span
+                  id="trained_muallima_save"
+                  class="absolute right-2 top-2 hidden"
+                  ><svg
+                    class="w-5 h-5 text-cyan-500 animate-spin"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    ></path></svg
+                ></span>
               </div>
-
-              <div>
+              <div class="relative">
                 <label
                   for="trained_muallima_taking_classes"
                   class="block text-sm font-medium text-gray-700 mb-2"
+                  aria-label="ট্রেইনিং প্রাপ্ত মুয়াল্লিমা (ক্লাস নিচ্ছেন)"
+                  title="ট্রেইনিং প্রাপ্ত মুয়াল্লিমা (ক্লাস নিচ্ছেন)"
+                  >ট্রেইনিং প্রাপ্ত মুয়াল্লিমা (ক্লাস নিচছেন)</label
                 >
-                  ট্রেইনিং প্রাপ্ত মুয়াল্লিমা (ক্লাস নিচ্ছেন)
-                </label>
                 <input
                   type="number"
                   id="trained_muallima_taking_classes"
@@ -213,16 +426,39 @@
                   min="0"
                   value="{{ report.header.trained_muallima_taking_classes if report.header else 0 }}"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  oninput="showAutoSave('trained_muallima_taking_classes_save')"
                 />
+                <span
+                  id="trained_muallima_taking_classes_save"
+                  class="absolute right-2 top-2 hidden"
+                  ><svg
+                    class="w-5 h-5 text-cyan-500 animate-spin"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    ></path></svg
+                ></span>
               </div>
-
-              <div>
+              <div class="relative">
                 <label
                   for="total_unit"
                   class="block text-sm font-medium text-gray-700 mb-2"
+                  aria-label="মোট ইউনিট"
+                  title="মোট ইউনিট"
+                  >মোট ইউনিট</label
                 >
-                  মোট ইউনিট
-                </label>
                 <input
                   type="number"
                   id="total_unit"
@@ -230,16 +466,37 @@
                   min="0"
                   value="{{ report.header.total_unit if report.header else 0 }}"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  oninput="showAutoSave('total_unit_save')"
                 />
+                <span id="total_unit_save" class="absolute right-2 top-2 hidden"
+                  ><svg
+                    class="w-5 h-5 text-cyan-500 animate-spin"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    ></path></svg
+                ></span>
               </div>
-
-              <div>
+              <div class="relative">
                 <label
                   for="units_with_muallima"
                   class="block text-sm font-medium text-gray-700 mb-2"
+                  aria-label="মুয়াল্লিমা সহ ইউনিট"
+                  title="মুয়াল্লিমা সহ ইউনিট"
+                  >মুয়াল্লিমা সহ ইউনিট</label
                 >
-                  মুয়াল্লিমা সহ ইউনিট
-                </label>
                 <input
                   type="number"
                   id="units_with_muallima"
@@ -247,25 +504,70 @@
                   min="0"
                   value="{{ report.header.units_with_muallima if report.header else 0 }}"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  oninput="showAutoSave('units_with_muallima_save')"
                 />
+                <span
+                  id="units_with_muallima_save"
+                  class="absolute right-2 top-2 hidden"
+                  ><svg
+                    class="w-5 h-5 text-cyan-500 animate-spin"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    ></path></svg
+                ></span>
               </div>
             </div>
-
             <div class="flex justify-between mt-8 pt-6 border-t">
               <a
                 href="/report_dashboard?month={{ month }}&year={{ year }}"
                 class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                >বাতিল</a
               >
-                বাতিল
-              </a>
               <button
                 type="submit"
-                class="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
+                class="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors flex items-center gap-2"
               >
+                <svg
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
                 সংরক্ষণ করুন
               </button>
             </div>
           </form>
+          <script>
+            function showAutoSave(id) {
+              const el = document.getElementById(id);
+              if (el) {
+                el.classList.remove("hidden");
+                setTimeout(() => {
+                  el.classList.add("hidden");
+                }, 1200);
+              }
+            }
+          </script>
         </div>
       </div>
     </div>

@@ -63,121 +63,63 @@
                   </div>
 
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">সংখ্যা</label>
-                    <input type="number" name="number[]" value="{{ course.number }}" min="0"
-                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">বৃদ্ধি</label>
-                    <input type="number" name="increase[]" value="{{ course.increase }}" min="0"
-                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">হ্রাস</label>
-                    <input type="number" name="decrease[]" value="{{ course.decrease }}" min="0"
-                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">সেশন</label>
-                    <input type="number" name="sessions[]" value="{{ course.sessions }}" min="0"
-                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">ছাত্র</label>
-                    <input type="number" name="students[]" value="{{ course.students }}" min="0"
-                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">উপস্থিতি</label>
-                    <input type="number" name="attendance[]" value="{{ course.attendance }}" min="0"
-                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">বোর্ড স্ট্যাটাস</label>
-                    <input type="number" name="status_board[]" value="{{ course.status_board }}" min="0"
-                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">কায়দা স্ট্যাটাস</label>
-                    <input type="number" name="status_qayda[]" value="{{ course.status_qayda }}" min="0"
-                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">আমপারা স্ট্যাটাস</label>
-                    <input type="number" name="status_ampara[]" value="{{ course.status_ampara }}" min="0"
-                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">কুরআন স্ট্যাটাস</label>
-                    <input type="number" name="status_quran[]" value="{{ course.status_quran }}" min="0"
-                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">সম্পূর্ণ</label>
-                    <input type="number" name="completed[]" value="{{ course.completed }}" min="0"
-                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">সঠিকভাবে শিক্ষিত</label>
-                    <input type="number" name="correctly_learned[]" value="{{ course.correctly_learned }}" min="0"
-                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                  </div>
-
-                  <div class="flex items-end">
-                    <button type="button" class="remove-course px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">
-                      মুছে ফেলুন
-                    </button>
-                  </div>
-                </div>
+      <nav class="mb-4 text-sm text-gray-500 flex items-center gap-2">
+        <a href="/report_dashboard?month={{ month }}&year={{ year }}" class="hover:underline">হোম</a>
+        <span>/</span>
+        <span>কোর্স তথ্য</span>
+      </nav>
+          <form method="post" id="coursesForm">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="relative">
+                <label for="total_courses" class="block text-sm font-medium text-gray-700 mb-2" aria-label="মোট কোর্স সংখ্যা" aria-required="true" title="এই ঘরটি পূরণ করা আবশ্যক">মোট কোর্স সংখ্যা *</label>
+                <input type="number" id="total_courses" name="total_courses" min="0" required value="{{ report.courses.total_courses if report.courses else 0 }}" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent" oninput="showAutoSave('total_courses_save')" />
+                <span id="total_courses_save" class="absolute right-2 top-2 hidden"><svg class="w-5 h-5 text-cyan-500 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg></span>
               </div>
-              {% endfor %}
-            {% else %}
-              <div class="course-item bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div class="lg:col-span-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">বিভাগ</label>
-                    <select name="category[]" required
-                            class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                      <option value="">বিভাগ নির্বাচন করুন</option>
-                      {% for category in categories %}
-                      <option value="{{ category }}">{{ category }}</option>
-                      {% endfor %}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">সংখ্যা</label>
-                    <input type="number" name="number[]" min="0" value="0"
-                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">বৃদ্ধি</label>
-                    <input type="number" name="increase[]" min="0" value="0"
-                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">হ্রাস</label>
-                    <input type="number" name="decrease[]" min="0" value="0"
-                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">সেশন</label>
-                    <input type="number" name="sessions[]" min="0" value="0"
-                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
+              <div class="relative">
+                <label for="new_courses" class="block text-sm font-medium text-gray-700 mb-2" aria-label="নতুন কোর্স" title="নতুন কোর্স">নতুন কোর্স</label>
+                <input type="number" id="new_courses" name="new_courses" min="0" value="{{ report.courses.new_courses if report.courses else 0 }}" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent" oninput="showAutoSave('new_courses_save')" />
+                <span id="new_courses_save" class="absolute right-2 top-2 hidden"><svg class="w-5 h-5 text-cyan-500 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg></span>
+              </div>
+              <div class="relative">
+                <label for="closed_courses" class="block text-sm font-medium text-gray-700 mb-2" aria-label="বন্ধ হওয়া কোর্স" title="বন্ধ হওয়া কোর্স">বন্ধ হওয়া কোর্স</label>
+                <input type="number" id="closed_courses" name="closed_courses" min="0" value="{{ report.courses.closed_courses if report.courses else 0 }}" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent" oninput="showAutoSave('closed_courses_save')" />
+                <span id="closed_courses_save" class="absolute right-2 top-2 hidden"><svg class="w-5 h-5 text-cyan-500 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg></span>
+              </div>
+              <div class="relative">
+                <label for="total_students" class="block text-sm font-medium text-gray-700 mb-2" aria-label="মোট শিক্ষার্থী" title="মোট শিক্ষার্থী">মোট শিক্ষার্থী</label>
+                <input type="number" id="total_students" name="total_students" min="0" value="{{ report.courses.total_students if report.courses else 0 }}" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent" oninput="showAutoSave('total_students_save')" />
+                <span id="total_students_save" class="absolute right-2 top-2 hidden"><svg class="w-5 h-5 text-cyan-500 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg></span>
+              </div>
+              <div class="relative">
+                <label for="new_students" class="block text-sm font-medium text-gray-700 mb-2" aria-label="নতুন শিক্ষার্থী" title="নতুন শিক্ষার্থী">নতুন শিক্ষার্থী</label>
+                <input type="number" id="new_students" name="new_students" min="0" value="{{ report.courses.new_students if report.courses else 0 }}" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent" oninput="showAutoSave('new_students_save')" />
+                <span id="new_students_save" class="absolute right-2 top-2 hidden"><svg class="w-5 h-5 text-cyan-500 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg></span>
+              </div>
+              <div class="relative">
+                <label for="left_students" class="block text-sm font-medium text-gray-700 mb-2" aria-label="ছেড়ে যাওয়া শিক্ষার্থী" title="ছেড়ে যাওয়া শিক্ষার্থী">ছেড়ে যাওয়া শিক্ষার্থী</label>
+                <input type="number" id="left_students" name="left_students" min="0" value="{{ report.courses.left_students if report.courses else 0 }}" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent" oninput="showAutoSave('left_students_save')" />
+                <span id="left_students_save" class="absolute right-2 top-2 hidden"><svg class="w-5 h-5 text-cyan-500 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg></span>
+              </div>
+            </div>
+            <div class="flex justify-between mt-8 pt-6 border-t">
+              <a href="/report_dashboard?month={{ month }}&year={{ year }}" class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">বাতিল</a>
+              <button type="submit" class="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                সংরক্ষণ করুন
+              </button>
+            </div>
+          </form>
+          <script>
+            function showAutoSave(id) {
+              const el = document.getElementById(id);
+              if (el) {
+                el.classList.remove('hidden');
+                setTimeout(() => {
+                  el.classList.add('hidden');
+                }, 1200);
+              }
+            }
+          </script>
                   </div>
 
                   <div>

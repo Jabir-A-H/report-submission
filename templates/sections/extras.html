@@ -1,5 +1,14 @@
 {% extends 'base.html' %} {% block content %}
-<div class="container mx-auto px-4 py-8">
+<div class="container mx-auto px-4 py-8 animate-fade-in">
+  <nav class="mb-4 text-sm text-gray-500 flex items-center gap-2">
+    <a
+      href="/report_dashboard?month={{ month }}&year={{ year }}"
+      class="hover:underline"
+      >হোম</a
+    >
+    <span>/</span>
+    <span>অতিরিক্ত কার্যক্রম</span>
+  </nav>
   <div class="text-center mb-8">
     <h1 class="text-3xl font-bold text-cyan-700 mb-2">অতিরিক্ত কার্যক্রম</h1>
     <p class="text-gray-600">{{ get_month_name(month|int) }} {{ year }}</p>
@@ -12,7 +21,7 @@
     </div>
   </div>
   <div class="max-w-4xl mx-auto">
-    <div class="bg-white rounded-2xl shadow-xl p-8">
+    <div class="bg-white rounded-2xl shadow-xl p-8 animate-fade-in">
       {% if error %}
       <div
         class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6"
@@ -26,12 +35,14 @@
         {{ success }}
       </div>
       {% endif %}
-      <form method="post">
+      <form method="post" id="extrasForm">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
+          <div class="relative">
             <label
               for="extra_programs"
               class="block text-sm font-medium text-gray-700 mb-2"
+              aria-label="অন্যান্য কার্যক্রম"
+              title="অন্যান্য কার্যক্রম"
               >অন্যান্য কার্যক্রম</label
             >
             <textarea
@@ -39,14 +50,37 @@
               name="extra_programs"
               rows="4"
               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+              oninput="showAutoSave('extra_programs_save')"
             >
 {{ report.extras.extra_programs if report.extras else '' }}</textarea
             >
+            <span id="extra_programs_save" class="absolute right-2 top-2 hidden"
+              ><svg
+                class="w-5 h-5 text-cyan-500 animate-spin"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"
+                ></path></svg
+            ></span>
           </div>
-          <div>
+          <div class="relative">
             <label
               for="special_events"
               class="block text-sm font-medium text-gray-700 mb-2"
+              aria-label="বিশেষ ইভেন্ট/প্রোগ্রাম"
+              title="বিশেষ ইভেন্ট/প্রোগ্রাম"
               >বিশেষ ইভেন্ট/প্রোগ্রাম</label
             >
             <textarea
@@ -54,14 +88,37 @@
               name="special_events"
               rows="4"
               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+              oninput="showAutoSave('special_events_save')"
             >
 {{ report.extras.special_events if report.extras else '' }}</textarea
             >
+            <span id="special_events_save" class="absolute right-2 top-2 hidden"
+              ><svg
+                class="w-5 h-5 text-cyan-500 animate-spin"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"
+                ></path></svg
+            ></span>
           </div>
-          <div>
+          <div class="relative col-span-2">
             <label
               for="other_notes"
               class="block text-sm font-medium text-gray-700 mb-2"
+              aria-label="অন্যান্য মন্তব্য"
+              title="অন্যান্য মন্তব্য"
               >অন্যান্য মন্তব্য</label
             >
             <textarea
@@ -69,9 +126,30 @@
               name="other_notes"
               rows="4"
               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+              oninput="showAutoSave('other_notes_save')"
             >
 {{ report.extras.other_notes if report.extras else '' }}</textarea
             >
+            <span id="other_notes_save" class="absolute right-2 top-2 hidden"
+              ><svg
+                class="w-5 h-5 text-cyan-500 animate-spin"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"
+                ></path></svg
+            ></span>
           </div>
         </div>
         <div class="flex justify-between mt-8 pt-6 border-t">
@@ -82,12 +160,36 @@
           >
           <button
             type="submit"
-            class="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
+            class="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors flex items-center gap-2"
           >
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
             সংরক্ষণ করুন
           </button>
         </div>
       </form>
+      <script>
+        function showAutoSave(id) {
+          const el = document.getElementById(id);
+          if (el) {
+            el.classList.remove("hidden");
+            setTimeout(() => {
+              el.classList.add("hidden");
+            }, 1200);
+          }
+        }
+      </script>
     </div>
   </div>
 </div>

@@ -1,5 +1,14 @@
 {% extends 'base.html' %} {% block content %}
-<div class="container mx-auto px-4 py-8">
+<div class="container mx-auto px-4 py-8 animate-fade-in">
+  <nav class="mb-4 text-sm text-gray-500 flex items-center gap-2">
+    <a
+      href="/report_dashboard?month={{ month }}&year={{ year }}"
+      class="hover:underline"
+      >হোম</a
+    >
+    <span>/</span>
+    <span>সাংগঠনিক তথ্য</span>
+  </nav>
   <div class="text-center mb-8">
     <h1 class="text-3xl font-bold text-cyan-700 mb-2">সাংগঠনিক তথ্য</h1>
     <p class="text-gray-600">{{ get_month_name(month|int) }} {{ year }}</p>
@@ -12,7 +21,7 @@
     </div>
   </div>
   <div class="max-w-4xl mx-auto">
-    <div class="bg-white rounded-2xl shadow-xl p-8">
+    <div class="bg-white rounded-2xl shadow-xl p-8 animate-fade-in">
       {% if error %}
       <div
         class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6"
@@ -26,42 +35,94 @@
         {{ success }}
       </div>
       {% endif %}
-      <form method="post">
+      <form method="post" id="organizationalForm">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
+          <div class="relative">
             <label
               for="total_members"
               class="block text-sm font-medium text-gray-700 mb-2"
-              >মোট সদস্য সংখ্যা</label
+              aria-label="মোট সদস্য সংখ্যা"
+              aria-required="true"
+              title="এই ঘরটি পূরণ করা আবশ্যক"
+              >মোট সদস্য সংখ্যা *</label
             >
             <input
               type="number"
               id="total_members"
               name="total_members"
               min="0"
+              required
               value="{{ report.organizational.total_members if report.organizational else 0 }}"
               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+              oninput="showAutoSave('total_members_save')"
             />
+            <span id="total_members_save" class="absolute right-2 top-2 hidden"
+              ><svg
+                class="w-5 h-5 text-cyan-500 animate-spin"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"
+                ></path></svg
+            ></span>
           </div>
-          <div>
+          <div class="relative">
             <label
               for="new_members"
               class="block text-sm font-medium text-gray-700 mb-2"
-              >নতুন সদস্য</label
+              aria-label="নতুন সদস্য"
+              aria-required="true"
+              title="এই ঘরটি পূরণ করা আবশ্যক"
+              >নতুন সদস্য *</label
             >
             <input
               type="number"
               id="new_members"
               name="new_members"
               min="0"
+              required
               value="{{ report.organizational.new_members if report.organizational else 0 }}"
               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+              oninput="showAutoSave('new_members_save')"
             />
+            <span id="new_members_save" class="absolute right-2 top-2 hidden"
+              ><svg
+                class="w-5 h-5 text-cyan-500 animate-spin"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"
+                ></path></svg
+            ></span>
           </div>
-          <div>
+          <div class="relative">
             <label
               for="members_left"
               class="block text-sm font-medium text-gray-700 mb-2"
+              aria-label="বহিষ্কৃত/ছেড়ে যাওয়া সদস্য"
+              title="যদি কোনো সদস্য ছেড়ে যায়"
               >বহিষ্কৃত/ছেড়ে যাওয়া সদস্য</label
             >
             <input
@@ -71,12 +132,35 @@
               min="0"
               value="{{ report.organizational.members_left if report.organizational else 0 }}"
               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+              oninput="showAutoSave('members_left_save')"
             />
+            <span id="members_left_save" class="absolute right-2 top-2 hidden"
+              ><svg
+                class="w-5 h-5 text-cyan-500 animate-spin"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"
+                ></path></svg
+            ></span>
           </div>
-          <div>
+          <div class="relative">
             <label
               for="meetings_held"
               class="block text-sm font-medium text-gray-700 mb-2"
+              aria-label="মোট সভা অনুষ্ঠিত"
+              title="মোট সভা অনুষ্ঠিত হয়েছে"
               >মোট সভা অনুষ্ঠিত</label
             >
             <input
@@ -86,12 +170,35 @@
               min="0"
               value="{{ report.organizational.meetings_held if report.organizational else 0 }}"
               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+              oninput="showAutoSave('meetings_held_save')"
             />
+            <span id="meetings_held_save" class="absolute right-2 top-2 hidden"
+              ><svg
+                class="w-5 h-5 text-cyan-500 animate-spin"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"
+                ></path></svg
+            ></span>
           </div>
-          <div>
+          <div class="relative">
             <label
               for="activities"
               class="block text-sm font-medium text-gray-700 mb-2"
+              aria-label="সাংগঠনিক কার্যক্রম"
+              title="সাংগঠনিক কার্যক্রমের বিস্তারিত"
               >সাংগঠনিক কার্যক্রম</label
             >
             <textarea
@@ -99,9 +206,30 @@
               name="activities"
               rows="4"
               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+              oninput="showAutoSave('activities_save')"
             >
 {{ report.organizational.activities if report.organizational else '' }}</textarea
             >
+            <span id="activities_save" class="absolute right-2 top-2 hidden"
+              ><svg
+                class="w-5 h-5 text-cyan-500 animate-spin"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"
+                ></path></svg
+            ></span>
           </div>
         </div>
         <div class="flex justify-between mt-8 pt-6 border-t">
@@ -112,12 +240,36 @@
           >
           <button
             type="submit"
-            class="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
+            class="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors flex items-center gap-2"
           >
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
             সংরক্ষণ করুন
           </button>
         </div>
       </form>
+      <script>
+        function showAutoSave(id) {
+          const el = document.getElementById(id);
+          if (el) {
+            el.classList.remove("hidden");
+            setTimeout(() => {
+              el.classList.add("hidden");
+            }, 1200);
+          }
+        }
+      </script>
     </div>
   </div>
 </div>

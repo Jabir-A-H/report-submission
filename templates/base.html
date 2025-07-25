@@ -5,51 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}রিপোর্ট সাবমিশন সিস্টেম{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='styles.css') }}"
-    />
-    <link
-      rel="stylesheet"
-      
-    />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiro+Bengali:wght@400;700&display=swap">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
     <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+    <style>
+      body, html { font-family: 'Tiro Bengali', sans-serif; }
+    </style>
   </head>
   <body
-    class="bg-gradient-to-br from-cyan-100 via-blue-50 to-white min-h-screen"
+    class="bg-gradient-to-br from-yellow-50 via-orange-50 to-white min-h-screen"
   >
-    <header class="bg-white/80 shadow-md py-4 px-6 flex justify-between items-center border-b border-blue-100">
+    <header class="bg-white/80 shadow-md py-4 px-6 flex justify-between items-center border-b border-blue-100 w-full fixed top-0 left-0 z-50">
       <div class="flex items-center gap-4">
-        <a href="/" class="text-2xl font-bold text-cyan-700 tracking-tight drop-shadow">রিপোর্ট সাবমিশন</a>
-        {% if current_user.is_authenticated %}
-        <span class="text-base text-gray-600">{{ current_user.name }} (ID: {{ current_user.user_id }}, {{ current_user.role }})</span>
-        {% endif %}
+        <a href="/" class="text-2xl font-bold text-cyan-700 tracking-tight drop-shadow" aria-label="হোম">রিপোর্ট সাবমিশন</a>
       </div>
       <!-- Hamburger menu for mobile -->
-      <button id="nav-toggle" class="md:hidden block text-2xl text-blue-700 focus:outline-none">
+      <button id="nav-toggle" class="md:hidden block text-2xl text-blue-700 focus:outline-none" aria-label="মেনু খুলুন" tabindex="0">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-8 h-8">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
-      <nav id="nav-menu" class="flex-col md:flex-row md:flex gap-4 items-center hidden md:flex">
-        <a href="/" class="text-blue-700 font-semibold px-3 py-2 rounded hover:bg-blue-50">হোম</a>
-        <a href="/report_dashboard" class="text-blue-600 hover:underline">ড্যাশবোর্ড</a>
+      <nav id="nav-menu" class="flex-col md:flex-row md:flex gap-4 items-center hidden md:flex" aria-label="নেভিগেশন">
+        <a href="/" class="nav-link text-blue-700 font-semibold px-3 py-2 rounded hover:bg-blue-50 focus:ring-2 focus:ring-blue-400" aria-current="page">হোম</a>
+        <a href="/report" class="nav-link text-blue-600 px-3 py-2 rounded hover:bg-blue-50 focus:ring-2 focus:ring-blue-400">রিপোর্ট</a>
+        <a href="/help" class="nav-link text-gray-600 px-3 py-2 rounded hover:bg-blue-50 focus:ring-2 focus:ring-blue-400">সহায়তা</a>
         {% if current_user.is_authenticated %}
           {% if current_user.role == 'admin' %}
-            <a href="/admin/reports" class="text-purple-600 hover:underline">অ্যাডমিন রিপোর্ট</a>
-            <a href="/admin/users" class="text-green-600 hover:underline">ইউজার ম্যানেজ</a>
-            <a href="/admin/zones" class="text-cyan-600 hover:underline">জোন ম্যানেজ</a>
+            <a href="/users" class="nav-link text-green-600 px-3 py-2 rounded hover:bg-green-50 focus:ring-2 focus:ring-green-400">ইউজারস</a>
+            <a href="/zones" class="nav-link text-cyan-600 px-3 py-2 rounded hover:bg-cyan-50 focus:ring-2 focus:ring-cyan-400">জোনস</a>
+            <a href="/zonereports" class="nav-link text-purple-600 px-3 py-2 rounded hover:bg-purple-50 focus:ring-2 focus:ring-purple-400">জোন রিপোর্ট</a>
+            <a href="/fields" class="nav-link text-orange-600 px-3 py-2 rounded hover:bg-orange-50 focus:ring-2 focus:ring-orange-400">ফিল্ডস</a>
           {% endif %}
-          <a href="/logout" class="text-red-600 hover:underline font-bold">লগআউট</a>
+          <!-- Zone/User Info Dropdown -->
+          <div class="relative group">
+            <button class="flex items-center gap-2 px-3 py-2 rounded bg-gray-100 text-gray-700 font-semibold focus:ring-2 focus:ring-blue-400" aria-label="ইউজার তথ্য" tabindex="0">
+              <span>{{ current_user.zone_name }}</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div class="absolute right-0 mt-2 w-56 bg-white rounded shadow-lg border border-gray-200 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200 z-50">
+              <div class="p-4 text-sm text-gray-700">
+                <div><span class="font-bold">নাম:</span> {{ current_user.name }}</div>
+                <div><span class="font-bold">আইডি:</span> {{ current_user.user_id }}</div>
+                <div><span class="font-bold">ইমেইল:</span> {{ current_user.email }}</div>
+                <div><span class="font-bold">জোন:</span> {{ current_user.zone_name }}</div>
+              </div>
+              <a href="/logout" class="block px-4 py-2 text-red-600 hover:bg-red-50 font-bold">লগআউট</a>
+            </div>
+          </div>
         {% else %}
-          <a href="/login" class="text-blue-600 hover:underline">লগইন</a>
-          <a href="/register" class="text-green-600 hover:underline">নতুন রেজিস্ট্রেশন</a>
+          <a href="/login" class="nav-link text-blue-600 px-3 py-2 rounded hover:bg-blue-50 focus:ring-2 focus:ring-blue-400">লগইন</a>
+          <a href="/register" class="nav-link text-green-600 px-3 py-2 rounded hover:bg-green-50 focus:ring-2 focus:ring-green-400">নতুন রেজিস্ট্রেশন</a>
         {% endif %}
-        <a href="/help" class="text-gray-600 hover:underline">সহায়তা</a>
       </nav>
     </header>
     <script>
-      // Hamburger menu toggle
+      // Hamburger menu toggle and keyboard accessibility
       document.addEventListener('DOMContentLoaded', function() {
         const navToggle = document.getElementById('nav-toggle');
         const navMenu = document.getElementById('nav-menu');
@@ -57,17 +67,29 @@
           navToggle.addEventListener('click', function() {
             navMenu.classList.toggle('hidden');
           });
+          navToggle.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+              navMenu.classList.toggle('hidden');
+            }
+          });
         }
+        // Highlight active nav link
+        const links = document.querySelectorAll('.nav-link');
+        links.forEach(link => {
+          if (link.href === window.location.href) {
+            link.classList.add('border-b-2', 'border-blue-500', 'text-blue-900');
+          }
+        });
       });
     </script>
     </header>
-    <main class="container mx-auto px-2 py-6">
+    <main class="mx-auto max-w-screen-xl px-4 py-8 mb-8 mt-24">
       {% block content %}{% endblock %}
     </main>
     <footer
-      class="bg-white/80 text-center py-4 border-t border-blue-100 text-gray-500 text-sm"
+      class="bg-white/80 text-center py-6 border-t border-blue-100 text-gray-500 text-lg font-bold tracking-wide"
     >
-      &copy; ২০২৫ রিপোর্ট সাবমিশন সিস্টেম
+      &copy; ২০২৫ রিপোর্ট সাবমিশন সিস্টেম | v1.0
     </footer>
   </body>
 </html>
