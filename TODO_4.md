@@ -79,20 +79,21 @@ Update all codes in the repository to match the todo_4 mockup.
   - The download buttons (Excel, PDF) are placed after the report type, month, and year dropdowns.
 
 ## 6. Admin Pages
-- **Users Management (`admin_users.html`)**
+- **Users Management (`users.html`)**
   - Table of users: email, zone, role, status, actions
   - Approve/reject buttons: color-coded, with confirmation dialog
   - Status: green for active, yellow for pending, red for rejected
   - Table is sortable and searchable
-- **Zones Management (`admin_zones.html`)**
+- **Zones Management (`zones.html`)**
   - List of zones, add/delete zone form
   - Add zone: input and button, validation for uniqueness
   - Delete zone: confirmation dialog
-- **Reports Management (`admin_reports.html`)**
-  - Table of all reports, filter by period/zone
-  - Edit/view links for each report, color-coded by status
-  - Table supports pagination for large datasets
-- **Fields Management (`admin_fields.html`)**
+- **Reports Management (`reports.html`)**
+  Dynamically shows the admins report page if the logged in user is an admin.
+  - Aggregated data from all zones for selected period, adding up all integer fields and showing total counts just like the actual database tables in a spreadsheet format
+  - can see individual zone reports, filter by period/zone
+  - Button to Edit/view links for each report, besides the report type, month, and year dropdowns at the top before the download buttons.
+- **Fields Management (`fields.html`)**
   - Dynamic table for adding/removing data categories
   - Add/remove row buttons, inline editing
   - Changes auto-save, with feedback indicator
@@ -116,9 +117,7 @@ Update all codes in the repository to match the todo_4 mockup.
   - Accordion or expandable list of common questions/answers
   - Bengali text, links to relevant pages
   - Each FAQ item animates open/close
-- **Contact Info**
-  - Email, phone, or support form, styled as card at bottom
-  - Success/error messages for contact form
+  - a step by step guide for using the report system, with explanations in Bengali
 
 ## 9. UI/UX Principles
 - **Accessibility**
@@ -139,11 +138,9 @@ Update all codes in the repository to match the todo_4 mockup.
 
 ## 10. Visual Style Guide
 - **Colors**
-  - Primary: Blue (`#2563eb`), Cyan (`#06b6d4`), Green (`#16a34a`), Red (`#dc2626`), Yellow (`#facc15`)
-  - Background: White, Blue-50, Cyan-50, with gradients for depth
 - **Typography**
-  - Font: Noto Sans Bengali, fallback to sans-serif
-  - Headings: bold, large size, blue or cyan
+  - Font: Tiro Bengali, fallback to sans-serif
+  - Headings: bold, large size
   - Body: regular, readable size, dark gray
 - **Icons**
   - Use Heroicons or similar, sized for clarity, with Bengali context
@@ -156,7 +153,7 @@ Update all codes in the repository to match the todo_4 mockup.
 - **User Login → Dashboard → Section Edit → Save → Summary → Logout**
   - User logs in, lands on dashboard, selects period, edits sections, saves, views summary, logs out
 - **Admin Login → Dashboard → Manage Users/Zones/Reports → Edit Fields → Logout**
-  - Admin logs in, sees dashboard, manages users/zones/reports, edits fields, logs out
+  - Admin logs in, sees dashboard, manages users/zones/reports, downloads the combined zone report, logs out
 - **User Registration → Pending Approval → Login → Dashboard**
   - User registers, sees pending approval, logs in after approval, lands on dashboard
 
@@ -166,18 +163,18 @@ Update all codes in the repository to match the todo_4 mockup.
 
 ```
 +-------------------------------------------------------------+
-| Logo   রিপোর্ট ড্যাশবোর্ড        User Info [ID, Role, Zone] |
+| Logo        রিপোর্ট ড্যাশবোর্ড             User Info [ID, Zone] |
 +-------------------------------------------------------------+
-| Period Selector: [Report Type] [Month] [Year] [যান]         |
+| Period Selector: [Report Type] [Month] [Year]               |
 +-------------------------------------------------------------+
 | [Section Card] [Section Card] [Section Card]                |
 | [Section Card] [Section Card] [Section Card]                |
 +-------------------------------------------------------------+
 | Summary Stats: Completed | Incomplete | Rate | Total        |
 +-------------------------------------------------------------+
-| Tips/Activity Message                                        |
+| Tips/Activity Message                                       |
 +-------------------------------------------------------------+
-| Footer: Copyright, Version, Contact                         |
+| Footer: Copyright, Version                                  |
 +-------------------------------------------------------------+
 ```
 
