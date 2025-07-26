@@ -1,4 +1,3 @@
-
 # Report Submission System: Features & Workflow Design
 
 ---
@@ -14,6 +13,7 @@
 8. [Technical Implementation](#8-technical-implementation)
 9. [User Stories](#9-user-stories)
 10. [System Limitations](#10-system-limitations)
+11. [Organizational Hierarchy & Reporting Workflow](#11-organizational-hierarchy--reporting-workflow)
 
 ---
 
@@ -246,6 +246,22 @@ Each report contains 7 sections accessible from the dashboard:
 - **Collaborative Reports:** One report per zone per period, edited by all zone users.
 - **Admin Override:** Admins can edit any data without restrictions.
 - **Dynamic Tables:** Add/remove rows for categorized data by admin only.
+
+---
+
+## 11. Organizational Hierarchy & Reporting Workflow
+
+### Hierarchy Structure
+- **City:** The top-level administrative unit. All zones belong to a city.
+- **Zone:** Each zone consists of multiple wards. Zone representatives are responsible for collecting and merging ward-level reports, then submitting a consolidated zone report.
+- **Ward:** The smallest reporting unit. Ward representatives submit their reports to the zone representative.
+
+### Reporting Flow
+1. **Ward Level:** Ward representatives fill out and submit their reports for the selected period.
+2. **Zone Level:** Zone representatives review, merge, and finalize ward reports into a single zone report for the period.
+3. **City Level:** The system can aggregate all zone reports for a selected period to generate a city-level report, viewable by admins. This aggregation is available via the city report page (`/city_report`).
+
+- **Note:** Only zone reports are directly entered into the system. Ward-level data is merged and summarized by the zone representative before submission. The city report aggregates all zone reports for a comprehensive city-wide summary.
 
 ---
 

@@ -1,0 +1,36 @@
+{% extends "base.html" %} {% block content %}
+<h2>City Report for {{ get_month_name(month) }} {{ year }}</h2>
+
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Course Category</th>
+      <th>Total Number</th>
+      <th>Total Sessions</th>
+      <th>Total Students</th>
+      <th>Total Attendance</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for cat, totals in course_totals.items() %}
+    <tr>
+      <td>{{ cat }}</td>
+      <td>{{ totals.number }}</td>
+      <td>{{ totals.sessions }}</td>
+      <td>{{ totals.students }}</td>
+      <td>{{ totals.attendance }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h3>Zone Reports Included</h3>
+<ul>
+  {% for report in reports %}
+  <li>{{ report.zone.name }} (Zone ID: {{ report.zone_id }})</li>
+  {% endfor %}
+</ul>
+
+<!-- You can add more aggregated sections here -->
+
+{% endblock %}

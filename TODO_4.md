@@ -17,7 +17,7 @@ Update all codes in the repository to match the todo_4 mockup.
 - **Navigation Bar**
   - Always visible except on login/register pages.
   - Contains links: Home (`/`), Report at a glance (`/report`), Help (`/help`).
-  - For admins, show extra links: Users (`/users`), Zones (`/zones`), Zone Reports (`/zonereports`), Fields (`/fields`).
+  - For admins, show extra links: Users (`/users`), Zones (`/zones`), Zone Reports (`/zone_reports`), Fields (`/fields`).
   - Hamburger menu appears on screens <768px, toggles navigation links vertically.
   - Zone info is shown at top right, with dropdown for profile/settings (future feature).
   - Active page is highlighted with a color accent and underline.
@@ -91,7 +91,7 @@ Update all codes in the repository to match the todo_4 mockup.
 - **Reports Management (`reports.html`)**
   Dynamically shows the admins report page if the logged in user is an admin.
   - Aggregated data from all zones for selected period, adding up all integer fields and showing total counts just like the actual database tables in a spreadsheet format
-- **Zone Reports (`zonereports.html`)**
+- **Zone Reports (`zone_reports.html`)**
   - Table of all zone reports, filter by report type/period/zone
   - can see individual zone reports, filter by period/zone
   - Button to Edit/view links for each report, besides the report type, month, and year dropdowns at the top before the download buttons.

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>404 - Page Not Found</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f8f8f8;
+        text-align: center;
+        padding-top: 80px;
+      }
+      h1 {
+        font-size: 3em;
+        color: #c00;
+      }
+      p {
+        font-size: 1.2em;
+        color: #555;
+      }
+      a {
+        color: #007bff;
+        text-decoration: none;
+        font-weight: bold;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>404</h1>
+    <p>Sorry, the page you requested was not found.</p>
+    <p><a href="{{ url_for('dashboard') }}">Return to Dashboard</a></p>
+  </body>
+</html>

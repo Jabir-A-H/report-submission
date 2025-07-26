@@ -375,7 +375,7 @@ class ReportComment(db.Model):
 
 @login_manager.user_loader  # type: ignore
 def load_user(user_id):  # type: ignore
-    return User.query.get(int(user_id))  # type: ignore
+    return db.session.get(User, int(user_id))  # type: ignore
 
 
 # --- Utility Functions ---
@@ -611,7 +611,7 @@ def register():
 # --- Admin Management ---
 
 
-@app.route("/admin/users", methods=["GET", "POST"])
+@app.route("/users", methods=["GET", "POST"])
 @login_required
 def admin_users():
     if not is_admin():
@@ -619,37 +619,59 @@ def admin_users():
     if request.method == "POST":
         user_id = request.form["user_id"]
         action = request.form["action"]
-        user = User.query.get(user_id)
+        user = db.session.get(User, int(user_id))
         if action == "approve":
             user.active = True
         elif action == "reject":
             db.session.delete(user)
         db.session.commit()
     users = User.query.all()
-    return render_template("admin_users.html", users=users)
+    return render_template("users.html", users=users)
 
 
-@app.route("/admin/zones", methods=["GET", "POST"])
+@app.route("/zones", methods=["GET", "POST"])
 @login_required
 def admin_zones():
     if not is_admin():
         return redirect(url_for("dashboard"))
     if request.method == "POST":
-        name = request.form["name"]
-        if not Zone.query.filter_by(name=name).first():
+        name = request.form.get("name")
+        if not name:
+            flash("Zone name is required.")
+        elif Zone.query.filter_by(name=name).first():
+            flash("Zone name already exists.")
+        else:
             db.session.add(Zone(name=name))
             db.session.commit()
+            flash("Zone added successfully.")
+            return redirect(url_for("admin_zones"))
     zones = Zone.query.all()
-    return render_template("admin_zones.html", zones=zones)
+    return render_template("zones.html", zones=zones)
 
 
-@app.route("/admin/reports")
+# --- Delete Zone Route ---
+@app.route("/delete_zone/<int:zone_id>", methods=["POST"])
+@login_required
+def delete_zone(zone_id):
+    if not is_admin():
+        return redirect(url_for("dashboard"))
+    zone = Zone.query.get_or_404(zone_id)
+    if zone.users:
+        flash("Cannot delete zone: users are assigned to this zone.")
+        return redirect(url_for("admin_zones"))
+    db.session.delete(zone)
+    db.session.commit()
+    flash("Zone deleted successfully.")
+    return redirect(url_for("admin_zones"))
+
+
+@app.route("/reports")
 @login_required
 def admin_reports():
     if not is_admin():
         return redirect(url_for("dashboard"))
     reports = Report.query.all()
-    return render_template("admin_reports.html", reports=reports)
+    return render_template("reports.html", reports=reports)
 
 
 # --- Report Section Routes ---
@@ -659,7 +681,7 @@ def admin_reports():
 @login_required
 def report_header():
     # ...section logic here...
-    return render_template("sections/header.html")
+    return render_template("report/header.html")
 
 
 @app.route("/report/courses", methods=["GET", "POST"])
@@ -699,7 +721,7 @@ def report_courses():
             zone_id=current_user.zone_id, month=month, year=year
         ).first()
     return render_template(
-        "sections/courses.html",
+        "report/courses.html",
         month=month,
         year=year,
         get_month_name=get_month_name,
@@ -711,35 +733,35 @@ def report_courses():
 @login_required
 def report_organizational():
     # ...section logic here...
-    return render_template("sections/organizational.html")
+    return render_template("report/organizational.html")
 
 
 @app.route("/report/personal", methods=["GET", "POST"])
 @login_required
 def report_personal():
     # ...section logic here...
-    return render_template("sections/personal.html")
+    return render_template("report/personal.html")
 
 
 @app.route("/report/meetings", methods=["GET", "POST"])
 @login_required
 def report_meetings():
     # ...section logic here...
-    return render_template("sections/meetings.html")
+    return render_template("report/meetings.html")
 
 
 @app.route("/report/extras", methods=["GET", "POST"])
 @login_required
 def report_extras():
     # ...section logic here...
-    return render_template("sections/extras.html")
+    return render_template("report/extras.html")
 
 
 @app.route("/report/comments", methods=["GET", "POST"])
 @login_required
 def report_comments():
     # ...section logic here...
-    return render_template("sections/comments.html")
+    return render_template("report/comments.html")
 
 
 # --- At a Glance / Summary Report ---

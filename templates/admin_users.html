@@ -32,11 +32,11 @@
           </td>
           <td class="px-4 py-2 border-b">
             {% if not user.is_active %}
-            <form method="post" action="/admin/approve_user/{{ user.id }}" onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই ইউজারটি অনুমোদন করতে চান?');">
+            <form method="post" action="/approve_user/{{ user.id }}" onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই ইউজারটি অনুমোদন করতে চান?');">
               <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">অনুমোদন</button>
             </form>
             {% endif %}
-            <form method="post" action="/admin/delete_user/{{ user.id }}" onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই ইউজারটি মুছতে চান?');">
+            <form method="post" action="/delete_user/{{ user.id }}" onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই ইউজারটি মুছতে চান?');">
               <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">মুছুন</button>
             </form>
           </td>

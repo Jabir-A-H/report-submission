@@ -1,53 +1,122 @@
-jinja2.exceptions.UndefinedError
-jinja2.exceptions.UndefinedError: 'month' is undefined
+werkzeug.exceptions.BadRequestKeyError
+werkzeug.exceptions.BadRequestKeyError: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+KeyError: 'name'
 
 Traceback (most recent call last)
 File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\app.py", line 1536, in __call__
-return self.wsgi_app(environ, start_response)
-       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ) -> cabc.Iterable[bytes]:
+        """The WSGI server calls the Flask application object as the
+        WSGI application. This calls :meth:`wsgi_app`, which can be
+        wrapped to apply middleware.
+        """
+        return self.wsgi_app(environ, start_response)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\app.py", line 1514, in wsgi_app
-response = self.handle_exception(e)
-           ^^^^^^^^^^^^^^^^^^^^^^^^
+            try:
+                ctx.push()
+                response = self.full_dispatch_request()
+            except Exception as e:
+                error = e
+                response = self.handle_exception(e)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
+            except:  # noqa: B001
+                error = sys.exc_info()[1]
+                raise
+            return response(environ, start_response)
+        finally:
 File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\app.py", line 1511, in wsgi_app
-response = self.full_dispatch_request()
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        ctx = self.request_context(environ)
+        error: BaseException | None = None
+        try:
+            try:
+                ctx.push()
+                response = self.full_dispatch_request()
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            except Exception as e:
+                error = e
+                response = self.handle_exception(e)
+            except:  # noqa: B001
+                error = sys.exc_info()[1]
 File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\app.py", line 919, in full_dispatch_request
-rv = self.handle_user_exception(e)
-     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            request_started.send(self, _async_wrapper=self.ensure_sync)
+            rv = self.preprocess_request()
+            if rv is None:
+                rv = self.dispatch_request()
+        except Exception as e:
+            rv = self.handle_user_exception(e)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        return self.finalize_request(rv)
+ 
+    def finalize_request(
+        self,
+        rv: ft.ResponseReturnValue | HTTPException,
 File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
-rv = self.dispatch_request()
-     ^^^^^^^^^^^^^^^^^^^^^^^
+ 
+        try:
+            request_started.send(self, _async_wrapper=self.ensure_sync)
+            rv = self.preprocess_request()
+            if rv is None:
+                rv = self.dispatch_request()
+                     ^^^^^^^^^^^^^^^^^^^^^^^
+        except Exception as e:
+            rv = self.handle_user_exception(e)
+        return self.finalize_request(rv)
+ 
+    def finalize_request(
 File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\app.py", line 902, in dispatch_request
-return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
-       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            and req.method == "OPTIONS"
+        ):
+            return self.make_default_options_response()
+        # otherwise dispatch to the handler for that endpoint
+        view_args: dict[str, t.Any] = req.view_args  # type: ignore[assignment]
+        return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+    def full_dispatch_request(self) -> Response:
+        """Dispatches the request and on top of that performs request
+        pre and postprocessing as well as HTTP exception catching and
+        error handling.
 File "F:\WebDev\report-submission\venv\Lib\site-packages\flask_login\utils.py", line 290, in decorated_view
-return current_app.ensure_sync(func)(*args, **kwargs)
-       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-File "F:\WebDev\report-submission\app.py", line 548, in report_summary
-return render_template("report.html")
-       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\templating.py", line 150, in render_template
-return _render(app, template, context)
-       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\templating.py", line 131, in _render
-rv = template.render(context)
-     ^^^^^^^^^^^^^^^^^^^^^^^^
-File "F:\WebDev\report-submission\venv\Lib\site-packages\jinja2\environment.py", line 1295, in render
-self.environment.handle_exception()
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-File "F:\WebDev\report-submission\venv\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
-raise rewrite_traceback_stack(source=source)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-File "F:\WebDev\report-submission\templates\report.html", line 75, in top-level template code
-{% for r in reports %}
-File "F:\WebDev\report-submission\templates\base.html", line 80, in top-level template code
-{% block content %}{% endblock %}
-File "F:\WebDev\report-submission\templates\report.html", line 17, in block 'content'
-<p class="text-gray-600">{{ get_month_name(month|int) }} {{ year }}</p>
-File "F:\WebDev\report-submission\venv\Lib\site-packages\jinja2\filters.py", line 998, in do_int
-return int(value)
-       ^^^^^^^^^^
-jinja2.exceptions.UndefinedError: 'month' is undefined
+            return current_app.login_manager.unauthorized()
+ 
+        # flask 1.x compatibility
+        # current_app.ensure_sync is only available in Flask >= 2.0
+        if callable(getattr(current_app, "ensure_sync", None)):
+            return current_app.ensure_sync(func)(*args, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        return func(*args, **kwargs)
+ 
+    return decorated_view
+ 
+ 
+File "F:\WebDev\report-submission\app.py", line 638, in admin_zones
+@login_required
+def admin_zones():
+    if not is_admin():
+        return redirect(url_for("dashboard"))
+    if request.method == "POST":
+        name = request.form["name"]
+               ^^^^^^^^^^^^^^^^^^^^
+        if not Zone.query.filter_by(name=name).first():
+            db.session.add(Zone(name=name))
+            db.session.commit()
+    zones = Zone.query.all()
+    return render_template("admin_zones.html", zones=zones)
+File "F:\WebDev\report-submission\venv\Lib\site-packages\werkzeug\datastructures\structures.py", line 238, in __getitem__
+ 
+        if key in self:
+            lst = super().__getitem__(key)
+            if len(lst) > 0:  # type: ignore[arg-type]
+                return lst[0]  # type: ignore[index,no-any-return]
+        raise exceptions.BadRequestKeyError(key)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+    def __setitem__(self, key: K, value: V) -> None:
+        """Like :meth:`add` but removes an existing key first.
+ 
+        :param key: the key for the value.
+werkzeug.exceptions.BadRequestKeyError: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
+KeyError: 'name'
 The debugger caught an exception in your WSGI application. You can now look at the traceback which led to the error.
 To switch between the interactive traceback and the plaintext one, you can click on the "Traceback" headline. From the text traceback you can also create a paste of it. For code execution mouse-over the frame you want to debug and click on the console icon on the right side.
 
