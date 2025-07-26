@@ -198,6 +198,7 @@ def generate_next_user_id():
 @login_required
 def dashboard():
     from datetime import datetime
+
     month = request.args.get("month")
     year = request.args.get("year")
     report_type = request.args.get("report_type")
@@ -220,8 +221,21 @@ def dashboard():
 
     # Helper for Bengali month names
     def get_month_name(i):
-        months = ["জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"]
-        return months[i-1] if 1 <= i <= 12 else ""
+        months = [
+            "জানুয়ারি",
+            "ফেব্রুয়ারি",
+            "মার্চ",
+            "এপ্রিল",
+            "মে",
+            "জুন",
+            "জুলাই",
+            "আগস্ট",
+            "সেপ্টেম্বর",
+            "অক্টোবর",
+            "নভেম্বর",
+            "ডিসেম্বর",
+        ]
+        return months[i - 1] if 1 <= i <= 12 else ""
 
     if is_admin():
         return render_template(
@@ -231,7 +245,7 @@ def dashboard():
             year=year,
             report_type=report_type,
             report_types=report_types,
-            get_month_name=get_month_name
+            get_month_name=get_month_name,
         )
     else:
         # Build sections list with completion status and navigation URLs
