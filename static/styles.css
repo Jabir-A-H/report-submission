@@ -1,4 +1,3 @@
-/* Modern, sleek animations and transitions for the report form */
 
 .fade-in {
   animation: fadeIn 0.7s cubic-bezier(0.4,0,0.2,1) both;
@@ -37,5 +36,114 @@
 }
 .table-row-animate:hover {
   background: #f0f9ff;
+}
+
+
+/* Tailwind utility overrides and custom UI styles for Bengali report system */
+
+body {
+  font-family: 'Tiro Bengali', sans-serif;
+  background: linear-gradient(135deg, #fdf6e3 0%, #f0f9ff 100%);
+  color: #222;
+}
+
+.fade-in {
+  animation: fadeIn 0.7s cubic-bezier(0.4,0,0.2,1) both;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(24px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+.input-focus {
+  transition: box-shadow 0.2s, border-color 0.2s;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+}
+.input-focus:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px #38bdf8;
+  outline: none;
+}
+
+.btn-animate {
+  transition: background 0.2s, transform 0.15s;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(56,189,248,0.08);
+  padding: 0.75rem 1.5rem;
+  font-size: 1.1rem;
+}
+.btn-animate:hover {
+  background: linear-gradient(90deg, #22d3ee 0%, #38bdf8 100%);
+  color: #fff;
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 4px 16px rgba(56,189,248,0.18);
+}
+
+.card-animate {
+  animation: cardPop 0.7s cubic-bezier(0.4,0,0.2,1) both;
+  border-radius: 1rem;
+  box-shadow: 0 2px 12px rgba(34,197,94,0.08);
+  background: #fff;
+  margin-bottom: 1.5rem;
+  padding: 1.5rem;
+}
+@keyframes cardPop {
+  from { opacity: 0; transform: scale(0.96) translateY(32px); }
+  to { opacity: 1; transform: none; }
+}
+
+.table-row-animate {
+  transition: background 0.2s;
+}
+.table-row-animate:hover {
+  background: #f0f9ff;
+}
+
+.breadcrumb {
+  color: #64748b;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+.footer {
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 1rem;
+  text-align: center;
+  padding: 1.5rem 0 0.5rem 0;
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+}
+
+.alert-success {
+  background: #d1fae5;
+  color: #065f46;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+.alert-danger {
+  background: #fee2e2;
+  color: #991b1b;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #38bdf8;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
