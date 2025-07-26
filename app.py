@@ -1,3 +1,204 @@
+# --- Helper: Populate Categories for New Report ---
+def populate_categories_for_report(report_id):
+    from sqlalchemy.exc import IntegrityError
+
+    # Course Categories
+    course_categories = [
+        "বিশিষ্টদের",
+        "সাধারণদের",
+        "কর্মীদের",
+        "ইউনিট সভানেত্রী",
+        "অগ্রসরদের",
+        "রুকনদের অনুশীলনী ক্লাস",
+        "তারবিয়াত বৈঠক",
+        "পারিবারিক ইউনিটে তা'লীমুল কুরআন",
+        "শিশু- তা'লিমুল কুরআন",
+        "নিরক্ষর- তা'লিমুস সলাত",
+    ]
+    for cat in course_categories:
+        if not ReportCourse.query.filter_by(category=cat, report_id=report_id).first():
+            try:
+                db.session.add(
+                    ReportCourse(category=cat, number=0, report_id=report_id)
+                )
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+
+    # Organizational Categories
+    org_categories = [
+        "দাওয়াত দান",
+        "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
+        "সহযোগী হয়েছে",
+        "সম্মতি দিয়েছেন",
+        "সক্রিয় সহযোগী",
+        "কর্মী",
+        "রুকন",
+        "দাওয়াতী ইউনিট",
+        "ইউনিট",
+        "সূধী",
+        "এককালীন",
+        "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
+        "বই বিলি",
+        "বই বিক্রি",
+    ]
+    for cat in org_categories:
+        if not ReportOrganizational.query.filter_by(
+            category=cat, report_id=report_id
+        ).first():
+            try:
+                db.session.add(
+                    ReportOrganizational(category=cat, number=0, report_id=report_id)
+                )
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+
+    # Personal Activities Categories
+    personal_categories = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
+    for cat in personal_categories:
+        if not ReportPersonal.query.filter_by(
+            category=cat, report_id=report_id
+        ).first():
+            try:
+                db.session.add(ReportPersonal(category=cat, report_id=report_id))
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+
+    # Meeting Categories
+    meeting_categories = [
+        "কমিটি বৈঠক হয়েছে",
+        "মুয়াল্লিমাদের নিয়ে বৈঠক",
+        "Committee Orientation",
+        "Muallima Orientation",
+    ]
+    for cat in meeting_categories:
+        if not ReportMeeting.query.filter_by(category=cat, report_id=report_id).first():
+            try:
+                db.session.add(ReportMeeting(category=cat, report_id=report_id))
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+
+    # Extra Activity Categories
+    extra_categories = [
+        "মক্তব সংখ্যা",
+        "মক্তব বৃদ্ধি",
+        "মহানগরী পরিচালিত",
+        "স্থানীয়ভাবে পরিচালিত",
+        "মহানগরীর সফর",
+        "থানা কমিটির সফর",
+        "থানা প্রতিনিধির সফর",
+        "ওয়ার্ড প্রতিনিধির সফর",
+    ]
+    for cat in extra_categories:
+        if not ReportExtra.query.filter_by(category=cat, report_id=report_id).first():
+            try:
+                db.session.add(ReportExtra(category=cat, number=0, report_id=report_id))
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+
+
+# --- Seed Predefined Categories ---
+def seed_predefined_categories():
+    from sqlalchemy.exc import IntegrityError
+
+    # Course Categories
+    course_categories = [
+        "বিশিষ্টদের",
+        "সাধারণদের",
+        "কর্মীদের",
+        "ইউনিট সভানেত্রী",
+        "অগ্রসরদের",
+        "রুকনদের অনুশীলনী ক্লাস",
+        "তারবিয়াত বৈঠক",
+        "পারিবারিক ইউনিটে তা'লীমুল কুরআন",
+        "শিশু- তা'লিমুল কুরআন",
+        "নিরক্ষর- তা'লিমুস সলাত",
+    ]
+    for cat in course_categories:
+        if not ReportCourse.query.filter_by(category=cat).first():
+            try:
+                db.session.add(ReportCourse(category=cat, number=0, report_id=1))
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+
+    # Organizational Categories
+    org_categories = [
+        "দাওয়াত দান",
+        "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
+        "সহযোগী হয়েছে",
+        "সম্মতি দিয়েছেন",
+        "সক্রিয় সহযোগী",
+        "কর্মী",
+        "রুকন",
+        "দাওয়াতী ইউনিট",
+        "ইউনিট",
+        "সূধী",
+        "এককালীন",
+        "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
+        "বই বিলি",
+        "বই বিক্রি",
+    ]
+    for cat in org_categories:
+        if not ReportOrganizational.query.filter_by(category=cat).first():
+            try:
+                db.session.add(
+                    ReportOrganizational(category=cat, number=0, report_id=1)
+                )
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+
+    # Personal Activities Categories
+    personal_categories = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
+    for cat in personal_categories:
+        if not ReportPersonal.query.filter_by(category=cat).first():
+            try:
+                db.session.add(ReportPersonal(category=cat, report_id=1))
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+
+    # Meeting Categories
+    meeting_categories = [
+        "কমিটি বৈঠক হয়েছে",
+        "মুয়াল্লিমাদের নিয়ে বৈঠক",
+        "Committee Orientation",
+        "Muallima Orientation",
+    ]
+    for cat in meeting_categories:
+        if not ReportMeeting.query.filter_by(category=cat).first():
+            try:
+                db.session.add(ReportMeeting(category=cat, report_id=1))
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+
+    # Extra Activity Categories
+    extra_categories = [
+        "মক্তব সংখ্যা",
+        "মক্তব বৃদ্ধি",
+        "মহানগরী পরিচালিত",
+        "স্থানীয়ভাবে পরিচালিত",
+        "মহানগরীর সফর",
+        "থানা কমিটির সফর",
+        "থানা প্রতিনিধির সফর",
+        "ওয়ার্ড প্রতিনিধির সফর",
+    ]
+    for cat in extra_categories:
+        if not ReportExtra.query.filter_by(category=cat).first():
+            try:
+                db.session.add(ReportExtra(category=cat, number=0, report_id=1))
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+
+
+# Call this function once after db.create_all()
 """
 Report Submission System - Clean Implementation
 
@@ -300,6 +501,9 @@ def dashboard():
             month=month,
             year=year,
         ).first()
+        # If a new report was just created, populate its categories
+        if report:
+            populate_categories_for_report(report.id)
 
         sections = []
         for sdef in section_defs:
@@ -544,8 +748,39 @@ def report_comments():
 @app.route("/report")
 @login_required
 def report_summary():
-    # ...summary logic here...
-    return render_template("report.html")
+    from datetime import datetime
+
+    month = request.args.get("month")
+    year = request.args.get("year")
+    now = datetime.now()
+    if not month:
+        month = now.month
+    if not year:
+        year = now.year
+
+    def get_month_name(i):
+        months = [
+            "জানুয়ারি",
+            "ফেব্রুয়ারি",
+            "মার্চ",
+            "এপ্রিল",
+            "মে",
+            "জুন",
+            "জুলাই",
+            "আগস্ট",
+            "সেপ্টেম্বর",
+            "অক্টোবর",
+            "নভেম্বর",
+            "ডিসেম্বর",
+        ]
+        return months[int(i) - 1] if i and 1 <= int(i) <= 12 else ""
+
+    return render_template(
+        "report.html",
+        month=month,
+        year=year,
+        get_month_name=get_month_name,
+    )
 
 
 # --- Help Page ---
