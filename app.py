@@ -197,19 +197,43 @@ def generate_next_user_id():
 @app.route("/")
 @login_required
 def dashboard():
-    if is_admin():
-        return render_template("admin_reports.html", user=current_user)
-    else:
-        # Get month/year from query params or set defaults
-        from datetime import datetime
+    from datetime import datetime
+    month = request.args.get("month")
+    year = request.args.get("year")
+    report_type = request.args.get("report_type")
+    now = datetime.now()
+    if not month:
+        month = now.month
+    if not year:
+        year = now.year
+    if not report_type:
+        report_type = "মাসিক"  # Default report type
 
-        month = request.args.get("month", None)
-        year = request.args.get("year", None)
-        now = datetime.now()
-        if not month:
-            month = now.month
-        if not year:
-            year = now.year
+    # Define available report types
+    report_types = [
+        {"value": "মাসিক", "label": "মাসিক"},
+        {"value": "ত্রৈমাসিক", "label": "ত্রৈমাসিক"},
+        {"value": "ষান্মাসিক", "label": "ষান্মাসিক"},
+        {"value": "নয়-মাসিক", "label": "নয়-মাসিক"},
+        {"value": "বার্ষিক", "label": "বার্ষিক"},
+    ]
+
+    # Helper for Bengali month names
+    def get_month_name(i):
+        months = ["জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"]
+        return months[i-1] if 1 <= i <= 12 else ""
+
+    if is_admin():
+        return render_template(
+            "admin_reports.html",
+            user=current_user,
+            month=month,
+            year=year,
+            report_type=report_type,
+            report_types=report_types,
+            get_month_name=get_month_name
+        )
+    else:
         # Build sections list with completion status and navigation URLs
         section_defs = [
             {
