@@ -111,7 +111,7 @@ report-submission/
 ```
 
 **Notes:**
-- All admin/user logic can be handled in `app.py` or split into a small number of modules if needed (e.g., `models.py`, `routes.py`, `utils.py`).
+- All admin/user logic can be handled in `app.py`.
 - For a very small user base, keep things simple: avoid unnecessary microservices or over-engineering.
 - Use `instance/` for the database and secrets (Flask convention).
 - Place all documentation in the root for easy access.
