@@ -665,13 +665,41 @@ def delete_zone(zone_id):
     return redirect(url_for("admin_zones"))
 
 
-@app.route("/reports")
+@app.route("/zone_reports")
 @login_required
-def admin_reports():
+def zone_reports():
     if not is_admin():
         return redirect(url_for("dashboard"))
     reports = Report.query.all()
-    return render_template("reports.html", reports=reports)
+    return render_template("zone_reports.html", reports=reports)
+
+
+# --- Admin: View Individual Zone Report ---
+@app.route("/zone_report/<int:report_id>")
+@login_required
+def view_zone_report(report_id):
+    if not is_admin():
+        return redirect(url_for("dashboard"))
+    report = Report.query.get_or_404(report_id)
+    return render_template("zone_report.html", report=report)
+
+
+# --- Fields Page ---
+@app.route("/fields")
+@login_required
+def fields_page():
+    if not is_admin():
+        return redirect(url_for("dashboard"))
+    return render_template("fields.html")
+
+
+# --- City Report Page ---
+@app.route("/city_report")
+@login_required
+def city_report_page():
+    if not is_admin():
+        return redirect(url_for("dashboard"))
+    return render_template("city_report.html")
 
 
 # --- Report Section Routes ---

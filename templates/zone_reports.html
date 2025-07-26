@@ -1,0 +1,41 @@
+{% extends "base.html" %} {% block title %}Zone Reports{% endblock %} {% block
+content %}
+<div class="container mt-4">
+  <h2 class="mb-4">All Zone Reports</h2>
+  {% if reports and reports|length > 0 %}
+  <table class="table table-bordered table-hover">
+    <thead class="thead-light">
+      <tr>
+        <th>Report ID</th>
+        <th>Zone</th>
+        <th>Type</th>
+        <th>Month</th>
+        <th>Year</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for report in reports %}
+      <tr>
+        <td>{{ report.id }}</td>
+        <td>{{ report.zone.name if report.zone else 'N/A' }}</td>
+        <td>{{ report.month }}</td>
+        <td>{{ report.year }}</td>
+        <td>{{ report.report_type }}</td>
+        <td>
+          <a
+            href="{{ url_for('report_summary', month=report.month, year=report.year) }}"
+            class="btn btn-sm btn-primary"
+            >View</a
+          >
+          <!-- Add edit/delete actions as needed -->
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="alert alert-info">No reports found.</div>
+  {% endif %}
+</div>
+{% endblock %}
