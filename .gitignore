@@ -394,3 +394,4 @@ coverage/
 /project_idea_extras
 /.flake8
 /__pycache__
+/project_tree.txt
