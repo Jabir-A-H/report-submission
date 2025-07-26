@@ -19,13 +19,7 @@
       <div class="flex items-center gap-4">
         <a href="/" class="text-2xl font-bold text-cyan-700 tracking-tight drop-shadow" aria-label="হোম">রিপোর্ট সাবমিশন</a>
       </div>
-      <!-- Hamburger menu for mobile -->
-      <button id="nav-toggle" class="md:hidden block text-2xl text-blue-700 focus:outline-none" aria-label="মেনু খুলুন" tabindex="0">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-8 h-8">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      </button>
-      <nav id="nav-menu" class="flex-col md:flex-row md:flex gap-4 items-center hidden md:flex" aria-label="নেভিগেশন">
+      <nav class="flex gap-4 items-center" aria-label="নেভিগেশন">
         <a href="/" class="nav-link text-blue-700 font-semibold px-3 py-2 rounded hover:bg-blue-50 focus:ring-2 focus:ring-blue-400" aria-current="page">হোম</a>
         <a href="/report" class="nav-link text-blue-600 px-3 py-2 rounded hover:bg-blue-50 focus:ring-2 focus:ring-blue-400">রিপোর্ট</a>
         <a href="/help" class="nav-link text-gray-600 px-3 py-2 rounded hover:bg-blue-50 focus:ring-2 focus:ring-blue-400">সহায়তা</a>
@@ -36,7 +30,6 @@
             <a href="/zonereports" class="nav-link text-purple-600 px-3 py-2 rounded hover:bg-purple-50 focus:ring-2 focus:ring-purple-400">জোন রিপোর্ট</a>
             <a href="/fields" class="nav-link text-orange-600 px-3 py-2 rounded hover:bg-orange-50 focus:ring-2 focus:ring-orange-400">ফিল্ডস</a>
           {% endif %}
-          <!-- Zone/User Info Dropdown -->
           <div class="relative group">
             <button class="flex items-center gap-2 px-3 py-2 rounded bg-gray-100 text-gray-700 font-semibold focus:ring-2 focus:ring-blue-400" aria-label="ইউজার তথ্য" tabindex="0">
               <span>{{ current_user.zone_name }}</span>
