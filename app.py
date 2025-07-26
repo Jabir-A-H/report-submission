@@ -461,8 +461,46 @@ def report_header():
 @app.route("/report/courses", methods=["GET", "POST"])
 @login_required
 def report_courses():
-    # ...section logic here...
-    return render_template("sections/courses.html")
+    from datetime import datetime
+
+    month = request.args.get("month")
+    year = request.args.get("year")
+    now = datetime.now()
+    if not month:
+        month = now.month
+    if not year:
+        year = now.year
+
+    def get_month_name(i):
+        months = [
+            "জানুয়ারি",
+            "ফেব্রুয়ারি",
+            "মার্চ",
+            "এপ্রিল",
+            "মে",
+            "জুন",
+            "জুলাই",
+            "আগস্ট",
+            "সেপ্টেম্বর",
+            "অক্টোবর",
+            "নভেম্বর",
+            "ডিসেম্বর",
+        ]
+        return months[int(i) - 1] if i and 1 <= int(i) <= 12 else ""
+
+    # Get the report object for the current user, month, year
+    report = None
+    if current_user.is_authenticated:
+        report = Report.query.filter_by(
+            zone_id=current_user.zone_id, month=month, year=year
+        ).first()
+    return render_template(
+        "sections/courses.html",
+        month=month,
+        year=year,
+        get_month_name=get_month_name,
+        report=report,
+    )
 
 
 @app.route("/report/organizational", methods=["GET", "POST"])

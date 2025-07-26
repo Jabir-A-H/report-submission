@@ -1,0 +1,189 @@
+jinja2.exceptions.UndefinedError
+jinja2.exceptions.UndefinedError: 'report' is undefined
+
+Traceback (most recent call last)
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\app.py", line 1536, in __call__
+    ) -> cabc.Iterable[bytes]:
+        """The WSGI server calls the Flask application object as the
+        WSGI application. This calls :meth:`wsgi_app`, which can be
+        wrapped to apply middleware.
+        """
+        return self.wsgi_app(environ, start_response)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\app.py", line 1514, in wsgi_app
+            try:
+                ctx.push()
+                response = self.full_dispatch_request()
+            except Exception as e:
+                error = e
+                response = self.handle_exception(e)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
+            except:  # noqa: B001
+                error = sys.exc_info()[1]
+                raise
+            return response(environ, start_response)
+        finally:
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\app.py", line 1511, in wsgi_app
+        ctx = self.request_context(environ)
+        error: BaseException | None = None
+        try:
+            try:
+                ctx.push()
+                response = self.full_dispatch_request()
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            except Exception as e:
+                error = e
+                response = self.handle_exception(e)
+            except:  # noqa: B001
+                error = sys.exc_info()[1]
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+            request_started.send(self, _async_wrapper=self.ensure_sync)
+            rv = self.preprocess_request()
+            if rv is None:
+                rv = self.dispatch_request()
+        except Exception as e:
+            rv = self.handle_user_exception(e)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        return self.finalize_request(rv)
+ 
+    def finalize_request(
+        self,
+        rv: ft.ResponseReturnValue | HTTPException,
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+ 
+        try:
+            request_started.send(self, _async_wrapper=self.ensure_sync)
+            rv = self.preprocess_request()
+            if rv is None:
+                rv = self.dispatch_request()
+                     ^^^^^^^^^^^^^^^^^^^^^^^
+        except Exception as e:
+            rv = self.handle_user_exception(e)
+        return self.finalize_request(rv)
+ 
+    def finalize_request(
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+            and req.method == "OPTIONS"
+        ):
+            return self.make_default_options_response()
+        # otherwise dispatch to the handler for that endpoint
+        view_args: dict[str, t.Any] = req.view_args  # type: ignore[assignment]
+        return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+    def full_dispatch_request(self) -> Response:
+        """Dispatches the request and on top of that performs request
+        pre and postprocessing as well as HTTP exception catching and
+        error handling.
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask_login\utils.py", line 290, in decorated_view
+            return current_app.login_manager.unauthorized()
+ 
+        # flask 1.x compatibility
+        # current_app.ensure_sync is only available in Flask >= 2.0
+        if callable(getattr(current_app, "ensure_sync", None)):
+            return current_app.ensure_sync(func)(*args, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        return func(*args, **kwargs)
+ 
+    return decorated_view
+ 
+ 
+File "F:\WebDev\report-submission\app.py", line 476, in report_courses
+        year = now.year
+    def get_month_name(i):
+        months = ["জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"]
+        return months[int(i)-1] if i and 1 <= int(i) <= 12 else ""
+    # ...section logic here...
+    return render_template("sections/courses.html", month=month, year=year, get_month_name=get_month_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+ 
+@app.route("/report/organizational", methods=["GET", "POST"])
+@login_required
+def report_organizational():
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\templating.py", line 150, in render_template
+        a list is given, the first name to exist will be rendered.
+    :param context: The variables to make available in the template.
+    """
+    app = current_app._get_current_object()  # type: ignore[attr-defined]
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+ 
+def render_template_string(source: str, **context: t.Any) -> str:
+    """Render a template from the given source string with the given
+    context.
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\templating.py", line 131, in _render
+def _render(app: Flask, template: Template, context: dict[str, t.Any]) -> str:
+    app.update_template_context(context)
+    before_render_template.send(
+        app, _async_wrapper=app.ensure_sync, template=template, context=context
+    )
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+    template_rendered.send(
+        app, _async_wrapper=app.ensure_sync, template=template, context=context
+    )
+    return rv
+ 
+File "F:\WebDev\report-submission\venv\Lib\site-packages\jinja2\environment.py", line 1295, in render
+        ctx = self.new_context(dict(*args, **kwargs))
+ 
+        try:
+            return self.environment.concat(self.root_render_func(ctx))  # type: ignore
+        except Exception:
+            self.environment.handle_exception()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+    async def render_async(self, *args: t.Any, **kwargs: t.Any) -> str:
+        """This works similar to :meth:`render` but returns a coroutine
+        that when awaited returns the entire rendered template string.  This
+        requires the async feature to be enabled.
+File "F:\WebDev\report-submission\venv\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+        """Exception handling helper.  This is used internally to either raise
+        rewritten exceptions or return a rendered traceback for the template.
+        """
+        from .debug import rewrite_traceback_stack
+ 
+        raise rewrite_traceback_stack(source=source)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+    def join_path(self, template: str, parent: str) -> str:
+        """Join a template with the parent.  By default all the lookups are
+        relative to the loader root so this method returns the `template`
+        parameter unchanged, but if the paths should be relative to the
+File "F:\WebDev\report-submission\templates\sections\courses.html", line 48, in top-level template code
+              নতুন কোর্স যুক্ত করুন
+            </button>
+          </div>
+ 
+          <div id="courses-container">
+            {% if report.courses and report.courses|length > 0 %}
+              {% for course in report.courses %}
+              <div class="course-item bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div class="lg:col-span-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">বিভাগ</label>
+File "F:\WebDev\report-submission\venv\Lib\site-packages\jinja2\environment.py", line 490, in getattr
+    def getattr(self, obj: t.Any, attribute: str) -> t.Any:
+        """Get an item or attribute of an object but prefer the attribute.
+        Unlike :meth:`getitem` the attribute *must* be a string.
+        """
+        try:
+            return getattr(obj, attribute)
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+        except AttributeError:
+            pass
+        try:
+            return obj[attribute]
+        except (TypeError, LookupError, AttributeError):
+jinja2.exceptions.UndefinedError: 'report' is undefined
+The debugger caught an exception in your WSGI application. You can now look at the traceback which led to the error.
+To switch between the interactive traceback and the plaintext one, you can click on the "Traceback" headline. From the text traceback you can also create a paste of it. For code execution mouse-over the frame you want to debug and click on the console icon on the right side.
+
+You can execute arbitrary Python code in the stack frames and there are some extra helpers available for introspection:
+
+dump() shows all variables in the frame
+dump(obj) dumps all that's known about the object
+Brought to you by DON'T PANIC, your friendly Werkzeug powered traceback interpreter.
