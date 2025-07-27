@@ -684,15 +684,6 @@ def view_zone_report(report_id):
     return render_template("zone_report.html", report=report)
 
 
-# --- Fields Page ---
-@app.route("/fields")
-@login_required
-def fields_page():
-    if not is_admin():
-        return redirect(url_for("dashboard"))
-    return render_template("fields.html")
-
-
 # --- City Report Page ---
 @app.route("/city_report")
 @login_required
