@@ -395,3 +395,4 @@ coverage/
 /.flake8
 /__pycache__
 /project_tree.txt
+/website errors.txt
