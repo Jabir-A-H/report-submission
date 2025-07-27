@@ -682,16 +682,6 @@ def zone_reports():
     return render_template("zone_reports.html", reports=reports)
 
 
-# --- Admin: View Individual Zone Report ---
-@app.route("/zone_report/<int:report_id>")
-@login_required
-def view_zone_report(report_id):
-    if not is_admin():
-        return redirect(url_for("dashboard"))
-    report = Report.query.get_or_404(report_id)
-    return render_template("zone_report.html", report=report)
-
-
 # --- City Report Page ---
 @app.route("/city_report")
 @login_required
@@ -736,6 +726,8 @@ def get_report_period():
 def report_header():
     month, year, report_type = get_report_period()
     report = None
+    error = None
+    success = None
     if current_user.is_authenticated:
         report = Report.query.filter_by(
             zone_id=current_user.zone_id,
@@ -743,13 +735,79 @@ def report_header():
             year=year,
             report_type=report_type,
         ).first()
-    # ...section logic here...
+        if not report:
+            # Create report if not exists
+            report = Report(
+                zone_id=current_user.zone_id,
+                month=month,
+                year=year,
+                report_type=report_type,
+            )
+            db.session.add(report)
+            db.session.commit()
+
+        if request.method == "POST":
+            # Get form data
+            responsible_name = request.form.get("responsible_name")
+            thana = request.form.get("thana")
+            ward = request.form.get("ward")
+            total_muallima = request.form.get("total_muallima", type=int)
+            muallima_increase = request.form.get("muallima_increase", type=int)
+            muallima_decrease = request.form.get("muallima_decrease", type=int)
+            certified_muallima = request.form.get("certified_muallima", type=int)
+            certified_muallima_taking_classes = request.form.get(
+                "certified_muallima_taking_classes", type=int
+            )
+            trained_muallima = request.form.get("trained_muallima", type=int)
+            trained_muallima_taking_classes = request.form.get(
+                "trained_muallima_taking_classes", type=int
+            )
+            total_unit = request.form.get("total_unit", type=int)
+            units_with_muallima = request.form.get("units_with_muallima", type=int)
+
+            # Validate required fields
+            if not responsible_name or not thana or not ward:
+                error = "সব আবশ্যক ঘর পূরণ করুন।"
+            else:
+                # Create or update ReportHeader
+                header = report.header
+                if not header:
+                    header = ReportHeader(report_id=report.id)
+                    db.session.add(header)
+                header.responsible_name = responsible_name
+                header.thana = thana
+                header.ward = ward
+                header.total_muallima = total_muallima or 0
+                header.muallima_increase = muallima_increase or 0
+                header.muallima_decrease = muallima_decrease or 0
+                header.certified_muallima = certified_muallima or 0
+                header.certified_muallima_taking_classes = (
+                    certified_muallima_taking_classes or 0
+                )
+                header.trained_muallima = trained_muallima or 0
+                header.trained_muallima_taking_classes = (
+                    trained_muallima_taking_classes or 0
+                )
+                header.total_unit = total_unit or 0
+                header.units_with_muallima = units_with_muallima or 0
+                db.session.commit()
+                success = "তথ্য সফলভাবে সংরক্ষণ হয়েছে।"
+                # Refresh report object
+                report = Report.query.filter_by(id=report.id).first()
+
+    breadcrumbs = [
+        {"label": "হোম", "url": url_for("dashboard", month=month, year=year)},
+        {"label": "মূল তথ্য"},
+    ]
     return render_template(
         "report/header.html",
         month=month,
         year=year,
         report_type=report_type,
         report=report,
+        breadcrumbs=breadcrumbs,
+        error=error,
+        success=success,
     )
 
 
@@ -857,6 +915,7 @@ def report_comments():
 def report_summary():
     from datetime import datetime
 
+    report_id = request.args.get("report_id")
     report_type = request.args.get("report_type", "মাসিক")
     month = request.args.get("month")
     year = request.args.get("year")
@@ -866,15 +925,25 @@ def report_summary():
     if not year:
         year = now.year
 
-    # Get the report object for the current user's zone, type, month, year
-    query = {
-        "zone_id": current_user.zone_id,
-        "year": int(year),
-        "report_type": report_type,
-    }
-    if report_type == "মাসিক":
-        query["month"] = int(month)
-    report = Report.query.filter_by(**query).first()
+    report = None
+    # If report_id is provided and user is admin, show that report
+    if report_id and is_admin():
+        report = Report.query.filter_by(id=report_id).first()
+        # Optionally, set month/year/report_type from the report for display
+        if report:
+            month = report.month
+            year = report.year
+            report_type = report.report_type
+    else:
+        # Get the report object for the current user's zone, type, month, year
+        query = {
+            "zone_id": current_user.zone_id,
+            "year": int(year),
+            "report_type": report_type,
+        }
+        if report_type == "মাসিক":
+            query["month"] = int(month)
+        report = Report.query.filter_by(**query).first()
 
     return render_template(
         "report.html",

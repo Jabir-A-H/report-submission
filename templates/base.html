@@ -103,6 +103,27 @@
     </script>
     </header>
     <main class="mx-auto max-w-screen-xl px-4 py-8 mb-8 mt-24">
+      {% block breadcrumbs %}
+      <nav class="mb-6 flex items-center gap-2 text-base font-semibold" aria-label="breadcrumb">
+        {% if breadcrumbs %}
+          {% for crumb in breadcrumbs %}
+            {% if not loop.first %}
+              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            {% endif %}
+            {% if crumb.url %}
+              <a href="{{ crumb.url }}" class="flex items-center gap-1 px-3 py-2 rounded-lg bg-cyan-100 text-cyan-800 hover:bg-cyan-200 transition shadow">
+                {% if loop.first %}
+                  <svg class="w-5 h-5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6"/></svg>
+                {% endif %}
+                {{ crumb.label }}
+              </a>
+            {% else %}
+              <span class="px-3 py-2 rounded-lg bg-cyan-50 text-cyan-700">{{ crumb.label }}</span>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      </nav>
+      {% endblock %}
       {% block content %}{% endblock %}
     </main>
     <footer
