@@ -3,48 +3,56 @@ block content %}
 <div class="container mx-auto px-4 py-8 animate-fade-in">
   <div class="text-center mb-8">
     <h1 class="text-3xl font-bold text-cyan-700 mb-2">ইউজার ব্যবস্থাপনা</h1>
-    <p class="text-gray-600">ইউজার অনুমোদন, মুছুন, ও সম্পাদনা করুন</p>
+    <p class="text-gray-600">ইউজার অনুমোদন, রিজেক্ট, জোন অ্যাসাইন/রিএসাইন, ও সম্পাদনা করুন</p>
   </div>
-  <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-8">
-    <table
-      class="min-w-full border-separate border-spacing-y-1 border-0 rounded shadow text-sm"
-    >
+  <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8">
+    <table class="min-w-full border-separate border-spacing-y-1 border-0 rounded shadow text-sm">
       <thead class="bg-cyan-50">
         <tr class="text-cyan-700">
-          <th class="px-4 py-2 border-b">ইউজারের নাম</th>
+          <th class="px-4 py-2 border-b">আইডি</th>
+          <th class="px-4 py-2 border-b">নাম</th>
           <th class="px-4 py-2 border-b">ইমেইল</th>
+          <th class="px-4 py-2 border-b">জোন</th>
+          <th class="px-4 py-2 border-b">রোল</th>
+          <th class="px-4 py-2 border-b">স্ট্যাটাস</th>
           <th class="px-4 py-2 border-b">অ্যাকশন</th>
         </tr>
       </thead>
       <tbody>
         {% for user in users %}
         <tr class="hover:bg-cyan-50">
+          <td class="px-4 py-2 border-b">{{ user.user_id }}</td>
           <td class="px-4 py-2 border-b">{{ user.name }}</td>
           <td class="px-4 py-2 border-b">{{ user.email }}</td>
+          <td class="px-4 py-2 border-b">{{ user.zone.name if user.zone else '' }}</td>
+          <td class="px-4 py-2 border-b">{{ user.role }}</td>
           <td class="px-4 py-2 border-b">
-            <form
-              method="post"
-              action="/approve_user/{{ user.id }}"
-              onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই ইউজারটি অনুমোদন করতে চান?');"
-            >
-              <button
-                type="submit"
-                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              >
-                অনুমোদন
-              </button>
+            {% if user.active %}
+              <span class="px-2 py-1 rounded bg-green-100 text-green-700">Active</span>
+            {% else %}
+              <span class="px-2 py-1 rounded bg-yellow-100 text-yellow-700">Pending</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-2 border-b flex flex-col gap-2">
+            <form method="post" style="display:inline-block;" action="/users" onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই ইউজারটি অনুমোদন করতে চান?');">
+              <input type="hidden" name="user_id" value="{{ user.id }}">
+              <input type="hidden" name="action" value="approve">
+              <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">অনুমোদন</button>
             </form>
-            <form
-              method="post"
-              action="/delete_user/{{ user.id }}"
-              onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই ইউজারটি মুছতে চান?');"
-            >
-              <button
-                type="submit"
-                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-              >
-                মুছুন
-              </button>
+            <form method="post" style="display:inline-block;" action="/users" onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই ইউজারটি রিজেক্ট করতে চান?');">
+              <input type="hidden" name="user_id" value="{{ user.id }}">
+              <input type="hidden" name="action" value="reject">
+              <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">রিজেক্ট</button>
+            </form>
+            <form method="post" style="display:inline-block;" action="/users" onsubmit="return confirm('জোন পরিবর্তন করতে চান?');">
+              <input type="hidden" name="user_id" value="{{ user.id }}">
+              <input type="hidden" name="action" value="assign_zone">
+              <select name="zone_id" class="px-2 py-1 border rounded">
+                {% for zone in zones %}
+                  <option value="{{ zone.id }}" {% if user.zone_id == zone.id %}selected{% endif %}>{{ zone.name }}</option>
+                {% endfor %}
+              </select>
+              <button type="submit" class="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 ml-2">জোন আপডেট</button>
             </form>
           </td>
         </tr>

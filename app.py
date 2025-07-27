@@ -612,9 +612,14 @@ def admin_users():
             user.active = True
         elif action == "reject":
             db.session.delete(user)
+        elif action == "assign_zone":
+            zone_id = request.form.get("zone_id")
+            if zone_id:
+                user.zone_id = int(zone_id)
         db.session.commit()
     users = User.query.all()
-    return render_template("users.html", users=users)
+    zones = Zone.query.all()
+    return render_template("users.html", users=users, zones=zones)
 
 
 @app.route("/zones", methods=["GET", "POST"])
