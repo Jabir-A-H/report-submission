@@ -19,6 +19,7 @@
 - **Flexible navigation**: Users can edit any section in any order from the dashboard
 - **Auto-save functionality**: All forms auto-save on field changes
 - **Role-based access**: Users edit their zone's reports; Admins manage all reports and system settings
+- **Categories for each report section are hardcoded and not editable via the admin panel**
 
 ---
 
