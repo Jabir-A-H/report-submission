@@ -30,20 +30,46 @@
             <a href="/users" class="nav-link text-green-600 px-3 py-2 rounded hover:bg-green-50 focus:ring-2 focus:ring-green-400">ইউজার</a>
             <a href="/zones" class="nav-link text-cyan-600 px-3 py-2 rounded hover:bg-cyan-50 focus:ring-2 focus:ring-cyan-400">জোন</a>
           {% endif %}
-          <div class="relative group">
-            <button class="flex items-center gap-2 px-3 py-2 rounded bg-gray-100 text-gray-700 font-semibold focus:ring-2 focus:ring-blue-400" aria-label="ইউজার তথ্য" tabindex="0">
-              <span>{{ current_user.zone_name }}</span>
+          <div class="relative">
+            <button id="user-info-btn" class="flex items-center gap-2 px-3 py-2 rounded bg-gray-100 text-gray-700 font-semibold focus:ring-2 focus:ring-blue-400" aria-label="ইউজার তথ্য" tabindex="0" type="button">
+              <span>{% if current_user.zone and current_user.zone.name %}{{ current_user.zone.name }}{% else %}জোন নির্ধারিত নেই{% endif %}</span>
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
-            <div class="absolute right-0 mt-2 w-56 bg-white rounded shadow-lg border border-gray-200 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200 z-50">
+            <div id="user-info-dropdown" class="absolute right-0 mt-2 w-56 bg-white rounded shadow-lg border border-gray-200 opacity-0 pointer-events-none transition-opacity duration-200 z-50">
               <div class="p-4 text-sm text-gray-700">
                 <div><span class="font-bold">নাম:</span> {{ current_user.name }}</div>
                 <div><span class="font-bold">আইডি:</span> {{ current_user.user_id }}</div>
                 <div><span class="font-bold">ইমেইল:</span> {{ current_user.email }}</div>
-                <div><span class="font-bold">জোন:</span> {{ current_user.zone_name }}</div>
+                <div><span class="font-bold">জোন:</span> {% if current_user.zone and current_user.zone.name %}{{ current_user.zone.name }}{% else %}জোন নির্ধারিত নেই{% endif %}</div>
               </div>
               <a href="/logout" class="block px-4 py-2 text-red-600 hover:bg-red-50 font-bold">লগআউট</a>
             </div>
+            <script>
+              // Dropdown show/hide logic (click only)
+              const userInfoBtn = document.getElementById('user-info-btn');
+              const userInfoDropdown = document.getElementById('user-info-dropdown');
+              let dropdownVisible = false;
+              if (userInfoBtn && userInfoDropdown) {
+                userInfoBtn.addEventListener('click', (e) => {
+                  e.stopPropagation();
+                  dropdownVisible = !dropdownVisible;
+                  if (dropdownVisible) {
+                    userInfoDropdown.style.opacity = '1';
+                    userInfoDropdown.style.pointerEvents = 'auto';
+                  } else {
+                    userInfoDropdown.style.opacity = '0';
+                    userInfoDropdown.style.pointerEvents = 'none';
+                  }
+                });
+                document.addEventListener('click', (e) => {
+                  if (!userInfoBtn.contains(e.target) && !userInfoDropdown.contains(e.target)) {
+                    dropdownVisible = false;
+                    userInfoDropdown.style.opacity = '0';
+                    userInfoDropdown.style.pointerEvents = 'none';
+                  }
+                });
+              }
+            </script>
           </div>
         {% else %}
           <a href="/login" class="nav-link text-blue-600 px-3 py-2 rounded hover:bg-blue-50 focus:ring-2 focus:ring-blue-400">লগইন</a>
