@@ -1,3 +1,27 @@
+
+# Site Map (Index Format)
+
+- **Login** (`/login`): User authentication page for registered users. Users can log in using either their email or their 3-digit user_id.
+- **Register** (`/register`): New user registration form (requires admin approval). System auto-generates a 3-digit user_id for each user.
+- **Report Dashboard** (`/`): Main landing page after login for both users and admins.
+- **At a Glance** (`/report`): Aggregated/summary report for the selected period. Users see their zone's data; admins the city level report. Includes a download button (Excel/PDF). Available to both users (for their zone) and admins (for the city level report).
+- **Report Sections**: Individual forms for each part of the report, matching the database schema:
+  - Header Section (`/report/header`): Responsible person, location, and teacher statistics. *(ReportHeader)*
+  - Courses Section (`/report/courses`): Educational program details, enrollment, and progress. *(ReportCourse)*
+  - Organizational Section (`/report/organizational`): Membership and organizational activities. *(ReportOrganizational)*
+  - Personal Section (`/report/personal`): Individual teaching activities. *(ReportPersonal)*
+  - Meetings Section (`/report/meetings`): Meeting types and attendance data. *(ReportMeeting)*
+  - Extras Section (`/report/extras`): Additional activities and programs. *(ReportExtra)*
+  - Comments Section (`/report/comments`): Period-specific narrative comments. *(ReportComment)*
+- **Admin Dashboard** (`/`): Admin dashboard provides an overview of all reports and user activities and links to different admin features in a card format. The dashboard view is determined by login role: users see the user dashboard, admins see the admin dashboard.
+- **Users Management** (`/users`): Approve/reject users, assign/reassign zones, view user list and status.
+- **Zones Management** (`/zones`): Create, delete, and manage zones.
+- **All Zone Reports** (`/zone_reports`): View all zone reports filter by report type, month, and year.
+- **Help** (`/help`): Help page with frequently asked questions and guidance.
+- **Logout** (`/logout`): Log out of the system.
+
+---
+
 Update all codes in the repository to match the todo_4 mockup.
 
 # Site UI Design Document (Extreme Detail)
@@ -17,7 +41,7 @@ Update all codes in the repository to match the todo_4 mockup.
 - **Navigation Bar**
   - Always visible except on login/register pages.
   - Contains links: Home (`/`), Report at a glance (`/report`), Help (`/help`).
-  - For admins, show extra links: Users (`/users`), Zones (`/zones`), Zone Reports (`/zone_reports`), Fields (`/fields`).
+  - For admins, show extra links: Users (`/users`), Zones (`/zones`), Zone Reports (`/zone_reports`).
   - Hamburger menu appears on screens <768px, toggles navigation links vertically.
   - Zone info is shown at top right, with dropdown for profile/settings (future feature).
   - Active page is highlighted with a color accent and underline.
