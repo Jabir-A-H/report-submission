@@ -1,5 +1,5 @@
 jinja2.exceptions.UndefinedError
-jinja2.exceptions.UndefinedError: 'course_totals' is undefined
+jinja2.exceptions.UndefinedError: 'report' is undefined
 
 Traceback (most recent call last)
 File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\app.py", line 1536, in __call__
@@ -88,18 +88,18 @@ File "F:\WebDev\report-submission\venv\Lib\site-packages\flask_login\utils.py", 
     return decorated_view
  
  
-File "F:\WebDev\report-submission\app.py", line 689, in city_report_page
-    now = datetime.now()
+File "F:\WebDev\report-submission\app.py", line 789, in report_summary
     if not month:
         month = now.month
     if not year:
         year = now.year
-    return render_template("city_report.html", month=month, year=year)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
  
- 
-# --- Report Section Routes ---
- 
+    return render_template(
+           
+        "report.html",
+        month=month,
+        year=year,
+    )
  
 File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\templating.py", line 150, in render_template
         a list is given, the first name to exist will be rendered.
@@ -153,14 +153,19 @@ File "F:\WebDev\report-submission\venv\Lib\site-packages\jinja2\environment.py",
         """Join a template with the parent.  By default all the lookups are
         relative to the loader root so this method returns the `template`
         parameter unchanged, but if the paths should be relative to the
-File "F:\WebDev\report-submission\templates\city_report.html", line 1, in top-level template code
-{% extends "base.html" %} {% block content %}
-<h2>City Report for {{ month|month_name }} {{ year }}</h2>
- 
-<table class="table table-bordered">
-  <thead>
-    <tr>
-File "F:\WebDev\report-submission\templates\base.html", line 80, in top-level template code
+File "F:\WebDev\report-submission\templates\report.html", line 212, in top-level template code
+              <th class="px-4 py-2 border-b">দায়িত্বপ্রাপ্ত</th>
+              <th class="px-4 py-2 border-b">লকড?</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in reports %}
+            <tr class="hover:bg-gray-50">
+              <td class="px-4 py-2 border-b">{{ r.user.email }}</td>
+              <td class="px-4 py-2 border-b">{{ r.user.zone.name }}</td>
+              <!-- Ward removed from user -->
+              <td class="px-4 py-2 border-b">{{ r.month }}</td>
+File "F:\WebDev\report-submission\templates\base.html", line 106, in top-level template code
         });
       });
     </script>
@@ -172,18 +177,18 @@ File "F:\WebDev\report-submission\templates\base.html", line 80, in top-level te
       class="bg-white/80 text-center py-6 border-t border-blue-100 text-gray-500 text-lg font-bold tracking-wide"
     >
       &copy; ২০২৫ রিপোর্ট সাবমিশন সিস্টেম | v1.0
-File "F:\WebDev\report-submission\templates\city_report.html", line 15, in block 'content'
-      <th>Total Students</th>
-      <th>Total Attendance</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for cat, totals in course_totals.items() %}
-    <tr>
-      <td>{{ cat }}</td>
-      <td>{{ totals.number }}</td>
-      <td>{{ totals.sessions }}</td>
-      <td>{{ totals.students }}</td>
+File "F:\WebDev\report-submission\templates\report.html", line 59, in block 'content'
+          </div>
+          <div class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+            <!-- Header Section -->
+            <div class="bg-white rounded-xl shadow p-6">
+              <h2 class="text-xl font-bold text-cyan-700 mb-2">মূল তথ্য</h2>
+              {% if report.header %}
+                <div class="text-gray-700 text-sm">
+                  <div>দায়িত্বপ্রাপ্ত: {{ report.header.responsible_name }}</div>
+                  <div>থানা: {{ report.header.thana }}</div>
+                  <div>ওয়ার্ড: {{ report.header.ward }}</div>
+                  <div>মোট মুআল্লিমা: {{ report.header.total_muallima }}</div>
 File "F:\WebDev\report-submission\venv\Lib\site-packages\jinja2\environment.py", line 490, in getattr
     def getattr(self, obj: t.Any, attribute: str) -> t.Any:
         """Get an item or attribute of an object but prefer the attribute.
@@ -197,7 +202,7 @@ File "F:\WebDev\report-submission\venv\Lib\site-packages\jinja2\environment.py",
         try:
             return obj[attribute]
         except (TypeError, LookupError, AttributeError):
-jinja2.exceptions.UndefinedError: 'course_totals' is undefined
+jinja2.exceptions.UndefinedError: 'report' is undefined
 The debugger caught an exception in your WSGI application. You can now look at the traceback which led to the error.
 To switch between the interactive traceback and the plaintext one, you can click on the "Traceback" headline. From the text traceback you can also create a paste of it. For code execution mouse-over the frame you want to debug and click on the console icon on the right side.
 

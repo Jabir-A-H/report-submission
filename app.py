@@ -778,16 +778,29 @@ def report_comments():
 def report_summary():
     from datetime import datetime
 
+    report_type = request.args.get("report_type", "মাসিক")
     month = request.args.get("month")
     year = request.args.get("year")
     now = datetime.now()
-    if not month:
+    if not month and report_type == "মাসিক":
         month = now.month
     if not year:
         year = now.year
 
+    # Get the report object for the current user's zone, type, month, year
+    query = {
+        "zone_id": current_user.zone_id,
+        "year": int(year),
+        "report_type": report_type,
+    }
+    if report_type == "মাসিক":
+        query["month"] = int(month)
+    report = Report.query.filter_by(**query).first()
+
     return render_template(
         "report.html",
+        report=report,
+        report_type=report_type,
         month=month,
         year=year,
     )

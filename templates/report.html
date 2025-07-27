@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Master Report</title>
+    <title>এক নজরে জোন রিপোর্ট</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/static/styles.css" />
   </head>
@@ -13,15 +13,152 @@
       {% block content %}
       <div class="container mx-auto px-4 py-8 animate-fade-in">
         <div class="text-center mb-8">
-          <h1 class="text-3xl font-bold text-cyan-700 mb-2">রিপোর্ট</h1>
-          <p class="text-gray-600">{{ month|month_name }} {{ year }}</p>
-          <nav class="flex justify-center gap-2 text-sm text-gray-500 mt-2" aria-label="breadcrumb">
-            <a href="/" class="hover:underline">হোম</a>
-            <span>/</span>
-            <span>রিপোর্ট</span>
-          </nav>
+          <h1 class="text-3xl font-bold text-cyan-700 mb-2">জোন রিপোর্ট (এক নজরে)</h1>
+          <form method="get" class="flex flex-wrap gap-2 justify-center mb-4" id="report-filter-form">
+            <select id="report-type-select" name="report_type" class="p-2 border border-gray-300 rounded-lg">
+              <option value="মাসিক" {% if report_type == 'মাসিক' %}selected{% endif %}>মাসিক</option>
+              <option value="ত্রৈমাসিক" {% if report_type == 'ত্রৈমাসিক' %}selected{% endif %}>ত্রৈমাসিক</option>
+              <option value="ষান্মাসিক" {% if report_type == 'ষান্মাসিক' %}selected{% endif %}>ষান্মাসিক</option>
+              <option value="নয়-মাসিক" {% if report_type == 'নয়-মাসিক' %}selected{% endif %}>নয়-মাসিক</option>
+              <option value="বার্ষিক" {% if report_type == 'বার্ষিক' %}selected{% endif %}>বার্ষিক</option>
+            </select>
+            <select id="month-select" name="month" class="p-2 border border-gray-300 rounded-lg">
+              {% for i in range(1, 13) %}
+              <option value="{{ i }}" {% if i == month|int %}selected{% endif %}>{{ i|month_name }}</option>
+              {% endfor %}
+            </select>
+            <select name="year" class="p-2 border border-gray-300 rounded-lg">
+              {% for y in range(2025, 2027) %}
+              <option value="{{ y }}" {% if y == year|int %}selected{% endif %}>{{ y }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition">ফিল্টার করুন</button>
+          </form>
+          <script>
+            // Show/hide month selector based on report type
+            function updateMonthSelector() {
+              var reportType = document.getElementById('report-type-select').value;
+              var monthSelect = document.getElementById('month-select');
+              if (reportType === 'মাসিক') {
+                monthSelect.style.display = '';
+              } else {
+                monthSelect.style.display = 'none';
+              }
+            }
+            document.getElementById('report-type-select').addEventListener('change', updateMonthSelector);
+            window.addEventListener('DOMContentLoaded', updateMonthSelector);
+          </script>
+          <div class="flex justify-center gap-4 mt-4">
+            <a href="/download_report?report_type={{ report_type }}&month={{ month }}&year={{ year }}&format=pdf" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">PDF ডাউনলোড</a>
+            <a href="/download_report?report_type={{ report_type }}&month={{ month }}&year={{ year }}&format=excel" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">Excel ডাউনলোড</a>
+          </div>
+          <div class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+            <!-- Header Section -->
+            <div class="bg-white rounded-xl shadow p-6">
+              <h2 class="text-xl font-bold text-cyan-700 mb-2">মূল তথ্য</h2>
+              {% if report.header %}
+                <div class="text-gray-700 text-sm">
+                  <div>দায়িত্বপ্রাপ্ত: {{ report.header.responsible_name }}</div>
+                  <div>থানা: {{ report.header.thana }}</div>
+                  <div>ওয়ার্ড: {{ report.header.ward }}</div>
+                  <div>মোট মুআল্লিমা: {{ report.header.total_muallima }}</div>
+                  <!-- Add more header fields as needed -->
+                </div>
+              {% else %}
+                <div class="text-red-500">Header section incomplete.</div>
+              {% endif %}
+            </div>
+            <!-- Courses Section -->
+            <div class="bg-white rounded-xl shadow p-6">
+              <h2 class="text-xl font-bold text-cyan-700 mb-2">কোর্স রিপোর্ট</h2>
+              {% if report.courses %}
+                <table class="min-w-full text-sm">
+                  <thead><tr><th>ক্যাটাগরি</th><th>সংখ্যা</th></tr></thead>
+                  <tbody>
+                    {% for course in report.courses %}
+                    <tr><td>{{ course.category }}</td><td>{{ course.number }}</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              {% else %}
+                <div class="text-red-500">Courses section incomplete.</div>
+              {% endif %}
+            </div>
+            <!-- Organizational Section -->
+            <div class="bg-white rounded-xl shadow p-6">
+              <h2 class="text-xl font-bold text-cyan-700 mb-2">সংগঠন</h2>
+              {% if report.organizational %}
+                <table class="min-w-full text-sm">
+                  <thead><tr><th>ক্যাটাগরি</th><th>সংখ্যা</th></tr></thead>
+                  <tbody>
+                    {% for org in report.organizational %}
+                    <tr><td>{{ org.category }}</td><td>{{ org.number }}</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              {% else %}
+                <div class="text-red-500">Organizational section incomplete.</div>
+              {% endif %}
+            </div>
+            <!-- Personal Section -->
+            <div class="bg-white rounded-xl shadow p-6">
+              <h2 class="text-xl font-bold text-cyan-700 mb-2">ব্যক্তিগত</h2>
+              {% if report.personal %}
+                <table class="min-w-full text-sm">
+                  <thead><tr><th>ক্যাটাগরি</th><th>Teaching</th><th>Learning</th></tr></thead>
+                  <tbody>
+                    {% for p in report.personal %}
+                    <tr><td>{{ p.category }}</td><td>{{ p.teaching }}</td><td>{{ p.learning }}</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              {% else %}
+                <div class="text-red-500">Personal section incomplete.</div>
+              {% endif %}
+            </div>
+            <!-- Meetings Section -->
+            <div class="bg-white rounded-xl shadow p-6">
+              <h2 class="text-xl font-bold text-cyan-700 mb-2">বৈঠকসমূহ</h2>
+              {% if report.meetings %}
+                <table class="min-w-full text-sm">
+                  <thead><tr><th>ক্যাটাগরি</th><th>City Count</th></tr></thead>
+                  <tbody>
+                    {% for m in report.meetings %}
+                    <tr><td>{{ m.category }}</td><td>{{ m.city_count }}</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              {% else %}
+                <div class="text-red-500">Meetings section incomplete.</div>
+              {% endif %}
+            </div>
+            <!-- Extras Section -->
+            <div class="bg-white rounded-xl shadow p-6">
+              <h2 class="text-xl font-bold text-cyan-700 mb-2">এক্সট্রা</h2>
+              {% if report.extras %}
+                <table class="min-w-full text-sm">
+                  <thead><tr><th>ক্যাটাগরি</th><th>সংখ্যা</th></tr></thead>
+                  <tbody>
+                    {% for e in report.extras %}
+                    <tr><td>{{ e.category }}</td><td>{{ e.number }}</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              {% else %}
+                <div class="text-red-500">Extras section incomplete.</div>
+              {% endif %}
+            </div>
+            <!-- Comments Section -->
+            <div class="bg-white rounded-xl shadow p-6">
+              <h2 class="text-xl font-bold text-cyan-700 mb-2">মন্তব্য</h2>
+              {% if report.comments %}
+                <div class="text-gray-700 text-sm">{{ report.comments.comment }}</div>
+              {% else %}
+                <div class="text-red-500">Comments section incomplete.</div>
+              {% endif %}
+            </div>
+          </div>
         </div>
-        <!-- Report content goes here -->
       </div>
       {% endblock %}
         {% if error %}
@@ -89,10 +226,6 @@
       <div class="text-center mt-4">
         <a href="/logout" class="text-blue-600 hover:underline">লগআউট</a>
       </div>
-    </div>
-    <script src="/static/scripts.js"></script>
-  </body>
-</html>
     </div>
     <script src="/static/scripts.js"></script>
   </body>

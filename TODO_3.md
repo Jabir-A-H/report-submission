@@ -14,9 +14,10 @@
   - Extras Section (`/report/extras`): Additional activities and programs. *(ReportExtra)*
   - Comments Section (`/report/comments`): Period-specific narrative comments. *(ReportComment)*
 - **Admin Dashboard** (`/`): Admin dashboard provides an overview of all reports and user activities and links to different admin features in a card format. The dashboard view is determined by login role: users see the user dashboard, admins see the admin dashboard.
+- **City Report** (`/city_report`): Admins view city-level summary, aggregated from all zones for the selected period.
+- **All Zone Reports** (`/zone_reports`): View all zone reports filter by report type, month, and year.
 - **Users Management** (`/users`): Approve/reject users, assign/reassign zones, view user list and status.
 - **Zones Management** (`/zones`): Create, delete, and manage zones.
-- **All Zone Reports** (`/zone_reports`): View all zone reports filter by report type, month, and year.
 - **Help** (`/help`): Help page with frequently asked questions and guidance.
 - **Logout** (`/logout`): Log out of the system.
 
