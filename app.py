@@ -698,30 +698,38 @@ def city_report_page():
     )
 
 
+# --- Helper: Get Report Period ---
+def get_report_period():
+    from datetime import datetime
+
+    month = request.args.get("month")
+    year = request.args.get("year")
+    report_type = request.args.get("report_type", "মাসিক")
+    now = datetime.now()
+    if not month and report_type == "মাসিক":
+        month = now.month
+    if not year:
+        year = now.year
+    return int(month) if month else None, int(year), report_type
+
+
 # --- Report Section Routes ---
 
 
 @app.route("/report/header", methods=["GET", "POST"])
 @login_required
 def report_header():
+    month, year, report_type = get_report_period()
     # ...section logic here...
-    return render_template("report/header.html")
+    return render_template(
+        "report/header.html", month=month, year=year, report_type=report_type
+    )
 
 
 @app.route("/report/courses", methods=["GET", "POST"])
 @login_required
 def report_courses():
-    from datetime import datetime
-
-    month = request.args.get("month")
-    year = request.args.get("year")
-    now = datetime.now()
-    if not month:
-        month = now.month
-    if not year:
-        year = now.year
-
-    # Get the report object for the current user, month, year
+    month, year, report_type = get_report_period()
     report = None
     if current_user.is_authenticated:
         report = Report.query.filter_by(
@@ -731,6 +739,7 @@ def report_courses():
         "report/courses.html",
         month=month,
         year=year,
+        report_type=report_type,
         report=report,
     )
 
@@ -738,36 +747,51 @@ def report_courses():
 @app.route("/report/organizational", methods=["GET", "POST"])
 @login_required
 def report_organizational():
+    month, year, report_type = get_report_period()
     # ...section logic here...
-    return render_template("report/organizational.html")
+    return render_template(
+        "report/organizational.html", month=month, year=year, report_type=report_type
+    )
 
 
 @app.route("/report/personal", methods=["GET", "POST"])
 @login_required
 def report_personal():
+    month, year, report_type = get_report_period()
     # ...section logic here...
-    return render_template("report/personal.html")
+    return render_template(
+        "report/personal.html", month=month, year=year, report_type=report_type
+    )
 
 
 @app.route("/report/meetings", methods=["GET", "POST"])
 @login_required
 def report_meetings():
+    month, year, report_type = get_report_period()
     # ...section logic here...
-    return render_template("report/meetings.html")
+    return render_template(
+        "report/meetings.html", month=month, year=year, report_type=report_type
+    )
 
 
 @app.route("/report/extras", methods=["GET", "POST"])
 @login_required
 def report_extras():
+    month, year, report_type = get_report_period()
     # ...section logic here...
-    return render_template("report/extras.html")
+    return render_template(
+        "report/extras.html", month=month, year=year, report_type=report_type
+    )
 
 
 @app.route("/report/comments", methods=["GET", "POST"])
 @login_required
 def report_comments():
+    month, year, report_type = get_report_period()
     # ...section logic here...
-    return render_template("report/comments.html")
+    return render_template(
+        "report/comments.html", month=month, year=year, report_type=report_type
+    )
 
 
 # --- At a Glance / Summary Report ---
