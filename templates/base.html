@@ -25,10 +25,10 @@
         <a href="/help" class="nav-link text-gray-600 px-3 py-2 rounded hover:bg-blue-50 focus:ring-2 focus:ring-blue-400">সহায়তা</a>
         {% if current_user.is_authenticated %}
           {% if current_user.role == 'admin' %}
-            <a href="/users" class="nav-link text-green-600 px-3 py-2 rounded hover:bg-green-50 focus:ring-2 focus:ring-green-400">ইউজারস</a>
-            <a href="/zones" class="nav-link text-cyan-600 px-3 py-2 rounded hover:bg-cyan-50 focus:ring-2 focus:ring-cyan-400">জোনস</a>
-            <a href="/zonereports" class="nav-link text-purple-600 px-3 py-2 rounded hover:bg-purple-50 focus:ring-2 focus:ring-purple-400">জোন রিপোর্ট</a>
-            <a href="/fields" class="nav-link text-orange-600 px-3 py-2 rounded hover:bg-orange-50 focus:ring-2 focus:ring-orange-400">ফিল্ডস</a>
+            <a href="/city_report" class="nav-link text-purple-600 px-3 py-2 rounded hover:bg-purple-50 focus:ring-2 focus:ring-purple-400">সিটি রিপোর্ট</a>
+            <a href="/zone_reports" class="nav-link text-purple-600 px-3 py-2 rounded hover:bg-purple-50 focus:ring-2 focus:ring-purple-400">জোন রিপোর্ট</a>
+            <a href="/users" class="nav-link text-green-600 px-3 py-2 rounded hover:bg-green-50 focus:ring-2 focus:ring-green-400">ইউজার</a>
+            <a href="/zones" class="nav-link text-cyan-600 px-3 py-2 rounded hover:bg-cyan-50 focus:ring-2 focus:ring-cyan-400">জোন</a>
           {% endif %}
           <div class="relative group">
             <button class="flex items-center gap-2 px-3 py-2 rounded bg-gray-100 text-gray-700 font-semibold focus:ring-2 focus:ring-blue-400" aria-label="ইউজার তথ্য" tabindex="0">

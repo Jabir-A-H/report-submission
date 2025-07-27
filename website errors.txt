@@ -1,6 +1,5 @@
-werkzeug.exceptions.BadRequestKeyError
-werkzeug.exceptions.BadRequestKeyError: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
-KeyError: 'name'
+jinja2.exceptions.UndefinedError
+jinja2.exceptions.UndefinedError: 'course_totals' is undefined
 
 Traceback (most recent call last)
 File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\app.py", line 1536, in __call__
@@ -89,34 +88,116 @@ File "F:\WebDev\report-submission\venv\Lib\site-packages\flask_login\utils.py", 
     return decorated_view
  
  
-File "F:\WebDev\report-submission\app.py", line 638, in admin_zones
-@login_required
-def admin_zones():
-    if not is_admin():
-        return redirect(url_for("dashboard"))
-    if request.method == "POST":
-        name = request.form["name"]
-               ^^^^^^^^^^^^^^^^^^^^
-        if not Zone.query.filter_by(name=name).first():
-            db.session.add(Zone(name=name))
-            db.session.commit()
-    zones = Zone.query.all()
-    return render_template("admin_zones.html", zones=zones)
-File "F:\WebDev\report-submission\venv\Lib\site-packages\werkzeug\datastructures\structures.py", line 238, in __getitem__
+File "F:\WebDev\report-submission\app.py", line 689, in city_report_page
+    now = datetime.now()
+    if not month:
+        month = now.month
+    if not year:
+        year = now.year
+    return render_template("city_report.html", month=month, year=year)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
  
-        if key in self:
-            lst = super().__getitem__(key)
-            if len(lst) > 0:  # type: ignore[arg-type]
-                return lst[0]  # type: ignore[index,no-any-return]
-        raise exceptions.BadRequestKeyError(key)
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
  
-    def __setitem__(self, key: K, value: V) -> None:
-        """Like :meth:`add` but removes an existing key first.
+# --- Report Section Routes ---
  
-        :param key: the key for the value.
-werkzeug.exceptions.BadRequestKeyError: 400 Bad Request: The browser (or proxy) sent a request that this server could not understand.
-KeyError: 'name'
+ 
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\templating.py", line 150, in render_template
+        a list is given, the first name to exist will be rendered.
+    :param context: The variables to make available in the template.
+    """
+    app = current_app._get_current_object()  # type: ignore[attr-defined]
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+ 
+def render_template_string(source: str, **context: t.Any) -> str:
+    """Render a template from the given source string with the given
+    context.
+File "F:\WebDev\report-submission\venv\Lib\site-packages\flask\templating.py", line 131, in _render
+def _render(app: Flask, template: Template, context: dict[str, t.Any]) -> str:
+    app.update_template_context(context)
+    before_render_template.send(
+        app, _async_wrapper=app.ensure_sync, template=template, context=context
+    )
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+    template_rendered.send(
+        app, _async_wrapper=app.ensure_sync, template=template, context=context
+    )
+    return rv
+ 
+File "F:\WebDev\report-submission\venv\Lib\site-packages\jinja2\environment.py", line 1295, in render
+        ctx = self.new_context(dict(*args, **kwargs))
+ 
+        try:
+            return self.environment.concat(self.root_render_func(ctx))  # type: ignore
+        except Exception:
+            self.environment.handle_exception()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+    async def render_async(self, *args: t.Any, **kwargs: t.Any) -> str:
+        """This works similar to :meth:`render` but returns a coroutine
+        that when awaited returns the entire rendered template string.  This
+        requires the async feature to be enabled.
+File "F:\WebDev\report-submission\venv\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+        """Exception handling helper.  This is used internally to either raise
+        rewritten exceptions or return a rendered traceback for the template.
+        """
+        from .debug import rewrite_traceback_stack
+ 
+        raise rewrite_traceback_stack(source=source)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+    def join_path(self, template: str, parent: str) -> str:
+        """Join a template with the parent.  By default all the lookups are
+        relative to the loader root so this method returns the `template`
+        parameter unchanged, but if the paths should be relative to the
+File "F:\WebDev\report-submission\templates\city_report.html", line 1, in top-level template code
+{% extends "base.html" %} {% block content %}
+<h2>City Report for {{ month|month_name }} {{ year }}</h2>
+ 
+<table class="table table-bordered">
+  <thead>
+    <tr>
+File "F:\WebDev\report-submission\templates\base.html", line 80, in top-level template code
+        });
+      });
+    </script>
+    </header>
+    <main class="mx-auto max-w-screen-xl px-4 py-8 mb-8 mt-24">
+      {% block content %}{% endblock %}
+    </main>
+    <footer
+      class="bg-white/80 text-center py-6 border-t border-blue-100 text-gray-500 text-lg font-bold tracking-wide"
+    >
+      &copy; ২০২৫ রিপোর্ট সাবমিশন সিস্টেম | v1.0
+File "F:\WebDev\report-submission\templates\city_report.html", line 15, in block 'content'
+      <th>Total Students</th>
+      <th>Total Attendance</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for cat, totals in course_totals.items() %}
+    <tr>
+      <td>{{ cat }}</td>
+      <td>{{ totals.number }}</td>
+      <td>{{ totals.sessions }}</td>
+      <td>{{ totals.students }}</td>
+File "F:\WebDev\report-submission\venv\Lib\site-packages\jinja2\environment.py", line 490, in getattr
+    def getattr(self, obj: t.Any, attribute: str) -> t.Any:
+        """Get an item or attribute of an object but prefer the attribute.
+        Unlike :meth:`getitem` the attribute *must* be a string.
+        """
+        try:
+            return getattr(obj, attribute)
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+        except AttributeError:
+            pass
+        try:
+            return obj[attribute]
+        except (TypeError, LookupError, AttributeError):
+jinja2.exceptions.UndefinedError: 'course_totals' is undefined
 The debugger caught an exception in your WSGI application. You can now look at the traceback which led to the error.
 To switch between the interactive traceback and the plaintext one, you can click on the "Traceback" headline. From the text traceback you can also create a paste of it. For code execution mouse-over the frame you want to debug and click on the console icon on the right side.
 

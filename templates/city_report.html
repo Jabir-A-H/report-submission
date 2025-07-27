@@ -1,5 +1,5 @@
 {% extends "base.html" %} {% block content %}
-<h2>City Report for {{ get_month_name(month) }} {{ year }}</h2>
+<h2>City Report for {{ month|month_name }} {{ year }}</h2>
 
 <table class="table table-bordered">
   <thead>

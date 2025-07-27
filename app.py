@@ -392,6 +392,31 @@ def generate_next_user_id():
     return f"{next_id:03d}"
 
 
+# --- Jinja2 Filters ---
+
+
+@app.template_filter("month_name")
+def month_name(month):
+    months = [
+        "জানুয়ারি",
+        "ফেব্রুয়ারি",
+        "মার্চ",
+        "এপ্রিল",
+        "মে",
+        "জুন",
+        "জুলাই",
+        "আগস্ট",
+        "সেপ্টেম্বর",
+        "অক্টোবর",
+        "নভেম্বর",
+        "ডিসেম্বর",
+    ]
+    try:
+        return months[int(month) - 1]
+    except (IndexError, ValueError, TypeError):
+        return ""
+
+
 # --- Routes ---
 
 
@@ -420,24 +445,6 @@ def dashboard():
         {"value": "বার্ষিক", "label": "বার্ষিক"},
     ]
 
-    # Helper for Bengali month names
-    def get_month_name(i):
-        months = [
-            "জানুয়ারি",
-            "ফেব্রুয়ারি",
-            "মার্চ",
-            "এপ্রিল",
-            "মে",
-            "জুন",
-            "জুলাই",
-            "আগস্ট",
-            "সেপ্টেম্বর",
-            "অক্টোবর",
-            "নভেম্বর",
-            "ডিসেম্বর",
-        ]
-        return months[i - 1] if 1 <= i <= 12 else ""
-
     if is_admin():
         return render_template(
             "admin_reports.html",
@@ -446,7 +453,6 @@ def dashboard():
             year=year,
             report_type=report_type,
             report_types=report_types,
-            get_month_name=get_month_name,
         )
     else:
         # Build sections list with completion status and navigation URLs
@@ -528,31 +534,13 @@ def dashboard():
 
         report_month_year = f"{month}/{year}"
 
-        def get_month_name(i):
-            months = [
-                "জানুয়ারি",
-                "ফেব্রুয়ারি",
-                "মার্চ",
-                "এপ্রিল",
-                "মে",
-                "জুন",
-                "জুলাই",
-                "আগস্ট",
-                "সেপ্টেম্বর",
-                "অক্টোবর",
-                "নভেম্বর",
-                "ডিসেম্বর",
-            ]
-            return months[i - 1] if 1 <= i <= 12 else str(i)
-
         return render_template(
-            "report_dashboard.html",
+            "index.html",
             user=current_user,
             month=month,
             year=year,
             sections=sections,
             report_month_year=report_month_year,
-            get_month_name=get_month_name,
         )
 
 
@@ -690,7 +678,19 @@ def view_zone_report(report_id):
 def city_report_page():
     if not is_admin():
         return redirect(url_for("dashboard"))
-    return render_template("city_report.html")
+    from datetime import datetime
+
+    month = request.args.get("month")
+    year = request.args.get("year")
+    now = datetime.now()
+    if not month:
+        month = now.month
+    if not year:
+        year = now.year
+    course_totals = {}  # TODO: Replace with real data
+    return render_template(
+        "city_report.html", month=month, year=year, course_totals=course_totals
+    )
 
 
 # --- Report Section Routes ---
@@ -716,23 +716,6 @@ def report_courses():
     if not year:
         year = now.year
 
-    def get_month_name(i):
-        months = [
-            "জানুয়ারি",
-            "ফেব্রুয়ারি",
-            "মার্চ",
-            "এপ্রিল",
-            "মে",
-            "জুন",
-            "জুলাই",
-            "আগস্ট",
-            "সেপ্টেম্বর",
-            "অক্টোবর",
-            "নভেম্বর",
-            "ডিসেম্বর",
-        ]
-        return months[int(i) - 1] if i and 1 <= int(i) <= 12 else ""
-
     # Get the report object for the current user, month, year
     report = None
     if current_user.is_authenticated:
@@ -743,7 +726,6 @@ def report_courses():
         "report/courses.html",
         month=month,
         year=year,
-        get_month_name=get_month_name,
         report=report,
     )
 
@@ -799,28 +781,10 @@ def report_summary():
     if not year:
         year = now.year
 
-    def get_month_name(i):
-        months = [
-            "জানুয়ারি",
-            "ফেব্রুয়ারি",
-            "মার্চ",
-            "এপ্রিল",
-            "মে",
-            "জুন",
-            "জুলাই",
-            "আগস্ট",
-            "সেপ্টেম্বর",
-            "অক্টোবর",
-            "নভেম্বর",
-            "ডিসেম্বর",
-        ]
-        return months[int(i) - 1] if i and 1 <= int(i) <= 12 else ""
-
     return render_template(
         "report.html",
         month=month,
         year=year,
-        get_month_name=get_month_name,
     )
 
 

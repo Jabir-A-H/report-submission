@@ -21,7 +21,7 @@
         <select name="month" class="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500" aria-label="মাস" required>
           <option value="">মাস</option>
           {% for i in range(1, 13) %}
-          <option value="{{ i }}" {% if i == month|int %}selected{% endif %}>{{ get_month_name(i) }}</option>
+          <option value="{{ i }}" {% if i == month|int %}selected{% endif %}>{{ i|month_name }}</option>
           {% endfor %}
         </select>
         <select name="year" class="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500" aria-label="বছর" required>
