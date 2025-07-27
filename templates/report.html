@@ -13,7 +13,11 @@
       {% block content %}
       <div class="container mx-auto px-4 py-8 animate-fade-in">
         <div class="text-center mb-8">
-          <h1 class="text-3xl font-bold text-cyan-700 mb-2">জোন রিপোর্ট (এক নজরে)</h1>
+          <h1 class="text-4xl font-extrabold text-cyan-700 mb-2 flex items-center justify-center gap-2">
+            <svg class="w-8 h-8 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 014-4h6"/></svg>
+            জোন রিপোর্ট (এক নজরে)
+          </h1>
+          {% if not request.args.get('report_id') or (current_user and current_user.role != 'admin') %}
           <form method="get" class="flex flex-wrap gap-2 justify-center mb-4" id="report-filter-form">
             <select id="report-type-select" name="report_type" class="p-2 border border-gray-300 rounded-lg">
               <option value="মাসিক" {% if report_type == 'মাসিক' %}selected{% endif %}>মাসিক</option>
@@ -34,43 +38,45 @@
             </select>
             <button type="submit" class="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition">ফিল্টার করুন</button>
           </form>
-          <script>
-            // Show/hide month selector based on report type
-            function updateMonthSelector() {
-              var reportType = document.getElementById('report-type-select').value;
-              var monthSelect = document.getElementById('month-select');
-              if (reportType === 'মাসিক') {
-                monthSelect.style.display = '';
-              } else {
-                monthSelect.style.display = 'none';
-              }
-            }
-            document.getElementById('report-type-select').addEventListener('change', updateMonthSelector);
-            window.addEventListener('DOMContentLoaded', updateMonthSelector);
-          </script>
-          <div class="flex justify-center gap-4 mt-4">
-            <a href="/download_report?report_type={{ report_type }}&month={{ month }}&year={{ year }}&format=pdf" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">PDF ডাউনলোড</a>
-            <a href="/download_report?report_type={{ report_type }}&month={{ month }}&year={{ year }}&format=excel" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">Excel ডাউনলোড</a>
-          </div>
-          <div class="mt-8 grid grid-cols-1 gap-8">
-            <!-- Header Section -->
-            <div class="bg-white rounded-xl shadow p-6">
-              <h2 class="text-xl font-bold text-cyan-700 mb-2">মূল তথ্য</h2>
+          {% endif %}
+          <div class="flex flex-wrap justify-center gap-4 mt-4">
+            <div class="bg-cyan-100 rounded-xl px-6 py-4 shadow flex flex-col items-center">
+              <div class="text-lg font-bold text-cyan-800">{{ report.zone.name if report and report.zone else 'জোন N/A' }}</div>
+              <div class="text-sm text-cyan-700">{{ month|month_name }} {{ year }} | {{ report_type }}</div>
               {% if report.header %}
-                <div class="text-gray-700 text-sm">
-                  <div>দায়িত্বপ্রাপ্ত: {{ report.header.responsible_name }}</div>
-                  <div>থানা: {{ report.header.thana }}</div>
-                  <div>ওয়ার্ড: {{ report.header.ward }}</div>
-                  <div>মোট মুআল্লিমা: {{ report.header.total_muallima }}</div>
-                  <!-- Add more header fields as needed -->
+                <div class="mt-2 text-gray-700 text-sm">দায়িত্বপ্রাপ্ত: <span class="font-semibold">{{ report.header.responsible_name }}</span></div>
+              {% endif %}
+            </div>
+            <a href="/download_report?report_type={{ report_type }}&month={{ month }}&year={{ year }}&format=pdf" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition shadow">PDF ডাউনলোড</a>
+            <a href="/download_report?report_type={{ report_type }}&month={{ month }}&year={{ year }}&format=excel" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition shadow">Excel ডাউনলোড</a>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Header Section -->
+            <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-cyan-400">
+              <h2 class="text-xl font-bold text-cyan-700 mb-2 flex items-center gap-2"><svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 014-4h6"/></svg>মূল তথ্য</h2>
+              {% if report.header %}
+                <div class="grid grid-cols-2 gap-2 text-gray-700 text-sm">
+                  <div><span class="font-semibold">দায়িত্বপ্রাপ্ত:</span> {{ report.header.responsible_name }}</div>
+                  <div><span class="font-semibold">থানা:</span> {{ report.header.thana }}</div>
+                  <div><span class="font-semibold">ওয়ার্ড:</span> {{ report.header.ward }}</div>
+                  <div><span class="font-semibold">মোট মুআল্লিমা:</span> {{ report.header.total_muallima }}</div>
+                  <div><span class="font-semibold">বৃদ্ধি:</span> {{ report.header.muallima_increase }}</div>
+                  <div><span class="font-semibold">হ্রাস:</span> {{ report.header.muallima_decrease }}</div>
+                  <div><span class="font-semibold">প্রশিক্ষিত:</span> {{ report.header.certified_muallima }}</div>
+                  <div><span class="font-semibold">প্রশিক্ষিত (ক্লাস নিচ্ছেন):</span> {{ report.header.certified_muallima_taking_classes }}</div>
+                  <div><span class="font-semibold">ট্রেইনিং প্রাপ্ত:</span> {{ report.header.trained_muallima }}</div>
+                  <div><span class="font-semibold">ট্রেইনিং প্রাপ্ত (ক্লাস নিচছেন):</span> {{ report.header.trained_muallima_taking_classes }}</div>
+                  <div><span class="font-semibold">মোট ইউনিট:</span> {{ report.header.total_unit }}</div>
+                  <div><span class="font-semibold">মুয়াল্লিমা সহ ইউনিট:</span> {{ report.header.units_with_muallima }}</div>
                 </div>
               {% else %}
                 <div class="text-red-500">Header section incomplete.</div>
               {% endif %}
             </div>
             <!-- Courses Section -->
-            <div class="bg-white rounded-xl shadow p-6">
-              <h2 class="text-xl font-bold text-cyan-700 mb-2">কোর্স রিপোর্ট</h2>
+            <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-400">
+              <h2 class="text-xl font-bold text-purple-700 mb-2 flex items-center gap-2"><svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3z"/></svg>কোর্স রিপোর্ট</h2>
               {% if report.courses %}
                 <table class="min-w-full text-sm">
                   <thead><tr><th>ক্যাটাগরি</th><th>সংখ্যা</th></tr></thead>
@@ -168,64 +174,9 @@
         <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">{{ success }}</div>
         {% endif %}
       </div>
-      <!-- Period Filter -->
-      <form method="get" action="/master_report" class="flex flex-wrap gap-4 mb-6 items-end">
-        <div>
-          <label class="block font-semibold mb-1">বছর</label>
-          <input type="number" name="year" value="{{ request.args.get('year', '') }}" class="border border-gray-300 rounded px-3 py-2 w-28" />
-        </div>
-        <div>
-          <label class="block font-semibold mb-1">মাস</label>
-          <input type="text" name="month" value="{{ request.args.get('month', '') }}" class="border border-gray-300 rounded px-3 py-2 w-28" />
-        </div>
-        <div>
-          <label class="block font-semibold mb-1">জোন</label>
-          <select name="zone_id" class="border border-gray-300 rounded px-3 py-2">
-            <option value="">সব</option>
-            {% for zone in zones %}
-              <option value="{{ zone.id }}" {% if request.args.get('zone_id') == zone.id|string %}selected{% endif %}>{{ zone.name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div>
-          <label class="block font-semibold mb-1">ওয়ার্ড</label>
-          <input type="number" name="ward" value="{{ request.args.get('ward', '') }}" class="border border-gray-300 rounded px-3 py-2 w-20" />
-        </div>
-        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full sm:w-auto">ফিল্টার</button>
-        <button type="button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full sm:w-auto mt-2 sm:mt-0" onclick="downloadReport('pdf')">PDF ডাউনলোড</button>
-        <button type="button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full sm:w-auto mt-2 sm:mt-0" onclick="downloadReport('excel')">Excel ডাউনলোড</button>
-      </form>
-      <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white/80">
-        <table class="min-w-full border-separate border-spacing-y-1 border-0 rounded shadow text-xs sm:text-sm">
-          <thead class="bg-cyan-50">
-            <tr>
-              <th class="px-4 py-2 border-b">ইউজার</th>
-              <th class="px-4 py-2 border-b">জোন</th>
-              <th class="px-4 py-2 border-b">ওয়ার্ড</th>
-              <th class="px-4 py-2 border-b">মাস</th>
-              <th class="px-4 py-2 border-b">বছর</th>
-              <th class="px-4 py-2 border-b">দায়িত্বপ্রাপ্ত</th>
-              <th class="px-4 py-2 border-b">লকড?</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for r in reports %}
-            <tr class="hover:bg-gray-50">
-              <td class="px-4 py-2 border-b">{{ r.user.email }}</td>
-              <td class="px-4 py-2 border-b">{{ r.user.zone.name }}</td>
-              <!-- Ward removed from user -->
-              <td class="px-4 py-2 border-b">{{ r.month }}</td>
-              <td class="px-4 py-2 border-b">{{ r.year }}</td>
-              <td class="px-4 py-2 border-b">{{ r.responsible_name }}</td>
-              <td class="px-4 py-2 border-b">{{ 'হ্যাঁ' if r.edit_locked else 'না' }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      <div class="text-center mt-4">
-        <a href="/logout" class="text-blue-600 hover:underline">লগআউট</a>
-      </div>
+      <footer class="w-full text-center py-6 border-t border-blue-100 text-gray-500 text-lg font-bold tracking-wide bg-white/80 mt-8">
+        &copy; ২০২৫ রিপোর্ট সাবমিশন সিস্টেম | v1.0
+      </footer>
     </div>
     <script src="/static/scripts.js"></script>
   </body>
