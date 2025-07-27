@@ -4,7 +4,7 @@
 - **Login** (`/login`): User authentication page for registered users. Users can log in using either their email or their 3-digit user_id.
 - **Register** (`/register`): New user registration form (requires admin approval). System auto-generates a 3-digit user_id for each user.
 - **Report Dashboard** (`/`): Main landing page after login for both users and admins.
-- **At a Glance** (`/report`): Aggregated/summary report for the selected period. Users see their zone's data; admins the city level report. Includes a download button (Excel/PDF). Available to both users (for their zone) and admins (for the city level report).
+- **Report** (`/report`): Aggregated/summary report for the selected period. Users see their zone's data; admins the city level report. Includes a download button (Excel/PDF). Available to both users (for their zone) and admins (for the city level report).
 - **Report Sections**: Individual forms for each part of the report, matching the database schema:
   - Header Section (`/report/header`): Responsible person, location, and teacher statistics. *(ReportHeader)*
   - Courses Section (`/report/courses`): Educational program details, enrollment, and progress. *(ReportCourse)*
@@ -112,17 +112,11 @@ Update all codes in the repository to match the todo_4 mockup.
   - List of zones, add/delete zone form
   - Add zone: input and button, validation for uniqueness
   - Delete zone: confirmation dialog
-- **Reports Management (`reports.html`)**
-  Dynamically shows the admins report page if the logged in user is an admin.
+- **City Report (`city_report.html`)**
   - Aggregated data from all zones for selected period, adding up all integer fields and showing total counts just like the actual database tables in a spreadsheet format
 - **Zone Reports (`zone_reports.html`)**
   - Table of all zone reports, filter by report type/period/zone
   - can see individual zone reports, filter by period/zone
-  - Button to Edit/view links for each report, besides the report type, month, and year dropdowns at the top before the download buttons.
-- **Fields Management (`fields.html`)**
-  - Dynamic table for adding/removing data categories
-  - Add/remove row buttons, inline editing
-  - Changes auto-save, with feedback indicator
 
 ## 7. Authentication Pages
 - **Login (`login.html`)**

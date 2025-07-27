@@ -72,7 +72,7 @@
 - **Login** (`/login`): User authentication page for registered users. Users can log in using either their email or their 3-digit user_id.
 - **Register** (`/register`): New user registration form (requires admin approval). System auto-generates a 3-digit user_id for each user.
 - **Report Dashboard** (`/`): Main landing page after login for both users and admins.
-- **At a Glance** (`/report`): Aggregated/summary report for the selected period. Users see their zone's data (`report.html`); admins see the city level report (`city_report.html`). Includes a download button (Excel/PDF). Available to both users (for their zone) and admins (for the city level report).
+- **Report** (`/report`): Aggregated/summary report for the selected period. Users see their zone's data (`report.html`); admins see the city level report (`city_report.html`). Includes a download button (Excel/PDF). Available to both users (for their zone) and admins (for the city level report).
 - **Report Sections**: Individual forms for each part of the report, matching the database schema:
   - Header Section (`/report/header`): Responsible person, location, and teacher statistics. *(ReportHeader)*
   - Courses Section (`/report/courses`): Educational program details, enrollment, and progress. *(ReportCourse)*
