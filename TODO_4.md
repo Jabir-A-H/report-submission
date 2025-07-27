@@ -41,7 +41,7 @@ Update all codes in the repository to match the todo_4 mockup.
 - **Navigation Bar**
   - Always visible except on login/register pages.
   - Contains links: Home (`/`), Report at a glance (`/report`), Help (`/help`).
-  - For admins, show extra links: Users (`/users`), Zones (`/zones`), Zone Reports (`/zone_reports`).
+  - For admins, show extra links: City Report (`/city_report`), Zone Reports (`/zone_reports`), Users (`/users`), Zones (`/zones`).
   - Hamburger menu appears on screens <768px, toggles navigation links vertically.
   - Zone info is shown at top right, with dropdown for profile/settings (future feature).
   - Active page is highlighted with a color accent and underline.
