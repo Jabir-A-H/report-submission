@@ -417,6 +417,21 @@ def month_name(month):
         return ""
 
 
+# --- Jinja2 Global: Get Current Report ---
+def get_current_report(zone_id, month, year, report_type):
+    query = {
+        "zone_id": zone_id,
+        "year": year,
+        "report_type": report_type,
+    }
+    if report_type == "মাসিক":
+        query["month"] = month
+    return Report.query.filter_by(**query).first()
+
+
+app.jinja_env.globals.update(get_current_report=get_current_report)
+
+
 # --- Routes ---
 
 
@@ -720,9 +735,21 @@ def get_report_period():
 @login_required
 def report_header():
     month, year, report_type = get_report_period()
+    report = None
+    if current_user.is_authenticated:
+        report = Report.query.filter_by(
+            zone_id=current_user.zone_id,
+            month=month,
+            year=year,
+            report_type=report_type,
+        ).first()
     # ...section logic here...
     return render_template(
-        "report/header.html", month=month, year=year, report_type=report_type
+        "report/header.html",
+        month=month,
+        year=year,
+        report_type=report_type,
+        report=report,
     )
 
 
@@ -732,9 +759,7 @@ def report_courses():
     month, year, report_type = get_report_period()
     report = None
     if current_user.is_authenticated:
-        report = Report.query.filter_by(
-            zone_id=current_user.zone_id, month=month, year=year
-        ).first()
+        report = get_current_report(current_user.zone_id, month, year, report_type)
     return render_template(
         "report/courses.html",
         month=month,
@@ -748,9 +773,15 @@ def report_courses():
 @login_required
 def report_organizational():
     month, year, report_type = get_report_period()
-    # ...section logic here...
+    report = None
+    if current_user.is_authenticated:
+        report = get_current_report(current_user.zone_id, month, year, report_type)
     return render_template(
-        "report/organizational.html", month=month, year=year, report_type=report_type
+        "report/organizational.html",
+        month=month,
+        year=year,
+        report_type=report_type,
+        report=report,
     )
 
 
@@ -758,9 +789,15 @@ def report_organizational():
 @login_required
 def report_personal():
     month, year, report_type = get_report_period()
-    # ...section logic here...
+    report = None
+    if current_user.is_authenticated:
+        report = get_current_report(current_user.zone_id, month, year, report_type)
     return render_template(
-        "report/personal.html", month=month, year=year, report_type=report_type
+        "report/personal.html",
+        month=month,
+        year=year,
+        report_type=report_type,
+        report=report,
     )
 
 
@@ -768,9 +805,15 @@ def report_personal():
 @login_required
 def report_meetings():
     month, year, report_type = get_report_period()
-    # ...section logic here...
+    report = None
+    if current_user.is_authenticated:
+        report = get_current_report(current_user.zone_id, month, year, report_type)
     return render_template(
-        "report/meetings.html", month=month, year=year, report_type=report_type
+        "report/meetings.html",
+        month=month,
+        year=year,
+        report_type=report_type,
+        report=report,
     )
 
 
@@ -778,9 +821,15 @@ def report_meetings():
 @login_required
 def report_extras():
     month, year, report_type = get_report_period()
-    # ...section logic here...
+    report = None
+    if current_user.is_authenticated:
+        report = get_current_report(current_user.zone_id, month, year, report_type)
     return render_template(
-        "report/extras.html", month=month, year=year, report_type=report_type
+        "report/extras.html",
+        month=month,
+        year=year,
+        report_type=report_type,
+        report=report,
     )
 
 
@@ -788,9 +837,15 @@ def report_extras():
 @login_required
 def report_comments():
     month, year, report_type = get_report_period()
-    # ...section logic here...
+    report = None
+    if current_user.is_authenticated:
+        report = get_current_report(current_user.zone_id, month, year, report_type)
     return render_template(
-        "report/comments.html", month=month, year=year, report_type=report_type
+        "report/comments.html",
+        month=month,
+        year=year,
+        report_type=report_type,
+        report=report,
     )
 
 
