@@ -56,7 +56,7 @@ A web application for educational organization report submission, review, and ag
 3. **Login Process** (`/login`)
    - User enters: Email **or** 3-digit User ID and password
    - System validates: User exists (by email or user_id), is active, password matches
-   - Redirect: Admin → `/admin/dashboard`, User → `/report_dashboard`
+   - Successful login redirects to the dashboard (`/`)
 
 ### Zone Management
 - **Admin Controls** (`/admin/zones`):
@@ -114,12 +114,9 @@ Each report contains 7 sections accessible from the dashboard:
 - **Zone Management:** Create, delete, and manage organizational zones
 
 ### Report Oversight
-- **View All Reports** (`/admin/reports`):
-  - Filter by period, zone, or both
-  - Access any report section for editing
-- **Edit Capabilities:**
-  - Modify any report section system-wide
-  - Add/remove rows for categorized data
+- **View All Reports** (`/zone_reports`):
+  - Filter only by period, zone, or both
+  - Access any report section for viewing
 - **Data Validation:** Ensure report completeness and accuracy
 
 ---
@@ -150,7 +147,7 @@ Each report contains 7 sections accessible from the dashboard:
 
 ### User Interface Elements
 - **Dashboard Cards:** Visual section overview
-- **Dynamic Forms:** Add/remove table rows by admin only for flexible data entry
+- **Forms:** Categories for report sections are fixed; no dynamic row addition/removal by admin
 - **Loading Indicators:** Clear feedback for auto-save and data operations
 - **Error Handling:** Inline validation messages and global alerts
 - **Consistent Layout:** Unified header, navigation, and content structure
@@ -159,7 +156,7 @@ Each report contains 7 sections accessible from the dashboard:
 - **Registration:** Simple form with clear validation feedback
 - **Login:** Flexible identifier acceptance (email/ID)
 - **Dashboard:** Immediate overview of report status and next actions
-- **Section Editing:** Focused forms with persistent navigation options
+- **Section Based Editing:** Focused forms with persistent navigation options
 - **Admin Interface:** Comprehensive but organized management tools
 
 
@@ -195,11 +192,6 @@ Each report contains 7 sections accessible from the dashboard:
 - **Export:** Pandas for data processing, ReportLab for PDF generation
 - **Testing:** pytest for automated testing, coverage reporting
 
-### Development Standards
-- **Code Quality:** Black formatting, flake8 linting
-- **Type Hints:** SQLAlchemy dynamic attributes with `# type: ignore`
-- **Documentation:** Comprehensive inline documentation
-- **Modular Design:** Separated models, routes, templates, and utilities
 
 ---
 
@@ -239,13 +231,14 @@ Each report contains 7 sections accessible from the dashboard:
 - **Multi-language:** Bengali/English only, no additional language support.
 - **Report Locking:** No mechanism to prevent editing of submitted reports.
 - **Version Control:** No backup or rollback capabilities for report data.
+- **Categories for each report section are hardcoded and not editable via the admin panel.**
 
 ### Design Decisions
 - **Simplicity Over Features:** Focus on core functionality without complexity.
 - **Single Zone Assignment:** Users belong to one zone only.
 - **Collaborative Reports:** One report per zone per period, edited by all zone users.
 - **Admin Override:** Admins can edit any data without restrictions.
-- **Dynamic Tables:** Add/remove rows for categorized data by admin only.
+- **Fixed Tables:** Categories for report sections are fixed and not editable from the UI.
 
 ---
 
