@@ -19,7 +19,7 @@
   - Allow admin to change user zones from the admin panel.
 
 
-# Report at a glance Logic
+# Report at a glance Logic (`/report`)
 
 ## Logic for different report types for both users and admins
 - For মাসিক reports, include detailed data for the selected month.
