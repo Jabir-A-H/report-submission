@@ -9,9 +9,6 @@ def populate_categories_for_report(report_id):
         "কর্মীদের",
         "ইউনিট সভানেত্রী",
         "অগ্রসরদের",
-        "রুকনদের অনুশীলনী ক্লাস",
-        "তারবিয়াত বৈঠক",
-        "পারিবারিক ইউনিটে তা'লীমুল কুরআন",
         "শিশু- তা'লিমুল কুরআন",
         "নিরক্ষর- তা'লিমুস সলাত",
     ]
@@ -112,9 +109,6 @@ def seed_predefined_categories():
         "কর্মীদের",
         "ইউনিট সভানেত্রী",
         "অগ্রসরদের",
-        "রুকনদের অনুশীলনী ক্লাস",
-        "তারবিয়াত বৈঠক",
-        "পারিবারিক ইউনিটে তা'লীমুল কুরআন",
         "শিশু- তা'লিমুল কুরআন",
         "নিরক্ষর- তা'লিমুস সলাত",
     ]
@@ -526,18 +520,24 @@ def dashboard():
         if report:
             populate_categories_for_report(report.id)
 
+        # Map model class to relationship attribute for uselist=False
+        model_to_attr = {
+            "ReportHeader": "header",
+            "ReportComment": "comments",
+        }
         sections = []
         for sdef in section_defs:
             completed = False
             if report:
-                # For uselist=False relationships
-                if hasattr(report, sdef["model"].__name__.lower()):
-                    section_obj = getattr(report, sdef["model"].__name__.lower())
-                    completed = section_obj is not None
-                else:
-                    # For uselist=True relationships
-                    rel = getattr(report, sdef["model"].__name__.lower(), None)
-                    completed = rel and len(rel) > 0
+                model_name = sdef["model"].__name__
+                rel_attr = model_to_attr.get(model_name, model_name.lower())
+                if hasattr(report, rel_attr):
+                    section_obj = getattr(report, rel_attr)
+                    # uselist=False: object, uselist=True: list
+                    if isinstance(section_obj, list):
+                        completed = section_obj and len(section_obj) > 0
+                    else:
+                        completed = section_obj is not None
             sections.append(
                 {
                     "name": sdef["name"],
