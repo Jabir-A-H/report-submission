@@ -35,19 +35,16 @@ content %}
               </tr>
             </thead>
             <tbody>
-              {% set org_categories = [ "দাওয়াত দান", "কতজন ইসলামের আদর্শ মেনে
-              চলার চেষ্টা করছেন", "সহযোগী হয়েছে", "সম্মতি দিয়েছেন", "সক্রিয়
-              সহযোগী", "কর্মী", "রুকন", "দাওয়াতী ইউনিট", "ইউনিট", "সূধী",
-              "এককালীন", "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)", "বই
-              বিলি", "বই বিক্রি" ] %} {% for cat in org_categories %} {% set row
-              = (report.organizational | selectattr('category', 'equalto', cat)
-              | list | first) %}
+              {# org_categories and slug_to_cat are passed from backend #} {%
+              for cat in org_categories %} {% set slug = cat_to_slug[cat] %} {%
+              set row = (report.organizational | selectattr('category',
+              'equalto', cat) | list | first) %}
               <tr class="border-b hover:bg-cyan-50">
                 <td class="px-4 py-2 font-semibold">{{ cat }}</td>
                 <td class="px-2 py-2 text-center">
                   <input
                     type="number"
-                    name="number_{{ cat }}"
+                    name="number_{{ slug }}"
                     value="{{ row.number if row else 0 }}"
                     class="w-20 p-1 border rounded text-center"
                     min="0"
@@ -56,7 +53,7 @@ content %}
                 <td class="px-2 py-2 text-center">
                   <input
                     type="number"
-                    name="increase_{{ cat }}"
+                    name="increase_{{ slug }}"
                     value="{{ row.increase if row else 0 }}"
                     class="w-20 p-1 border rounded text-center"
                     min="0"
@@ -65,7 +62,7 @@ content %}
                 <td class="px-2 py-2 text-center">
                   <input
                     type="number"
-                    name="amount_{{ cat }}"
+                    name="amount_{{ slug }}"
                     value="{{ row.amount if row and row.amount is not none else '' }}"
                     class="w-24 p-1 border rounded text-center"
                     min="0"
@@ -74,7 +71,7 @@ content %}
                 <td class="px-2 py-2 text-center">
                   <input
                     type="text"
-                    name="comments_{{ cat }}"
+                    name="comments_{{ slug }}"
                     value="{{ row.comments if row and row.comments is not none else '' }}"
                     class="w-32 p-1 border rounded"
                   />
