@@ -1,0 +1,19 @@
+# Exported from Render on 2025-07-28T08:24:40Z
+services:
+- type: web
+  name: report-submission
+  runtime: python
+  repo: https://github.com/Jabir-A-H/report-submission
+  plan: free
+  envVars:
+  - key: SQLALCHEMY_DATABASE_URI
+    sync: false
+  - key: SECRET_KEY
+    sync: false
+  - key: FLASK_ENV
+    sync: false
+  region: singapore
+  buildCommand: pip install -r requirements.txt
+  startCommand: gunicorn app:app
+  autoDeployTrigger: commit
+version: "1"
