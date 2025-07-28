@@ -1,3 +1,55 @@
+# --- One-time migration: Normalize all category fields in DB ---
+def migrate_normalize_categories():
+    print("Normalizing all category fields in the database...")
+    # Organizational
+    for row in ReportOrganizational.query.all():
+        norm = normalize_cat(row.category)
+        if row.category != norm:
+            row.category = norm
+    # Courses
+    for row in ReportCourse.query.all():
+        norm = normalize_cat(row.category)
+        if row.category != norm:
+            row.category = norm
+    # Personal
+    for row in ReportPersonal.query.all():
+        norm = normalize_cat(row.category)
+        if row.category != norm:
+            row.category = norm
+    # Meetings
+    for row in ReportMeeting.query.all():
+        norm = normalize_cat(row.category)
+        if row.category != norm:
+            row.category = norm
+    # Extras
+    for row in ReportExtra.query.all():
+        norm = normalize_cat(row.category)
+        if row.category != norm:
+            row.category = norm
+    db.session.commit()
+    print("Category normalization complete.")
+
+
+# --- Slugify Helper (matches Jinja macro) ---
+import re
+import unicodedata
+
+
+def normalize_cat(s):
+    # Normalize Unicode to NFC and strip whitespace
+    return unicodedata.normalize("NFC", s).strip()
+
+
+def slugify(s):
+    s = normalize_cat(s)
+    s = s.lower()
+    s = s.replace(" ", "-")
+    for ch in ["(", ")", "্", "়", "’", '"', "'"]:
+        s = s.replace(ch, "")
+    s = re.sub(r"[^\w\-]+", "", s)
+    return s
+
+
 """
 Report Submission System - Clean Implementation
 
@@ -143,103 +195,6 @@ def populate_categories_for_report(report_id):
                 db.session.commit()
             except IntegrityError:
                 db.session.rollback()
-
-
-# --- Seed Predefined Categories ---
-def seed_predefined_categories():
-    from sqlalchemy.exc import IntegrityError
-
-    # Course Categories
-    course_categories = [
-        "বিশিষ্টদের",
-        "সাধারণদের",
-        "কর্মীদের",
-        "ইউনিট সভানেত্রী",
-        "অগ্রসরদের",
-        "শিশু- তা'লিমুল কুরআন",
-        "নিরক্ষর- তা'লিমুস সলাত",
-    ]
-    for cat in course_categories:
-        if not ReportCourse.query.filter_by(category=cat).first():
-            try:
-                db.session.add(ReportCourse(category=cat, number=0, report_id=1))
-                db.session.commit()
-            except IntegrityError:
-                db.session.rollback()
-
-    # Organizational Categories
-    org_categories = [
-        "দাওয়াত দান",
-        "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
-        "সহযোগী হয়েছে",
-        "সম্মতি দিয়েছেন",
-        "সক্রিয় সহযোগী",
-        "কর্মী",
-        "রুকন",
-        "দাওয়াতী ইউনিট",
-        "ইউনিট",
-        "সূধী",
-        "এককালীন",
-        "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
-        "বই বিলি",
-        "বই বিক্রি",
-    ]
-    for cat in org_categories:
-        if not ReportOrganizational.query.filter_by(category=cat).first():
-            try:
-                db.session.add(
-                    ReportOrganizational(category=cat, number=0, report_id=1)
-                )
-                db.session.commit()
-            except IntegrityError:
-                db.session.rollback()
-
-    # Personal Activities Categories
-    personal_categories = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
-    for cat in personal_categories:
-        if not ReportPersonal.query.filter_by(category=cat).first():
-            try:
-                db.session.add(ReportPersonal(category=cat, report_id=1))
-                db.session.commit()
-            except IntegrityError:
-                db.session.rollback()
-
-    # Meeting Categories
-    meeting_categories = [
-        "কমিটি বৈঠক হয়েছে",
-        "মুয়াল্লিমাদের নিয়ে বৈঠক",
-        "Committee Orientation",
-        "Muallima Orientation",
-    ]
-    for cat in meeting_categories:
-        if not ReportMeeting.query.filter_by(category=cat).first():
-            try:
-                db.session.add(ReportMeeting(category=cat, report_id=1))
-                db.session.commit()
-            except IntegrityError:
-                db.session.rollback()
-
-    # Extra Activity Categories
-    extra_categories = [
-        "মক্তব সংখ্যা",
-        "মক্তব বৃদ্ধি",
-        "মহানগরী পরিচালিত",
-        "স্থানীয়ভাবে পরিচালিত",
-        "মহানগরীর সফর",
-        "থানা কমিটির সফর",
-        "থানা প্রতিনিধির সফর",
-        "ওয়ার্ড প্রতিনিধির সফর",
-    ]
-    for cat in extra_categories:
-        if not ReportExtra.query.filter_by(category=cat).first():
-            try:
-                db.session.add(ReportExtra(category=cat, number=0, report_id=1))
-                db.session.commit()
-            except IntegrityError:
-                db.session.rollback()
-
-
-# Call this function once after db.create_all()
 
 
 # --- Models ---
@@ -725,17 +680,22 @@ def get_report_period():
 def handle_section_post(report, section_attr, categories, fields):
     section_list = getattr(report, section_attr)
     model = section_list[0].__class__ if section_list else None
-    for cat in categories:
-        row = next((r for r in section_list if r.category == cat), None)
+    # Normalize all categories for robust matching
+    norm_categories = [normalize_cat(cat) for cat in categories]
+    slug_to_cat = {slugify(cat): cat for cat in norm_categories}
+    cat_to_slug = {cat: slug for slug, cat in slug_to_cat.items()}
+    # Normalize DB row categories for matching
+    for slug, cat in slug_to_cat.items():
+        # Try to find row by normalized category
+        row = next((r for r in section_list if normalize_cat(r.category) == cat), None)
         if not row and model:
             row = model(report_id=report.id, category=cat)
             db.session.add(row)
         if row:
             for field in fields:
-                form_key = f"{field}_{cat}"
+                form_key = f"{field}_{slug}"
                 value = request.form.get(form_key)
                 if value is not None:
-                    # Convert to int if field is Integer
                     col_type = getattr(row.__class__, field).type
                     if isinstance(col_type, db.Integer):
                         value = int(value) if value else 0
@@ -885,23 +845,28 @@ def report_organizational():
     success = None
     if current_user.is_authenticated:
         report = get_current_report(current_user.zone_id, month, year, report_type)
+        org_categories = [
+            "দাওয়াত দান",
+            "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
+            "সহযোগী হয়েছে",
+            "সম্মতি দিয়েছেন",
+            "সক্রিয় সহযোগী",
+            "কর্মী",
+            "রুকন",
+            "দাওয়াতী ইউনিট",
+            "ইউনিট",
+            "সূধী",
+            "এককালীন",
+            "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
+            "বই বিলি",
+            "বই বিক্রি",
+        ]
+        # Normalize categories for template and mapping
+        norm_categories = [normalize_cat(cat) for cat in org_categories]
+        slug_to_cat = {slugify(cat): cat for cat in norm_categories}
+        cat_to_slug = {cat: slug for slug, cat in slug_to_cat.items()}
+        org_categories = norm_categories
         if request.method == "POST" and report:
-            org_categories = [
-                "দাওয়াত দান",
-                "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
-                "সহযোগী হয়েছে",
-                "সম্মতি দিয়েছেন",
-                "সক্রিয় সহযোগী",
-                "কর্মী",
-                "রুকন",
-                "দাওয়াতী ইউনিট",
-                "ইউনিট",
-                "সূধী",
-                "এককালীন",
-                "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
-                "বই বিলি",
-                "বই বিক্রি",
-            ]
             fields = ["number", "increase", "amount", "comments"]
             handle_section_post(report, "organizational", org_categories, fields)
             success = "তথ্য সফলভাবে সংরক্ষণ হয়েছে।"
@@ -913,6 +878,9 @@ def report_organizational():
         report=report,
         error=error,
         success=success,
+        org_categories=org_categories,
+        slug_to_cat=slug_to_cat,
+        cat_to_slug=cat_to_slug,
     )
 
 
