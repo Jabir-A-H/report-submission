@@ -1,3 +1,50 @@
+"""
+Report Submission System - Clean Implementation
+
+Implements all updated requirements from TODO.md, TODO_2.md, and TODO_3.md.
+- Section-based, dashboard-centric workflow
+- Modern Flask, SQLAlchemy, Flask-Login
+- No legacy or duplicate code
+- Models, routes, and logic are cleanly separated
+"""
+
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    flash,
+    jsonify,  # type: ignore
+    send_file,  # type: ignore
+)
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import (
+    LoginManager,
+    login_user,  # type: ignore
+    login_required,  # type: ignore
+    logout_user,
+    current_user,
+    UserMixin,
+)
+from werkzeug.security import generate_password_hash, check_password_hash
+import os
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# --- Initialize Flask App and Configurations ---
+app = Flask(__name__)
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI")
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+db = SQLAlchemy(app)
+login_manager = LoginManager(app)
+login_manager.login_view = "login"  # type: ignore
+
+
 # --- Helper: Populate Categories for New Report ---
 def populate_categories_for_report(report_id):
     from sqlalchemy.exc import IntegrityError
@@ -193,51 +240,7 @@ def seed_predefined_categories():
 
 
 # Call this function once after db.create_all()
-"""
-Report Submission System - Clean Implementation
 
-Implements all updated requirements from TODO.md, TODO_2.md, and TODO_3.md.
-- Section-based, dashboard-centric workflow
-- Modern Flask, SQLAlchemy, Flask-Login
-- No legacy or duplicate code
-- Models, routes, and logic are cleanly separated
-"""
-
-from flask import (
-    Flask,
-    render_template,
-    request,
-    redirect,
-    url_for,
-    flash,
-    jsonify,  # type: ignore
-    send_file,  # type: ignore
-)
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import (
-    LoginManager,
-    login_user,  # type: ignore
-    login_required,  # type: ignore
-    logout_user,
-    current_user,
-    UserMixin,
-)
-from werkzeug.security import generate_password_hash, check_password_hash
-import os
-
-from dotenv import load_dotenv
-
-load_dotenv()
-
-# --- Initialize Flask App and Configurations ---
-app = Flask(__name__)
-app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI")
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
-db = SQLAlchemy(app)
-login_manager = LoginManager(app)
-login_manager.login_view = "login"  # type: ignore
 
 # --- Models ---
 
@@ -1115,6 +1118,5 @@ if __name__ == "__main__":
     app.run(
         host="0.0.0.0",
         port=int(os.environ.get("PORT", 5000)),
-        debug=os.environ.get("FLASK_DEBUG", "false").lower() == "true"
+        debug=os.environ.get("FLASK_DEBUG", "false").lower() == "true",
     )
-
