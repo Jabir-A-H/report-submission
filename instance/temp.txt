@@ -1,1 +1,475 @@
 Assalamualaikum
+
+
+2025-07-28T08:16:18.244615786Z ==> Cloning from https://github.com/Jabir-A-H/report-submission
+2025-07-28T08:16:19.161455502Z ==> Checking out commit c04ff787f8f75f27476ec09931982924eab3678f in branch main
+2025-07-28T08:16:21.341463884Z ==> Using Python version 3.13.4 (default)
+2025-07-28T08:16:21.367327707Z ==> Docs on specifying a Python version: https://render.com/docs/python-version
+2025-07-28T08:16:24.051973664Z ==> Using Poetry version 2.1.3 (default)
+2025-07-28T08:16:24.09872824Z ==> Docs on specifying a Poetry version: https://render.com/docs/poetry-version
+2025-07-28T08:16:24.116195485Z ==> Running build command 'pip install -r requirements.txt'...
+2025-07-28T08:16:24.632403661Z Collecting Flask>=3.1.1 (from -r requirements.txt (line 1))
+2025-07-28T08:16:24.664592486Z   Downloading flask-3.1.1-py3-none-any.whl.metadata (3.0 kB)
+2025-07-28T08:16:24.689884334Z Collecting Flask-Login>=0.6.3 (from -r requirements.txt (line 2))
+2025-07-28T08:16:24.693549886Z   Downloading Flask_Login-0.6.3-py3-none-any.whl.metadata (5.8 kB)
+2025-07-28T08:16:24.720717908Z Collecting Flask-SQLAlchemy>=3.1.1 (from -r requirements.txt (line 3))
+2025-07-28T08:16:24.776911403Z   Downloading flask_sqlalchemy-3.1.1-py3-none-any.whl.metadata (3.4 kB)
+2025-07-28T08:16:24.991487841Z Collecting numpy>=2.3.1 (from -r requirements.txt (line 4))
+2025-07-28T08:16:24.99462918Z   Downloading numpy-2.3.2-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (62 kB)
+2025-07-28T08:16:25.042907458Z Collecting openpyxl>=3.1.5 (from -r requirements.txt (line 5))
+2025-07-28T08:16:25.045807013Z   Downloading openpyxl-3.1.5-py2.py3-none-any.whl.metadata (2.5 kB)
+2025-07-28T08:16:25.160609701Z Collecting pandas>=2.3.1 (from -r requirements.txt (line 6))
+2025-07-28T08:16:25.164665786Z   Downloading pandas-2.3.1-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (91 kB)
+2025-07-28T08:16:25.222307419Z Collecting python-dotenv>=1.1.1 (from -r requirements.txt (line 7))
+2025-07-28T08:16:25.22529364Z   Downloading python_dotenv-1.1.1-py3-none-any.whl.metadata (24 kB)
+2025-07-28T08:16:25.35584971Z Collecting reportlab>=4.4.2 (from -r requirements.txt (line 8))
+2025-07-28T08:16:25.359881893Z   Downloading reportlab-4.4.3-py3-none-any.whl.metadata (1.7 kB)
+2025-07-28T08:16:25.384543324Z Collecting gunicorn>=21.2.0 (from -r requirements.txt (line 9))
+2025-07-28T08:16:25.387865324Z   Downloading gunicorn-23.0.0-py3-none-any.whl.metadata (4.4 kB)
+2025-07-28T08:16:25.404244954Z Collecting blinker>=1.9.0 (from Flask>=3.1.1->-r requirements.txt (line 1))
+2025-07-28T08:16:25.406972019Z   Downloading blinker-1.9.0-py3-none-any.whl.metadata (1.6 kB)
+2025-07-28T08:16:25.426814688Z Collecting click>=8.1.3 (from Flask>=3.1.1->-r requirements.txt (line 1))
+2025-07-28T08:16:25.429867753Z   Downloading click-8.2.1-py3-none-any.whl.metadata (2.5 kB)
+2025-07-28T08:16:25.444958165Z Collecting itsdangerous>=2.2.0 (from Flask>=3.1.1->-r requirements.txt (line 1))
+2025-07-28T08:16:25.448039731Z   Downloading itsdangerous-2.2.0-py3-none-any.whl.metadata (1.9 kB)
+2025-07-28T08:16:25.466699179Z Collecting jinja2>=3.1.2 (from Flask>=3.1.1->-r requirements.txt (line 1))
+2025-07-28T08:16:25.469621085Z   Downloading jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
+2025-07-28T08:16:25.538859599Z Collecting markupsafe>=2.1.1 (from Flask>=3.1.1->-r requirements.txt (line 1))
+2025-07-28T08:16:25.542449136Z   Downloading MarkupSafe-3.0.2-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.0 kB)
+2025-07-28T08:16:25.575707396Z Collecting werkzeug>=3.1.0 (from Flask>=3.1.1->-r requirements.txt (line 1))
+2025-07-28T08:16:25.579048208Z   Downloading werkzeug-3.1.3-py3-none-any.whl.metadata (3.7 kB)
+2025-07-28T08:16:25.908454615Z Collecting sqlalchemy>=2.0.16 (from Flask-SQLAlchemy>=3.1.1->-r requirements.txt (line 3))
+2025-07-28T08:16:25.91251461Z   Downloading sqlalchemy-2.0.41-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (9.6 kB)
+2025-07-28T08:16:25.937726744Z Collecting et-xmlfile (from openpyxl>=3.1.5->-r requirements.txt (line 5))
+2025-07-28T08:16:25.940530653Z   Downloading et_xmlfile-2.0.0-py3-none-any.whl.metadata (2.7 kB)
+2025-07-28T08:16:25.962217024Z Collecting python-dateutil>=2.8.2 (from pandas>=2.3.1->-r requirements.txt (line 6))
+2025-07-28T08:16:25.965310231Z   Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+2025-07-28T08:16:26.016633262Z Collecting pytz>=2020.1 (from pandas>=2.3.1->-r requirements.txt (line 6))
+2025-07-28T08:16:26.019827765Z   Downloading pytz-2025.2-py2.py3-none-any.whl.metadata (22 kB)
+2025-07-28T08:16:26.041523966Z Collecting tzdata>=2022.7 (from pandas>=2.3.1->-r requirements.txt (line 6))
+2025-07-28T08:16:26.044431982Z   Downloading tzdata-2025.2-py2.py3-none-any.whl.metadata (1.4 kB)
+2025-07-28T08:16:26.219956829Z Collecting pillow>=9.0.0 (from reportlab>=4.4.2->-r requirements.txt (line 8))
+2025-07-28T08:16:26.224243388Z   Downloading pillow-11.3.0-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (9.0 kB)
+2025-07-28T08:16:26.328105355Z Collecting charset-normalizer (from reportlab>=4.4.2->-r requirements.txt (line 8))
+2025-07-28T08:16:26.331934426Z   Downloading charset_normalizer-3.4.2-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (35 kB)
+2025-07-28T08:16:26.3588026Z Collecting packaging (from gunicorn>=21.2.0->-r requirements.txt (line 9))
+2025-07-28T08:16:26.361930989Z   Downloading packaging-25.0-py3-none-any.whl.metadata (3.3 kB)
+2025-07-28T08:16:26.38594806Z Collecting six>=1.5 (from python-dateutil>=2.8.2->pandas>=2.3.1->-r requirements.txt (line 6))
+2025-07-28T08:16:26.388785702Z   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+2025-07-28T08:16:26.516026951Z Collecting greenlet>=1 (from sqlalchemy>=2.0.16->Flask-SQLAlchemy>=3.1.1->-r requirements.txt (line 3))
+2025-07-28T08:16:26.519928857Z   Downloading greenlet-3.2.3-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (4.1 kB)
+2025-07-28T08:16:26.543216124Z Collecting typing-extensions>=4.6.0 (from sqlalchemy>=2.0.16->Flask-SQLAlchemy>=3.1.1->-r requirements.txt (line 3))
+2025-07-28T08:16:26.546368005Z   Downloading typing_extensions-4.14.1-py3-none-any.whl.metadata (3.0 kB)
+2025-07-28T08:16:26.562035761Z Downloading flask-3.1.1-py3-none-any.whl (103 kB)
+2025-07-28T08:16:26.568886595Z Downloading Flask_Login-0.6.3-py3-none-any.whl (17 kB)
+2025-07-28T08:16:26.576431162Z Downloading flask_sqlalchemy-3.1.1-py3-none-any.whl (25 kB)
+2025-07-28T08:16:26.582898932Z Downloading numpy-2.3.2-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.6 MB)
+2025-07-28T08:16:26.666219397Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.6/16.6 MB 207.1 MB/s eta 0:00:00
+2025-07-28T08:16:26.669491115Z Downloading openpyxl-3.1.5-py2.py3-none-any.whl (250 kB)
+2025-07-28T08:16:26.677371242Z Downloading pandas-2.3.1-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (12.1 MB)
+2025-07-28T08:16:26.755484862Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.1/12.1 MB 157.0 MB/s eta 0:00:00
+2025-07-28T08:16:26.759178595Z Downloading python_dotenv-1.1.1-py3-none-any.whl (20 kB)
+2025-07-28T08:16:26.777763748Z Downloading reportlab-4.4.3-py3-none-any.whl (2.0 MB)
+2025-07-28T08:16:26.798499242Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.0/2.0 MB 108.9 MB/s eta 0:00:00
+2025-07-28T08:16:26.802363155Z Downloading gunicorn-23.0.0-py3-none-any.whl (85 kB)
+2025-07-28T08:16:26.810131054Z Downloading blinker-1.9.0-py3-none-any.whl (8.5 kB)
+2025-07-28T08:16:26.817437536Z Downloading click-8.2.1-py3-none-any.whl (102 kB)
+2025-07-28T08:16:26.825140172Z Downloading itsdangerous-2.2.0-py3-none-any.whl (16 kB)
+2025-07-28T08:16:26.832010187Z Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
+2025-07-28T08:16:26.83934314Z Downloading MarkupSafe-3.0.2-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (23 kB)
+2025-07-28T08:16:26.85407199Z Downloading pillow-11.3.0-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (6.6 MB)
+2025-07-28T08:16:26.896456561Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.6/6.6 MB 161.8 MB/s eta 0:00:00
+2025-07-28T08:16:26.900134003Z Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+2025-07-28T08:16:26.908797187Z Downloading pytz-2025.2-py2.py3-none-any.whl (509 kB)
+2025-07-28T08:16:26.918684605Z Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+2025-07-28T08:16:26.92688474Z Downloading sqlalchemy-2.0.41-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.2 MB)
+2025-07-28T08:16:26.949698569Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.2/3.2 MB 154.7 MB/s eta 0:00:00
+2025-07-28T08:16:26.954466567Z Downloading greenlet-3.2.3-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (608 kB)
+2025-07-28T08:16:26.962933408Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 608.4/608.4 kB 58.7 MB/s eta 0:00:00
+2025-07-28T08:16:26.965840494Z Downloading typing_extensions-4.14.1-py3-none-any.whl (43 kB)
+2025-07-28T08:16:26.973171067Z Downloading tzdata-2025.2-py2.py3-none-any.whl (347 kB)
+2025-07-28T08:16:26.981196842Z Downloading werkzeug-3.1.3-py3-none-any.whl (224 kB)
+2025-07-28T08:16:26.989111541Z Downloading charset_normalizer-3.4.2-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (148 kB)
+2025-07-28T08:16:26.99655736Z Downloading et_xmlfile-2.0.0-py3-none-any.whl (18 kB)
+2025-07-28T08:16:27.003106876Z Downloading packaging-25.0-py3-none-any.whl (66 kB)
+2025-07-28T08:16:27.159976586Z Installing collected packages: pytz, tzdata, typing-extensions, six, python-dotenv, pillow, packaging, numpy, markupsafe, itsdangerous, greenlet, et-xmlfile, click, charset-normalizer, blinker, werkzeug, sqlalchemy, reportlab, python-dateutil, openpyxl, jinja2, gunicorn, pandas, Flask, Flask-SQLAlchemy, Flask-Login
+2025-07-28T08:16:38.967184125Z 
+2025-07-28T08:16:38.970893569Z Successfully installed Flask-3.1.1 Flask-Login-0.6.3 Flask-SQLAlchemy-3.1.1 blinker-1.9.0 charset-normalizer-3.4.2 click-8.2.1 et-xmlfile-2.0.0 greenlet-3.2.3 gunicorn-23.0.0 itsdangerous-2.2.0 jinja2-3.1.6 markupsafe-3.0.2 numpy-2.3.2 openpyxl-3.1.5 packaging-25.0 pandas-2.3.1 pillow-11.3.0 python-dateutil-2.9.0.post0 python-dotenv-1.1.1 pytz-2025.2 reportlab-4.4.3 six-1.17.0 sqlalchemy-2.0.41 typing-extensions-4.14.1 tzdata-2025.2 werkzeug-3.1.3
+2025-07-28T08:16:55.720190407Z ==> Uploading build...
+2025-07-28T08:17:03.647545571Z ==> Uploaded in 6.0s. Compression took 1.9s
+2025-07-28T08:17:03.782852198Z ==> Build successful 🎉
+2025-07-28T08:17:08.775769341Z ==> Deploying...
+2025-07-28T08:17:39.410550091Z ==> Running 'gunicorn app:app'
+2025-07-28T08:17:50.417947098Z [2025-07-28 08:17:50 +0000] [105] [INFO] Starting gunicorn 23.0.0
+2025-07-28T08:17:50.418400461Z [2025-07-28 08:17:50 +0000] [105] [INFO] Listening at: http://0.0.0.0:10000 (105)
+2025-07-28T08:17:50.418493314Z [2025-07-28 08:17:50 +0000] [105] [INFO] Using worker: sync
+2025-07-28T08:17:50.507278083Z [2025-07-28 08:17:50 +0000] [106] [INFO] Booting worker with pid: 106
+2025-07-28T08:17:51.314962306Z 127.0.0.1 - - [28/Jul/2025:08:17:51 +0000] "HEAD / HTTP/1.1" 302 0 "-" "Go-http-client/1.1"
+2025-07-28T08:17:59.837791303Z ==> Your service is live 🎉
+2025-07-28T08:18:00.019313839Z ==> 
+2025-07-28T08:18:00.198978285Z ==> ///////////////////////////////////////////////////////////
+2025-07-28T08:18:00.640874466Z ==> 
+2025-07-28T08:18:00.821060842Z ==> Available at your primary URL https://report-submission.onrender.com
+2025-07-28T08:18:01.053400011Z ==> 
+2025-07-28T08:18:01.278872081Z ==> ///////////////////////////////////////////////////////////
+2025-07-28T08:18:03.597232775Z 127.0.0.1 - - [28/Jul/2025:08:18:03 +0000] "GET / HTTP/1.1" 302 217 "-" "Go-http-client/2.0"
+2025-07-28T08:18:03.817080692Z 127.0.0.1 - - [28/Jul/2025:08:18:03 +0000] "GET /login?next=%2F HTTP/1.1" 200 2874 "https://report-submission.onrender.com" "Go-http-client/2.0"
+2025-07-28T08:18:21.112699491Z 127.0.0.1 - - [28/Jul/2025:08:18:21 +0000] "GET / HTTP/1.1" 302 217 "-" "Mozilla/5.0 (Linux; Android 14; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.32 Mobile Safari/537.36"
+2025-07-28T08:18:21.584248859Z 127.0.0.1 - - [28/Jul/2025:08:18:21 +0000] "GET /login?next=%2F HTTP/1.1" 200 2874 "-" "Mozilla/5.0 (Linux; Android 14; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.32 Mobile Safari/537.36"
+2025-07-28T08:18:22.007146706Z 127.0.0.1 - - [28/Jul/2025:08:18:22 +0000] "GET /static/scripts.js HTTP/1.1" 200 0 "https://report-submission.onrender.com/login?next=%2F" "Mozilla/5.0 (Linux; Android 14; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.32 Mobile Safari/537.36"
+2025-07-28T08:18:22.01041766Z 127.0.0.1 - - [28/Jul/2025:08:18:22 +0000] "GET /static/styles.css HTTP/1.1" 200 0 "https://report-submission.onrender.com/login?next=%2F" "Mozilla/5.0 (Linux; Android 14; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.32 Mobile Safari/537.36"
+2025-07-28T08:18:23.317486184Z [2025-07-28 08:18:23,216] ERROR in app: Exception on /register [GET]
+2025-07-28T08:18:23.317506795Z Traceback (most recent call last):
+2025-07-28T08:18:23.317512335Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1963, in _exec_single_context
+2025-07-28T08:18:23.317519825Z     self.dialect.do_execute(
+2025-07-28T08:18:23.317523705Z     ~~~~~~~~~~~~~~~~~~~~~~~^
+2025-07-28T08:18:23.317529245Z         cursor, str_statement, effective_parameters, context
+2025-07-28T08:18:23.317532946Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:23.317536666Z     )
+2025-07-28T08:18:23.317540586Z     ^
+2025-07-28T08:18:23.317545226Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/default.py", line 943, in do_execute
+2025-07-28T08:18:23.317549346Z     cursor.execute(statement, parameters)
+2025-07-28T08:18:23.317553286Z     ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:23.317557096Z sqlite3.OperationalError: no such table: zone
+2025-07-28T08:18:23.317560696Z 
+2025-07-28T08:18:23.317564616Z The above exception was the direct cause of the following exception:
+2025-07-28T08:18:23.317568336Z 
+2025-07-28T08:18:23.317572107Z Traceback (most recent call last):
+2025-07-28T08:18:23.317577437Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+2025-07-28T08:18:23.317581637Z     response = self.full_dispatch_request()
+2025-07-28T08:18:23.317585857Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+2025-07-28T08:18:23.317589937Z     rv = self.handle_user_exception(e)
+2025-07-28T08:18:23.317594487Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+2025-07-28T08:18:23.317607508Z     rv = self.dispatch_request()
+2025-07-28T08:18:23.317610498Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/flask/app.py", line 902, in dispatch_request
+2025-07-28T08:18:23.317612958Z     return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+2025-07-28T08:18:23.317615298Z            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+2025-07-28T08:18:23.317617688Z   File "/opt/render/project/src/app.py", line 610, in register
+2025-07-28T08:18:23.317619968Z     zones = Zone.query.all()
+2025-07-28T08:18:23.317622628Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/orm/query.py", line 2704, in all
+2025-07-28T08:18:23.317624988Z     return self._iter().all()  # type: ignore
+2025-07-28T08:18:23.317628338Z            ~~~~~~~~~~^^
+2025-07-28T08:18:23.317630838Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/orm/query.py", line 2857, in _iter
+2025-07-28T08:18:23.317633418Z     result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+2025-07-28T08:18:23.317635858Z                                                   ~~~~~~~~~~~~~~~~~~~~^
+2025-07-28T08:18:23.317638338Z         statement,
+2025-07-28T08:18:23.317640818Z         ^^^^^^^^^^
+2025-07-28T08:18:23.317643159Z         params,
+2025-07-28T08:18:23.317645549Z         ^^^^^^^
+2025-07-28T08:18:23.317647909Z         execution_options={"_sa_orm_load_options": self.load_options},
+2025-07-28T08:18:23.317650309Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:23.317652879Z     )
+2025-07-28T08:18:23.317655269Z     ^
+2025-07-28T08:18:23.317657829Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/orm/session.py", line 2365, in execute
+2025-07-28T08:18:23.317660449Z     return self._execute_internal(
+2025-07-28T08:18:23.317663019Z            ~~~~~~~~~~~~~~~~~~~~~~^
+2025-07-28T08:18:23.317665639Z         statement,
+2025-07-28T08:18:23.317668199Z         ^^^^^^^^^^
+2025-07-28T08:18:23.317670619Z     ...<4 lines>...
+2025-07-28T08:18:23.31767349Z         _add_event=_add_event,
+2025-07-28T08:18:23.31767615Z         ^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:23.31767862Z     )
+2025-07-28T08:18:23.31768109Z     ^
+2025-07-28T08:18:23.31768366Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/orm/session.py", line 2251, in _execute_internal
+2025-07-28T08:18:23.31768638Z     result: Result[Any] = compile_state_cls.orm_execute_statement(
+2025-07-28T08:18:23.31768901Z                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+2025-07-28T08:18:23.31769148Z         self,
+2025-07-28T08:18:23.31769396Z         ^^^^^
+2025-07-28T08:18:23.31769618Z     ...<4 lines>...
+2025-07-28T08:18:23.31769835Z         conn,
+2025-07-28T08:18:23.31770071Z         ^^^^^
+2025-07-28T08:18:23.31770317Z     )
+2025-07-28T08:18:23.31770554Z     ^
+2025-07-28T08:18:23.31770796Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/orm/context.py", line 306, in orm_execute_statement
+2025-07-28T08:18:23.31771028Z     result = conn.execute(
+2025-07-28T08:18:23.317712651Z         statement, params or {}, execution_options=execution_options
+2025-07-28T08:18:23.317715021Z     )
+2025-07-28T08:18:23.317717531Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1415, in execute
+2025-07-28T08:18:23.317719931Z     return meth(
+2025-07-28T08:18:23.317722651Z         self,
+2025-07-28T08:18:23.317725331Z         distilled_parameters,
+2025-07-28T08:18:23.317732781Z         execution_options or NO_OPTIONS,
+2025-07-28T08:18:23.317735491Z     )
+2025-07-28T08:18:23.317737981Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/sql/elements.py", line 523, in _execute_on_connection
+2025-07-28T08:18:23.317740412Z     return connection._execute_clauseelement(
+2025-07-28T08:18:23.317742872Z            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+2025-07-28T08:18:23.317745352Z         self, distilled_params, execution_options
+2025-07-28T08:18:23.317748032Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:23.317750542Z     )
+2025-07-28T08:18:23.317753102Z     ^
+2025-07-28T08:18:23.317755562Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1637, in _execute_clauseelement
+2025-07-28T08:18:23.317757832Z     ret = self._execute_context(
+2025-07-28T08:18:23.317760252Z         dialect,
+2025-07-28T08:18:23.317762772Z     ...<8 lines>...
+2025-07-28T08:18:23.317765202Z         cache_hit=cache_hit,
+2025-07-28T08:18:23.317767732Z     )
+2025-07-28T08:18:23.317785373Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1842, in _execute_context
+2025-07-28T08:18:23.317788403Z     return self._exec_single_context(
+2025-07-28T08:18:23.317791143Z            ~~~~~~~~~~~~~~~~~~~~~~~~~^
+2025-07-28T08:18:23.317793643Z         dialect, context, statement, parameters
+2025-07-28T08:18:23.317796273Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:23.317798903Z     )
+2025-07-28T08:18:23.317801593Z     ^
+2025-07-28T08:18:23.317804423Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1982, in _exec_single_context
+2025-07-28T08:18:23.317807103Z     self._handle_dbapi_exception(
+2025-07-28T08:18:23.317809654Z     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+2025-07-28T08:18:23.317812123Z         e, str_statement, effective_parameters, cursor, context
+2025-07-28T08:18:23.317814514Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:23.317817064Z     )
+2025-07-28T08:18:23.317819514Z     ^
+2025-07-28T08:18:23.317822074Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 2351, in _handle_dbapi_exception
+2025-07-28T08:18:23.317824644Z     raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+2025-07-28T08:18:23.317826994Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1963, in _exec_single_context
+2025-07-28T08:18:23.317829364Z     self.dialect.do_execute(
+2025-07-28T08:18:23.317831704Z     ~~~~~~~~~~~~~~~~~~~~~~~^
+2025-07-28T08:18:23.317834084Z         cursor, str_statement, effective_parameters, context
+2025-07-28T08:18:23.317836494Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:23.317838734Z     )
+2025-07-28T08:18:23.317840924Z     ^
+2025-07-28T08:18:23.317843515Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/default.py", line 943, in do_execute
+2025-07-28T08:18:23.317845804Z     cursor.execute(statement, parameters)
+2025-07-28T08:18:23.317848155Z     ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:23.317850375Z sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: zone
+2025-07-28T08:18:23.317852585Z [SQL: SELECT zone.id AS zone_id, zone.name AS zone_name 
+2025-07-28T08:18:23.317854835Z FROM zone]
+2025-07-28T08:18:23.317857165Z (Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-07-28T08:18:23.318774701Z 127.0.0.1 - - [28/Jul/2025:08:18:23 +0000] "GET /register HTTP/1.1" 500 265 "https://report-submission.onrender.com/login?next=%2F" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0"
+2025-07-28T08:18:24.363678361Z 127.0.0.1 - - [28/Jul/2025:08:18:24 +0000] "GET /favicon.ico HTTP/1.1" 404 726 "https://report-submission.onrender.com/login?next=%2F" "Mozilla/5.0 (Linux; Android 14; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.32 Mobile Safari/537.36"
+2025-07-28T08:18:26.62426698Z [2025-07-28 08:18:26,620] ERROR in app: Exception on /register [GET]
+2025-07-28T08:18:26.624292491Z Traceback (most recent call last):
+2025-07-28T08:18:26.624297751Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1963, in _exec_single_context
+2025-07-28T08:18:26.624300201Z     self.dialect.do_execute(
+2025-07-28T08:18:26.624301871Z     ~~~~~~~~~~~~~~~~~~~~~~~^
+2025-07-28T08:18:26.624304061Z         cursor, str_statement, effective_parameters, context
+2025-07-28T08:18:26.624306121Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:26.624307891Z     )
+2025-07-28T08:18:26.624309731Z     ^
+2025-07-28T08:18:26.624312271Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/default.py", line 943, in do_execute
+2025-07-28T08:18:26.624314031Z     cursor.execute(statement, parameters)
+2025-07-28T08:18:26.624315691Z     ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:26.624318331Z sqlite3.OperationalError: no such table: zone
+2025-07-28T08:18:26.624321201Z 
+2025-07-28T08:18:26.624324532Z The above exception was the direct cause of the following exception:
+2025-07-28T08:18:26.624327141Z 
+2025-07-28T08:18:26.624332792Z Traceback (most recent call last):
+2025-07-28T08:18:26.624336382Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+2025-07-28T08:18:26.624339252Z     response = self.full_dispatch_request()
+2025-07-28T08:18:26.624342102Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+2025-07-28T08:18:26.624344732Z     rv = self.handle_user_exception(e)
+2025-07-28T08:18:26.624347632Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+2025-07-28T08:18:26.624350682Z     rv = self.dispatch_request()
+2025-07-28T08:18:26.624353762Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/flask/app.py", line 902, in dispatch_request
+2025-07-28T08:18:26.624356742Z     return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+2025-07-28T08:18:26.624358822Z            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+2025-07-28T08:18:26.624360462Z   File "/opt/render/project/src/app.py", line 610, in register
+2025-07-28T08:18:26.624362213Z     zones = Zone.query.all()
+2025-07-28T08:18:26.624363923Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/orm/query.py", line 2704, in all
+2025-07-28T08:18:26.624365643Z     return self._iter().all()  # type: ignore
+2025-07-28T08:18:26.624367973Z            ~~~~~~~~~~^^
+2025-07-28T08:18:26.624369623Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/orm/query.py", line 2857, in _iter
+2025-07-28T08:18:26.624389363Z     result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+2025-07-28T08:18:26.624392563Z                                                   ~~~~~~~~~~~~~~~~~~~~^
+2025-07-28T08:18:26.624394894Z         statement,
+2025-07-28T08:18:26.624397344Z         ^^^^^^^^^^
+2025-07-28T08:18:26.624399834Z         params,
+2025-07-28T08:18:26.624415164Z         ^^^^^^^
+2025-07-28T08:18:26.624417674Z         execution_options={"_sa_orm_load_options": self.load_options},
+2025-07-28T08:18:26.624419914Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:26.624422174Z     )
+2025-07-28T08:18:26.624424284Z     ^
+2025-07-28T08:18:26.624426584Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/orm/session.py", line 2365, in execute
+2025-07-28T08:18:26.624428944Z     return self._execute_internal(
+2025-07-28T08:18:26.624431075Z            ~~~~~~~~~~~~~~~~~~~~~~^
+2025-07-28T08:18:26.624433755Z         statement,
+2025-07-28T08:18:26.624435975Z         ^^^^^^^^^^
+2025-07-28T08:18:26.624438125Z     ...<4 lines>...
+2025-07-28T08:18:26.624440325Z         _add_event=_add_event,
+2025-07-28T08:18:26.624443095Z         ^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:26.624445345Z     )
+2025-07-28T08:18:26.624447455Z     ^
+2025-07-28T08:18:26.624452325Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/orm/session.py", line 2251, in _execute_internal
+2025-07-28T08:18:26.624454685Z     result: Result[Any] = compile_state_cls.orm_execute_statement(
+2025-07-28T08:18:26.624456985Z                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+2025-07-28T08:18:26.624459125Z         self,
+2025-07-28T08:18:26.624461516Z         ^^^^^
+2025-07-28T08:18:26.624463745Z     ...<4 lines>...
+2025-07-28T08:18:26.624466085Z         conn,
+2025-07-28T08:18:26.624468296Z         ^^^^^
+2025-07-28T08:18:26.624470486Z     )
+2025-07-28T08:18:26.624472726Z     ^
+2025-07-28T08:18:26.624474986Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/orm/context.py", line 306, in orm_execute_statement
+2025-07-28T08:18:26.624477266Z     result = conn.execute(
+2025-07-28T08:18:26.624479516Z         statement, params or {}, execution_options=execution_options
+2025-07-28T08:18:26.624481726Z     )
+2025-07-28T08:18:26.624484036Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1415, in execute
+2025-07-28T08:18:26.624486166Z     return meth(
+2025-07-28T08:18:26.624488296Z         self,
+2025-07-28T08:18:26.624490506Z         distilled_parameters,
+2025-07-28T08:18:26.624492756Z         execution_options or NO_OPTIONS,
+2025-07-28T08:18:26.624495177Z     )
+2025-07-28T08:18:26.624497917Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/sql/elements.py", line 523, in _execute_on_connection
+2025-07-28T08:18:26.624500786Z     return connection._execute_clauseelement(
+2025-07-28T08:18:26.624503107Z            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+2025-07-28T08:18:26.624505827Z         self, distilled_params, execution_options
+2025-07-28T08:18:26.624508267Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:26.624510617Z     )
+2025-07-28T08:18:26.624513337Z     ^
+2025-07-28T08:18:26.624516097Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1637, in _execute_clauseelement
+2025-07-28T08:18:26.624518727Z     ret = self._execute_context(
+2025-07-28T08:18:26.624521317Z         dialect,
+2025-07-28T08:18:26.624523957Z     ...<8 lines>...
+2025-07-28T08:18:26.624526327Z         cache_hit=cache_hit,
+2025-07-28T08:18:26.624528477Z     )
+2025-07-28T08:18:26.624546738Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1842, in _execute_context
+2025-07-28T08:18:26.624549958Z     return self._exec_single_context(
+2025-07-28T08:18:26.624552688Z            ~~~~~~~~~~~~~~~~~~~~~~~~~^
+2025-07-28T08:18:26.624560908Z         dialect, context, statement, parameters
+2025-07-28T08:18:26.624563528Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:26.624565968Z     )
+2025-07-28T08:18:26.624568159Z     ^
+2025-07-28T08:18:26.624570439Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1982, in _exec_single_context
+2025-07-28T08:18:26.624573139Z     self._handle_dbapi_exception(
+2025-07-28T08:18:26.624575359Z     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+2025-07-28T08:18:26.624577809Z         e, str_statement, effective_parameters, cursor, context
+2025-07-28T08:18:26.624580349Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:26.624582609Z     )
+2025-07-28T08:18:26.624585159Z     ^
+2025-07-28T08:18:26.624587799Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 2351, in _handle_dbapi_exception
+2025-07-28T08:18:26.624590659Z     raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+2025-07-28T08:18:26.624593289Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1963, in _exec_single_context
+2025-07-28T08:18:26.624596139Z     self.dialect.do_execute(
+2025-07-28T08:18:26.624598939Z     ~~~~~~~~~~~~~~~~~~~~~~~^
+2025-07-28T08:18:26.624601989Z         cursor, str_statement, effective_parameters, context
+2025-07-28T08:18:26.624603869Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:26.624605529Z     )
+2025-07-28T08:18:26.62460716Z     ^
+2025-07-28T08:18:26.62460899Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/default.py", line 943, in do_execute
+2025-07-28T08:18:26.62461072Z     cursor.execute(statement, parameters)
+2025-07-28T08:18:26.62461241Z     ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:26.62461406Z sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: zone
+2025-07-28T08:18:26.62461582Z [SQL: SELECT zone.id AS zone_id, zone.name AS zone_name 
+2025-07-28T08:18:26.62461748Z FROM zone]
+2025-07-28T08:18:26.62461918Z (Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-07-28T08:18:26.624991411Z 127.0.0.1 - - [28/Jul/2025:08:18:26 +0000] "GET /register HTTP/1.1" 500 265 "https://report-submission.onrender.com/login?next=%2F" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0"
+2025-07-28T08:18:38.730568886Z [2025-07-28 08:18:38,726] ERROR in app: Exception on /login [POST]
+2025-07-28T08:18:38.730619797Z Traceback (most recent call last):
+2025-07-28T08:18:38.730626827Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1963, in _exec_single_context
+2025-07-28T08:18:38.730633557Z     self.dialect.do_execute(
+2025-07-28T08:18:38.730638688Z     ~~~~~~~~~~~~~~~~~~~~~~~^
+2025-07-28T08:18:38.730644658Z         cursor, str_statement, effective_parameters, context
+2025-07-28T08:18:38.730650498Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:38.730655698Z     )
+2025-07-28T08:18:38.730660778Z     ^
+2025-07-28T08:18:38.730667229Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/default.py", line 943, in do_execute
+2025-07-28T08:18:38.730672749Z     cursor.execute(statement, parameters)
+2025-07-28T08:18:38.730678279Z     ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:38.730684079Z sqlite3.OperationalError: no such table: user
+2025-07-28T08:18:38.730689319Z 
+2025-07-28T08:18:38.730695299Z The above exception was the direct cause of the following exception:
+2025-07-28T08:18:38.73071318Z 
+2025-07-28T08:18:38.73071666Z Traceback (most recent call last):
+2025-07-28T08:18:38.730737Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+2025-07-28T08:18:38.730740451Z     response = self.full_dispatch_request()
+2025-07-28T08:18:38.730748761Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+2025-07-28T08:18:38.730752011Z     rv = self.handle_user_exception(e)
+2025-07-28T08:18:38.730755631Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+2025-07-28T08:18:38.730758971Z     rv = self.dispatch_request()
+2025-07-28T08:18:38.730762271Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/flask/app.py", line 902, in dispatch_request
+2025-07-28T08:18:38.730765711Z     return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+2025-07-28T08:18:38.730769361Z            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+2025-07-28T08:18:38.730772792Z   File "/opt/render/project/src/app.py", line 569, in login
+2025-07-28T08:18:38.730776541Z     ).first()
+2025-07-28T08:18:38.730779882Z       ~~~~~^^
+2025-07-28T08:18:38.730783372Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/orm/query.py", line 2759, in first
+2025-07-28T08:18:38.730786752Z     return self.limit(1)._iter().first()  # type: ignore
+2025-07-28T08:18:38.730790002Z            ~~~~~~~~~~~~~~~~~~~^^
+2025-07-28T08:18:38.730793322Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/orm/query.py", line 2857, in _iter
+2025-07-28T08:18:38.730797202Z     result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+2025-07-28T08:18:38.730800502Z                                                   ~~~~~~~~~~~~~~~~~~~~^
+2025-07-28T08:18:38.730804472Z         statement,
+2025-07-28T08:18:38.730807693Z         ^^^^^^^^^^
+2025-07-28T08:18:38.730811142Z         params,
+2025-07-28T08:18:38.730814693Z         ^^^^^^^
+2025-07-28T08:18:38.730818863Z         execution_options={"_sa_orm_load_options": self.load_options},
+2025-07-28T08:18:38.730822443Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:38.730825723Z     )
+2025-07-28T08:18:38.730829223Z     ^
+2025-07-28T08:18:38.730831933Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/orm/session.py", line 2365, in execute
+2025-07-28T08:18:38.730834673Z     return self._execute_internal(
+2025-07-28T08:18:38.730837553Z            ~~~~~~~~~~~~~~~~~~~~~~^
+2025-07-28T08:18:38.730840123Z         statement,
+2025-07-28T08:18:38.730842723Z         ^^^^^^^^^^
+2025-07-28T08:18:38.730845314Z     ...<4 lines>...
+2025-07-28T08:18:38.730848074Z         _add_event=_add_event,
+2025-07-28T08:18:38.730853274Z         ^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:38.730856014Z     )
+2025-07-28T08:18:38.730858634Z     ^
+2025-07-28T08:18:38.730861344Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/orm/session.py", line 2251, in _execute_internal
+2025-07-28T08:18:38.730863884Z     result: Result[Any] = compile_state_cls.orm_execute_statement(
+2025-07-28T08:18:38.730866624Z                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+2025-07-28T08:18:38.730869184Z         self,
+2025-07-28T08:18:38.730871824Z         ^^^^^
+2025-07-28T08:18:38.730874174Z     ...<4 lines>...
+2025-07-28T08:18:38.730876695Z         conn,
+2025-07-28T08:18:38.730879444Z         ^^^^^
+2025-07-28T08:18:38.730882185Z     )
+2025-07-28T08:18:38.730889365Z     ^
+2025-07-28T08:18:38.730892755Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/orm/context.py", line 306, in orm_execute_statement
+2025-07-28T08:18:38.730895155Z     result = conn.execute(
+2025-07-28T08:18:38.730897825Z         statement, params or {}, execution_options=execution_options
+2025-07-28T08:18:38.730900255Z     )
+2025-07-28T08:18:38.730903055Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1415, in execute
+2025-07-28T08:18:38.730905545Z     return meth(
+2025-07-28T08:18:38.730907995Z         self,
+2025-07-28T08:18:38.730910296Z         distilled_parameters,
+2025-07-28T08:18:38.730913045Z         execution_options or NO_OPTIONS,
+2025-07-28T08:18:38.730915565Z     )
+2025-07-28T08:18:38.730917946Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/sql/elements.py", line 523, in _execute_on_connection
+2025-07-28T08:18:38.730920676Z     return connection._execute_clauseelement(
+2025-07-28T08:18:38.730923346Z            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+2025-07-28T08:18:38.730926076Z         self, distilled_params, execution_options
+2025-07-28T08:18:38.730928726Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:38.730931316Z     )
+2025-07-28T08:18:38.730933616Z     ^
+2025-07-28T08:18:38.730936066Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1637, in _execute_clauseelement
+2025-07-28T08:18:38.730938206Z     ret = self._execute_context(
+2025-07-28T08:18:38.730940686Z         dialect,
+2025-07-28T08:18:38.730943416Z     ...<8 lines>...
+2025-07-28T08:18:38.730945946Z         cache_hit=cache_hit,
+2025-07-28T08:18:38.730948337Z     )
+2025-07-28T08:18:38.731043669Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1842, in _execute_context
+2025-07-28T08:18:38.731048289Z     return self._exec_single_context(
+2025-07-28T08:18:38.73105068Z            ~~~~~~~~~~~~~~~~~~~~~~~~~^
+2025-07-28T08:18:38.7310528Z         dialect, context, statement, parameters
+2025-07-28T08:18:38.73105522Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:38.73105764Z     )
+2025-07-28T08:18:38.73105983Z     ^
+2025-07-28T08:18:38.73106269Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1982, in _exec_single_context
+2025-07-28T08:18:38.73106483Z     self._handle_dbapi_exception(
+2025-07-28T08:18:38.73106695Z     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+2025-07-28T08:18:38.731109191Z         e, str_statement, effective_parameters, cursor, context
+2025-07-28T08:18:38.731112461Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:38.731115191Z     )
+2025-07-28T08:18:38.731117981Z     ^
+2025-07-28T08:18:38.731120671Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 2351, in _handle_dbapi_exception
+2025-07-28T08:18:38.731123882Z     raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+2025-07-28T08:18:38.731126502Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1963, in _exec_single_context
+2025-07-28T08:18:38.731129252Z     self.dialect.do_execute(
+2025-07-28T08:18:38.731131432Z     ~~~~~~~~~~~~~~~~~~~~~~~^
+2025-07-28T08:18:38.731133732Z         cursor, str_statement, effective_parameters, context
+2025-07-28T08:18:38.731135962Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:38.731138262Z     )
+2025-07-28T08:18:38.731140452Z     ^
+2025-07-28T08:18:38.731148362Z   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/sqlalchemy/engine/default.py", line 943, in do_execute
+2025-07-28T08:18:38.731153052Z     cursor.execute(statement, parameters)
+2025-07-28T08:18:38.731156112Z     ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+2025-07-28T08:18:38.731160733Z sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: user
+2025-07-28T08:18:38.731165553Z [SQL: SELECT user.id AS user_id_1, user.user_id AS user_user_id, user.name AS user_name, user.email AS user_email, user.password AS user_password, user.role AS user_role, user.active AS user_active, user.zone_id AS user_zone_id 
+2025-07-28T08:18:38.731169433Z FROM user 
+2025-07-28T08:18:38.731171893Z WHERE user.email = ? OR user.user_id = ?
+2025-07-28T08:18:38.731194233Z  LIMIT ? OFFSET ?]
+2025-07-28T08:18:38.731199144Z [parameters: ('100', '100', 1, 0)]
+2025-07-28T08:18:38.731201864Z (Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-07-28T08:18:38.731312977Z 127.0.0.1 - - [28/Jul/2025:08:18:38 +0000] "POST /login?next=%2F HTTP/1.1" 500 265 "https://report-submission.onrender.com/login?next=%2F" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0"
+2025-07-28T08:22:56.757401565Z ==> Detected service running on port 10000
+2025-07-28T08:22:57.18635472Z ==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
