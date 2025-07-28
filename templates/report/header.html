@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% set page_title = 'মূল তথ্য' %}
 {% block content %}
 <div class="container mx-auto px-4 py-8 animate-fade-in">
   <div class="text-center mb-8">
@@ -503,12 +504,7 @@
                 ></span>
               </div>
             </div>
-            <div class="flex justify-between mt-8 pt-6 border-t">
-              <a
-                href="/?month={{ month }}&year={{ year }}"
-                class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                >বাতিল</a
-              >
+            <div class="flex justify-end mt-8 pt-6 border-t">
               <button
                 type="submit"
                 class="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors flex items-center gap-2"

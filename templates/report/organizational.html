@@ -1,34 +1,38 @@
-{% extends 'base.html' %} {% block content %}
+{% extends 'base.html' %} {% set page_title = 'দাওয়াত ও সংগঠন' %} {% block
+content %}
 <div class="container mx-auto px-4 py-8 animate-fade-in">
-  {% block breadcrumbs %}
-  <nav class="mb-4 text-sm text-gray-500 flex items-center gap-2" aria-label="breadcrumb">
-    <a href="/?month={{ month }}&year={{ year }}" class="hover:underline">হোম</a>
-    <span>/</span>
-    <span>সাংগঠনিক তথ্য</span>
-  </nav>
-  {% endblock %}
   <div class="text-center mb-8">
-    <h1 class="text-3xl font-bold text-cyan-700 mb-2">সাংগঠনিক তথ্য</h1>
-    <p class="text-gray-600">{{ month|month_name }} {{ year }}</p>
-    <div class="mt-4">
-      <a
-        href="/?month={{ month }}&year={{ year }}"
-        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >← ড্যাশবোর্ডে ফিরে যান</a
+    <h1
+      class="text-4xl font-extrabold text-cyan-700 mb-2 flex items-center justify-center gap-2"
+    >
+      <svg
+        class="w-8 h-8 text-cyan-500"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
       >
-    </div>
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 17v-2a4 4 0 014-4h6"
+        />
+      </svg>
+      দাওয়াত ও সংগঠন
+    </h1>
+    <div class="text-sm text-cyan-700">{{ month|month_name }} {{ year }}</div>
   </div>
-  <div class="max-w-4xl mx-auto">
-    <div class="bg-white rounded-2xl shadow-xl p-8 animate-fade-in">
+  <div class="grid grid-cols-1 gap-8">
+    <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-cyan-400">
       {% if error %}
       <div
-        class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6"
+        class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"
       >
         {{ error }}
       </div>
       {% endif %} {% if success %}
       <div
-        class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6"
+        class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4"
       >
         {{ success }}
       </div>
@@ -230,12 +234,7 @@
             ></span>
           </div>
         </div>
-        <div class="flex justify-between mt-8 pt-6 border-t">
-          <a
-            href="/?month={{ month }}&year={{ year }}"
-            class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-            >বাতিল</a
-          >
+        <div class="flex justify-end mt-8 pt-6 border-t">
           <button
             type="submit"
             class="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors flex items-center gap-2"

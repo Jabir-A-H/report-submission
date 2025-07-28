@@ -1,22 +1,9 @@
-{% extends 'base.html' %} {% block content %}
+{% extends 'base.html' %} {% set page_title = 'মক্তব ও সফর রিপোর্ট' %} {% block
+content %}
 <div class="container mx-auto px-4 py-8 animate-fade-in">
-  {% block breadcrumbs %}
-  <nav class="mb-4 text-sm text-gray-500 flex items-center gap-2" aria-label="breadcrumb">
-    <a href="/?month={{ month }}&year={{ year }}" class="hover:underline">হোম</a>
-    <span>/</span>
-    <span>অতিরিক্ত কার্যক্রম</span>
-  </nav>
-  {% endblock %}
   <div class="text-center mb-8">
-    <h1 class="text-3xl font-bold text-cyan-700 mb-2">অতিরিক্ত কার্যক্রম</h1>
+    <h1 class="text-3xl font-bold text-cyan-700 mb-2">মক্তব ও সফর রিপোর্ট</h1>
     <p class="text-gray-600">{{ month|month_name }} {{ year }}</p>
-    <div class="mt-4">
-      <a
-        href="/?month={{ month }}&year={{ year }}"
-        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >← ড্যাশবোর্ডে ফিরে যান</a
-      >
-    </div>
   </div>
   <div class="max-w-4xl mx-auto">
     <div class="bg-white rounded-2xl shadow-xl p-8 animate-fade-in">
@@ -150,12 +137,7 @@
             ></span>
           </div>
         </div>
-        <div class="flex justify-between mt-8 pt-6 border-t">
-          <a
-            href="/?month={{ month }}&year={{ year }}"
-            class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-            >বাতিল</a
-          >
+        <div class="flex justify-end mt-8 pt-6 border-t">
           <button
             type="submit"
             class="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors flex items-center gap-2"

@@ -795,17 +795,12 @@ def report_header():
                 # Refresh report object
                 report = Report.query.filter_by(id=report.id).first()
 
-    breadcrumbs = [
-        {"label": "হোম", "url": url_for("dashboard", month=month, year=year)},
-        {"label": "মূল তথ্য"},
-    ]
     return render_template(
         "report/header.html",
         month=month,
         year=year,
         report_type=report_type,
         report=report,
-        breadcrumbs=breadcrumbs,
         error=error,
         success=success,
     )
