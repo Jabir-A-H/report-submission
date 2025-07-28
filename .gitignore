@@ -4,7 +4,8 @@ __pycache__/
 *.pyc
 *.pyo
 *$py.class
-instance/
+instance/*
+!instance/.gitkeep
 
 # Environment and secrets
 .env
