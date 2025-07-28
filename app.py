@@ -718,7 +718,28 @@ def get_report_period():
     return int(month) if month else None, int(year), report_type
 
 
-# --- Report Section Routes ---
+# --- DRY Section POST Handler ---
+def handle_section_post(report, section_attr, categories, fields):
+    section_list = getattr(report, section_attr)
+    model = section_list[0].__class__ if section_list else None
+    for cat in categories:
+        row = next((r for r in section_list if r.category == cat), None)
+        if not row and model:
+            row = model(report_id=report.id, category=cat)
+            db.session.add(row)
+        if row:
+            for field in fields:
+                form_key = f"{field}_{cat}"
+                value = request.form.get(form_key)
+                if value is not None:
+                    # Convert to int if field is Integer
+                    col_type = getattr(row.__class__, field).type
+                    if isinstance(col_type, db.Integer):
+                        value = int(value) if value else 0
+                    elif isinstance(col_type, db.String):
+                        value = value.strip() or None
+                    setattr(row, field, value)
+    db.session.commit()
 
 
 @app.route("/report/header", methods=["GET", "POST"])
@@ -811,14 +832,44 @@ def report_header():
 def report_courses():
     month, year, report_type = get_report_period()
     report = None
+    error = None
+    success = None
     if current_user.is_authenticated:
         report = get_current_report(current_user.zone_id, month, year, report_type)
+        if request.method == "POST" and report:
+            course_categories = [
+                "বিশিষ্টদের",
+                "সাধারণদের",
+                "কর্মীদের",
+                "ইউনিট সভানেত্রী",
+                "অগ্রসরদের",
+                "শিশু- তা'লিমুল কুরআন",
+                "নিরক্ষর- তা'লিমুস সলাত",
+            ]
+            fields = [
+                "number",
+                "increase",
+                "decrease",
+                "sessions",
+                "students",
+                "attendance",
+                "status_board",
+                "status_qayda",
+                "status_ampara",
+                "status_quran",
+                "completed",
+                "correctly_learned",
+            ]
+            handle_section_post(report, "courses", course_categories, fields)
+            success = "তথ্য সফলভাবে সংরক্ষণ হয়েছে।"
     return render_template(
         "report/courses.html",
         month=month,
         year=year,
         report_type=report_type,
         report=report,
+        error=error,
+        success=success,
     )
 
 
@@ -827,14 +878,38 @@ def report_courses():
 def report_organizational():
     month, year, report_type = get_report_period()
     report = None
+    error = None
+    success = None
     if current_user.is_authenticated:
         report = get_current_report(current_user.zone_id, month, year, report_type)
+        if request.method == "POST" and report:
+            org_categories = [
+                "দাওয়াত দান",
+                "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
+                "সহযোগী হয়েছে",
+                "সম্মতি দিয়েছেন",
+                "সক্রিয় সহযোগী",
+                "কর্মী",
+                "রুকন",
+                "দাওয়াতী ইউনিট",
+                "ইউনিট",
+                "সূধী",
+                "এককালীন",
+                "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
+                "বই বিলি",
+                "বই বিক্রি",
+            ]
+            fields = ["number", "increase", "amount", "comments"]
+            handle_section_post(report, "organizational", org_categories, fields)
+            success = "তথ্য সফলভাবে সংরক্ষণ হয়েছে।"
     return render_template(
         "report/organizational.html",
         month=month,
         year=year,
         report_type=report_type,
         report=report,
+        error=error,
+        success=success,
     )
 
 
@@ -843,14 +918,31 @@ def report_organizational():
 def report_personal():
     month, year, report_type = get_report_period()
     report = None
+    error = None
+    success = None
     if current_user.is_authenticated:
         report = get_current_report(current_user.zone_id, month, year, report_type)
+        if request.method == "POST" and report:
+            personal_categories = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
+            fields = [
+                "teaching",
+                "learning",
+                "olama_invited",
+                "became_shohojogi",
+                "became_sokrio_shohojogi",
+                "became_kormi",
+                "became_rukon",
+            ]
+            handle_section_post(report, "personal", personal_categories, fields)
+            success = "তথ্য সফলভাবে সংরক্ষণ হয়েছে।"
     return render_template(
         "report/personal.html",
         month=month,
         year=year,
         report_type=report_type,
         report=report,
+        error=error,
+        success=success,
     )
 
 
@@ -859,14 +951,36 @@ def report_personal():
 def report_meetings():
     month, year, report_type = get_report_period()
     report = None
+    error = None
+    success = None
     if current_user.is_authenticated:
         report = get_current_report(current_user.zone_id, month, year, report_type)
+        if request.method == "POST" and report:
+            meeting_categories = [
+                "কমিটি বৈঠক হয়েছে",
+                "মুয়াল্লিমাদের নিয়ে বৈঠক",
+                "Committee Orientation",
+                "Muallima Orientation",
+            ]
+            fields = [
+                "city_count",
+                "city_avg_attendance",
+                "thana_count",
+                "thana_avg_attendance",
+                "ward_count",
+                "ward_avg_attendance",
+                "comments",
+            ]
+            handle_section_post(report, "meetings", meeting_categories, fields)
+            success = "তথ্য সফলভাবে সংরক্ষণ হয়েছে।"
     return render_template(
         "report/meetings.html",
         month=month,
         year=year,
         report_type=report_type,
         report=report,
+        error=error,
+        success=success,
     )
 
 
@@ -875,14 +989,32 @@ def report_meetings():
 def report_extras():
     month, year, report_type = get_report_period()
     report = None
+    error = None
+    success = None
     if current_user.is_authenticated:
         report = get_current_report(current_user.zone_id, month, year, report_type)
+        if request.method == "POST" and report:
+            extra_categories = [
+                "মক্তব সংখ্যা",
+                "মক্তব বৃদ্ধি",
+                "মহানগরী পরিচালিত",
+                "স্থানীয়ভাবে পরিচালিত",
+                "মহানগরীর সফর",
+                "থানা কমিটির সফর",
+                "থানা প্রতিনিধির সফর",
+                "ওয়ার্ড প্রতিনিধির সফর",
+            ]
+            fields = ["number"]
+            handle_section_post(report, "extras", extra_categories, fields)
+            success = "তথ্য সফলভাবে সংরক্ষণ হয়েছে।"
     return render_template(
         "report/extras.html",
         month=month,
         year=year,
         report_type=report_type,
         report=report,
+        error=error,
+        success=success,
     )
 
 
@@ -891,14 +1023,26 @@ def report_extras():
 def report_comments():
     month, year, report_type = get_report_period()
     report = None
+    error = None
+    success = None
     if current_user.is_authenticated:
         report = get_current_report(current_user.zone_id, month, year, report_type)
+        if request.method == "POST" and report:
+            comment = request.form.get("comment", "").strip() or None
+            if report.comments:
+                report.comments.comment = comment
+            else:
+                db.session.add(ReportComment(report_id=report.id, comment=comment))
+            db.session.commit()
+            success = "তথ্য সফলভাবে সংরক্ষণ হয়েছে।"
     return render_template(
         "report/comments.html",
         month=month,
         year=year,
         report_type=report_type,
         report=report,
+        error=error,
+        success=success,
     )
 
 

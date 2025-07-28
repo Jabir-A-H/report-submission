@@ -2,24 +2,7 @@
 content %}
 <div class="container mx-auto px-4 py-8 animate-fade-in">
   <div class="text-center mb-8">
-    <h1
-      class="text-4xl font-extrabold text-cyan-700 mb-2 flex items-center justify-center gap-2"
-    >
-      <svg
-        class="w-8 h-8 text-cyan-500"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M9 17v-2a4 4 0 014-4h6"
-        />
-      </svg>
-      দাওয়াত ও সংগঠন
-    </h1>
+    <h1 class="text-4xl font-extrabold text-cyan-700 mb-2">দাওয়াত ও সংগঠন</h1>
     <div class="text-sm text-cyan-700">{{ month|month_name }} {{ year }}</div>
   </div>
   <div class="grid grid-cols-1 gap-8">
@@ -38,201 +21,68 @@ content %}
       </div>
       {% endif %}
       <form method="post" id="organizationalForm">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="relative">
-            <label
-              for="total_members"
-              class="block text-sm font-medium text-gray-700 mb-2"
-              aria-label="মোট সদস্য সংখ্যা"
-              aria-required="true"
-              title="এই ঘরটি পূরণ করা আবশ্যক"
-              >মোট সদস্য সংখ্যা *</label
-            >
-            <input
-              type="number"
-              id="total_members"
-              name="total_members"
-              min="0"
-              required
-              value="{{ report.organizational.total_members if report.organizational else 0 }}"
-              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-              oninput="showAutoSave('total_members_save')"
-            />
-            <span id="total_members_save" class="absolute right-2 top-2 hidden"
-              ><svg
-                class="w-5 h-5 text-cyan-500 animate-spin"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  class="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  stroke-width="4"
-                ></circle>
-                <path
-                  class="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8z"
-                ></path></svg
-            ></span>
-          </div>
-          <div class="relative">
-            <label
-              for="new_members"
-              class="block text-sm font-medium text-gray-700 mb-2"
-              aria-label="নতুন সদস্য"
-              aria-required="true"
-              title="এই ঘরটি পূরণ করা আবশ্যক"
-              >নতুন সদস্য *</label
-            >
-            <input
-              type="number"
-              id="new_members"
-              name="new_members"
-              min="0"
-              required
-              value="{{ report.organizational.new_members if report.organizational else 0 }}"
-              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-              oninput="showAutoSave('new_members_save')"
-            />
-            <span id="new_members_save" class="absolute right-2 top-2 hidden"
-              ><svg
-                class="w-5 h-5 text-cyan-500 animate-spin"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  class="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  stroke-width="4"
-                ></circle>
-                <path
-                  class="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8z"
-                ></path></svg
-            ></span>
-          </div>
-          <div class="relative">
-            <label
-              for="members_left"
-              class="block text-sm font-medium text-gray-700 mb-2"
-              aria-label="বহিষ্কৃত/ছেড়ে যাওয়া সদস্য"
-              title="যদি কোনো সদস্য ছেড়ে যায়"
-              >বহিষ্কৃত/ছেড়ে যাওয়া সদস্য</label
-            >
-            <input
-              type="number"
-              id="members_left"
-              name="members_left"
-              min="0"
-              value="{{ report.organizational.members_left if report.organizational else 0 }}"
-              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-              oninput="showAutoSave('members_left_save')"
-            />
-            <span id="members_left_save" class="absolute right-2 top-2 hidden"
-              ><svg
-                class="w-5 h-5 text-cyan-500 animate-spin"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  class="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  stroke-width="4"
-                ></circle>
-                <path
-                  class="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8z"
-                ></path></svg
-            ></span>
-          </div>
-          <div class="relative">
-            <label
-              for="meetings_held"
-              class="block text-sm font-medium text-gray-700 mb-2"
-              aria-label="মোট সভা অনুষ্ঠিত"
-              title="মোট সভা অনুষ্ঠিত হয়েছে"
-              >মোট সভা অনুষ্ঠিত</label
-            >
-            <input
-              type="number"
-              id="meetings_held"
-              name="meetings_held"
-              min="0"
-              value="{{ report.organizational.meetings_held if report.organizational else 0 }}"
-              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-              oninput="showAutoSave('meetings_held_save')"
-            />
-            <span id="meetings_held_save" class="absolute right-2 top-2 hidden"
-              ><svg
-                class="w-5 h-5 text-cyan-500 animate-spin"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  class="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  stroke-width="4"
-                ></circle>
-                <path
-                  class="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8z"
-                ></path></svg
-            ></span>
-          </div>
-          <div class="relative">
-            <label
-              for="activities"
-              class="block text-sm font-medium text-gray-700 mb-2"
-              aria-label="সাংগঠনিক কার্যক্রম"
-              title="সাংগঠনিক কার্যক্রমের বিস্তারিত"
-              >সাংগঠনিক কার্যক্রম</label
-            >
-            <textarea
-              id="activities"
-              name="activities"
-              rows="4"
-              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-              oninput="showAutoSave('activities_save')"
-            >
-{{ report.organizational.activities if report.organizational else '' }}</textarea
-            >
-            <span id="activities_save" class="absolute right-2 top-2 hidden"
-              ><svg
-                class="w-5 h-5 text-cyan-500 animate-spin"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  class="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  stroke-width="4"
-                ></circle>
-                <path
-                  class="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8z"
-                ></path></svg
-            ></span>
-          </div>
+        <div class="overflow-x-auto">
+          <table
+            class="min-w-full bg-white border rounded-xl shadow divide-y divide-gray-200"
+          >
+            <thead>
+              <tr class="bg-cyan-50 text-cyan-800">
+                <th class="px-4 py-2 text-left">বিষয়</th>
+                <th class="px-4 py-2 text-center">সংখ্যা</th>
+                <th class="px-4 py-2 text-center">বৃদ্ধি</th>
+                <th class="px-4 py-2 text-center">টাকা</th>
+                <th class="px-4 py-2 text-center">মন্তব্য</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% set org_categories = [ "দাওয়াত দান", "কতজন ইসলামের আদর্শ মেনে
+              চলার চেষ্টা করছেন", "সহযোগী হয়েছে", "সম্মতি দিয়েছেন", "সক্রিয়
+              সহযোগী", "কর্মী", "রুকন", "দাওয়াতী ইউনিট", "ইউনিট", "সূধী",
+              "এককালীন", "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)", "বই
+              বিলি", "বই বিক্রি" ] %} {% for cat in org_categories %} {% set row
+              = (report.organizational | selectattr('category', 'equalto', cat)
+              | list | first) %}
+              <tr class="border-b hover:bg-cyan-50">
+                <td class="px-4 py-2 font-semibold">{{ cat }}</td>
+                <td class="px-2 py-2 text-center">
+                  <input
+                    type="number"
+                    name="number_{{ cat }}"
+                    value="{{ row.number if row else 0 }}"
+                    class="w-20 p-1 border rounded text-center"
+                    min="0"
+                  />
+                </td>
+                <td class="px-2 py-2 text-center">
+                  <input
+                    type="number"
+                    name="increase_{{ cat }}"
+                    value="{{ row.increase if row else 0 }}"
+                    class="w-20 p-1 border rounded text-center"
+                    min="0"
+                  />
+                </td>
+                <td class="px-2 py-2 text-center">
+                  <input
+                    type="number"
+                    name="amount_{{ cat }}"
+                    value="{{ row.amount if row and row.amount is not none else '' }}"
+                    class="w-24 p-1 border rounded text-center"
+                    min="0"
+                  />
+                </td>
+                <td class="px-2 py-2 text-center">
+                  <input
+                    type="text"
+                    name="comments_{{ cat }}"
+                    value="{{ row.comments if row and row.comments is not none else '' }}"
+                    class="w-32 p-1 border rounded"
+                  />
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
         <div class="flex justify-end mt-8 pt-6 border-t">
           <button
