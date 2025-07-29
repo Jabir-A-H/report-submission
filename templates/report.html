@@ -74,92 +74,106 @@
               {% endif %}
             </div>
             <!-- Courses Section -->
-            <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-400">
-              <h2 class="text-xl font-bold text-purple-700 mb-2 flex items-center gap-2"><svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3z"/></svg>কোর্স রিপোর্ট</h2>
+            <div class="bg-gradient-to-br from-purple-50 to-white rounded-xl shadow-lg p-6 border-l-4 border-purple-400">
+              <h2 class="text-xl font-bold text-purple-700 mb-4 flex items-center gap-2"><svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3z"/></svg>কোর্স রিপোর্ট</h2>
               {% if report.courses %}
-                <table class="min-w-full text-sm">
-                  <thead><tr><th>ক্যাটাগরি</th><th>সংখ্যা</th></tr></thead>
+                <table class="min-w-full text-sm border rounded-xl overflow-hidden">
+                  <thead class="bg-purple-100 text-purple-800">
+                    <tr><th class="px-3 py-2">ক্যাটাগরি</th><th class="px-3 py-2">সংখ্যা</th></tr>
+                  </thead>
                   <tbody>
                     {% for course in report.courses %}
-                    <tr><td>{{ course.category }}</td><td>{{ course.number }}</td></tr>
+                    <tr class="hover:bg-purple-50">
+                      <td class="px-3 py-2">{{ course.category }}</td>
+                      <td class="px-3 py-2 text-center">{{ course.number }}</td>
+                    </tr>
                     {% endfor %}
                   </tbody>
                 </table>
-              {% else %}
-                <div class="text-red-500">Courses section incomplete.</div>
               {% endif %}
             </div>
             <!-- Organizational Section -->
-            <div class="bg-white rounded-xl shadow p-6">
-              <h2 class="text-xl font-bold text-cyan-700 mb-2">সংগঠন</h2>
+            <div class="bg-gradient-to-br from-cyan-50 to-white rounded-xl shadow p-6">
+              <h2 class="text-xl font-bold text-cyan-700 mb-4 flex items-center gap-2"><svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2h5"/></svg>সংগঠন</h2>
               {% if report.organizational %}
-                <table class="min-w-full text-sm">
-                  <thead><tr><th>ক্যাটাগরি</th><th>সংখ্যা</th></tr></thead>
+                <table class="min-w-full text-sm border rounded-xl overflow-hidden">
+                  <thead class="bg-cyan-100 text-cyan-800">
+                    <tr><th class="px-3 py-2">ক্যাটাগরি</th><th class="px-3 py-2">সংখ্যা</th></tr>
+                  </thead>
                   <tbody>
                     {% for org in report.organizational %}
-                    <tr><td>{{ org.category }}</td><td>{{ org.number }}</td></tr>
+                    <tr class="hover:bg-cyan-50">
+                      <td class="px-3 py-2">{{ org.category }}</td>
+                      <td class="px-3 py-2 text-center">{{ org.number }}</td>
+                    </tr>
                     {% endfor %}
                   </tbody>
                 </table>
-              {% else %}
-                <div class="text-red-500">Organizational section incomplete.</div>
               {% endif %}
             </div>
             <!-- Personal Section -->
-            <div class="bg-white rounded-xl shadow p-6">
-              <h2 class="text-xl font-bold text-cyan-700 mb-2">ব্যক্তিগত</h2>
+            <div class="bg-gradient-to-br from-pink-50 to-white rounded-xl shadow p-6">
+              <h2 class="text-xl font-bold text-pink-700 mb-4 flex items-center gap-2"><svg class="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>ব্যক্তিগত</h2>
               {% if report.personal %}
-                <table class="min-w-full text-sm">
-                  <thead><tr><th>ক্যাটাগরি</th><th>Teaching</th><th>Learning</th></tr></thead>
+                <table class="min-w-full text-sm border rounded-xl overflow-hidden">
+                  <thead class="bg-pink-100 text-pink-800">
+                    <tr><th class="px-3 py-2">ক্যাটাগরি</th><th class="px-3 py-2">Teaching</th><th class="px-3 py-2">Learning</th></tr>
+                  </thead>
                   <tbody>
                     {% for p in report.personal %}
-                    <tr><td>{{ p.category }}</td><td>{{ p.teaching }}</td><td>{{ p.learning }}</td></tr>
+                    <tr class="hover:bg-pink-50">
+                      <td class="px-3 py-2">{{ p.category }}</td>
+                      <td class="px-3 py-2 text-center">{{ p.teaching }}</td>
+                      <td class="px-3 py-2 text-center">{{ p.learning }}</td>
+                    </tr>
                     {% endfor %}
                   </tbody>
                 </table>
-              {% else %}
-                <div class="text-red-500">Personal section incomplete.</div>
               {% endif %}
             </div>
             <!-- Meetings Section -->
-            <div class="bg-white rounded-xl shadow p-6">
-              <h2 class="text-xl font-bold text-cyan-700 mb-2">বৈঠকসমূহ</h2>
+            <div class="bg-gradient-to-br from-blue-50 to-white rounded-xl shadow p-6">
+              <h2 class="text-xl font-bold text-blue-700 mb-4 flex items-center gap-2"><svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2"/></svg>বৈঠকসমূহ</h2>
               {% if report.meetings %}
-                <table class="min-w-full text-sm">
-                  <thead><tr><th>ক্যাটাগরি</th><th>City Count</th></tr></thead>
+                <table class="min-w-full text-sm border rounded-xl overflow-hidden">
+                  <thead class="bg-blue-100 text-blue-800">
+                    <tr><th class="px-3 py-2">ক্যাটাগরি</th><th class="px-3 py-2">City Count</th></tr>
+                  </thead>
                   <tbody>
                     {% for m in report.meetings %}
-                    <tr><td>{{ m.category }}</td><td>{{ m.city_count }}</td></tr>
+                    <tr class="hover:bg-blue-50">
+                      <td class="px-3 py-2">{{ m.category }}</td>
+                      <td class="px-3 py-2 text-center">{{ m.city_count }}</td>
+                    </tr>
                     {% endfor %}
                   </tbody>
                 </table>
-              {% else %}
-                <div class="text-red-500">Meetings section incomplete.</div>
               {% endif %}
             </div>
             <!-- Extras Section -->
-            <div class="bg-white rounded-xl shadow p-6">
-              <h2 class="text-xl font-bold text-cyan-700 mb-2">এক্সট্রা</h2>
+            <div class="bg-gradient-to-br from-green-50 to-white rounded-xl shadow p-6">
+              <h2 class="text-xl font-bold text-green-700 mb-4 flex items-center gap-2"><svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 014-4h6"/></svg>এক্সট্রা</h2>
               {% if report.extras %}
-                <table class="min-w-full text-sm">
-                  <thead><tr><th>ক্যাটাগরি</th><th>সংখ্যা</th></tr></thead>
+                <table class="min-w-full text-sm border rounded-xl overflow-hidden">
+                  <thead class="bg-green-100 text-green-800">
+                    <tr><th class="px-3 py-2">ক্যাটাগরি</th><th class="px-3 py-2">সংখ্যা</th></tr>
+                  </thead>
                   <tbody>
                     {% for e in report.extras %}
-                    <tr><td>{{ e.category }}</td><td>{{ e.number }}</td></tr>
+                    <tr class="hover:bg-green-50">
+                      <td class="px-3 py-2">{{ e.category }}</td>
+                      <td class="px-3 py-2 text-center">{{ e.number }}</td>
+                    </tr>
                     {% endfor %}
                   </tbody>
                 </table>
-              {% else %}
-                <div class="text-red-500">Extras section incomplete.</div>
               {% endif %}
             </div>
             <!-- Comments Section -->
-            <div class="bg-white rounded-xl shadow p-6">
-              <h2 class="text-xl font-bold text-cyan-700 mb-2">মন্তব্য</h2>
+            <div class="bg-gradient-to-br from-yellow-50 to-white rounded-xl shadow p-6">
+              <h2 class="text-xl font-bold text-yellow-700 mb-4 flex items-center gap-2"><svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5"/></svg>মন্তব্য</h2>
               {% if report.comments %}
                 <div class="text-gray-700 text-sm">{{ report.comments.comment }}</div>
-              {% else %}
-                <div class="text-red-500">Comments section incomplete.</div>
               {% endif %}
             </div>
           </div>
