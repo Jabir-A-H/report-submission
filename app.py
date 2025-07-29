@@ -31,15 +31,24 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import re
 import unicodedata
-
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
 
 # --- Initialize Flask App and Configurations ---
+BASE_DIR = Path(__file__).resolve().parent
+INSTANCE_DIR = BASE_DIR / "instance"
+INSTANCE_DIR.mkdir(exist_ok=True)
+DEFAULT_DB_PATH = INSTANCE_DIR / "reports.db"
+
+db_uri = os.getenv("SQLALCHEMY_DATABASE_URI")
+if not db_uri:
+    db_uri = f"sqlite:///{DEFAULT_DB_PATH}"
+
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI")
+app.config["SQLALCHEMY_DATABASE_URI"] = db_uri
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
@@ -664,13 +673,15 @@ def handle_section_post(report, section_attr, categories, fields):
     section_list = getattr(report, section_attr)
     model = section_list[0].__class__ if section_list else None
     # Normalize all categories for robust matching
+    # Always use normalized categories and slugs
     norm_categories = [normalize_cat(cat) for cat in categories]
-    slug_to_cat = {slugify(cat): cat for cat in norm_categories}
-    cat_to_slug = {cat: slug for slug, cat in slug_to_cat.items()}
-    # Normalize DB row categories for matching
+    slugs = [slugify(cat) for cat in norm_categories]
+    slug_to_cat = {slug: cat for slug, cat in zip(slugs, norm_categories)}
+    cat_to_slug = {cat: slug for cat, slug in zip(norm_categories, slugs)}
+    # Map DB rows by slug for robust matching
+    db_rows_by_slug = {slugify(normalize_cat(r.category)): r for r in section_list}
     for slug, cat in slug_to_cat.items():
-        # Try to find row by normalized category
-        row = next((r for r in section_list if normalize_cat(r.category) == cat), None)
+        row = db_rows_by_slug.get(slug)
         if not row and model:
             row = model(report_id=report.id, category=cat)
             db.session.add(row)
@@ -845,9 +856,11 @@ def report_organizational():
             "বই বিক্রি",
         ]
         # Normalize categories for template and mapping
+        # Normalize categories and always use slugs for template mapping
         norm_categories = [normalize_cat(cat) for cat in org_categories]
-        slug_to_cat = {slugify(cat): cat for cat in norm_categories}
-        cat_to_slug = {cat: slug for slug, cat in slug_to_cat.items()}
+        slugs = [slugify(cat) for cat in norm_categories]
+        slug_to_cat = {slug: cat for slug, cat in zip(slugs, norm_categories)}
+        cat_to_slug = {cat: slug for cat, slug in zip(norm_categories, slugs)}
         org_categories = norm_categories
         if request.method == "POST" and report:
             fields = ["number", "increase", "amount", "comments"]
