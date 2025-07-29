@@ -36,11 +36,10 @@
       {% for section in sections %}
       <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 animate-fade-in">
         <div class="p-6">
-          <div class="flex items-center justify-between mb-4">
-            <span class="text-2xl">{{ section.icon }}</span>
-            <span class="text-lg font-semibold">{{ section.name }}</span>
+          <div class="flex items-center mb-4">
+            <span class="text-2xl mr-2">{{ section.icon }}</span>
+            <h3 class="text-lg font-semibold text-gray-800 mb-3">{{ section.name }}</h3>
           </div>
-          <h3 class="text-lg font-semibold text-gray-800 mb-3">{{ section.name }}</h3>
           <a href="{{ section.url }}" class="block w-full text-center py-2 px-4 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition font-medium">
             দেখুন/সম্পাদনা করুন
           </a>
