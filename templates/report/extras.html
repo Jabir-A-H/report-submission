@@ -20,122 +20,37 @@ content %}
         {{ success }}
       </div>
       {% endif %}
-      <form method="post" id="extrasForm">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="relative">
-            <label
-              for="extra_programs"
-              class="block text-sm font-medium text-gray-700 mb-2"
-              aria-label="অন্যান্য কার্যক্রম"
-              title="অন্যান্য কার্যক্রম"
-              >অন্যান্য কার্যক্রম</label
-            >
-            <textarea
-              id="extra_programs"
-              name="extra_programs"
-              rows="4"
-              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-              oninput="showAutoSave('extra_programs_save')"
-            >
-{{ report.extras.extra_programs if report.extras else '' }}</textarea
-            >
-            <span id="extra_programs_save" class="absolute right-2 top-2 hidden"
-              ><svg
-                class="w-5 h-5 text-cyan-500 animate-spin"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  class="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  stroke-width="4"
-                ></circle>
-                <path
-                  class="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8z"
-                ></path></svg
-            ></span>
-          </div>
-          <div class="relative">
-            <label
-              for="special_events"
-              class="block text-sm font-medium text-gray-700 mb-2"
-              aria-label="বিশেষ ইভেন্ট/প্রোগ্রাম"
-              title="বিশেষ ইভেন্ট/প্রোগ্রাম"
-              >বিশেষ ইভেন্ট/প্রোগ্রাম</label
-            >
-            <textarea
-              id="special_events"
-              name="special_events"
-              rows="4"
-              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-              oninput="showAutoSave('special_events_save')"
-            >
-{{ report.extras.special_events if report.extras else '' }}</textarea
-            >
-            <span id="special_events_save" class="absolute right-2 top-2 hidden"
-              ><svg
-                class="w-5 h-5 text-cyan-500 animate-spin"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  class="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  stroke-width="4"
-                ></circle>
-                <path
-                  class="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8z"
-                ></path></svg
-            ></span>
-          </div>
-          <div class="relative col-span-2">
-            <label
-              for="other_notes"
-              class="block text-sm font-medium text-gray-700 mb-2"
-              aria-label="অন্যান্য মন্তব্য"
-              title="অন্যান্য মন্তব্য"
-              >অন্যান্য মন্তব্য</label
-            >
-            <textarea
-              id="other_notes"
-              name="other_notes"
-              rows="4"
-              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-              oninput="showAutoSave('other_notes_save')"
-            >
-{{ report.extras.other_notes if report.extras else '' }}</textarea
-            >
-            <span id="other_notes_save" class="absolute right-2 top-2 hidden"
-              ><svg
-                class="w-5 h-5 text-cyan-500 animate-spin"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  class="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  stroke-width="4"
-                ></circle>
-                <path
-                  class="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8z"
-                ></path></svg
-            ></span>
-          </div>
+      <form method="post" id="extrasForm" autocomplete="off">
+        <div class="overflow-x-auto">
+          <table
+            class="min-w-full bg-white border rounded-xl shadow divide-y divide-gray-200"
+          >
+            <thead>
+              <tr class="bg-cyan-50 text-cyan-800">
+                <th class="px-4 py-2 text-left">বিষয়</th>
+                <th class="px-4 py-2 text-center">সংখ্যা</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for cat in extra_categories %} {% set slug = cat_to_slug[cat]
+              %} {% set row = (report.extras | selectattr('category', 'equalto',
+              cat) | list | first) %}
+              <tr class="border-b hover:bg-cyan-50">
+                <td class="px-4 py-2 font-semibold">{{ cat }}</td>
+                <td class="px-2 py-2 text-center">
+                  <input
+                    type="number"
+                    name="number_{{ slug }}"
+                    id="number_{{ slug }}"
+                    value="{{ row.number if row else 0 }}"
+                    class="w-20 p-1 border rounded text-center"
+                    min="0"
+                  />
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
         <div class="flex justify-end mt-8 pt-6 border-t">
           <button
@@ -159,17 +74,6 @@ content %}
           </button>
         </div>
       </form>
-      <script>
-        function showAutoSave(id) {
-          const el = document.getElementById(id);
-          if (el) {
-            el.classList.remove("hidden");
-            setTimeout(() => {
-              el.classList.add("hidden");
-            }, 1200);
-          }
-        }
-      </script>
     </div>
   </div>
 </div>

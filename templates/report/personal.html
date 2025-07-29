@@ -22,130 +22,138 @@
         {{ success }}
       </div>
       {% endif %}
-      <form method="post" id="personalForm">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="relative">
-            <label
-              for="personal_teaching"
-              class="block text-sm font-medium text-gray-700 mb-2"
-              aria-label="ব্যক্তিগত শিক্ষাদান কার্যক্রম"
-              aria-required="true"
-              title="এই ঘরটি পূরণ করা আবশ্যক"
-              >ব্যক্তিগত শিক্ষাদান কার্যক্রম *</label
-            >
-            <textarea
-              id="personal_teaching"
-              name="personal_teaching"
-              rows="4"
-              required
-              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-              oninput="showAutoSave('personal_teaching_save')"
-            >
-{{ report.personal.personal_teaching if report.personal else '' }}</textarea
-            >
-            <span
-              id="personal_teaching_save"
-              class="absolute right-2 top-2 hidden"
-              ><svg
-                class="w-5 h-5 text-cyan-500 animate-spin"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  class="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  stroke-width="4"
-                ></circle>
-                <path
-                  class="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8z"
-                ></path></svg
-            ></span>
-          </div>
-          <div class="relative">
-            <label
-              for="students_taught"
-              class="block text-sm font-medium text-gray-700 mb-2"
-              aria-label="শিক্ষার্থী সংখ্যা"
-              aria-required="true"
-              title="এই ঘরটি পূরণ করা আবশ্যক"
-              >শিক্ষার্থী সংখ্যা *</label
-            >
-            <input
-              type="number"
-              id="students_taught"
-              name="students_taught"
-              min="0"
-              required
-              value="{{ report.personal.students_taught if report.personal else 0 }}"
-              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-              oninput="showAutoSave('students_taught_save')"
-            />
-            <span
-              id="students_taught_save"
-              class="absolute right-2 top-2 hidden"
-              ><svg
-                class="w-5 h-5 text-cyan-500 animate-spin"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  class="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  stroke-width="4"
-                ></circle>
-                <path
-                  class="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8z"
-                ></path></svg
-            ></span>
-          </div>
-          <div class="relative">
-            <label
-              for="special_notes"
-              class="block text-sm font-medium text-gray-700 mb-2"
-              aria-label="বিশেষ মন্তব্য"
-              title="যদি কোনো বিশেষ মন্তব্য থাকে"
-              >বিশেষ মন্তব্য</label
-            >
-            <textarea
-              id="special_notes"
-              name="special_notes"
-              rows="4"
-              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-              oninput="showAutoSave('special_notes_save')"
-            >
-{{ report.personal.special_notes if report.personal else '' }}</textarea
-            >
-            <span id="special_notes_save" class="absolute right-2 top-2 hidden"
-              ><svg
-                class="w-5 h-5 text-cyan-500 animate-spin"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  class="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  stroke-width="4"
-                ></circle>
-                <path
-                  class="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8z"
-                ></path></svg
-            ></span>
-          </div>
+      <form method="post" id="personalForm" autocomplete="off">
+        <div class="overflow-x-auto">
+          <table
+            class="min-w-full bg-white border rounded-xl shadow divide-y divide-gray-200"
+          >
+            <thead>
+              <tr class="bg-cyan-50 text-cyan-800">
+                <th class="px-4 py-2 text-left">বিভাগ</th>
+                <th class="px-4 py-2 text-center">কতজন শিখাচ্ছেন</th>
+                <th class="px-4 py-2 text-center">কতজনকে শিখাচ্ছেন</th>
+                <th class="px-4 py-2 text-center">
+                  কতজন ওয়ালামাকে দাওয়াত দিয়েছেন
+                </th>
+                <th class="px-4 py-2 text-center">সহযোগী হয়েছেন</th>
+                <th class="px-4 py-2 text-center">সক্রিয় সহযোগী হয়েছেন</th>
+                <th class="px-4 py-2 text-center">কর্মী হয়েছেন</th>
+                <th class="px-4 py-2 text-center">রুকন হয়েছেন</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% set teaching_total = 0 %} {% set learning_total = 0 %} {% set
+              olama_invited_total = 0 %} {% set became_shohojogi_total = 0 %} {%
+              set became_sokrio_shohojogi_total = 0 %} {% set became_kormi_total
+              = 0 %} {% set became_rukon_total = 0 %} {% for cat in
+              personal_categories %} {% set slug = cat_to_slug[cat] %} {% set
+              row = (report.personal | selectattr('category', 'equalto', cat) |
+              list | first) %} {% set teaching_val = row.teaching if row else 0
+              %} {% set learning_val = row.learning if row else 0 %} {% set
+              olama_invited_val = row.olama_invited if row else 0 %} {% set
+              became_shohojogi_val = row.became_shohojogi if row else 0 %} {%
+              set became_sokrio_shohojogi_val = row.became_sokrio_shohojogi if
+              row else 0 %} {% set became_kormi_val = row.became_kormi if row
+              else 0 %} {% set became_rukon_val = row.became_rukon if row else 0
+              %} {% set teaching_total = teaching_total + teaching_val %} {% set
+              learning_total = learning_total + learning_val %} {% set
+              olama_invited_total = olama_invited_total + olama_invited_val %}
+              {% set became_shohojogi_total = became_shohojogi_total +
+              became_shohojogi_val %} {% set became_sokrio_shohojogi_total =
+              became_sokrio_shohojogi_total + became_sokrio_shohojogi_val %} {%
+              set became_kormi_total = became_kormi_total + became_kormi_val %}
+              {% set became_rukon_total = became_rukon_total + became_rukon_val
+              %}
+              <tr class="border-b hover:bg-cyan-50">
+                <td class="px-4 py-2 font-semibold">{{ cat }}</td>
+                <td class="px-2 py-2 text-center">
+                  <input
+                    type="number"
+                    name="teaching_{{ slug }}"
+                    id="teaching_{{ slug }}"
+                    value="{{ teaching_val }}"
+                    class="w-20 p-1 border rounded text-center"
+                    min="0"
+                  />
+                </td>
+                <td class="px-2 py-2 text-center">
+                  <input
+                    type="number"
+                    name="learning_{{ slug }}"
+                    id="learning_{{ slug }}"
+                    value="{{ learning_val }}"
+                    class="w-20 p-1 border rounded text-center"
+                    min="0"
+                  />
+                </td>
+                <td class="px-2 py-2 text-center">
+                  <input
+                    type="number"
+                    name="olama_invited_{{ slug }}"
+                    id="olama_invited_{{ slug }}"
+                    value="{{ olama_invited_val }}"
+                    class="w-20 p-1 border rounded text-center"
+                    min="0"
+                  />
+                </td>
+                <td class="px-2 py-2 text-center">
+                  <input
+                    type="number"
+                    name="became_shohojogi_{{ slug }}"
+                    id="became_shohojogi_{{ slug }}"
+                    value="{{ became_shohojogi_val }}"
+                    class="w-20 p-1 border rounded text-center"
+                    min="0"
+                  />
+                </td>
+                <td class="px-2 py-2 text-center">
+                  <input
+                    type="number"
+                    name="became_sokrio_shohojogi_{{ slug }}"
+                    id="became_sokrio_shohojogi_{{ slug }}"
+                    value="{{ became_sokrio_shohojogi_val }}"
+                    class="w-20 p-1 border rounded text-center"
+                    min="0"
+                  />
+                </td>
+                <td class="px-2 py-2 text-center">
+                  <input
+                    type="number"
+                    name="became_kormi_{{ slug }}"
+                    id="became_kormi_{{ slug }}"
+                    value="{{ became_kormi_val }}"
+                    class="w-20 p-1 border rounded text-center"
+                    min="0"
+                  />
+                </td>
+                <td class="px-2 py-2 text-center">
+                  <input
+                    type="number"
+                    name="became_rukon_{{ slug }}"
+                    id="became_rukon_{{ slug }}"
+                    value="{{ became_rukon_val }}"
+                    class="w-20 p-1 border rounded text-center"
+                    min="0"
+                  />
+                </td>
+              </tr>
+              {% endfor %}
+              <tr class="bg-cyan-100 font-bold">
+                <td class="px-4 py-2 text-right">মোট</td>
+                <td class="px-2 py-2 text-center">{{ teaching_total }}</td>
+                <td class="px-2 py-2 text-center">{{ learning_total }}</td>
+                <td class="px-2 py-2 text-center">{{ olama_invited_total }}</td>
+                <td class="px-2 py-2 text-center">
+                  {{ became_shohojogi_total }}
+                </td>
+                <td class="px-2 py-2 text-center">
+                  {{ became_sokrio_shohojogi_total }}
+                </td>
+                <td class="px-2 py-2 text-center">{{ became_kormi_total }}</td>
+                <td class="px-2 py-2 text-center">{{ became_rukon_total }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
         <div class="flex justify-end mt-8 pt-6 border-t">
           <button
@@ -169,17 +177,6 @@
           </button>
         </div>
       </form>
-      <script>
-        function showAutoSave(id) {
-          const el = document.getElementById(id);
-          if (el) {
-            el.classList.remove("hidden");
-            setTimeout(() => {
-              el.classList.add("hidden");
-            }, 1200);
-          }
-        }
-      </script>
     </div>
   </div>
 </div>

@@ -45,35 +45,43 @@ content %}
                   <input
                     type="number"
                     name="number_{{ slug }}"
+                    id="number_{{ slug }}"
                     value="{{ row.number if row else 0 }}"
                     class="w-20 p-1 border rounded text-center"
                     min="0"
+                    autocomplete="off"
                   />
                 </td>
                 <td class="px-2 py-2 text-center">
                   <input
                     type="number"
                     name="increase_{{ slug }}"
+                    id="increase_{{ slug }}"
                     value="{{ row.increase if row else 0 }}"
                     class="w-20 p-1 border rounded text-center"
                     min="0"
+                    autocomplete="off"
                   />
                 </td>
                 <td class="px-2 py-2 text-center">
                   <input
                     type="number"
                     name="amount_{{ slug }}"
+                    id="amount_{{ slug }}"
                     value="{{ row.amount if row and row.amount is not none else '' }}"
                     class="w-24 p-1 border rounded text-center"
                     min="0"
+                    autocomplete="off"
                   />
                 </td>
                 <td class="px-2 py-2 text-center">
                   <input
                     type="text"
                     name="comments_{{ slug }}"
+                    id="comments_{{ slug }}"
                     value="{{ row.comments if row and row.comments is not none else '' }}"
                     class="w-32 p-1 border rounded"
+                    autocomplete="off"
                   />
                 </td>
               </tr>
