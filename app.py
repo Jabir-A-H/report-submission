@@ -218,9 +218,7 @@ class Report(db.Model):
     report_type = db.Column(db.String(20), nullable=False)  # মাসিক, ত্রৈমাসিক, ...
     header = db.relationship("ReportHeader", uselist=False, backref="report")
     courses = db.relationship("ReportCourse", backref="report", lazy=True)
-    organizational = db.relationship(
-        "ReportOrganizational", backref="report", lazy=True
-    )
+    organizational = db.relationship("ReportOrganizational", backref="report", lazy=True)
     personal = db.relationship("ReportPersonal", backref="report", lazy=True)
     meetings = db.relationship("ReportMeeting", backref="report", lazy=True)
     extras = db.relationship("ReportExtra", backref="report", lazy=True)
