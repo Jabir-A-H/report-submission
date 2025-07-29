@@ -1,55 +1,3 @@
-# --- One-time migration: Normalize all category fields in DB ---
-def migrate_normalize_categories():
-    print("Normalizing all category fields in the database...")
-    # Organizational
-    for row in ReportOrganizational.query.all():
-        norm = normalize_cat(row.category)
-        if row.category != norm:
-            row.category = norm
-    # Courses
-    for row in ReportCourse.query.all():
-        norm = normalize_cat(row.category)
-        if row.category != norm:
-            row.category = norm
-    # Personal
-    for row in ReportPersonal.query.all():
-        norm = normalize_cat(row.category)
-        if row.category != norm:
-            row.category = norm
-    # Meetings
-    for row in ReportMeeting.query.all():
-        norm = normalize_cat(row.category)
-        if row.category != norm:
-            row.category = norm
-    # Extras
-    for row in ReportExtra.query.all():
-        norm = normalize_cat(row.category)
-        if row.category != norm:
-            row.category = norm
-    db.session.commit()
-    print("Category normalization complete.")
-
-
-# --- Slugify Helper (matches Jinja macro) ---
-import re
-import unicodedata
-
-
-def normalize_cat(s):
-    # Normalize Unicode to NFC and strip whitespace
-    return unicodedata.normalize("NFC", s).strip()
-
-
-def slugify(s):
-    s = normalize_cat(s)
-    s = s.lower()
-    s = s.replace(" ", "-")
-    for ch in ["(", ")", "্", "়", "’", '"', "'"]:
-        s = s.replace(ch, "")
-    s = re.sub(r"[^\w\-]+", "", s)
-    return s
-
-
 """
 Report Submission System - Clean Implementation
 
@@ -81,6 +29,8 @@ from flask_login import (
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
+import re
+import unicodedata
 
 from dotenv import load_dotenv
 
@@ -95,6 +45,21 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"  # type: ignore
+
+
+# Normalize Unicode to NFC and strip whitespace
+def normalize_cat(s):
+    return unicodedata.normalize("NFC", s).strip()
+
+
+def slugify(s):
+    s = normalize_cat(s)
+    s = s.lower()
+    s = s.replace(" ", "-")
+    for ch in ["(", ")", "্", "়", "’", '"', "'"]:
+        s = s.replace(ch, "")
+    s = re.sub(r"[^\w\-]+", "", s)
+    return s
 
 
 # --- Helper: Populate Categories for New Report ---
@@ -112,10 +77,13 @@ def populate_categories_for_report(report_id):
         "নিরক্ষর- তা'লিমুস সলাত",
     ]
     for cat in course_categories:
-        if not ReportCourse.query.filter_by(category=cat, report_id=report_id).first():
+        norm_cat = normalize_cat(cat)
+        if not ReportCourse.query.filter_by(
+            category=norm_cat, report_id=report_id
+        ).first():
             try:
                 db.session.add(
-                    ReportCourse(category=cat, number=0, report_id=report_id)
+                    ReportCourse(category=norm_cat, number=0, report_id=report_id)
                 )
                 db.session.commit()
             except IntegrityError:
@@ -139,12 +107,15 @@ def populate_categories_for_report(report_id):
         "বই বিক্রি",
     ]
     for cat in org_categories:
+        norm_cat = normalize_cat(cat)
         if not ReportOrganizational.query.filter_by(
-            category=cat, report_id=report_id
+            category=norm_cat, report_id=report_id
         ).first():
             try:
                 db.session.add(
-                    ReportOrganizational(category=cat, number=0, report_id=report_id)
+                    ReportOrganizational(
+                        category=norm_cat, number=0, report_id=report_id
+                    )
                 )
                 db.session.commit()
             except IntegrityError:
@@ -153,11 +124,12 @@ def populate_categories_for_report(report_id):
     # Personal Activities Categories
     personal_categories = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
     for cat in personal_categories:
+        norm_cat = normalize_cat(cat)
         if not ReportPersonal.query.filter_by(
-            category=cat, report_id=report_id
+            category=norm_cat, report_id=report_id
         ).first():
             try:
-                db.session.add(ReportPersonal(category=cat, report_id=report_id))
+                db.session.add(ReportPersonal(category=norm_cat, report_id=report_id))
                 db.session.commit()
             except IntegrityError:
                 db.session.rollback()
@@ -170,9 +142,12 @@ def populate_categories_for_report(report_id):
         "Muallima Orientation",
     ]
     for cat in meeting_categories:
-        if not ReportMeeting.query.filter_by(category=cat, report_id=report_id).first():
+        norm_cat = normalize_cat(cat)
+        if not ReportMeeting.query.filter_by(
+            category=norm_cat, report_id=report_id
+        ).first():
             try:
-                db.session.add(ReportMeeting(category=cat, report_id=report_id))
+                db.session.add(ReportMeeting(category=norm_cat, report_id=report_id))
                 db.session.commit()
             except IntegrityError:
                 db.session.rollback()
@@ -189,9 +164,14 @@ def populate_categories_for_report(report_id):
         "ওয়ার্ড প্রতিনিধির সফর",
     ]
     for cat in extra_categories:
-        if not ReportExtra.query.filter_by(category=cat, report_id=report_id).first():
+        norm_cat = normalize_cat(cat)
+        if not ReportExtra.query.filter_by(
+            category=norm_cat, report_id=report_id
+        ).first():
             try:
-                db.session.add(ReportExtra(category=cat, number=0, report_id=report_id))
+                db.session.add(
+                    ReportExtra(category=norm_cat, number=0, report_id=report_id)
+                )
                 db.session.commit()
             except IntegrityError:
                 db.session.rollback()
