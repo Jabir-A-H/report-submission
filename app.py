@@ -339,8 +339,11 @@ def is_admin():
 
 # --- Utility function to generate next user_id ---
 def generate_next_user_id():
-    last_user = User.query.order_by(User.id.desc()).first()
-    next_id = 1 if not last_user else last_user.id + 1
+    last_user = User.query.order_by(User.user_id.desc()).first()
+    if last_user and last_user.user_id.isdigit():
+        next_id = int(last_user.user_id) + 1
+    else:
+        next_id = 100
     return f"{next_id:03d}"
 
 
