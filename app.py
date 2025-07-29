@@ -817,17 +817,40 @@ def report_courses():
                 "completed",
                 "correctly_learned",
             ]
+            norm_categories = [normalize_cat(cat) for cat in course_categories]
+            slugs = [slugify(cat) for cat in norm_categories]
+            slug_to_cat = {slug: cat for slug, cat in zip(slugs, norm_categories)}
+            cat_to_slug = {cat: slug for cat, slug in zip(norm_categories, slugs)}
             handle_section_post(report, "courses", course_categories, fields)
             success = "তথ্য সফলভাবে সংরক্ষণ হয়েছে।"
-    return render_template(
-        "report/courses.html",
-        month=month,
-        year=year,
-        report_type=report_type,
-        report=report,
-        error=error,
-        success=success,
-    )
+        # Always provide slug mappings to template
+        course_categories = [
+            normalize_cat(cat)
+            for cat in [
+                "বিশিষ্টদের",
+                "সাধারণদের",
+                "কর্মীদের",
+                "ইউনিট সভানেত্রী",
+                "অগ্রসরদের",
+                "শিশু- তা'লিমুল কুরআন",
+                "নিরক্ষর- তা'লিমুস সলাত",
+            ]
+        ]
+        slugs = [slugify(cat) for cat in course_categories]
+        slug_to_cat = {slug: cat for slug, cat in zip(slugs, course_categories)}
+        cat_to_slug = {cat: slug for cat, slug in zip(course_categories, slugs)}
+        return render_template(
+            "report/courses.html",
+            month=month,
+            year=year,
+            report_type=report_type,
+            report=report,
+            error=error,
+            success=success,
+            course_categories=course_categories,
+            slug_to_cat=slug_to_cat,
+            cat_to_slug=cat_to_slug,
+        )
 
 
 @app.route("/report/organizational", methods=["GET", "POST"])
@@ -900,17 +923,30 @@ def report_personal():
                 "became_kormi",
                 "became_rukon",
             ]
+            norm_categories = [normalize_cat(cat) for cat in personal_categories]
+            slugs = [slugify(cat) for cat in norm_categories]
+            slug_to_cat = {slug: cat for slug, cat in zip(slugs, norm_categories)}
+            cat_to_slug = {cat: slug for cat, slug in zip(norm_categories, slugs)}
             handle_section_post(report, "personal", personal_categories, fields)
             success = "তথ্য সফলভাবে সংরক্ষণ হয়েছে।"
-    return render_template(
-        "report/personal.html",
-        month=month,
-        year=year,
-        report_type=report_type,
-        report=report,
-        error=error,
-        success=success,
-    )
+        personal_categories = [
+            normalize_cat(cat) for cat in ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
+        ]
+        slugs = [slugify(cat) for cat in personal_categories]
+        slug_to_cat = {slug: cat for slug, cat in zip(slugs, personal_categories)}
+        cat_to_slug = {cat: slug for cat, slug in zip(personal_categories, slugs)}
+        return render_template(
+            "report/personal.html",
+            month=month,
+            year=year,
+            report_type=report_type,
+            report=report,
+            error=error,
+            success=success,
+            personal_categories=personal_categories,
+            slug_to_cat=slug_to_cat,
+            cat_to_slug=cat_to_slug,
+        )
 
 
 @app.route("/report/meetings", methods=["GET", "POST"])
@@ -938,17 +974,36 @@ def report_meetings():
                 "ward_avg_attendance",
                 "comments",
             ]
+            norm_categories = [normalize_cat(cat) for cat in meeting_categories]
+            slugs = [slugify(cat) for cat in norm_categories]
+            slug_to_cat = {slug: cat for slug, cat in zip(slugs, norm_categories)}
+            cat_to_slug = {cat: slug for cat, slug in zip(norm_categories, slugs)}
             handle_section_post(report, "meetings", meeting_categories, fields)
             success = "তথ্য সফলভাবে সংরক্ষণ হয়েছে।"
-    return render_template(
-        "report/meetings.html",
-        month=month,
-        year=year,
-        report_type=report_type,
-        report=report,
-        error=error,
-        success=success,
-    )
+        meeting_categories = [
+            normalize_cat(cat)
+            for cat in [
+                "কমিটি বৈঠক হয়েছে",
+                "মুয়াল্লিমাদের নিয়ে বৈঠক",
+                "Committee Orientation",
+                "Muallima Orientation",
+            ]
+        ]
+        slugs = [slugify(cat) for cat in meeting_categories]
+        slug_to_cat = {slug: cat for slug, cat in zip(slugs, meeting_categories)}
+        cat_to_slug = {cat: slug for cat, slug in zip(meeting_categories, slugs)}
+        return render_template(
+            "report/meetings.html",
+            month=month,
+            year=year,
+            report_type=report_type,
+            report=report,
+            error=error,
+            success=success,
+            meeting_categories=meeting_categories,
+            slug_to_cat=slug_to_cat,
+            cat_to_slug=cat_to_slug,
+        )
 
 
 @app.route("/report/extras", methods=["GET", "POST"])
@@ -972,17 +1027,40 @@ def report_extras():
                 "ওয়ার্ড প্রতিনিধির সফর",
             ]
             fields = ["number"]
+            norm_categories = [normalize_cat(cat) for cat in extra_categories]
+            slugs = [slugify(cat) for cat in norm_categories]
+            slug_to_cat = {slug: cat for slug, cat in zip(slugs, norm_categories)}
+            cat_to_slug = {cat: slug for cat, slug in zip(norm_categories, slugs)}
             handle_section_post(report, "extras", extra_categories, fields)
             success = "তথ্য সফলভাবে সংরক্ষণ হয়েছে।"
-    return render_template(
-        "report/extras.html",
-        month=month,
-        year=year,
-        report_type=report_type,
-        report=report,
-        error=error,
-        success=success,
-    )
+        extra_categories = [
+            normalize_cat(cat)
+            for cat in [
+                "মক্তব সংখ্যা",
+                "মক্তব বৃদ্ধি",
+                "মহানগরী পরিচালিত",
+                "স্থানীয়ভাবে পরিচালিত",
+                "মহানগরীর সফর",
+                "থানা কমিটির সফর",
+                "থানা প্রতিনিধির সফর",
+                "ওয়ার্ড প্রতিনিধির সফর",
+            ]
+        ]
+        slugs = [slugify(cat) for cat in extra_categories]
+        slug_to_cat = {slug: cat for slug, cat in zip(slugs, extra_categories)}
+        cat_to_slug = {cat: slug for cat, slug in zip(extra_categories, slugs)}
+        return render_template(
+            "report/extras.html",
+            month=month,
+            year=year,
+            report_type=report_type,
+            report=report,
+            error=error,
+            success=success,
+            extra_categories=extra_categories,
+            slug_to_cat=slug_to_cat,
+            cat_to_slug=cat_to_slug,
+        )
 
 
 @app.route("/report/comments", methods=["GET", "POST"])
