@@ -1,208 +1,171 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>এক নজরে জোন রিপোর্ট</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="/static/styles.css" />
-  </head>
-  <body class="bg-gray-100 min-h-screen">
-    {% extends 'base.html' %}
-    {% block content %}
-    <div class="container mx-auto px-4 py-8 animate-fade-in">
-        <div class="text-center mb-8">
-          <h1 class="text-4xl font-extrabold text-cyan-700 mb-2 text-center">
-            জোন রিপোর্ট (এক নজরে)
-          </h1>
-          {% if not request.args.get('report_id') or (current_user and current_user.role != 'admin') %}
-          <form method="get" class="flex flex-wrap gap-2 justify-center mb-4" id="report-filter-form">
-            <select id="report-type-select" name="report_type" class="p-2 border border-gray-300 rounded-lg">
-              <option value="মাসিক" {% if report_type == 'মাসিক' %}selected{% endif %}>মাসিক</option>
-              <option value="ত্রৈমাসিক" {% if report_type == 'ত্রৈমাসিক' %}selected{% endif %}>ত্রৈমাসিক</option>
-              <option value="ষান্মাসিক" {% if report_type == 'ষান্মাসিক' %}selected{% endif %}>ষান্মাসিক</option>
-              <option value="নয়-মাসিক" {% if report_type == 'নয়-মাসিক' %}selected{% endif %}>নয়-মাসিক</option>
-              <option value="বার্ষিক" {% if report_type == 'বার্ষিক' %}selected{% endif %}>বার্ষিক</option>
-            </select>
-            <select id="month-select" name="month" class="p-2 border border-gray-300 rounded-lg">
-              {% for i in range(1, 13) %}
-              <option value="{{ i }}" {% if i == month|int %}selected{% endif %}>{{ i|month_name }}</option>
-              {% endfor %}
-            </select>
-            <select name="year" class="p-2 border border-gray-300 rounded-lg">
-              {% for y in range(2025, 2027) %}
-              <option value="{{ y }}" {% if y == year|int %}selected{% endif %}>{{ y }}</option>
-              {% endfor %}
-            </select>
-            <button type="submit" class="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition">ফিল্টার করুন</button>
-          </form>
-          {% endif %}
-          <div class="flex flex-wrap justify-center gap-2 mt-4">
-            <!-- Download Dropdown after search button -->
-            <div class="relative">
-              <button type="button" id="downloadDropdownBtn" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition shadow flex items-center gap-2">
-                ডাউনলোড
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-              </button>
-              <div id="downloadDropdown" class="hidden absolute left-0 mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                <a href="/download_report?report_type={{ report_type }}&month={{ month }}&year={{ year }}&format=pdf" class="block px-4 py-2 text-gray-700 hover:bg-purple-50">PDF</a>
-                <a href="/download_report?report_type={{ report_type }}&month={{ month }}&year={{ year }}&format=excel" class="block px-4 py-2 text-gray-700 hover:bg-green-50">Excel</a>
-              </div>
-            </div>
-          </div>
+{% extends 'base.html' %}
+{% set page_title = 'জোন রিপোর্ট (এক নজরে)' %}
+{% block content %}
+<div class="container mx-auto px-4 py-8 animate-fade-in">
+  <div class="text-center mb-8">
+    <h1 class="text-4xl font-extrabold text-cyan-700 mb-2 text-center">
+      জোন রিপোর্ট (এক নজরে)
+    </h1>
+    {% if not request.args.get('report_id') or (current_user and current_user.role != 'admin') %}
+    <form method="get" class="flex flex-wrap gap-2 justify-center mb-2" id="report-filter-form">
+      <select id="report-type-select" name="report_type" class="p-2 border border-gray-300 rounded-lg">
+        <option value="মাসিক" {% if report_type == 'মাসিক' %}selected{% endif %}>মাসিক</option>
+        <option value="ত্রৈমাসিক" {% if report_type == 'ত্রৈমাসিক' %}selected{% endif %}>ত্রৈমাসিক</option>
+        <option value="ষান্মাসিক" {% if report_type == 'ষান্মাসিক' %}selected{% endif %}>ষান্মাসিক</option>
+        <option value="নয়-মাসিক" {% if report_type == 'নয়-মাসিক' %}selected{% endif %}>নয়-মাসিক</option>
+        <option value="বার্ষিক" {% if report_type == 'বার্ষিক' %}selected{% endif %}>বার্ষিক</option>
+      </select>
+      <select id="month-select" name="month" class="p-2 border border-gray-300 rounded-lg">
+        {% for i in range(1, 13) %}
+        <option value="{{ i }}" {% if i == month|int %}selected{% endif %}>{{ i|month_name }}</option>
+        {% endfor %}
+      </select>
+      <select name="year" class="p-2 border border-gray-300 rounded-lg">
+        {% for y in range(2025, 2027) %}
+        <option value="{{ y }}" {% if y == year|int %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition">সার্চ করুন</button>
+    </form>
+    {% endif %}
+    <div class="flex justify-center mb-4">
+      <div class="relative">
+        <button type="button" id="downloadDropdownBtn" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition shadow">
+          ডাউনলোড
+        </button>
+        <div id="downloadDropdown" class="hidden absolute left-0 mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+          <a href="/download_report?report_type={{ report_type }}&month={{ month }}&year={{ year }}&format=pdf" class="block px-4 py-2 text-gray-700 hover:bg-purple-50">PDF</a>
+          <a href="/download_report?report_type={{ report_type }}&month={{ month }}&year={{ year }}&format=excel" class="block px-4 py-2 text-gray-700 hover:bg-green-50">Excel</a>
         </div>
-        <div class="flex flex-col gap-8">
-            <!-- Header Section -->
-            <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-cyan-400">
-              <h2 class="text-xl font-bold text-cyan-700 mb-2">মূল তথ্য</h2>
-              {% if report.header %}
-                <div class="grid grid-cols-2 gap-2 text-gray-700 text-sm">
-                  <div><span class="font-semibold">দায়িত্বপ্রাপ্ত:</span> {{ report.header.responsible_name }}</div>
-                  <div><span class="font-semibold">থানা:</span> {{ report.header.thana }}</div>
-                  <div><span class="font-semibold">ওয়ার্ড:</span> {{ report.header.ward }}</div>
-                  <div><span class="font-semibold">মোট মুআল্লিমা:</span> {{ report.header.total_muallima }}</div>
-                  <div><span class="font-semibold">বৃদ্ধি:</span> {{ report.header.muallima_increase }}</div>
-                  <div><span class="font-semibold">হ্রাস:</span> {{ report.header.muallima_decrease }}</div>
-                  <div><span class="font-semibold">প্রশিক্ষিত:</span> {{ report.header.certified_muallima }}</div>
-                  <div><span class="font-semibold">প্রশিক্ষিত (ক্লাস নিচ্ছেন):</span> {{ report.header.certified_muallima_taking_classes }}</div>
-                  <div><span class="font-semibold">ট্রেইনিং প্রাপ্ত:</span> {{ report.header.trained_muallima }}</div>
-                  <div><span class="font-semibold">ট্রেইনিং প্রাপ্ত (ক্লাস নিচছেন):</span> {{ report.header.trained_muallima_taking_classes }}</div>
-                  <div><span class="font-semibold">মোট ইউনিট:</span> {{ report.header.total_unit }}</div>
-                  <div><span class="font-semibold">মুয়াল্লিমা সহ ইউনিট:</span> {{ report.header.units_with_muallima }}</div>
-                </div>
-              {% else %}
-                <div class="text-red-500">Header section incomplete.</div>
-              {% endif %}
-            </div>
-            <!-- Courses Section -->
-            <div class="bg-gradient-to-br from-purple-50 to-white rounded-xl shadow-lg p-6 border-l-4 border-purple-400">
-              <h2 class="text-xl font-bold text-purple-700 mb-4">কোর্স রিপোর্ট</h2>
-              {% if report.courses %}
-                <table class="min-w-full text-sm border rounded-xl overflow-hidden">
-                  <thead class="bg-purple-100 text-purple-800">
-                    <tr><th class="px-3 py-2">ক্যাটাগরি</th><th class="px-3 py-2">সংখ্যা</th></tr>
-                  </thead>
-                  <tbody>
-                    {% for course in report.courses %}
-                    <tr class="hover:bg-purple-50">
-                      <td class="px-3 py-2">{{ course.category }}</td>
-                      <td class="px-3 py-2 text-center">{{ course.number }}</td>
-                    </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-              {% endif %}
-            </div>
-            <!-- Organizational Section -->
-            <div class="bg-gradient-to-br from-cyan-50 to-white rounded-xl shadow p-6">
-              <h2 class="text-xl font-bold text-cyan-700 mb-4">সংগঠন</h2>
-              {% if report.organizational %}
-                <table class="min-w-full text-sm border rounded-xl overflow-hidden">
-                  <thead class="bg-cyan-100 text-cyan-800">
-                    <tr><th class="px-3 py-2">ক্যাটাগরি</th><th class="px-3 py-2">সংখ্যা</th></tr>
-                  </thead>
-                  <tbody>
-                    {% for org in report.organizational %}
-                    <tr class="hover:bg-cyan-50">
-                      <td class="px-3 py-2">{{ org.category }}</td>
-                      <td class="px-3 py-2 text-center">{{ org.number }}</td>
-                    </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-              {% endif %}
-            </div>
-            <!-- Personal Section -->
-            <div class="bg-gradient-to-br from-pink-50 to-white rounded-xl shadow p-6">
-              <h2 class="text-xl font-bold text-pink-700 mb-4">ব্যক্তিগত</h2>
-              {% if report.personal %}
-                <table class="min-w-full text-sm border rounded-xl overflow-hidden">
-                  <thead class="bg-pink-100 text-pink-800">
-                    <tr><th class="px-3 py-2">ক্যাটাগরি</th><th class="px-3 py-2">Teaching</th><th class="px-3 py-2">Learning</th></tr>
-                  </thead>
-                  <tbody>
-                    {% for p in report.personal %}
-                    <tr class="hover:bg-pink-50">
-                      <td class="px-3 py-2">{{ p.category }}</td>
-                      <td class="px-3 py-2 text-center">{{ p.teaching }}</td>
-                      <td class="px-3 py-2 text-center">{{ p.learning }}</td>
-                    </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-              {% endif %}
-            </div>
-            <!-- Meetings Section -->
-            <div class="bg-gradient-to-br from-blue-50 to-white rounded-xl shadow p-6">
-              <h2 class="text-xl font-bold text-blue-700 mb-4">বৈঠকসমূহ</h2>
-              {% if report.meetings %}
-                <table class="min-w-full text-sm border rounded-xl overflow-hidden">
-                  <thead class="bg-blue-100 text-blue-800">
-                    <tr><th class="px-3 py-2">ক্যাটাগরি</th><th class="px-3 py-2">City Count</th></tr>
-                  </thead>
-                  <tbody>
-                    {% for m in report.meetings %}
-                    <tr class="hover:bg-blue-50">
-                      <td class="px-3 py-2">{{ m.category }}</td>
-                      <td class="px-3 py-2 text-center">{{ m.city_count }}</td>
-                    </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-              {% endif %}
-            </div>
-            <!-- Extras Section -->
-            <div class="bg-gradient-to-br from-green-50 to-white rounded-xl shadow p-6">
-              <h2 class="text-xl font-bold text-green-700 mb-4">এক্সট্রা</h2>
-              {% if report.extras %}
-                <table class="min-w-full text-sm border rounded-xl overflow-hidden">
-                  <thead class="bg-green-100 text-green-800">
-                    <tr><th class="px-3 py-2">ক্যাটাগরি</th><th class="px-3 py-2">সংখ্যা</th></tr>
-                  </thead>
-                  <tbody>
-                    {% for e in report.extras %}
-                    <tr class="hover:bg-green-50">
-                      <td class="px-3 py-2">{{ e.category }}</td>
-                      <td class="px-3 py-2 text-center">{{ e.number }}</td>
-                    </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-              {% endif %}
-            </div>
-            <!-- Comments Section -->
-            <div class="bg-gradient-to-br from-yellow-50 to-white rounded-xl shadow p-6">
-              <h2 class="text-xl font-bold text-yellow-700 mb-4">মন্তব্য</h2>
-              {% if report.comments %}
-                <div class="text-gray-700 text-sm">{{ report.comments.comment }}</div>
-              {% endif %}
-            </div>
-          </div>
-        </div>
+      </div>
     </div>
-    {% endblock %}
-    {% if error %}
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{{ error }}</div>
-    {% endif %}
-    {% if success %}
-    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">{{ success }}</div>
-    {% endif %}
-    <script src="/static/scripts.js"></script>
-    <script>
-      // Download dropdown toggle
-      const btn = document.getElementById('downloadDropdownBtn');
-      const menu = document.getElementById('downloadDropdown');
-      if (btn && menu) {
-        btn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          menu.classList.toggle('hidden');
-        });
-        document.addEventListener('click', function(e) {
-          if (!btn.contains(e.target)) {
-            menu.classList.add('hidden');
-          }
-        });
-      }
-    </script>
-  </body>
-</html>
+  </div>
+  <div class="flex flex-col gap-8">
+    <!-- Header Table -->
+    <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-cyan-400">
+      <h2 class="text-xl font-bold text-cyan-700 mb-2">মূল তথ্য</h2>
+      {% if report.header %}
+        <div class="grid grid-cols-2 gap-2 text-gray-700 text-sm">
+          <div><span class="font-semibold">দায়িত্বপ্রাপ্ত:</span> {{ report.header.responsible_name }}</div>
+          <div><span class="font-semibold">থানা:</span> {{ report.header.thana }}</div>
+          <div><span class="font-semibold">ওয়ার্ড:</span> {{ report.header.ward }}</div>
+          <div><span class="font-semibold">মোট মুআল্লিমা:</span> {{ report.header.total_muallima }}</div>
+          <div><span class="font-semibold">বৃদ্ধি:</span> {{ report.header.muallima_increase }}</div>
+          <div><span class="font-semibold">হ্রাস:</span> {{ report.header.muallima_decrease }}</div>
+          <div><span class="font-semibold">প্রশিক্ষিত:</span> {{ report.header.certified_muallima }}</div>
+          <div><span class="font-semibold">প্রশিক্ষিত (ক্লাস নিচ্ছেন):</span> {{ report.header.certified_muallima_taking_classes }}</div>
+          <div><span class="font-semibold">ট্রেইনিং প্রাপ্ত:</span> {{ report.header.trained_muallima }}</div>
+          <div><span class="font-semibold">ট্রেইনিং প্রাপ্ত (ক্লাস নিচছেন):</span> {{ report.header.trained_muallima_taking_classes }}</div>
+          <div><span class="font-semibold">মোট ইউনিট:</span> {{ report.header.total_unit }}</div>
+          <div><span class="font-semibold">মুয়াল্লিমা সহ ইউনিট:</span> {{ report.header.units_with_muallima }}</div>
+        </div>
+      {% else %}
+        <div class="text-red-500">Header section incomplete.</div>
+      {% endif %}
+    </div>
+    <!-- Courses Table -->
+    <div class="bg-gradient-to-br from-purple-50 to-white rounded-xl shadow-lg p-6 border-l-4 border-purple-400">
+      <h2 class="text-xl font-bold text-purple-700 mb-4">কোর্স রিপোর্ট</h2>
+      {% if report.courses %}
+        <table class="min-w-full text-sm border rounded-xl overflow-hidden">
+          <thead class="bg-purple-100 text-purple-800">
+            <tr><th class="px-3 py-2">ক্যাটাগরি</th><th class="px-3 py-2">সংখ্যা</th></tr>
+          </thead>
+          <tbody>
+            {% for course in report.courses %}
+            <tr class="hover:bg-purple-50">
+              <td class="px-3 py-2">{{ course.category }}</td>
+              <td class="px-3 py-2 text-center">{{ course.number }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+    </div>
+    <!-- Organizational Table -->
+    <div class="bg-gradient-to-br from-cyan-50 to-white rounded-xl shadow p-6">
+      <h2 class="text-xl font-bold text-cyan-700 mb-4">সংগঠন</h2>
+      {% if report.organizational %}
+        <table class="min-w-full text-sm border rounded-xl overflow-hidden">
+          <thead class="bg-cyan-100 text-cyan-800">
+            <tr><th class="px-3 py-2">ক্যাটাগরি</th><th class="px-3 py-2">সংখ্যা</th></tr>
+          </thead>
+          <tbody>
+            {% for org in report.organizational %}
+            <tr class="hover:bg-cyan-50">
+              <td class="px-3 py-2">{{ org.category }}</td>
+              <td class="px-3 py-2 text-center">{{ org.number }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+    </div>
+    <!-- Personal Table -->
+    <div class="bg-gradient-to-br from-pink-50 to-white rounded-xl shadow p-6">
+      <h2 class="text-xl font-bold text-pink-700 mb-4">ব্যক্তিগত</h2>
+      {% if report.personal %}
+        <table class="min-w-full text-sm border rounded-xl overflow-hidden">
+          <thead class="bg-pink-100 text-pink-800">
+            <tr><th class="px-3 py-2">ক্যাটাগরি</th><th class="px-3 py-2">Teaching</th><th class="px-3 py-2">Learning</th></tr>
+          </thead>
+          <tbody>
+            {% for p in report.personal %}
+            <tr class="hover:bg-pink-50">
+              <td class="px-3 py-2">{{ p.category }}</td>
+              <td class="px-3 py-2 text-center">{{ p.teaching }}</td>
+              <td class="px-3 py-2 text-center">{{ p.learning }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+    </div>
+    <!-- Meetings Table -->
+    <div class="bg-gradient-to-br from-blue-50 to-white rounded-xl shadow p-6">
+      <h2 class="text-xl font-bold text-blue-700 mb-4">বৈঠকসমূহ</h2>
+      {% if report.meetings %}
+        <table class="min-w-full text-sm border rounded-xl overflow-hidden">
+          <thead class="bg-blue-100 text-blue-800">
+            <tr><th class="px-3 py-2">ক্যাটাগরি</th><th class="px-3 py-2">City Count</th></tr>
+          </thead>
+          <tbody>
+            {% for m in report.meetings %}
+            <tr class="hover:bg-blue-50">
+              <td class="px-3 py-2">{{ m.category }}</td>
+              <td class="px-3 py-2 text-center">{{ m.city_count }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+    </div>
+    <!-- Extras Table -->
+    <div class="bg-gradient-to-br from-green-50 to-white rounded-xl shadow p-6">
+      <h2 class="text-xl font-bold text-green-700 mb-4">এক্সট্রা</h2>
+      {% if report.extras %}
+        <table class="min-w-full text-sm border rounded-xl overflow-hidden">
+          <thead class="bg-green-100 text-green-800">
+            <tr><th class="px-3 py-2">ক্যাটাগরি</th><th class="px-3 py-2">সংখ্যা</th></tr>
+          </thead>
+          <tbody>
+            {% for e in report.extras %}
+            <tr class="hover:bg-green-50">
+              <td class="px-3 py-2">{{ e.category }}</td>
+              <td class="px-3 py-2 text-center">{{ e.number }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+    </div>
+    <!-- Comments Table -->
+    <div class="bg-gradient-to-br from-yellow-50 to-white rounded-xl shadow p-6">
+      <h2 class="text-xl font-bold text-yellow-700 mb-4">মন্তব্য</h2>
+      {% if report.comments %}
+        <div class="text-gray-700 text-sm">{{ report.comments.comment }}</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
