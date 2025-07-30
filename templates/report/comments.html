@@ -15,7 +15,7 @@
             name="comment"
             rows="4"
             class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-          >{{ report.comments.comment if report.comments else '' }}</textarea>
+          >{{ report.comments.comment if report.comments and report.comments.comment is not none else '' }}</textarea>
         </div>
         <div class="flex justify-end mt-8 pt-6 border-t">
           <button
