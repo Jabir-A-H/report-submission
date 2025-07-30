@@ -5,22 +5,7 @@
     <h1 class="text-3xl font-bold text-cyan-700 mb-2">
       ব্যক্তিগত উদ্যোগে তা’লীমুল কুরআন
     </h1>
-    <p class="text-gray-600">{{ month|month_name }} {{ year }}</p>
-            <thead>
-              <tr class="bg-cyan-50 text-cyan-800">
-                <th class="px-4 py-2 text-left align-bottom border-r-4 border-cyan-300" rowspan="2">বিভাগ</th>
-                <th class="px-4 py-2 text-center align-bottom border-r-4 border-cyan-300" rowspan="2">কতজন শিখাচ্ছেন</th>
-                <th class="px-4 py-2 text-center align-bottom" rowspan="2">কতজনকে শিখাচ্ছেন</th>
-                <th class="px-4 py-2 text-center align-bottom" rowspan="2">কতজন ওয়ালামাকে দাওয়াত দিয়েছেন</th>
-                <th class="px-4 py-2 text-center bg-cyan-100 font-bold border-l-4 border-cyan-300" colspan="4">দাওয়াত প্রাপ্ত ওয়ালামার মধ্যে</th>
-              </tr>
-              <tr class="bg-cyan-50 text-cyan-800">
-                <th class="px-4 py-2 text-center bg-cyan-100 font-bold border-l-4 border-cyan-300">সহযোগী হয়েছেন</th>
-                <th class="px-4 py-2 text-center bg-cyan-100 font-bold">সক্রিয় সহযোগী হয়েছেন</th>
-                <th class="px-4 py-2 text-center bg-cyan-100 font-bold">কর্মী হয়েছেন</th>
-                <th class="px-4 py-2 text-center bg-cyan-100 font-bold">রুকন হয়েছেন</th>
-              </tr>
-            </thead>
+    <p class="text-gray-600">{{ month|month_name }} {{ year }}</p><br>
       <form method="post" id="personalForm" autocomplete="off">
         <div class="overflow-x-auto">
           <table
@@ -29,46 +14,31 @@
             <thead>
               <tr class="bg-cyan-50 text-cyan-800">
                 <th
-                  class="px-4 py-2 text-left align-bottom border-r-4 border-cyan-300"
+                  class="px-4 py-2 text-left align-bottom"
                   rowspan="2"
                 >
-                  বিভাগ
+                  
                 </th>
                 <th
-                  class="px-4 py-2 text-center align-bottom border-r-4 border-cyan-300"
+                  class="px-4 py-2 text-center align-bottom"
                   rowspan="2"
                 >
                   কতজন শিখাচ্ছেন
                 </th>
-                <th class="px-4 py-2 text-center" colspan="2">
-                  শিক্ষা সংক্রান্ত
-                </th>
+                <th class="px-4 py-2 text-center align-bottom border-r-4 border-cyan-300" rowspan="2">কতজনকে শিখাচ্ছেন</th>
+                <th class="px-4 py-2 text-center align-bottom" rowspan="2">কতজন ওয়ালামাকে দাওয়াত দিয়েছেন</th>
                 <th
-                  class="px-4 py-2 text-center bg-cyan-100 font-bold border-l-4 border-cyan-300"
+                  class="px-4 py-2 text-center font-bold"
                   colspan="4"
                 >
                   দাওয়াত প্রাপ্ত ওয়ালামার মধ্যে
                 </th>
               </tr>
               <tr class="bg-cyan-50 text-cyan-800">
-                <th class="px-4 py-2 text-center">কতজনকে শিখাচ্ছেন</th>
-                <th class="px-4 py-2 text-center">
-                  কতজন ওয়ালামাকে দাওয়াত দিয়েছেন
-                </th>
-                <th
-                  class="px-4 py-2 text-center bg-cyan-100 font-bold border-l-4 border-cyan-300"
-                >
-                  সহযোগী হয়েছেন
-                </th>
-                <th class="px-4 py-2 text-center bg-cyan-100 font-bold">
-                  সক্রিয় সহযোগী হয়েছেন
-                </th>
-                <th class="px-4 py-2 text-center bg-cyan-100 font-bold">
-                  কর্মী হয়েছেন
-                </th>
-                <th class="px-4 py-2 text-center bg-cyan-100 font-bold">
-                  রুকন হয়েছেন
-                </th>
+                <th class="px-4 py-2 text-center bg-cyan-100 font-bold">সহযোগী হয়েছেন</th>
+                <th class="px-4 py-2 text-center bg-cyan-100 font-bold">সক্রিয় সহযোগী হয়েছেন</th>
+                <th class="px-4 py-2 text-center bg-cyan-100 font-bold">কর্মী হয়েছেন</th>
+                <th class="px-4 py-2 text-center bg-cyan-100 font-bold">রুকন হয়েছেন</th>
               </tr>
             </thead>
             <tbody>
@@ -95,10 +65,10 @@
               {% set became_rukon_total = became_rukon_total + became_rukon_val
               %}
               <tr class="border-b hover:bg-cyan-50">
-                <td class="px-4 py-2 font-semibold border-r-4 border-cyan-300">
+                <td class="px-4 py-2 font-semibold">
                   {{ cat }}
                 </td>
-                <td class="px-2 py-2 text-center border-r-4 border-cyan-300">
+                <td class="px-2 py-2 text-center">
                   <input
                     type="number"
                     name="teaching_{{ slug }}"
@@ -108,7 +78,7 @@
                     min="0"
                   />
                 </td>
-                <td class="px-2 py-2 text-center">
+                <td class="px-2 py-2 text-center border-r-4 border-cyan-300">
                   <input
                     type="number"
                     name="learning_{{ slug }}"
@@ -118,7 +88,7 @@
                     min="0"
                   />
                 </td>
-                <td class="px-2 py-2 text-center border-l-4 border-cyan-300">
+                <td class="px-2 py-2 text-center">
                   <input
                     type="number"
                     name="olama_invited_{{ slug }}"
@@ -171,20 +141,14 @@
               </tr>
               {% endfor %}
               <tr class="bg-cyan-100 font-bold">
-                <td class="px-4 py-2 text-right border-r-4 border-cyan-300">
+                <td class="px-4 py-2 text-right">
                   মোট
                 </td>
-                <td class="px-2 py-2 text-center border-r-4 border-cyan-300">
-                  {{ teaching_total }}
-                </td>
-                <td class="px-2 py-2 text-center">{{ learning_total }}</td>
+                <td class="px-2 py-2 text-center">{{ teaching_total }}</td>
+                <td class="px-2 py-2 text-center border-r-4 border-cyan-300">{{ learning_total }}</td>
                 <td class="px-2 py-2 text-center">{{ olama_invited_total }}</td>
-                <td class="px-2 py-2 text-center border-l-4 border-cyan-300">
-                  {{ became_shohojogi_total }}
-                </td>
-                <td class="px-2 py-2 text-center">
-                  {{ became_sokrio_shohojogi_total }}
-                </td>
+                <td class="px-2 py-2 text-center">{{ became_shohojogi_total }}</td>
+                <td class="px-2 py-2 text-center">{{ became_sokrio_shohojogi_total }}</td>
                 <td class="px-2 py-2 text-center">{{ became_kormi_total }}</td>
                 <td class="px-2 py-2 text-center">{{ became_rukon_total }}</td>
               </tr>
