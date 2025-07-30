@@ -683,20 +683,24 @@ def handle_section_post(report, section_attr, categories, fields):
     for slug, cat in slug_to_cat.items():
         row = db_rows_by_slug.get(slug)
         if not row and model:
+            print(f"[DEBUG] Creating new row for category: {cat} (slug: {slug})")
             row = model(report_id=report.id, category=cat)
             db.session.add(row)
         if row:
             for field in fields:
                 form_key = f"{field}_{slug}"
                 value = request.form.get(form_key)
+                print(f"[DEBUG] Field: {field}, Slug: {slug}, Form Key: {form_key}, Value: {value}")
                 if value is not None:
                     col_type = getattr(row.__class__, field).type
                     if isinstance(col_type, db.Integer):
                         value = int(value) if value else 0
                     elif isinstance(col_type, db.String):
                         value = value.strip() or None
+                    print(f"[DEBUG] Setting {field} for category {cat} (slug: {slug}) to {value}")
                     setattr(row, field, value)
     db.session.commit()
+    print("[DEBUG] Database commit complete for section_post.")
 
 
 @app.route("/report/header", methods=["GET", "POST"])
