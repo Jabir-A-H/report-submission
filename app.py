@@ -406,7 +406,7 @@ def dashboard():
 
     if is_admin():
         return render_template(
-            "admin_reports.html",
+            "index_admin.html",
             user=current_user,
             month=month,
             year=year,
