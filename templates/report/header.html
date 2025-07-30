@@ -42,30 +42,7 @@
                   required
                   value="{{ report.header.responsible_name if report.header else '' }}"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  oninput="showAutoSave('responsible_name_save')"
                 />
-                <span
-                  id="responsible_name_save"
-                  class="absolute right-2 top-2 hidden"
-                  ><svg
-                    class="w-5 h-5 text-cyan-500 animate-spin"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      class="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      stroke-width="4"
-                    ></circle>
-                    <path
-                      class="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8z"
-                    ></path></svg
-                ></span>
               </div>
               <div class="relative">
                 <label
@@ -83,28 +60,7 @@
                   required
                   value="{{ report.header.thana if report.header else '' }}"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  oninput="showAutoSave('thana_save')"
                 />
-                <span id="thana_save" class="absolute right-2 top-2 hidden"
-                  ><svg
-                    class="w-5 h-5 text-cyan-500 animate-spin"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      class="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      stroke-width="4"
-                    ></circle>
-                    <path
-                      class="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8z"
-                    ></path></svg
-                ></span>
               </div>
               <div class="relative">
                 <label
@@ -122,28 +78,7 @@
                   required
                   value="{{ report.header.ward if report.header else '' }}"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  oninput="showAutoSave('ward_save')"
                 />
-                <span id="ward_save" class="absolute right-2 top-2 hidden"
-                  ><svg
-                    class="w-5 h-5 text-cyan-500 animate-spin"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      class="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      stroke-width="4"
-                    ></circle>
-                    <path
-                      class="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8z"
-                    ></path></svg
-                ></span>
               </div>
               <div class="relative">
                 <label
@@ -158,32 +93,10 @@
                   id="total_muallima"
                   name="total_muallima"
                   min="0"
+                  required
                   value="{{ report.header.total_muallima if report.header else 0 }}"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  oninput="showAutoSave('total_muallima_save')"
                 />
-                <span
-                  id="total_muallima_save"
-                  class="absolute right-2 top-2 hidden"
-                  ><svg
-                    class="w-5 h-5 text-cyan-500 animate-spin"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      class="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      stroke-width="4"
-                    ></circle>
-                    <path
-                      class="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8z"
-                    ></path></svg
-                ></span>
               </div>
               <div class="relative">
                 <label
@@ -200,30 +113,7 @@
                   min="0"
                   value="{{ report.header.muallima_increase if report.header else 0 }}"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  oninput="showAutoSave('muallima_increase_save')"
                 />
-                <span
-                  id="muallima_increase_save"
-                  class="absolute right-2 top-2 hidden"
-                  ><svg
-                    class="w-5 h-5 text-cyan-500 animate-spin"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      class="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      stroke-width="4"
-                    ></circle>
-                    <path
-                      class="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8z"
-                    ></path></svg
-                ></span>
               </div>
               <div class="relative">
                 <label
@@ -240,30 +130,7 @@
                   min="0"
                   value="{{ report.header.muallima_decrease if report.header else 0 }}"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  oninput="showAutoSave('muallima_decrease_save')"
                 />
-                <span
-                  id="muallima_decrease_save"
-                  class="absolute right-2 top-2 hidden"
-                  ><svg
-                    class="w-5 h-5 text-cyan-500 animate-spin"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      class="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      stroke-width="4"
-                    ></circle>
-                    <path
-                      class="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8z"
-                    ></path></svg
-                ></span>
               </div>
               <div class="relative">
                 <label
@@ -278,32 +145,10 @@
                   id="certified_muallima"
                   name="certified_muallima"
                   min="0"
+                  required
                   value="{{ report.header.certified_muallima if report.header else 0 }}"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  oninput="showAutoSave('certified_muallima_save')"
                 />
-                <span
-                  id="certified_muallima_save"
-                  class="absolute right-2 top-2 hidden"
-                  ><svg
-                    class="w-5 h-5 text-cyan-500 animate-spin"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      class="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      stroke-width="4"
-                    ></circle>
-                    <path
-                      class="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8z"
-                    ></path></svg
-                ></span>
               </div>
               <div class="relative">
                 <label
@@ -318,32 +163,10 @@
                   id="certified_muallima_taking_classes"
                   name="certified_muallima_taking_classes"
                   min="0"
+                  required
                   value="{{ report.header.certified_muallima_taking_classes if report.header else 0 }}"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  oninput="showAutoSave('certified_muallima_taking_classes_save')"
                 />
-                <span
-                  id="certified_muallima_taking_classes_save"
-                  class="absolute right-2 top-2 hidden"
-                  ><svg
-                    class="w-5 h-5 text-cyan-500 animate-spin"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      class="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      stroke-width="4"
-                    ></circle>
-                    <path
-                      class="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8z"
-                    ></path></svg
-                ></span>
               </div>
               <div class="relative">
                 <label
@@ -358,32 +181,10 @@
                   id="trained_muallima"
                   name="trained_muallima"
                   min="0"
+                  required
                   value="{{ report.header.trained_muallima if report.header else 0 }}"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  oninput="showAutoSave('trained_muallima_save')"
                 />
-                <span
-                  id="trained_muallima_save"
-                  class="absolute right-2 top-2 hidden"
-                  ><svg
-                    class="w-5 h-5 text-cyan-500 animate-spin"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      class="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      stroke-width="4"
-                    ></circle>
-                    <path
-                      class="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8z"
-                    ></path></svg
-                ></span>
               </div>
               <div class="relative">
                 <label
@@ -391,39 +192,17 @@
                   class="block text-sm font-medium text-gray-700 mb-2"
                   aria-label="ট্রেইনিং প্রাপ্ত মুয়াল্লিমা (ক্লাস নিচ্ছেন)"
                   title="ট্রেইনিং প্রাপ্ত মুয়াল্লিমা (ক্লাস নিচ্ছেন)"
-                  >ট্রেইনিং প্রাপ্ত মুয়াল্লিমা (ক্লাস নিচছেন)</label
+                  >ট্রেইনিং প্রাপ্ত মুয়াল্লিমা (ক্লাস নিচ্ছেন)</label
                 >
                 <input
                   type="number"
                   id="trained_muallima_taking_classes"
                   name="trained_muallima_taking_classes"
                   min="0"
+                  required
                   value="{{ report.header.trained_muallima_taking_classes if report.header else 0 }}"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  oninput="showAutoSave('trained_muallima_taking_classes_save')"
                 />
-                <span
-                  id="trained_muallima_taking_classes_save"
-                  class="absolute right-2 top-2 hidden"
-                  ><svg
-                    class="w-5 h-5 text-cyan-500 animate-spin"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      class="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      stroke-width="4"
-                    ></circle>
-                    <path
-                      class="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8z"
-                    ></path></svg
-                ></span>
               </div>
               <div class="relative">
                 <label
@@ -438,30 +217,10 @@
                   id="total_unit"
                   name="total_unit"
                   min="0"
+                  required
                   value="{{ report.header.total_unit if report.header else 0 }}"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  oninput="showAutoSave('total_unit_save')"
                 />
-                <span id="total_unit_save" class="absolute right-2 top-2 hidden"
-                  ><svg
-                    class="w-5 h-5 text-cyan-500 animate-spin"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      class="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      stroke-width="4"
-                    ></circle>
-                    <path
-                      class="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8z"
-                    ></path></svg
-                ></span>
               </div>
               <div class="relative">
                 <label
@@ -476,67 +235,22 @@
                   id="units_with_muallima"
                   name="units_with_muallima"
                   min="0"
+                  required
                   value="{{ report.header.units_with_muallima if report.header else 0 }}"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  oninput="showAutoSave('units_with_muallima_save')"
                 />
-                <span
-                  id="units_with_muallima_save"
-                  class="absolute right-2 top-2 hidden"
-                  ><svg
-                    class="w-5 h-5 text-cyan-500 animate-spin"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      class="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      stroke-width="4"
-                    ></circle>
-                    <path
-                      class="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8z"
-                    ></path></svg
-                ></span>
               </div>
             </div>
             <div class="flex justify-end mt-8 pt-6 border-t">
               <button
                 type="submit"
-                class="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors flex items-center gap-2"
+                class="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
               >
-                <svg
-                  class="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
                 সংরক্ষণ করুন
               </button>
             </div>
           </form>
-          <script>
-            function showAutoSave(id) {
-              const el = document.getElementById(id);
-              if (el) {
-                el.classList.remove("hidden");
-                setTimeout(() => {
-                  el.classList.add("hidden");
-                }, 1200);
-              }
-            }
-          </script>
+          <!-- No autosave JS needed -->
         </div>
       </div>
     </div>

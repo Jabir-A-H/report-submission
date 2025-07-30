@@ -21,17 +21,19 @@ content %}
       </div>
       {% endif %}
       <form method="post" id="organizationalForm">
-        <div class="overflow-x-auto">
-          <table
-            class="min-w-full bg-white border rounded-xl shadow divide-y divide-gray-200"
-          >
+        <div class="overflow-x-auto w-full">
+          <table class="min-w-full border border-gray-300 bg-white rounded-lg">
             <thead>
-              <tr class="bg-cyan-50 text-cyan-800">
-                <th class="px-4 py-2 text-left">বিষয়</th>
-                <th class="px-4 py-2 text-center">সংখ্যা</th>
-                <th class="px-4 py-2 text-center">বৃদ্ধি</th>
-                <th class="px-4 py-2 text-center">টাকা</th>
-                <th class="px-4 py-2 text-center">মন্তব্য</th>
+              <tr class="bg-cyan-100 text-gray-900 text-center">
+                <th
+                  class="border border-gray-300 px-2 py-2 align-middle sticky left-0 z-10 bg-white text-left"
+                >
+                  বিষয়
+                </th>
+                <th class="border border-gray-300 px-2 py-2">সংখ্যা</th>
+                <th class="border border-gray-300 px-2 py-2">বৃদ্ধি</th>
+                <th class="border border-gray-300 px-2 py-2">টাকা</th>
+                <th class="border border-gray-300 px-2 py-2">মন্তব্য</th>
               </tr>
             </thead>
             <tbody>
@@ -39,48 +41,52 @@ content %}
               for cat in org_categories %} {% set slug = cat_to_slug[cat] %} {%
               set row = (report.organizational | selectattr('category',
               'equalto', cat) | list | first) %}
-              <tr class="border-b hover:bg-cyan-50">
-                <td class="px-4 py-2 font-semibold">{{ cat }}</td>
-                <td class="px-2 py-2 text-center">
+              <tr class="text-center hover:bg-cyan-50">
+                <td
+                  class="border border-gray-300 px-2 py-1 font-semibold sticky left-0 z-10 bg-white text-left"
+                >
+                  {{ cat }}
+                </td>
+                <td class="border border-gray-300 px-2 py-1">
                   <input
                     type="number"
                     name="number_{{ slug }}"
                     id="number_{{ slug }}"
-                    value="{{ row.number if row else 0 }}"
-                    class="w-20 p-1 border rounded text-center"
                     min="0"
+                    value="{{ row.number if row and row.number is not none else 0 }}"
+                    class="w-20 p-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-cyan-500"
                     autocomplete="off"
                   />
                 </td>
-                <td class="px-2 py-2 text-center">
+                <td class="border border-gray-300 px-2 py-1">
                   <input
                     type="number"
                     name="increase_{{ slug }}"
                     id="increase_{{ slug }}"
-                    value="{{ row.increase if row else 0 }}"
-                    class="w-20 p-1 border rounded text-center"
                     min="0"
+                    value="{{ row.increase if row and row.increase is not none else 0 }}"
+                    class="w-20 p-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-cyan-500"
                     autocomplete="off"
                   />
                 </td>
-                <td class="px-2 py-2 text-center">
+                <td class="border border-gray-300 px-2 py-1">
                   <input
                     type="number"
                     name="amount_{{ slug }}"
                     id="amount_{{ slug }}"
-                    value="{{ row.amount if row and row.amount is not none else '' }}"
-                    class="w-24 p-1 border rounded text-center"
                     min="0"
+                    value="{{ row.amount if row and row.amount is not none else 0 }}"
+                    class="w-24 p-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-cyan-500"
                     autocomplete="off"
                   />
                 </td>
-                <td class="px-2 py-2 text-center">
+                <td class="border border-gray-300 px-2 py-1">
                   <input
                     type="text"
                     name="comments_{{ slug }}"
                     id="comments_{{ slug }}"
                     value="{{ row.comments if row and row.comments is not none else '' }}"
-                    class="w-32 p-1 border rounded"
+                    class="w-32 p-1 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500"
                     autocomplete="off"
                   />
                 </td>
@@ -92,21 +98,8 @@ content %}
         <div class="flex justify-end mt-8 pt-6 border-t">
           <button
             type="submit"
-            class="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors flex items-center gap-2"
+            class="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
           >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
             সংরক্ষণ করুন
           </button>
         </div>

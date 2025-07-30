@@ -20,95 +20,107 @@
       </div>
       {% endif %}
       <form method="post" id="meetingsForm" autocomplete="off">
-        <div class="overflow-x-auto">
-          <table
-            class="min-w-full bg-white border rounded-xl shadow divide-y divide-gray-200"
-          >
+        <div class="overflow-x-auto w-full">
+          <table class="min-w-full border border-gray-300 bg-white rounded-lg">
             <thead>
-              <tr class="bg-cyan-50 text-cyan-800">
-                <th class="px-4 py-2 text-left">বৈঠকের ধরন</th>
-                <th class="px-4 py-2 text-center">শহর সংখ্যা</th>
-                <th class="px-4 py-2 text-center">শহর গড় উপস্থিতি</th>
-                <th class="px-4 py-2 text-center">থানা সংখ্যা</th>
-                <th class="px-4 py-2 text-center">থানা গড় উপস্থিতি</th>
-                <th class="px-4 py-2 text-center">ওয়ার্ড সংখ্যা</th>
-                <th class="px-4 py-2 text-center">ওয়ার্ড গড় উপস্থিতি</th>
-                <th class="px-4 py-2 text-center">মন্তব্য</th>
+              <tr class="bg-cyan-100 text-gray-900 text-center">
+                <th
+                  class="border border-gray-300 px-2 py-2 align-middle sticky left-0 z-10 bg-white text-left"
+                >
+                  বৈঠকের ধরন
+                </th>
+                <th class="border border-gray-300 px-2 py-2">শহর সংখ্যা</th>
+                <th class="border border-gray-300 px-2 py-2">
+                  শহর গড় উপস্থিতি
+                </th>
+                <th class="border border-gray-300 px-2 py-2">থানা সংখ্যা</th>
+                <th class="border border-gray-300 px-2 py-2">
+                  থানা গড় উপস্থিতি
+                </th>
+                <th class="border border-gray-300 px-2 py-2">ওয়ার্ড সংখ্যা</th>
+                <th class="border border-gray-300 px-2 py-2">
+                  ওয়ার্ড গড় উপস্থিতি
+                </th>
+                <th class="border border-gray-300 px-2 py-2">মন্তব্য</th>
               </tr>
             </thead>
             <tbody>
               {% for cat in meeting_categories %} {% set slug = cat_to_slug[cat]
               %} {% set row = (report.meetings | selectattr('category',
               'equalto', cat) | list | first) %}
-              <tr class="border-b hover:bg-cyan-50">
-                <td class="px-4 py-2 font-semibold">{{ cat }}</td>
-                <td class="px-2 py-2 text-center">
+              <tr class="text-center hover:bg-cyan-50">
+                <td
+                  class="border border-gray-300 px-2 py-1 font-semibold sticky left-0 z-10 bg-white text-left"
+                >
+                  {{ cat }}
+                </td>
+                <td class="border border-gray-300 px-2 py-1">
                   <input
                     type="number"
                     name="city_count_{{ slug }}"
                     id="city_count_{{ slug }}"
-                    value="{{ row.city_count if row else 0 }}"
-                    class="w-20 p-1 border rounded text-center"
                     min="0"
+                    value="{{ row.city_count if row and row.city_count is not none else 0 }}"
+                    class="w-20 p-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-cyan-500"
                   />
                 </td>
-                <td class="px-2 py-2 text-center">
+                <td class="border border-gray-300 px-2 py-1">
                   <input
                     type="number"
                     name="city_avg_attendance_{{ slug }}"
                     id="city_avg_attendance_{{ slug }}"
-                    value="{{ row.city_avg_attendance if row else 0 }}"
-                    class="w-20 p-1 border rounded text-center"
                     min="0"
+                    value="{{ row.city_avg_attendance if row and row.city_avg_attendance is not none else 0 }}"
+                    class="w-20 p-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-cyan-500"
                   />
                 </td>
-                <td class="px-2 py-2 text-center">
+                <td class="border border-gray-300 px-2 py-1">
                   <input
                     type="number"
                     name="thana_count_{{ slug }}"
                     id="thana_count_{{ slug }}"
-                    value="{{ row.thana_count if row else 0 }}"
-                    class="w-20 p-1 border rounded text-center"
                     min="0"
+                    value="{{ row.thana_count if row and row.thana_count is not none else 0 }}"
+                    class="w-20 p-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-cyan-500"
                   />
                 </td>
-                <td class="px-2 py-2 text-center">
+                <td class="border border-gray-300 px-2 py-1">
                   <input
                     type="number"
                     name="thana_avg_attendance_{{ slug }}"
                     id="thana_avg_attendance_{{ slug }}"
-                    value="{{ row.thana_avg_attendance if row else 0 }}"
-                    class="w-20 p-1 border rounded text-center"
                     min="0"
+                    value="{{ row.thana_avg_attendance if row and row.thana_avg_attendance is not none else 0 }}"
+                    class="w-20 p-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-cyan-500"
                   />
                 </td>
-                <td class="px-2 py-2 text-center">
+                <td class="border border-gray-300 px-2 py-1">
                   <input
                     type="number"
                     name="ward_count_{{ slug }}"
                     id="ward_count_{{ slug }}"
-                    value="{{ row.ward_count if row else 0 }}"
-                    class="w-20 p-1 border rounded text-center"
                     min="0"
+                    value="{{ row.ward_count if row and row.ward_count is not none else 0 }}"
+                    class="w-20 p-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-cyan-500"
                   />
                 </td>
-                <td class="px-2 py-2 text-center">
+                <td class="border border-gray-300 px-2 py-1">
                   <input
                     type="number"
                     name="ward_avg_attendance_{{ slug }}"
                     id="ward_avg_attendance_{{ slug }}"
-                    value="{{ row.ward_avg_attendance if row else 0 }}"
-                    class="w-20 p-1 border rounded text-center"
                     min="0"
+                    value="{{ row.ward_avg_attendance if row and row.ward_avg_attendance is not none else 0 }}"
+                    class="w-20 p-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-cyan-500"
                   />
                 </td>
-                <td class="px-2 py-2 text-center">
+                <td class="border border-gray-300 px-2 py-1">
                   <input
                     type="text"
                     name="comments_{{ slug }}"
                     id="comments_{{ slug }}"
                     value="{{ row.comments if row and row.comments is not none else '' }}"
-                    class="w-32 p-1 border rounded"
+                    class="w-32 p-1 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500"
                   />
                 </td>
               </tr>
@@ -119,21 +131,8 @@
         <div class="flex justify-end mt-8 pt-6 border-t">
           <button
             type="submit"
-            class="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors flex items-center gap-2"
+            class="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
           >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
             সংরক্ষণ করুন
           </button>
         </div>

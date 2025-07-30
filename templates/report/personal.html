@@ -7,150 +7,125 @@
     </h1>
     <p class="text-gray-600">{{ month|month_name }} {{ year }}</p><br>
       <form method="post" id="personalForm" autocomplete="off">
-        <div class="overflow-x-auto">
-          <table
-            class="min-w-full bg-white border rounded-xl shadow divide-y divide-gray-200"
-          >
+        <div class="overflow-x-auto w-full">
+          <table class="min-w-full border border-gray-300 bg-white rounded-lg">
             <thead>
-              <tr class="bg-cyan-50 text-cyan-800">
-                <th
-                  class="px-4 py-2 text-left align-bottom"
-                  rowspan="2"
-                >
-                  
-                </th>
-                <th
-                  class="px-4 py-2 text-center align-bottom"
-                  rowspan="2"
-                >
-                  কতজন শিখাচ্ছেন
-                </th>
-                <th class="px-4 py-2 text-center align-bottom border-r-4 border-cyan-300" rowspan="2">কতজনকে শিখাচ্ছেন</th>
-                <th class="px-4 py-2 text-center align-bottom" rowspan="2">কতজন ওয়ালামাকে দাওয়াত দিয়েছেন</th>
-                <th
-                  class="px-4 py-2 text-center font-bold"
-                  colspan="4"
-                >
-                  দাওয়াত প্রাপ্ত ওয়ালামার মধ্যে
-                </th>
+              <tr class="bg-cyan-100 text-gray-900 text-center">
+                <th class="border border-gray-300 px-2 py-2 align-middle sticky left-0 z-10 bg-white text-left" rowspan="2">&nbsp;</th>
+                <th class="border border-gray-300 px-2 py-2 align-middle" rowspan="2">কতজন শিখাচ্ছেন</th>
+                <th class="border border-gray-300 px-2 py-2 align-middle border-r-4 border-cyan-300" rowspan="2">কতজনকে শিখাচ্ছেন</th>
+                <th class="border border-gray-300 px-2 py-2 align-middle" rowspan="2">কতজন ওয়ালামাকে দাওয়াত দিয়েছেন</th>
+                <th class="border border-gray-300 px-2 py-2 font-bold" colspan="4">দাওয়াত প্রাপ্ত ওয়ালামার মধ্যে</th>
               </tr>
-              <tr class="bg-cyan-50 text-cyan-800">
-                <th class="px-4 py-2 text-center bg-cyan-100 font-bold">সহযোগী হয়েছেন</th>
-                <th class="px-4 py-2 text-center bg-cyan-100 font-bold">সক্রিয় সহযোগী হয়েছেন</th>
-                <th class="px-4 py-2 text-center bg-cyan-100 font-bold">কর্মী হয়েছেন</th>
-                <th class="px-4 py-2 text-center bg-cyan-100 font-bold">রুকন হয়েছেন</th>
+              <tr class="bg-cyan-50 text-gray-800 text-center">
+                <th class="border border-gray-300 px-2 py-1 bg-cyan-100 font-bold">সহযোগী হয়েছেন</th>
+                <th class="border border-gray-300 px-2 py-1 bg-cyan-100 font-bold">সক্রিয় সহযোগী হয়েছেন</th>
+                <th class="border border-gray-300 px-2 py-1 bg-cyan-100 font-bold">কর্মী হয়েছেন</th>
+                <th class="border border-gray-300 px-2 py-1 bg-cyan-100 font-bold">রুকন হয়েছেন</th>
               </tr>
             </thead>
             <tbody>
-              {% set teaching_total = 0 %} {% set learning_total = 0 %} {% set
-              olama_invited_total = 0 %} {% set became_shohojogi_total = 0 %} {%
-              set became_sokrio_shohojogi_total = 0 %} {% set became_kormi_total
-              = 0 %} {% set became_rukon_total = 0 %} {% for cat in
-              personal_categories %} {% set slug = cat_to_slug[cat] %} {% set
-              row = (report.personal | selectattr('category', 'equalto', cat) |
-              list | first) %} {% set teaching_val = row.teaching if row else 0
-              %} {% set learning_val = row.learning if row else 0 %} {% set
-              olama_invited_val = row.olama_invited if row else 0 %} {% set
-              became_shohojogi_val = row.became_shohojogi if row else 0 %} {%
-              set became_sokrio_shohojogi_val = row.became_sokrio_shohojogi if
-              row else 0 %} {% set became_kormi_val = row.became_kormi if row
-              else 0 %} {% set became_rukon_val = row.became_rukon if row else 0
-              %} {% set teaching_total = teaching_total + teaching_val %} {% set
-              learning_total = learning_total + learning_val %} {% set
-              olama_invited_total = olama_invited_total + olama_invited_val %}
-              {% set became_shohojogi_total = became_shohojogi_total +
-              became_shohojogi_val %} {% set became_sokrio_shohojogi_total =
-              became_sokrio_shohojogi_total + became_sokrio_shohojogi_val %} {%
-              set became_kormi_total = became_kormi_total + became_kormi_val %}
-              {% set became_rukon_total = became_rukon_total + became_rukon_val
-              %}
-              <tr class="border-b hover:bg-cyan-50">
-                <td class="px-4 py-2 font-semibold">
-                  {{ cat }}
-                </td>
-                <td class="px-2 py-2 text-center">
-                  <input
-                    type="number"
-                    name="teaching_{{ slug }}"
-                    id="teaching_{{ slug }}"
-                    value="{{ teaching_val }}"
-                    class="w-20 p-1 border rounded text-center"
-                    min="0"
-                  />
-                </td>
-                <td class="px-2 py-2 text-center border-r-4 border-cyan-300">
-                  <input
-                    type="number"
-                    name="learning_{{ slug }}"
-                    id="learning_{{ slug }}"
-                    value="{{ learning_val }}"
-                    class="w-20 p-1 border rounded text-center"
-                    min="0"
-                  />
-                </td>
-                <td class="px-2 py-2 text-center">
-                  <input
-                    type="number"
-                    name="olama_invited_{{ slug }}"
-                    id="olama_invited_{{ slug }}"
-                    value="{{ olama_invited_val }}"
-                    class="w-20 p-1 border rounded text-center"
-                    min="0"
-                  />
-                </td>
-                <td class="px-2 py-2 text-center">
-                  <input
-                    type="number"
-                    name="became_shohojogi_{{ slug }}"
-                    id="became_shohojogi_{{ slug }}"
-                    value="{{ became_shohojogi_val }}"
-                    class="w-20 p-1 border rounded text-center"
-                    min="0"
-                  />
-                </td>
-                <td class="px-2 py-2 text-center">
-                  <input
-                    type="number"
-                    name="became_sokrio_shohojogi_{{ slug }}"
-                    id="became_sokrio_shohojogi_{{ slug }}"
-                    value="{{ became_sokrio_shohojogi_val }}"
-                    class="w-20 p-1 border rounded text-center"
-                    min="0"
-                  />
-                </td>
-                <td class="px-2 py-2 text-center">
-                  <input
-                    type="number"
-                    name="became_kormi_{{ slug }}"
-                    id="became_kormi_{{ slug }}"
-                    value="{{ became_kormi_val }}"
-                    class="w-20 p-1 border rounded text-center"
-                    min="0"
-                  />
-                </td>
-                <td class="px-2 py-2 text-center">
-                  <input
-                    type="number"
-                    name="became_rukon_{{ slug }}"
-                    id="became_rukon_{{ slug }}"
-                    value="{{ became_rukon_val }}"
-                    class="w-20 p-1 border rounded text-center"
-                    min="0"
-                  />
-                </td>
-              </tr>
+              {% set teaching_total = 0 %} {% set learning_total = 0 %} {% set olama_invited_total = 0 %} {% set became_shohojogi_total = 0 %} {% set became_sokrio_shohojogi_total = 0 %} {% set became_kormi_total = 0 %} {% set became_rukon_total = 0 %}
+              {% for cat in personal_categories %}
+                {% set slug = cat_to_slug[cat] %}
+                {% set row = (report.personal | selectattr('category', 'equalto', cat) | list | first) %}
+                {% set teaching_val = row.teaching if row else 0 %}
+                {% set learning_val = row.learning if row else 0 %}
+                {% set olama_invited_val = row.olama_invited if row else 0 %}
+                {% set became_shohojogi_val = row.became_shohojogi if row else 0 %}
+                {% set became_sokrio_shohojogi_val = row.became_sokrio_shohojogi if row else 0 %}
+                {% set became_kormi_val = row.became_kormi if row else 0 %}
+                {% set became_rukon_val = row.became_rukon if row else 0 %}
+                {% set teaching_total = teaching_total + teaching_val %}
+                {% set learning_total = learning_total + learning_val %}
+                {% set olama_invited_total = olama_invited_total + olama_invited_val %}
+                {% set became_shohojogi_total = became_shohojogi_total + became_shohojogi_val %}
+                {% set became_sokrio_shohojogi_total = became_sokrio_shohojogi_total + became_sokrio_shohojogi_val %}
+                {% set became_kormi_total = became_kormi_total + became_kormi_val %}
+                {% set became_rukon_total = became_rukon_total + became_rukon_val %}
+                <tr class="text-center hover:bg-cyan-50">
+                  <td class="border border-gray-300 px-2 py-1 font-semibold sticky left-0 z-10 bg-white text-left">{{ cat }}</td>
+                  <td class="border border-gray-300 px-2 py-1">
+                    <input
+                      type="number"
+                      name="teaching_{{ slug }}"
+                      id="teaching_{{ slug }}"
+                      min="0"
+                      value="{{ teaching_val }}"
+                      class="w-20 p-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </td>
+                  <td class="border border-gray-300 px-2 py-1 border-r-4 border-cyan-300">
+                    <input
+                      type="number"
+                      name="learning_{{ slug }}"
+                      id="learning_{{ slug }}"
+                      min="0"
+                      value="{{ learning_val }}"
+                      class="w-20 p-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </td>
+                  <td class="border border-gray-300 px-2 py-1">
+                    <input
+                      type="number"
+                      name="olama_invited_{{ slug }}"
+                      id="olama_invited_{{ slug }}"
+                      min="0"
+                      value="{{ olama_invited_val }}"
+                      class="w-20 p-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </td>
+                  <td class="border border-gray-300 px-2 py-1">
+                    <input
+                      type="number"
+                      name="became_shohojogi_{{ slug }}"
+                      id="became_shohojogi_{{ slug }}"
+                      min="0"
+                      value="{{ became_shohojogi_val }}"
+                      class="w-20 p-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </td>
+                  <td class="border border-gray-300 px-2 py-1">
+                    <input
+                      type="number"
+                      name="became_sokrio_shohojogi_{{ slug }}"
+                      id="became_sokrio_shohojogi_{{ slug }}"
+                      min="0"
+                      value="{{ became_sokrio_shohojogi_val }}"
+                      class="w-20 p-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </td>
+                  <td class="border border-gray-300 px-2 py-1">
+                    <input
+                      type="number"
+                      name="became_kormi_{{ slug }}"
+                      id="became_kormi_{{ slug }}"
+                      min="0"
+                      value="{{ became_kormi_val }}"
+                      class="w-20 p-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </td>
+                  <td class="border border-gray-300 px-2 py-1">
+                    <input
+                      type="number"
+                      name="became_rukon_{{ slug }}"
+                      id="became_rukon_{{ slug }}"
+                      min="0"
+                      value="{{ became_rukon_val }}"
+                      class="w-20 p-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </td>
+                </tr>
               {% endfor %}
               <tr class="bg-cyan-100 font-bold">
-                <td class="px-4 py-2 text-right">
-                  মোট
-                </td>
-                <td class="px-2 py-2 text-center">{{ teaching_total }}</td>
-                <td class="px-2 py-2 text-center border-r-4 border-cyan-300">{{ learning_total }}</td>
-                <td class="px-2 py-2 text-center">{{ olama_invited_total }}</td>
-                <td class="px-2 py-2 text-center">{{ became_shohojogi_total }}</td>
-                <td class="px-2 py-2 text-center">{{ became_sokrio_shohojogi_total }}</td>
-                <td class="px-2 py-2 text-center">{{ became_kormi_total }}</td>
-                <td class="px-2 py-2 text-center">{{ became_rukon_total }}</td>
+                <td class="border border-gray-300 px-4 py-2 text-right sticky left-0 z-10 bg-cyan-100">মোট</td>
+                <td class="border border-gray-300 px-2 py-2 text-center">{{ teaching_total }}</td>
+                <td class="border border-gray-300 px-2 py-2 text-center border-r-4 border-cyan-300">{{ learning_total }}</td>
+                <td class="border border-gray-300 px-2 py-2 text-center">{{ olama_invited_total }}</td>
+                <td class="border border-gray-300 px-2 py-2 text-center">{{ became_shohojogi_total }}</td>
+                <td class="border border-gray-300 px-2 py-2 text-center">{{ became_sokrio_shohojogi_total }}</td>
+                <td class="border border-gray-300 px-2 py-2 text-center">{{ became_kormi_total }}</td>
+                <td class="border border-gray-300 px-2 py-2 text-center">{{ became_rukon_total }}</td>
               </tr>
             </tbody>
           </table>
@@ -158,21 +133,8 @@
         <div class="flex justify-end mt-8 pt-6 border-t">
           <button
             type="submit"
-            class="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors flex items-center gap-2"
+            class="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
           >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
             সংরক্ষণ করুন
           </button>
         </div>

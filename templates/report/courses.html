@@ -1,90 +1,131 @@
-{% extends 'base.html' %}
-{% set page_title = 'গ্রুপ / কোর্স রিপোর্ট' %}
-{% block content %}
+{% extends 'base.html' %} {% set page_title = 'গ্রুপ / কোর্স রিপোর্ট' %} {%
+block content %}
 <div class="container mx-auto px-4 py-8 animate-fade-in">
   <div class="text-center mb-8">
-    <h1 class="text-4xl font-extrabold text-cyan-700 mb-2 flex items-center justify-center gap-2">
-      <svg class="w-8 h-8 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 014-4h6"/></svg>
+    <h1 class="text-4xl font-extrabold text-cyan-700 mb-2 text-center">
       গ্রুপ / কোর্স রিপোর্ট
     </h1>
     <div class="text-sm text-cyan-700">{{ month|month_name }} {{ year }}</div>
   </div>
   <div class="grid grid-cols-1 gap-8">
     <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-400">
-      <h2 class="text-xl font-bold text-purple-700 mb-2 flex items-center gap-2">
-        <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3z"/></svg>
+      <h2 class="text-xl font-bold text-purple-700 mb-2">
         গ্রুপ / কোর্স রিপোর্ট
       </h2>
       {% if error %}
-      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{{ error }}</div>
-      {% endif %}
-      {% if success %}
-      <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">{{ success }}</div>
+      <div
+        class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"
+      >
+        {{ error }}
+      </div>
+      {% endif %} {% if success %}
+      <div
+        class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4"
+      >
+        {{ success }}
+      </div>
       {% endif %}
       <form method="post" autocomplete="off">
         <div class="mb-6">
           <h3 class="text-lg font-semibold text-gray-700">কোর্স তালিকা</h3>
         </div>
-        <div id="courses-container">
-          {% for category in course_categories %}
-            {% set slug = cat_to_slug[category] %}
-            <div class="course-item bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="lg:col-span-4">
-                  <label class="block text-sm font-medium text-gray-700 mb-1" for="category_{{ slug }}">বিভাগ</label>
-                  <input type="text" id="category_{{ slug }}" name="category_{{ slug }}" value="{{ category }}" readonly class="w-full p-2 border border-gray-300 rounded bg-gray-100 text-gray-700 cursor-not-allowed">
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1" for="students_{{ slug }}">ছাত্র</label>
-                  <input type="number" name="students_{{ slug }}" id="students_{{ slug }}" min="0" value="{{ report.courses|selectattr('category', 'equalto', category)|first.students if report and report.courses else 0 }}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1" for="attendance_{{ slug }}">উপস্থিতি</label>
-                  <input type="number" name="attendance_{{ slug }}" id="attendance_{{ slug }}" min="0" value="{{ report.courses|selectattr('category', 'equalto', category)|first.attendance if report and report.courses else 0 }}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1" for="status_board_{{ slug }}">বোর্ড স্ট্যাটাস</label>
-                  <input type="number" name="status_board_{{ slug }}" id="status_board_{{ slug }}" min="0" value="{{ report.courses|selectattr('category', 'equalto', category)|first.status_board if report and report.courses else 0 }}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1" for="status_qayda_{{ slug }}">কায়দা স্ট্যাটাস</label>
-                  <input type="number" name="status_qayda_{{ slug }}" id="status_qayda_{{ slug }}" min="0" value="{{ report.courses|selectattr('category', 'equalto', category)|first.status_qayda if report and report.courses else 0 }}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1" for="status_ampara_{{ slug }}">আমপারা স্ট্যাটাস</label>
-                  <input type="number" name="status_ampara_{{ slug }}" id="status_ampara_{{ slug }}" min="0" value="{{ report.courses|selectattr('category', 'equalto', category)|first.status_ampara if report and report.courses else 0 }}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1" for="status_quran_{{ slug }}">কুরআন স্ট্যাটাস</label>
-                  <input type="number" name="status_quran_{{ slug }}" id="status_quran_{{ slug }}" min="0" value="{{ report.courses|selectattr('category', 'equalto', category)|first.status_quran if report and report.courses else 0 }}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1" for="completed_{{ slug }}">সম্পূর্ণ</label>
-                  <input type="number" name="completed_{{ slug }}" id="completed_{{ slug }}" min="0" value="{{ report.courses|selectattr('category', 'equalto', category)|first.completed if report and report.courses else 0 }}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1" for="correctly_learned_{{ slug }}">সঠিকভাবে শিক্ষিত</label>
-                  <input type="number" name="correctly_learned_{{ slug }}" id="correctly_learned_{{ slug }}" min="0" value="{{ report.courses|selectattr('category', 'equalto', category)|first.correctly_learned if report and report.courses else 0 }}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1" for="number_{{ slug }}">মোট সংখ্যা</label>
-                  <input type="number" name="number_{{ slug }}" id="number_{{ slug }}" min="0" value="{{ report.courses|selectattr('category', 'equalto', category)|first.number if report and report.courses else 0 }}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1" for="increase_{{ slug }}">বৃদ্ধি</label>
-                  <input type="number" name="increase_{{ slug }}" id="increase_{{ slug }}" min="0" value="{{ report.courses|selectattr('category', 'equalto', category)|first.increase if report and report.courses else 0 }}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1" for="decrease_{{ slug }}">হ্রাস</label>
-                  <input type="number" name="decrease_{{ slug }}" id="decrease_{{ slug }}" min="0" value="{{ report.courses|selectattr('category', 'equalto', category)|first.decrease if report and report.courses else 0 }}" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500">
-                </div>
-              </div>
-            </div>
-          {% endfor %}
+        <div class="overflow-x-auto w-full">
+          <table class="min-w-full border border-gray-300 bg-white rounded-lg">
+            <thead>
+              <tr class="bg-cyan-100 text-gray-900 text-center">
+                <th
+                  rowspan="2"
+                  class="border border-gray-300 px-2 py-2 align-middle sticky left-0 z-10 bg-white"
+                >
+                  বিভাগ/ধরন
+                </th>
+                <th colspan="3" class="border border-gray-300 px-2 py-2">
+                  গ্রুপ / কোর্স
+                </th>
+                <th
+                  rowspan="2"
+                  class="border border-gray-300 px-2 py-2 align-middle"
+                >
+                  অধিবেশন সংখ্যা
+                </th>
+                <th
+                  rowspan="2"
+                  class="border border-gray-300 px-2 py-2 align-middle"
+                >
+                  শিক্ষার্থী সংখ্যা
+                </th>
+                <th
+                  rowspan="2"
+                  class="border border-gray-300 px-2 py-2 align-middle"
+                >
+                  উপস্থিতি সংখ্যা
+                </th>
+                <th colspan="4" class="border border-gray-300 px-2 py-2">
+                  শিক্ষার্থী অবস্থান
+                </th>
+                <th
+                  rowspan="2"
+                  class="border border-gray-300 px-2 py-2 align-middle"
+                >
+                  কতজন নিয়ে সমাপ্ত
+                </th>
+                <th
+                  rowspan="2"
+                  class="border border-gray-300 px-2 py-2 align-middle"
+                >
+                  সহীহ শিখেছেন কতজন
+                </th>
+              </tr>
+              <tr class="bg-cyan-50 text-gray-800 text-center">
+                <th class="border border-gray-300 px-2 py-1">সংখ্যা</th>
+                <th class="border border-gray-300 px-2 py-1">বৃদ্ধি</th>
+                <th class="border border-gray-300 px-2 py-1">ঘাটতি</th>
+                <th class="border border-gray-300 px-2 py-1">বোর্ডে</th>
+                <th class="border border-gray-300 px-2 py-1">কায়দায়</th>
+                <th class="border border-gray-300 px-2 py-1">আমপারা</th>
+                <th class="border border-gray-300 px-2 py-1">কুরআন</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for category in course_categories %} {% set slug =
+              cat_to_slug[category] %} {% set row =
+              report.courses|selectattr('category', 'equalto', category)|first
+              if report and report.courses else None %}
+              <tr class="text-center hover:bg-cyan-50">
+                <td
+                  class="border border-gray-300 px-2 py-1 font-semibold sticky left-0 z-10 bg-white"
+                >
+                  {{ category }}
+                </td>
+                {% set fields = [ ('number', 'number_'), ('increase',
+                'increase_'), ('decrease', 'decrease_'), ('sessions',
+                'sessions_'), ('students', 'students_'), ('attendance',
+                'attendance_'), ('status_board', 'status_board_'),
+                ('status_qayda', 'status_qayda_'), ('status_ampara',
+                'status_ampara_'), ('status_quran', 'status_quran_'),
+                ('completed', 'completed_'), ('correctly_learned',
+                'correctly_learned_') ] %} {% for field, prefix in fields %}
+                <td class="border border-gray-300 px-2 py-1">
+                  <input
+                    type="number"
+                    name="{{ prefix }}{{ slug }}"
+                    id="{{ prefix }}{{ slug }}"
+                    min="0"
+                    value="{{ row[field] if row and row[field] is not none else 0 }}"
+                    class="w-20 p-1 border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500"
+                  />
+                </td>
+                {% endfor %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
         <div class="flex justify-end mt-8 pt-6 border-t">
-          <button type="submit" class="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors flex items-center gap-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          <button
+            type="submit"
+            class="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
+          >
             সংরক্ষণ করুন
           </button>
         </div>
@@ -93,4 +134,3 @@
   </div>
 </div>
 {% endblock %}
-                    <input type="number" name="status_qayda[]" min="0" value="0"
