@@ -5,16 +5,43 @@
     <h1 class="text-4xl font-extrabold text-purple-700 mb-2 text-center">
       সিটি রিপোর্ট
     </h1>
-    <div class="flex flex-wrap gap-2 justify-center mb-4 items-center">
-      <span class="text-lg font-semibold text-gray-700"
-        >{{ month|month_name }} {{ year }} ({{ report_type }})</span
-      >
+    <div class="flex flex-wrap gap-2 justify-center mb-4 items-center" id="city-report-filter-form-row">
+      <form method="get" class="flex flex-wrap gap-2 items-center" id="city-report-filter-form">
+        <select id="city-report-type-select" name="report_type" class="p-2 border border-gray-300 rounded-lg">
+          <option value="মাসিক" {% if report_type == 'মাসিক' %}selected{% endif %}>মাসিক</option>
+          <option value="ত্রৈমাসিক" {% if report_type == 'ত্রৈমাসিক' %}selected{% endif %}>ত্রৈমাসিক</option>
+          <option value="ষান্মাসিক" {% if report_type == 'ষান্মাসিক' %}selected{% endif %}>ষান্মাসিক</option>
+          <option value="নয়-মাসিক" {% if report_type == 'নয়-মাসিক' %}selected{% endif %}>নয়-মাসিক</option>
+          <option value="বার্ষিক" {% if report_type == 'বার্ষিক' %}selected{% endif %}>বার্ষিক</option>
+        </select>
+        <select id="city-month-select" name="month" class="p-2 border border-gray-300 rounded-lg">
+          {% for i in range(1, 13) %}
+          <option value="{{ i }}" {% if i == month|int %}selected{% endif %}>{{ i|month_name }}</option>
+          {% endfor %}
+        </select>
+        <select name="year" class="p-2 border border-gray-300 rounded-lg">
+          {% for y in range(2025, 2027) %}
+          <option value="{{ y }}" {% if y == year|int %}selected{% endif %}>{{ y }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition">সার্চ করুন</button>
+      </form>
+      <div class="relative" id="city-downloadDropdownContainer">
+        <button type="button" id="city-downloadDropdownBtn" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition shadow">
+          ডাউনলোড
+        </button>
+        <div id="city-downloadDropdown" class="hidden absolute left-0 mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+          <a href="#" id="city-downloadPdfV1Link" class="block px-4 py-2 text-gray-700 hover:bg-purple-50">PDF v1</a>
+          <a href="/download_city_report?report_type={{ report_type }}&month={{ month }}&year={{ year }}&format=pdf" class="block px-4 py-2 text-gray-700 hover:bg-purple-50">PDF v2</a>
+          <a href="/download_city_report?report_type={{ report_type }}&month={{ month }}&year={{ year }}&format=excel" class="block px-4 py-2 text-gray-700 hover:bg-green-50">Excel</a>
+        </div>
+      </div>
     </div>
   </div>
   <div class="flex flex-col gap-8">
     <!-- Header Table (aggregated city_summary, read-only) -->
     <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-cyan-400">
-      <h2 class="text-xl font-bold text-cyan-700 mb-2">মূল তথ্য (সারাংশ)</h2>
+      <h2 class="text-xl font-bold text-cyan-700 mb-2">মূল তথ্য</h2>
       {% if city_summary %}
       <div class="grid grid-cols-2 gap-4 text-gray-700 text-sm">
         <div>
@@ -71,7 +98,7 @@
       class="bg-gradient-to-br from-purple-50 to-white rounded-xl shadow-lg p-6 border-l-4 border-purple-400"
     >
       <h2 class="text-xl font-bold text-purple-700 mb-4">
-        গ্রুপ / কোর্স রিপোর্ট (সারাংশ)
+        গ্রুপ / কোর্স রিপোর্ট
       </h2>
       {% if city_courses and course_categories %}
       <div class="overflow-x-auto w-full">
@@ -162,9 +189,7 @@
     </div>
     <!-- Organizational Table (aggregated, read-only) -->
     <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-cyan-400">
-      <h2 class="text-xl font-bold text-cyan-700 mb-2">
-        দাওয়াত ও সংগঠন (সারাংশ)
-      </h2>
+      <h2 class="text-xl font-bold text-cyan-700 mb-2">দাওয়াত ও সংগঠন</h2>
       {% if city_organizational and org_categories %}
       <div class="overflow-x-auto w-full">
         <table
@@ -219,7 +244,7 @@
     <!-- Personal Table (aggregated, read-only) -->
     <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-pink-400">
       <h2 class="text-xl font-bold text-pink-700 mb-2">
-        ব্যক্তিগত উদ্যোগে তা’লীমুল কুরআন (সারাংশ)
+        ব্যক্তিগত উদ্যোগে তা’লীমুল কুরআন
       </h2>
       {% if city_personal and personal_categories %}
       <div class="overflow-x-auto w-full">
@@ -377,7 +402,7 @@
     </div>
     <!-- Meetings Table (aggregated, read-only) -->
     <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-400">
-      <h2 class="text-xl font-bold text-blue-700 mb-2">বৈঠকসমূহ (সারাংশ)</h2>
+      <h2 class="text-xl font-bold text-blue-700 mb-2">বৈঠকসমূহ</h2>
       {% if city_meetings and meeting_categories %}
       <div class="overflow-x-auto w-full">
         <table
@@ -450,9 +475,7 @@
     </div>
     <!-- Extras Table (aggregated, read-only) -->
     <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-400">
-      <h2 class="text-xl font-bold text-green-700 mb-2">
-        মক্তব ও সফর রিপোর্ট (সারাংশ)
-      </h2>
+      <h2 class="text-xl font-bold text-green-700 mb-2">মক্তব ও সফর রিপোর্ট</h2>
       {% if city_extras and extra_categories %}
       <div class="overflow-x-auto">
         <table
@@ -483,7 +506,7 @@
     </div>
     <!-- Comments Table (aggregated, read-only) -->
     <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-yellow-400">
-      <h2 class="text-xl font-bold text-yellow-700 mb-2">মন্তব্য (সারাংশ)</h2>
+      <h2 class="text-xl font-bold text-yellow-700 mb-2">মন্তব্য</h2>
       <div class="mb-6">
         <div
           class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 min-h-[4rem]"
