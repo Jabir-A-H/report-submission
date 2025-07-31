@@ -1,3 +1,26 @@
+/* Use Helvetica Neue for English digits and ASCII letters inside Bangla text */
+.bangla-helvetica-fix, body, html, [lang="bn"] {
+  font-family: 'Tiro Bangla', sans-serif;
+}
+.bangla-helvetica-fix :is(span.en, .en, .ascii, .latin, .eng, .num, .number),
+body :is(span.en, .en, .ascii, .latin, .eng, .num, .number),
+html :is(span.en, .en, .ascii, .latin, .eng, .num, .number),
+[lang="bn"] :is(span.en, .en, .ascii, .latin, .eng, .num, .number) {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+  letter-spacing: 0.01em;
+}
+
+/* Automatic font for digits and ASCII letters using unicode-range (for modern browsers) */
+@font-face {
+  font-family: 'HelveticaForDigits';
+  src: local('Helvetica Neue'), local('Helvetica'), local('Arial');
+  unicode-range: U+0030-0039, U+0041-005A, U+0061-007A;
+}
+body, html, [lang="bn"] {
+  font-family: 'Tiro Bangla', 'HelveticaForDigits', sans-serif;
+}
+@import url('https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&display=swap');
+
 /* Print-specific styles for report pages */
 @media print {
   .navbar, .footer, .sidebar, #downloadDropdownContainer, #report-filter-form-row { display: none !important; }
@@ -72,9 +95,16 @@
 /* Tailwind utility overrides and custom UI styles for Bengali report system */
 
 body {
-  font-family: 'Tiro Bengali', sans-serif;
+  font-family: 'Tiro Bangla', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   background: linear-gradient(135deg, #fdf6e3 0%, #f0f9ff 100%);
   color: #222;
+}
+
+body:lang(bn), html:lang(bn), [lang="bn"] {
+  font-family: 'Tiro Bangla', sans-serif;
+}
+body:lang(en), html:lang(en), [lang="en"] {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 .fade-in {

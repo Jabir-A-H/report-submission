@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}রিপোর্ট সাবমিশন সিস্টেম{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiro+Bengali:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:wght@400;700&display=swap">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
     <script src="{{ url_for('static', filename='scripts.js') }}"></script>
     <style>
-      body, html { font-family: 'Tiro Bengali', sans-serif; }
+      body, html { font-family: 'Tiro Bangla', 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+      body:lang(bn), html:lang(bn), [lang="bn"] { font-family: 'Tiro Bangla', sans-serif; }
+      body:lang(en), html:lang(en), [lang="en"] { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
     </style>
   </head>
   <body
