@@ -27,9 +27,20 @@
 - For ষান্মাসিক reports, aggregate data from the first six months.
 - For নয়-মাসিক reports, aggregate data from the first nine months.
 - For বার্ষিক reports, include data from all twelve months.
+*Note: The exact aggregation logic will be very similar to the overall city report logic given below*
 
-## Logic for adding up zone reports to make the main report for admin
-*Exact summary logic is to be added.*
+## Logic for adding up zone reports to make the city report
+add all courses for each record and show it for city reports courses table.
+add all organizational activities for each record and show it for city reports organizational table.
+add all personal activities for each record and show it for city reports personal table.
+add all meetings for each record and show it for city reports meetings table.
+add all extras for each record and show it for city reports extras table.
+have separate field for admin to input city report comments.
+another way for admin to input city report header fields "responsible_name", "thana", and "ward" and a way to override all other header information, maybe in a separate table or page.
+another way for admin to input city report meetings city meeting fields "city_count" and "city_avg_attendance" and categories "Committee Orientation" and "Muallima Orientation"
+another way for admin to input city report extras field "মহানগরী পরিচালিত" and "মহানগরীর সফর" and a way to override all other extras information, maybe in a separate table or page.
+also a way to override all 7 sections report for city report in a separate page.
+
 
 
 # Report Types
