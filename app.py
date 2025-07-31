@@ -709,8 +709,188 @@ def city_report_page():
         extra_categories_raw
     )
 
-    # Placeholder for city-wide aggregation (to be implemented)
-    city_summary = {}
+    # --- Aggregation Logic ---
+    from sqlalchemy import func
+
+    # Determine which months to include based on report_type
+    def get_months(report_type, month):
+        if report_type == "মাসিক":
+            return [int(month)] if month else []
+        elif report_type == "ত্রৈমাসিক":
+            return [1, 2, 3]
+        elif report_type == "ষান্মাসিক":
+            return [1, 2, 3, 4, 5, 6]
+        elif report_type == "নয়-মাসিক":
+            return [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        elif report_type == "বার্ষিক":
+            return list(range(1, 13))
+        return []
+
+    months = get_months(report_type, month)
+    year_int = int(year)
+    # Query all zone reports for the selected period
+    report_query = Report.query.filter_by(year=year_int, report_type=report_type)
+    if report_type == "মাসিক":
+        report_query = report_query.filter(Report.month == int(month))
+    elif months:
+        report_query = report_query.filter(Report.month.in_(months))
+    reports = report_query.all()
+
+    # --- Header Aggregation ---
+    city_summary = {
+        "total_zones": len(set(r.zone_id for r in reports)),
+        "total_unit": 0,
+        "total_muallima": 0,
+        "muallima_increase": 0,
+        "muallima_decrease": 0,
+        "certified_muallima": 0,
+        "certified_muallima_taking_classes": 0,
+        "trained_muallima": 0,
+        "trained_muallima_taking_classes": 0,
+        "units_with_muallima": 0,
+    }
+    for r in reports:
+        if r.header:
+            city_summary["total_unit"] += r.header.total_unit or 0
+            city_summary["total_muallima"] += r.header.total_muallima or 0
+            city_summary["muallima_increase"] += r.header.muallima_increase or 0
+            city_summary["muallima_decrease"] += r.header.muallima_decrease or 0
+            city_summary["certified_muallima"] += r.header.certified_muallima or 0
+            city_summary["certified_muallima_taking_classes"] += (
+                r.header.certified_muallima_taking_classes or 0
+            )
+            city_summary["trained_muallima"] += r.header.trained_muallima or 0
+            city_summary["trained_muallima_taking_classes"] += (
+                r.header.trained_muallima_taking_classes or 0
+            )
+            city_summary["units_with_muallima"] += r.header.units_with_muallima or 0
+
+    # --- Courses Aggregation ---
+    city_courses = []
+    for cat in course_categories:
+        agg = {"category": cat}
+        for field in [
+            "number",
+            "increase",
+            "decrease",
+            "sessions",
+            "students",
+            "attendance",
+            "status_board",
+            "status_qayda",
+            "status_ampara",
+            "status_quran",
+            "completed",
+            "correctly_learned",
+        ]:
+            agg[field] = 0
+        for r in reports:
+            for row in r.courses:
+                if normalize_cat(row.category) == normalize_cat(cat):
+                    for field in agg:
+                        if field != "category":
+                            agg[field] += getattr(row, field, 0) or 0
+        city_courses.append(agg)
+
+    # --- Organizational Aggregation ---
+    city_organizational = []
+    for cat in org_categories:
+        agg = {"category": cat, "number": 0, "increase": 0, "amount": 0, "comments": ""}
+        for r in reports:
+            for row in r.organizational:
+                if normalize_cat(row.category) == normalize_cat(cat):
+                    agg["number"] += row.number or 0
+                    agg["increase"] += row.increase or 0
+                    agg["amount"] += row.amount or 0
+                    # Comments: concatenate or pick first non-empty
+                    if not agg["comments"] and row.comments:
+                        agg["comments"] = row.comments
+        city_organizational.append(agg)
+
+    # --- Personal Aggregation ---
+    city_personal = []
+    for cat in personal_categories:
+        agg = {
+            "category": cat,
+            "teaching": 0,
+            "learning": 0,
+            "olama_invited": 0,
+            "became_shohojogi": 0,
+            "became_sokrio_shohojogi": 0,
+            "became_kormi": 0,
+            "became_rukon": 0,
+        }
+        for r in reports:
+            for row in r.personal:
+                if normalize_cat(row.category) == normalize_cat(cat):
+                    for field in agg:
+                        if field != "category":
+                            agg[field] += getattr(row, field, 0) or 0
+        city_personal.append(agg)
+
+    # --- Meetings Aggregation ---
+    city_meetings = []
+    for cat in meeting_categories:
+        agg = {
+            "category": cat,
+            "city_count": 0,
+            "city_avg_attendance": 0,
+            "thana_count": 0,
+            "thana_avg_attendance": 0,
+            "ward_count": 0,
+            "ward_avg_attendance": 0,
+            "comments": "",
+        }
+        city_count_sum = 0
+        city_att_sum = 0
+        thana_count_sum = 0
+        thana_att_sum = 0
+        ward_count_sum = 0
+        ward_att_sum = 0
+        n_city = n_thana = n_ward = 0
+        for r in reports:
+            for row in r.meetings:
+                if normalize_cat(row.category) == normalize_cat(cat):
+                    city_count_sum += row.city_count or 0
+                    if row.city_count:
+                        city_att_sum += (row.city_avg_attendance or 0) * row.city_count
+                        n_city += row.city_count
+                    thana_count_sum += row.thana_count or 0
+                    if row.thana_count:
+                        thana_att_sum += (
+                            row.thana_avg_attendance or 0
+                        ) * row.thana_count
+                        n_thana += row.thana_count
+                    ward_count_sum += row.ward_count or 0
+                    if row.ward_count:
+                        ward_att_sum += (row.ward_avg_attendance or 0) * row.ward_count
+                        n_ward += row.ward_count
+                    if not agg["comments"] and row.comments:
+                        agg["comments"] = row.comments
+        agg["city_count"] = city_count_sum
+        agg["city_avg_attendance"] = int(city_att_sum / n_city) if n_city else 0
+        agg["thana_count"] = thana_count_sum
+        agg["thana_avg_attendance"] = int(thana_att_sum / n_thana) if n_thana else 0
+        agg["ward_count"] = ward_count_sum
+        agg["ward_avg_attendance"] = int(ward_att_sum / n_ward) if n_ward else 0
+        city_meetings.append(agg)
+
+    # --- Extras Aggregation ---
+    city_extras = []
+    for cat in extra_categories:
+        agg = {"category": cat, "number": 0}
+        for r in reports:
+            for row in r.extras:
+                if normalize_cat(row.category) == normalize_cat(cat):
+                    agg["number"] += row.number or 0
+        city_extras.append(agg)
+
+    # --- Comments Aggregation ---
+    city_comments = {"comment": ""}
+    for r in reports:
+        if r.comments and r.comments.comment:
+            city_comments["comment"] = r.comments.comment
+            break
 
     return render_template(
         "city_report.html",
@@ -733,6 +913,13 @@ def city_report_page():
         extra_cat_to_slug=extra_cat_to_slug,
         extra_slug_to_cat=extra_slug_to_cat,
         city_summary=city_summary,
+        city_courses=city_courses,
+        city_organizational=city_organizational,
+        city_personal=city_personal,
+        city_meetings=city_meetings,
+        city_extras=city_extras,
+        city_comments=city_comments,
+        reports=reports,
     )
 
 

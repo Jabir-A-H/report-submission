@@ -26,12 +26,12 @@
         </select>
         <button type="submit" class="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition">সার্চ করুন</button>
       </form>
-      <div class="relative" id="city-downloadDropdownContainer">
-        <button type="button" id="city-downloadDropdownBtn" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition shadow">
+      <div class="relative" id="downloadDropdownContainer">
+        <button type="button" id="downloadDropdownBtn" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition shadow">
           ডাউনলোড
         </button>
-        <div id="city-downloadDropdown" class="hidden absolute left-0 mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-          <a href="#" id="city-downloadPdfV1Link" class="block px-4 py-2 text-gray-700 hover:bg-purple-50">PDF v1</a>
+        <div id="downloadDropdown" class="hidden absolute left-0 mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+          <a href="#" id="downloadPdfV1Link" class="block px-4 py-2 text-gray-700 hover:bg-purple-50">PDF v1</a>
           <a href="/download_city_report?report_type={{ report_type }}&month={{ month }}&year={{ year }}&format=pdf" class="block px-4 py-2 text-gray-700 hover:bg-purple-50">PDF v2</a>
           <a href="/download_city_report?report_type={{ report_type }}&month={{ month }}&year={{ year }}&format=excel" class="block px-4 py-2 text-gray-700 hover:bg-green-50">Excel</a>
         </div>
