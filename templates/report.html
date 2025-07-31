@@ -130,7 +130,7 @@
             <tbody>
               {% for category in course_categories %}
                 {% set slug = cat_to_slug[category] %}
-                {% set row = report.courses|selectattr('category', 'equalto', category)|first if report and report.courses else None %}
+                {% set row = (report.courses | selectattr('category', 'equalto', category) | list | first) or none %}
                 <tr class="text-center hover:bg-cyan-50">
                   <td class="border border-gray-300 px-2 py-1 font-semibold sticky left-0 z-10 bg-white">{{ category }}</td>
                   {% set fields = [
@@ -139,7 +139,7 @@
                     'completed', 'correctly_learned'] %}
                   {% for field in fields %}
                     <td class="border border-gray-300 px-2 py-1">
-                      {{ row[field] if row and row[field] is not none else 0 }}
+                      {{ row[field] if row is not none and row[field] is not none else 0 }}
                     </td>
                   {% endfor %}
                 </tr>
@@ -147,8 +147,6 @@
             </tbody>
           </table>
         </div>
-      {% else %}
-        <div class="text-red-500">কোর্স রিপোর্ট তথ্য পাওয়া যায়নি।</div>
       {% endif %}
     </div>
     <!-- Organizational Table (from organizational.html, read-only) -->
@@ -169,20 +167,18 @@
             <tbody>
               {% for cat in org_categories %}
                 {% set slug = cat_to_slug[cat] %}
-                {% set row = report.organizational | selectattr('category', 'equalto', cat) | list | first %}
+                {% set row = (report.organizational | selectattr('category', 'equalto', cat) | list | first) or none %}
                 <tr class="text-center hover:bg-cyan-50">
                   <td class="border border-gray-300 px-2 py-1 font-semibold sticky left-0 z-10 bg-white text-left">{{ cat }}</td>
-                  <td class="border border-gray-300 px-2 py-1">{{ row.number if row and row.number is not none else 0 }}</td>
-                  <td class="border border-gray-300 px-2 py-1">{{ row.increase if row and row.increase is not none else 0 }}</td>
-                  <td class="border border-gray-300 px-2 py-1">{{ row.amount if row and row.amount is not none else 0 }}</td>
-                  <td class="border border-gray-300 px-2 py-1">{{ row.comments if row and row.comments is not none else '' }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ row.number if row is not none and row.number is not none else 0 }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ row.increase if row is not none and row.increase is not none else 0 }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ row.amount if row is not none and row.amount is not none else 0 }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ row.comments if row is not none and row.comments is not none else '' }}</td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
-      {% else %}
-        <div class="text-red-500">সংগঠন তথ্য পাওয়া যায়নি।</div>
       {% endif %}
     </div>
     <!-- Personal Table (from personal.html, read-only) -->
@@ -216,14 +212,14 @@
               {% set became_rukon_total = 0 %}
               {% for cat in personal_categories %}
                 {% set slug = cat_to_slug[cat] %}
-                {% set row = (report.personal | selectattr('category', 'equalto', cat) | list | first) %}
-                {% set teaching_val = row.teaching if row else 0 %}
-                {% set learning_val = row.learning if row else 0 %}
-                {% set olama_invited_val = row.olama_invited if row else 0 %}
-                {% set became_shohojogi_val = row.became_shohojogi if row else 0 %}
-                {% set became_sokrio_shohojogi_val = row.became_sokrio_shohojogi if row else 0 %}
-                {% set became_kormi_val = row.became_kormi if row else 0 %}
-                {% set became_rukon_val = row.became_rukon if row else 0 %}
+                {% set row = (report.personal | selectattr('category', 'equalto', cat) | list | first) or none %}
+                {% set teaching_val = row.teaching if row is not none and row.teaching is not none else 0 %}
+                {% set learning_val = row.learning if row is not none and row.learning is not none else 0 %}
+                {% set olama_invited_val = row.olama_invited if row is not none and row.olama_invited is not none else 0 %}
+                {% set became_shohojogi_val = row.became_shohojogi if row is not none and row.became_shohojogi is not none else 0 %}
+                {% set became_sokrio_shohojogi_val = row.became_sokrio_shohojogi if row is not none and row.became_sokrio_shohojogi is not none else 0 %}
+                {% set became_kormi_val = row.became_kormi if row is not none and row.became_kormi is not none else 0 %}
+                {% set became_rukon_val = row.became_rukon if row is not none and row.became_rukon is not none else 0 %}
                 {% set teaching_total = teaching_total + teaching_val %}
                 {% set learning_total = learning_total + learning_val %}
                 {% set olama_invited_total = olama_invited_total + olama_invited_val %}
@@ -255,8 +251,6 @@
             </tbody>
           </table>
         </div>
-      {% else %}
-        <div class="text-red-500">ব্যক্তিগত তথ্য পাওয়া যায়নি।</div>
       {% endif %}
     </div>
     <!-- Meetings Table (from meetings.html, read-only) -->
@@ -280,23 +274,21 @@
             <tbody>
               {% for cat in meeting_categories %}
                 {% set slug = cat_to_slug[cat] %}
-                {% set row = (report.meetings | selectattr('category', 'equalto', cat) | list | first) %}
+                {% set row = (report.meetings | selectattr('category', 'equalto', cat) | list | first) or none %}
                 <tr class="text-center hover:bg-cyan-50">
                   <td class="border border-gray-300 px-2 py-1 font-semibold sticky left-0 z-10 bg-white text-left">{{ cat }}</td>
-                  <td class="border border-gray-300 px-2 py-1">{{ row.city_count if row and row.city_count is not none else 0 }}</td>
-                  <td class="border border-gray-300 px-2 py-1">{{ row.city_avg_attendance if row and row.city_avg_attendance is not none else 0 }}</td>
-                  <td class="border border-gray-300 px-2 py-1">{{ row.thana_count if row and row.thana_count is not none else 0 }}</td>
-                  <td class="border border-gray-300 px-2 py-1">{{ row.thana_avg_attendance if row and row.thana_avg_attendance is not none else 0 }}</td>
-                  <td class="border border-gray-300 px-2 py-1">{{ row.ward_count if row and row.ward_count is not none else 0 }}</td>
-                  <td class="border border-gray-300 px-2 py-1">{{ row.ward_avg_attendance if row and row.ward_avg_attendance is not none else 0 }}</td>
-                  <td class="border border-gray-300 px-2 py-1">{{ row.comments if row and row.comments is not none else '' }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ row.city_count if row is not none and row.city_count is not none else 0 }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ row.city_avg_attendance if row is not none and row.city_avg_attendance is not none else 0 }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ row.thana_count if row is not none and row.thana_count is not none else 0 }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ row.thana_avg_attendance if row is not none and row.thana_avg_attendance is not none else 0 }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ row.ward_count if row is not none and row.ward_count is not none else 0 }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ row.ward_avg_attendance if row is not none and row.ward_avg_attendance is not none else 0 }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ row.comments if row is not none and row.comments is not none else '' }}</td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
-      {% else %}
-        <div class="text-red-500">বৈঠক তথ্য পাওয়া যায়নি।</div>
       {% endif %}
     </div>
     <!-- Extras Table (from extras.html, read-only) -->
@@ -314,17 +306,15 @@
             <tbody>
               {% for cat in extra_categories %}
                 {% set slug = cat_to_slug[cat] %}
-                {% set row = (report.extras | selectattr('category', 'equalto', cat) | list | first) %}
+                {% set row = (report.extras | selectattr('category', 'equalto', cat) | list | first) or none %}
                 <tr class="border-b hover:bg-cyan-50">
                   <td class="px-4 py-2 font-semibold">{{ cat }}</td>
-                  <td class="px-2 py-2 text-center">{{ row.number if row else 0 }}</td>
+                  <td class="px-2 py-2 text-center">{{ row.number if row is not none and row.number is not none else 0 }}</td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
-      {% else %}
-        <div class="text-red-500">এক্সট্রা তথ্য পাওয়া যায়নি।</div>
       {% endif %}
     </div>
     <!-- Comments Table (from comments.html, read-only) -->
