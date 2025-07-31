@@ -33,7 +33,8 @@
           ডাউনলোড
         </button>
         <div id="downloadDropdown" class="hidden absolute left-0 mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-          <a href="/download_report?report_type={{ report_type }}&month={{ month }}&year={{ year }}&format=pdf" class="block px-4 py-2 text-gray-700 hover:bg-purple-50">PDF</a>
+          <a href="#" id="downloadPdfV1Link" class="block px-4 py-2 text-gray-700 hover:bg-purple-50">PDF v1</a>
+          <a href="/download_report?report_type={{ report_type }}&month={{ month }}&year={{ year }}&format=pdf" class="block px-4 py-2 text-gray-700 hover:bg-purple-50">PDF v2</a>
           <a href="/download_report?report_type={{ report_type }}&month={{ month }}&year={{ year }}&format=excel" class="block px-4 py-2 text-gray-700 hover:bg-green-50">Excel</a>
         </div>
       </div>
@@ -55,7 +56,17 @@
         }
       });
       // Hide dropdown on link click
-      dropdown.querySelectorAll('a').forEach(function(link) {
+      // PDF v1 triggers print
+      var pdfV1 = document.getElementById('downloadPdfV1Link');
+      if (pdfV1) {
+        pdfV1.addEventListener('click', function(e) {
+          e.preventDefault();
+          dropdown.classList.add('hidden');
+          window.print();
+        });
+      }
+      // Hide dropdown on link click (except PDF v1, already handled)
+      dropdown.querySelectorAll('a:not(#downloadPdfV1Link)').forEach(function(link) {
         link.addEventListener('click', function() {
           dropdown.classList.add('hidden');
         });
