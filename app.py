@@ -71,6 +71,15 @@ def slugify(s):
     return s
 
 
+# DRY helper for slug mappings
+def make_slugs(categories):
+    norm_categories = [normalize_cat(cat) for cat in categories]
+    slugs = [slugify(cat) for cat in norm_categories]
+    slug_to_cat = {slug: cat for slug, cat in zip(slugs, norm_categories)}
+    cat_to_slug = {cat: slug for cat, slug in zip(norm_categories, slugs)}
+    return norm_categories, slug_to_cat, cat_to_slug
+
+
 # --- Helper: Populate Categories for New Report ---
 def populate_categories_for_report(report_id):
     from sqlalchemy.exc import IntegrityError
@@ -690,14 +699,18 @@ def handle_section_post(report, section_attr, categories, fields):
             for field in fields:
                 form_key = f"{field}_{slug}"
                 value = request.form.get(form_key)
-                print(f"[DEBUG] Field: {field}, Slug: {slug}, Form Key: {form_key}, Value: {value}")
+                print(
+                    f"[DEBUG] Field: {field}, Slug: {slug}, Form Key: {form_key}, Value: {value}"
+                )
                 if value is not None:
                     col_type = getattr(row.__class__, field).type
                     if isinstance(col_type, db.Integer):
                         value = int(value) if value else 0
                     elif isinstance(col_type, db.String):
                         value = value.strip() or None
-                    print(f"[DEBUG] Setting {field} for category {cat} (slug: {slug}) to {value}")
+                    print(
+                        f"[DEBUG] Setting {field} for category {cat} (slug: {slug}) to {value}"
+                    )
                     setattr(row, field, value)
     db.session.commit()
     print("[DEBUG] Database commit complete for section_post.")
@@ -797,16 +810,17 @@ def report_courses():
     success = None
     if current_user.is_authenticated:
         report = get_current_report(current_user.zone_id, month, year, report_type)
+        course_categories_raw = [
+            "বিশিষ্টদের",
+            "সাধারণদের",
+            "কর্মীদের",
+            "ইউনিট সভানেত্রী",
+            "অগ্রসরদের",
+            "শিশু- তা'লিমুল কুরআন",
+            "নিরক্ষর- তা'লিমুস সলাত",
+        ]
+        course_categories, slug_to_cat, cat_to_slug = make_slugs(course_categories_raw)
         if request.method == "POST" and report:
-            course_categories = [
-                "বিশিষ্টদের",
-                "সাধারণদের",
-                "কর্মীদের",
-                "ইউনিট সভানেত্রী",
-                "অগ্রসরদের",
-                "শিশু- তা'লিমুল কুরআন",
-                "নিরক্ষর- তা'লিমুস সলাত",
-            ]
             fields = [
                 "number",
                 "increase",
@@ -821,28 +835,8 @@ def report_courses():
                 "completed",
                 "correctly_learned",
             ]
-            norm_categories = [normalize_cat(cat) for cat in course_categories]
-            slugs = [slugify(cat) for cat in norm_categories]
-            slug_to_cat = {slug: cat for slug, cat in zip(slugs, norm_categories)}
-            cat_to_slug = {cat: slug for cat, slug in zip(norm_categories, slugs)}
             handle_section_post(report, "courses", course_categories, fields)
             success = "তথ্য সফলভাবে সংরক্ষণ হয়েছে।"
-        # Always provide slug mappings to template
-        course_categories = [
-            normalize_cat(cat)
-            for cat in [
-                "বিশিষ্টদের",
-                "সাধারণদের",
-                "কর্মীদের",
-                "ইউনিট সভানেত্রী",
-                "অগ্রসরদের",
-                "শিশু- তা'লিমুল কুরআন",
-                "নিরক্ষর- তা'লিমুস সলাত",
-            ]
-        ]
-        slugs = [slugify(cat) for cat in course_categories]
-        slug_to_cat = {slug: cat for slug, cat in zip(slugs, course_categories)}
-        cat_to_slug = {cat: slug for cat, slug in zip(course_categories, slugs)}
         return render_template(
             "report/courses.html",
             month=month,
@@ -866,7 +860,7 @@ def report_organizational():
     success = None
     if current_user.is_authenticated:
         report = get_current_report(current_user.zone_id, month, year, report_type)
-        org_categories = [
+        org_categories_raw = [
             "দাওয়াত দান",
             "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
             "সহযোগী হয়েছে",
@@ -882,29 +876,23 @@ def report_organizational():
             "বই বিলি",
             "বই বিক্রি",
         ]
-        # Normalize categories for template and mapping
-        # Normalize categories and always use slugs for template mapping
-        norm_categories = [normalize_cat(cat) for cat in org_categories]
-        slugs = [slugify(cat) for cat in norm_categories]
-        slug_to_cat = {slug: cat for slug, cat in zip(slugs, norm_categories)}
-        cat_to_slug = {cat: slug for cat, slug in zip(norm_categories, slugs)}
-        org_categories = norm_categories
+        org_categories, slug_to_cat, cat_to_slug = make_slugs(org_categories_raw)
         if request.method == "POST" and report:
             fields = ["number", "increase", "amount", "comments"]
             handle_section_post(report, "organizational", org_categories, fields)
             success = "তথ্য সফলভাবে সংরক্ষণ হয়েছে।"
-    return render_template(
-        "report/organizational.html",
-        month=month,
-        year=year,
-        report_type=report_type,
-        report=report,
-        error=error,
-        success=success,
-        org_categories=org_categories,
-        slug_to_cat=slug_to_cat,
-        cat_to_slug=cat_to_slug,
-    )
+        return render_template(
+            "report/organizational.html",
+            month=month,
+            year=year,
+            report_type=report_type,
+            report=report,
+            error=error,
+            success=success,
+            org_categories=org_categories,
+            slug_to_cat=slug_to_cat,
+            cat_to_slug=cat_to_slug,
+        )
 
 
 @app.route("/report/personal", methods=["GET", "POST"])
@@ -916,8 +904,11 @@ def report_personal():
     success = None
     if current_user.is_authenticated:
         report = get_current_report(current_user.zone_id, month, year, report_type)
+        personal_categories_raw = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
+        personal_categories, slug_to_cat, cat_to_slug = make_slugs(
+            personal_categories_raw
+        )
         if request.method == "POST" and report:
-            personal_categories = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
             fields = [
                 "teaching",
                 "learning",
@@ -927,18 +918,8 @@ def report_personal():
                 "became_kormi",
                 "became_rukon",
             ]
-            norm_categories = [normalize_cat(cat) for cat in personal_categories]
-            slugs = [slugify(cat) for cat in norm_categories]
-            slug_to_cat = {slug: cat for slug, cat in zip(slugs, norm_categories)}
-            cat_to_slug = {cat: slug for cat, slug in zip(norm_categories, slugs)}
             handle_section_post(report, "personal", personal_categories, fields)
             success = "তথ্য সফলভাবে সংরক্ষণ হয়েছে।"
-        personal_categories = [
-            normalize_cat(cat) for cat in ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
-        ]
-        slugs = [slugify(cat) for cat in personal_categories]
-        slug_to_cat = {slug: cat for slug, cat in zip(slugs, personal_categories)}
-        cat_to_slug = {cat: slug for cat, slug in zip(personal_categories, slugs)}
         return render_template(
             "report/personal.html",
             month=month,
@@ -962,13 +943,16 @@ def report_meetings():
     success = None
     if current_user.is_authenticated:
         report = get_current_report(current_user.zone_id, month, year, report_type)
+        meeting_categories_raw = [
+            "কমিটি বৈঠক হয়েছে",
+            "মুয়াল্লিমাদের নিয়ে বৈঠক",
+            "Committee Orientation",
+            "Muallima Orientation",
+        ]
+        meeting_categories, slug_to_cat, cat_to_slug = make_slugs(
+            meeting_categories_raw
+        )
         if request.method == "POST" and report:
-            meeting_categories = [
-                "কমিটি বৈঠক হয়েছে",
-                "মুয়াল্লিমাদের নিয়ে বৈঠক",
-                "Committee Orientation",
-                "Muallima Orientation",
-            ]
             fields = [
                 "city_count",
                 "city_avg_attendance",
@@ -978,24 +962,8 @@ def report_meetings():
                 "ward_avg_attendance",
                 "comments",
             ]
-            norm_categories = [normalize_cat(cat) for cat in meeting_categories]
-            slugs = [slugify(cat) for cat in norm_categories]
-            slug_to_cat = {slug: cat for slug, cat in zip(slugs, norm_categories)}
-            cat_to_slug = {cat: slug for cat, slug in zip(norm_categories, slugs)}
             handle_section_post(report, "meetings", meeting_categories, fields)
             success = "তথ্য সফলভাবে সংরক্ষণ হয়েছে।"
-        meeting_categories = [
-            normalize_cat(cat)
-            for cat in [
-                "কমিটি বৈঠক হয়েছে",
-                "মুয়াল্লিমাদের নিয়ে বৈঠক",
-                "Committee Orientation",
-                "Muallima Orientation",
-            ]
-        ]
-        slugs = [slugify(cat) for cat in meeting_categories]
-        slug_to_cat = {slug: cat for slug, cat in zip(slugs, meeting_categories)}
-        cat_to_slug = {cat: slug for cat, slug in zip(meeting_categories, slugs)}
         return render_template(
             "report/meetings.html",
             month=month,
@@ -1019,40 +987,21 @@ def report_extras():
     success = None
     if current_user.is_authenticated:
         report = get_current_report(current_user.zone_id, month, year, report_type)
+        extra_categories_raw = [
+            "মক্তব সংখ্যা",
+            "মক্তব বৃদ্ধি",
+            "মহানগরী পরিচালিত",
+            "স্থানীয়ভাবে পরিচালিত",
+            "মহানগরীর সফর",
+            "থানা কমিটির সফর",
+            "থানা প্রতিনিধির সফর",
+            "ওয়ার্ড প্রতিনিধির সফর",
+        ]
+        extra_categories, slug_to_cat, cat_to_slug = make_slugs(extra_categories_raw)
         if request.method == "POST" and report:
-            extra_categories = [
-                "মক্তব সংখ্যা",
-                "মক্তব বৃদ্ধি",
-                "মহানগরী পরিচালিত",
-                "স্থানীয়ভাবে পরিচালিত",
-                "মহানগরীর সফর",
-                "থানা কমিটির সফর",
-                "থানা প্রতিনিধির সফর",
-                "ওয়ার্ড প্রতিনিধির সফর",
-            ]
             fields = ["number"]
-            norm_categories = [normalize_cat(cat) for cat in extra_categories]
-            slugs = [slugify(cat) for cat in norm_categories]
-            slug_to_cat = {slug: cat for slug, cat in zip(slugs, norm_categories)}
-            cat_to_slug = {cat: slug for cat, slug in zip(norm_categories, slugs)}
             handle_section_post(report, "extras", extra_categories, fields)
             success = "তথ্য সফলভাবে সংরক্ষণ হয়েছে।"
-        extra_categories = [
-            normalize_cat(cat)
-            for cat in [
-                "মক্তব সংখ্যা",
-                "মক্তব বৃদ্ধি",
-                "মহানগরী পরিচালিত",
-                "স্থানীয়ভাবে পরিচালিত",
-                "মহানগরীর সফর",
-                "থানা কমিটির সফর",
-                "থানা প্রতিনিধির সফর",
-                "ওয়ার্ড প্রতিনিধির সফর",
-            ]
-        ]
-        slugs = [slugify(cat) for cat in extra_categories]
-        slug_to_cat = {slug: cat for slug, cat in zip(slugs, extra_categories)}
-        cat_to_slug = {cat: slug for cat, slug in zip(extra_categories, slugs)}
         return render_template(
             "report/extras.html",
             month=month,
@@ -1133,12 +1082,83 @@ def report_summary():
             query["month"] = int(month)
         report = Report.query.filter_by(**query).first()
 
+    # Use make_slugs helper for all categories and slug mappings
+    course_categories_raw = [
+        "বিশিষ্টদের",
+        "সাধারণদের",
+        "কর্মীদের",
+        "ইউনিট সভানেত্রী",
+        "অগ্রসরদের",
+        "শিশু- তা'লিমুল কুরআন",
+        "নিরক্ষর- তা'লিমুস সলাত",
+    ]
+    org_categories_raw = [
+        "দাওয়াত দান",
+        "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
+        "সহযোগী হয়েছে",
+        "সম্মতি দিয়েছেন",
+        "সক্রিয় সহযোগী",
+        "কর্মী",
+        "রুকন",
+        "দাওয়াতী ইউনিট",
+        "ইউনিট",
+        "সূধী",
+        "এককালীন",
+        "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
+        "বই বিলি",
+        "বই বিক্রি",
+    ]
+    personal_categories_raw = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
+    meeting_categories_raw = [
+        "কমিটি বৈঠক হয়েছে",
+        "মুয়াল্লিমাদের নিয়ে বৈঠক",
+        "Committee Orientation",
+        "Muallima Orientation",
+    ]
+    extra_categories_raw = [
+        "মক্তব সংখ্যা",
+        "মক্তব বৃদ্ধি",
+        "মহানগরী পরিচালিত",
+        "স্থানীয়ভাবে পরিচালিত",
+        "মহানগরীর সফর",
+        "থানা কমিটির সফর",
+        "থানা প্রতিনিধির সফর",
+        "ওয়ার্ড প্রতিনিধির সফর",
+    ]
+
+    course_categories, cat_to_slug, slug_to_cat = make_slugs(course_categories_raw)
+    org_categories, org_cat_to_slug, org_slug_to_cat = make_slugs(org_categories_raw)
+    personal_categories, personal_cat_to_slug, personal_slug_to_cat = make_slugs(
+        personal_categories_raw
+    )
+    meeting_categories, meeting_cat_to_slug, meeting_slug_to_cat = make_slugs(
+        meeting_categories_raw
+    )
+    extra_categories, extra_cat_to_slug, extra_slug_to_cat = make_slugs(
+        extra_categories_raw
+    )
+
     return render_template(
         "report.html",
         report=report,
         report_type=report_type,
         month=month,
         year=year,
+        course_categories=course_categories,
+        org_categories=org_categories,
+        personal_categories=personal_categories,
+        meeting_categories=meeting_categories,
+        extra_categories=extra_categories,
+        cat_to_slug=cat_to_slug,
+        slug_to_cat=slug_to_cat,
+        org_cat_to_slug=org_cat_to_slug,
+        org_slug_to_cat=org_slug_to_cat,
+        personal_cat_to_slug=personal_cat_to_slug,
+        personal_slug_to_cat=personal_slug_to_cat,
+        meeting_cat_to_slug=meeting_cat_to_slug,
+        meeting_slug_to_cat=meeting_slug_to_cat,
+        extra_cat_to_slug=extra_cat_to_slug,
+        extra_slug_to_cat=extra_slug_to_cat,
     )
 
 
