@@ -415,6 +415,7 @@ def dashboard():
 
     if is_admin():
         reports = Report.query.all()
+        city_report_url = url_for("city_report_page")
         return render_template(
             "index_admin.html",
             user=current_user,
@@ -423,6 +424,7 @@ def dashboard():
             report_type=report_type,
             report_types=report_types,
             reports=reports,
+            city_report_url=city_report_url,
         )
     else:
         # Build sections list with completion status and navigation URLs

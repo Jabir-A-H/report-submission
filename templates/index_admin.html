@@ -1,6 +1,5 @@
-{% extends 'base.html' %}
-{% block title %}রিপোর্ট ব্যবস্থাপনা{% endblock %}
-{% block content %}
+{% extends 'base.html' %} {% block title %}রিপোর্ট ব্যবস্থাপনা{% endblock %} {%
+block content %}
 <div class="container mx-auto px-4 py-8 animate-fade-in">
   <div class="text-center mb-8">
     <h1 class="text-3xl font-bold text-cyan-700 mb-2">রিপোর্ট ব্যবস্থাপনা</h1>
@@ -8,21 +7,30 @@
   </div>
   <!-- Admin Tools as Cards -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 max-w-5xl mx-auto">
-    <a href="{{ url_for('admin_users') }}" class="block bg-white rounded-xl shadow-lg p-6 hover:bg-cyan-50 transition border border-cyan-100">
+    <a
+      href="{{ url_for('admin_users') }}"
+      class="block bg-white rounded-xl shadow-lg p-6 hover:bg-cyan-50 transition border border-cyan-100"
+    >
       <div class="flex items-center gap-3 mb-2">
-        <span class="text-2xl">👤</span>
+        <span class="text-2xl">📱</span>
         <span class="text-lg font-bold text-cyan-700">ইউজার ম্যানেজমেন্ট</span>
       </div>
       <div class="text-gray-600 text-sm">নতুন ইউজার অনুমোদন ও জোন অ্যাসাইন</div>
     </a>
-    <a href="{{ url_for('admin_zones') }}" class="block bg-white rounded-xl shadow-lg p-6 hover:bg-cyan-50 transition border border-cyan-100">
+    <a
+      href="{{ url_for('admin_zones') }}"
+      class="block bg-white rounded-xl shadow-lg p-6 hover:bg-cyan-50 transition border border-cyan-100"
+    >
       <div class="flex items-center gap-3 mb-2">
         <span class="text-2xl">🗺️</span>
         <span class="text-lg font-bold text-cyan-700">জোন ম্যানেজমেন্ট</span>
       </div>
       <div class="text-gray-600 text-sm">নতুন জোন তৈরি ও ডিলিট</div>
     </a>
-    <a href="{{ city_report_url }}" class="block bg-white rounded-xl shadow-lg p-6 hover:bg-cyan-50 transition border border-cyan-100">
+    <a
+      href="{{ city_report_url }}"
+      class="block bg-white rounded-xl shadow-lg p-6 hover:bg-cyan-50 transition border border-cyan-100"
+    >
       <div class="flex items-center gap-3 mb-2">
         <span class="text-2xl">🏙️</span>
         <span class="text-lg font-bold text-cyan-700">সিটি রিপোর্ট</span>
@@ -51,14 +59,31 @@
           {% for report in reports %}
           <tr class="border-b hover:bg-cyan-50 transition">
             <td class="py-2 px-4">{{ report.id }}</td>
-            <td class="py-2 px-4">{{ report.zone.name if report.zone else 'N/A' }}</td>
+            <td class="py-2 px-4">
+              {{ report.zone.name if report.zone else 'N/A' }}
+            </td>
             <td class="py-2 px-4">{{ report.report_type }}</td>
-            <td class="py-2 px-4">{{ report.month if report.month else '-' }}</td>
+            <td class="py-2 px-4">
+              {{ report.month if report.month else '-' }}
+            </td>
             <td class="py-2 px-4">{{ report.year }}</td>
             <td class="py-2 px-4">
-              <a href="{{ url_for('report_summary') }}?report_id={{ report.id }}" class="inline-flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg shadow hover:bg-cyan-700 transition">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <a
+                href="{{ url_for('report_summary') }}?report_id={{ report.id }}"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg shadow hover:bg-cyan-700 transition"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 View
               </a>
@@ -69,11 +94,12 @@
       </table>
     </div>
     {% else %}
-    <div class="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 p-4 rounded-xl shadow mt-6">
+    <div
+      class="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 p-4 rounded-xl shadow mt-6"
+    >
       কোন রিপোর্ট পাওয়া যায়নি।
     </div>
     {% endif %}
   </div>
 </div>
 {% endblock %}
-
