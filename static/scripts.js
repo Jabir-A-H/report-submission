@@ -1,3 +1,37 @@
+// Download dropdown toggle logic (global)
+document.addEventListener('DOMContentLoaded', function() {
+  var btn = document.getElementById('downloadDropdownBtn');
+  var dropdown = document.getElementById('downloadDropdown');
+  var container = document.getElementById('downloadDropdownContainer');
+  if (btn && dropdown) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      dropdown.classList.toggle('hidden');
+    });
+    // Hide dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!container.contains(e.target)) {
+        dropdown.classList.add('hidden');
+      }
+    });
+    // Hide dropdown on link click
+    // PDF v1 triggers print
+    var pdfV1 = document.getElementById('downloadPdfV1Link');
+    if (pdfV1) {
+      pdfV1.addEventListener('click', function(e) {
+        e.preventDefault();
+        dropdown.classList.add('hidden');
+        window.print();
+      });
+    }
+    // Hide dropdown on link click (except PDF v1, already handled)
+    dropdown.querySelectorAll('a:not(#downloadPdfV1Link)').forEach(function(link) {
+      link.addEventListener('click', function() {
+        dropdown.classList.add('hidden');
+      });
+    });
+  }
+});
 // Bengali alert system for success/error messages
 function showAlert(message, type = 'danger') {
     const alertBox = document.getElementById('alert-box');

@@ -1,36 +1,509 @@
-{% extends "base.html" %} {% block content %}
-<h2>City Report for {{ month|month_name }} {{ year }}</h2>
-
-<table class="table table-bordered">
-  <thead>
-    <tr>
-      <th>Course Category</th>
-      <th>Total Number</th>
-      <th>Total Sessions</th>
-      <th>Total Students</th>
-      <th>Total Attendance</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for cat, totals in course_totals.items() %}
-    <tr>
-      <td>{{ cat }}</td>
-      <td>{{ totals.number }}</td>
-      <td>{{ totals.sessions }}</td>
-      <td>{{ totals.students }}</td>
-      <td>{{ totals.attendance }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-
-<h3>Zone Reports Included</h3>
-<ul>
-  {% for report in reports %}
-  <li>{{ report.zone.name }} (Zone ID: {{ report.zone_id }})</li>
-  {% endfor %}
-</ul>
-
-<!-- You can add more aggregated sections here -->
-
+{% extends 'base.html' %} {% set page_title = 'সিটি রিপোর্ট' %} {% block content
+%}
+<div class="container mx-auto px-4 py-8 animate-fade-in">
+  <div class="text-center mb-8">
+    <h1 class="text-4xl font-extrabold text-purple-700 mb-2 text-center">
+      সিটি রিপোর্ট
+    </h1>
+    <div class="flex flex-wrap gap-2 justify-center mb-4 items-center">
+      <span class="text-lg font-semibold text-gray-700"
+        >{{ month|month_name }} {{ year }} ({{ report_type }})</span
+      >
+    </div>
+  </div>
+  <div class="flex flex-col gap-8">
+    <!-- Header Table (aggregated city_summary, read-only) -->
+    <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-cyan-400">
+      <h2 class="text-xl font-bold text-cyan-700 mb-2">মূল তথ্য (সারাংশ)</h2>
+      {% if city_summary %}
+      <div class="grid grid-cols-2 gap-4 text-gray-700 text-sm">
+        <div>
+          <span class="font-semibold">মোট জোন:</span> {{
+          city_summary.total_zones }}
+        </div>
+        <div>
+          <span class="font-semibold">মোট ইউনিট:</span> {{
+          city_summary.total_unit }}
+        </div>
+        <div>
+          <span class="font-semibold">মোট মুয়াল্লিমা সংখ্যা:</span> {{
+          city_summary.total_muallima }}
+        </div>
+        <div>
+          <span class="font-semibold">মুয়াল্লিমা বৃদ্ধি:</span> {{
+          city_summary.muallima_increase }}
+        </div>
+        <div>
+          <span class="font-semibold">মুয়াল্লিমা হ্রাস:</span> {{
+          city_summary.muallima_decrease }}
+        </div>
+        <div>
+          <span class="font-semibold">প্রশিক্ষিত মুয়াল্লিমা:</span> {{
+          city_summary.certified_muallima }}
+        </div>
+        <div>
+          <span class="font-semibold"
+            >প্রশিক্ষিত মুয়াল্লিমা (ক্লাস নিচ্ছেন):</span
+          >
+          {{ city_summary.certified_muallima_taking_classes }}
+        </div>
+        <div>
+          <span class="font-semibold">ট্রেইনিং প্রাপ্ত মুয়াল্লিমা:</span> {{
+          city_summary.trained_muallima }}
+        </div>
+        <div>
+          <span class="font-semibold"
+            >ট্রেইনিং প্রাপ্ত মুয়াল্লিমা (ক্লাস নিচ্ছেন):</span
+          >
+          {{ city_summary.trained_muallima_taking_classes }}
+        </div>
+        <div>
+          <span class="font-semibold">মুয়াল্লিমা সহ ইউনিট:</span> {{
+          city_summary.units_with_muallima }}
+        </div>
+      </div>
+      {% else %}
+      <div class="text-red-500">City summary unavailable.</div>
+      {% endif %}
+    </div>
+    <!-- Courses Table (aggregated, read-only) -->
+    <div
+      class="bg-gradient-to-br from-purple-50 to-white rounded-xl shadow-lg p-6 border-l-4 border-purple-400"
+    >
+      <h2 class="text-xl font-bold text-purple-700 mb-4">
+        গ্রুপ / কোর্স রিপোর্ট (সারাংশ)
+      </h2>
+      {% if city_courses and course_categories %}
+      <div class="overflow-x-auto w-full">
+        <table
+          class="min-w-full border border-gray-300 bg-white rounded-lg text-xs md:text-sm"
+        >
+          <thead>
+            <tr class="bg-cyan-100 text-gray-900 text-center">
+              <th
+                rowspan="2"
+                class="border border-gray-300 px-2 py-2 align-middle sticky left-0 z-10 bg-white"
+              >
+                বিভাগ/ধরন
+              </th>
+              <th colspan="3" class="border border-gray-300 px-2 py-2">
+                গ্রুপ / কোর্স
+              </th>
+              <th
+                rowspan="2"
+                class="border border-gray-300 px-2 py-2 align-middle"
+              >
+                অধিবেশন সংখ্যা
+              </th>
+              <th
+                rowspan="2"
+                class="border border-gray-300 px-2 py-2 align-middle"
+              >
+                শিক্ষার্থী সংখ্যা
+              </th>
+              <th
+                rowspan="2"
+                class="border border-gray-300 px-2 py-2 align-middle"
+              >
+                উপস্থিতি সংখ্যা
+              </th>
+              <th colspan="4" class="border border-gray-300 px-2 py-2">
+                শিক্ষার্থী অবস্থান
+              </th>
+              <th
+                rowspan="2"
+                class="border border-gray-300 px-2 py-2 align-middle"
+              >
+                কতজন নিয়ে সমাপ্ত
+              </th>
+              <th
+                rowspan="2"
+                class="border border-gray-300 px-2 py-2 align-middle"
+              >
+                সহীহ শিখেছেন কতজন
+              </th>
+            </tr>
+            <tr class="bg-cyan-50 text-gray-800 text-center">
+              <th class="border border-gray-300 px-2 py-1">সংখ্যা</th>
+              <th class="border border-gray-300 px-2 py-1">বৃদ্ধি</th>
+              <th class="border border-gray-300 px-2 py-1">ঘাটতি</th>
+              <th class="border border-gray-300 px-2 py-1">বোর্ডে</th>
+              <th class="border border-gray-300 px-2 py-1">কায়দায়</th>
+              <th class="border border-gray-300 px-2 py-1">আমপারা</th>
+              <th class="border border-gray-300 px-2 py-1">কুরআন</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for category in course_categories %} {% set slug =
+            cat_to_slug[category] %} {% set row = (city_courses |
+            selectattr('category', 'equalto', category) | list | first) or none
+            %}
+            <tr class="text-center hover:bg-cyan-50">
+              <td
+                class="border border-gray-300 px-2 py-1 font-semibold sticky left-0 z-10 bg-white"
+              >
+                {{ category }}
+              </td>
+              {% set fields = [ 'number', 'increase', 'decrease', 'sessions',
+              'students', 'attendance', 'status_board', 'status_qayda',
+              'status_ampara', 'status_quran', 'completed', 'correctly_learned']
+              %} {% for field in fields %}
+              <td class="border border-gray-300 px-2 py-1">
+                {{ row[field] if row is not none and row[field] is not none else
+                0 }}
+              </td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+    </div>
+    <!-- Organizational Table (aggregated, read-only) -->
+    <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-cyan-400">
+      <h2 class="text-xl font-bold text-cyan-700 mb-2">
+        দাওয়াত ও সংগঠন (সারাংশ)
+      </h2>
+      {% if city_organizational and org_categories %}
+      <div class="overflow-x-auto w-full">
+        <table
+          class="min-w-full border border-gray-300 bg-white rounded-lg text-xs md:text-sm"
+        >
+          <thead>
+            <tr class="bg-cyan-100 text-gray-900 text-center">
+              <th
+                class="border border-gray-300 px-2 py-2 align-middle sticky left-0 z-10 bg-white text-left"
+              >
+                দাওয়াত ও সংগঠন
+              </th>
+              <th class="border border-gray-300 px-2 py-2">সংখ্যা</th>
+              <th class="border border-gray-300 px-2 py-2">বৃদ্ধি</th>
+              <th class="border border-gray-300 px-2 py-2">টাকা</th>
+              <th class="border border-gray-300 px-2 py-2">মন্তব্য</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for cat in org_categories %} {% set slug = cat_to_slug[cat] %} {%
+            set row = (city_organizational | selectattr('category', 'equalto',
+            cat) | list | first) or none %}
+            <tr class="text-center hover:bg-cyan-50">
+              <td
+                class="border border-gray-300 px-2 py-1 font-semibold sticky left-0 z-10 bg-white text-left"
+              >
+                {{ cat }}
+              </td>
+              <td class="border border-gray-300 px-2 py-1">
+                {{ row.number if row is not none and row.number is not none else
+                0 }}
+              </td>
+              <td class="border border-gray-300 px-2 py-1">
+                {{ row.increase if row is not none and row.increase is not none
+                else 0 }}
+              </td>
+              <td class="border border-gray-300 px-2 py-1">
+                {{ row.amount if row is not none and row.amount is not none else
+                0 }}
+              </td>
+              <td class="border border-gray-300 px-2 py-1">
+                {{ row.comments if row is not none and row.comments is not none
+                else '' }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+    </div>
+    <!-- Personal Table (aggregated, read-only) -->
+    <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-pink-400">
+      <h2 class="text-xl font-bold text-pink-700 mb-2">
+        ব্যক্তিগত উদ্যোগে তা’লীমুল কুরআন (সারাংশ)
+      </h2>
+      {% if city_personal and personal_categories %}
+      <div class="overflow-x-auto w-full">
+        <table
+          class="min-w-full border border-gray-300 bg-white rounded-lg text-xs md:text-sm"
+        >
+          <thead>
+            <tr class="bg-cyan-100 text-gray-900 text-center">
+              <th
+                class="border border-gray-300 px-2 py-2 align-middle sticky left-0 z-10 bg-white text-left"
+                rowspan="2"
+              >
+                ব্যক্তিগত উদ্যোগে তা’লীমুল কুরআন
+              </th>
+              <th
+                class="border border-gray-300 px-2 py-2 align-middle"
+                rowspan="2"
+              >
+                কতজন শিখাচ্ছেন
+              </th>
+              <th
+                class="border border-gray-300 px-2 py-2 align-middle border-r-4 border-cyan-300"
+                rowspan="2"
+              >
+                কতজনকে শিখাচ্ছেন
+              </th>
+              <th
+                class="border border-gray-300 px-2 py-2 align-middle"
+                rowspan="2"
+              >
+                কতজন ওয়ালামাকে দাওয়াত দিয়েছেন
+              </th>
+              <th
+                class="border border-gray-300 px-2 py-2 font-bold"
+                colspan="4"
+              >
+                দাওয়াত প্রাপ্ত ওয়ালামার মধ্যে
+              </th>
+            </tr>
+            <tr class="bg-cyan-50 text-gray-800 text-center">
+              <th
+                class="border border-gray-300 px-2 py-1 bg-cyan-100 font-bold"
+              >
+                সহযোগী হয়েছেন
+              </th>
+              <th
+                class="border border-gray-300 px-2 py-1 bg-cyan-100 font-bold"
+              >
+                সক্রিয় সহযোগী হয়েছেন
+              </th>
+              <th
+                class="border border-gray-300 px-2 py-1 bg-cyan-100 font-bold"
+              >
+                কর্মী হয়েছেন
+              </th>
+              <th
+                class="border border-gray-300 px-2 py-1 bg-cyan-100 font-bold"
+              >
+                রুকন হয়েছেন
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {% set teaching_total = 0 %} {% set learning_total = 0 %} {% set
+            olama_invited_total = 0 %} {% set became_shohojogi_total = 0 %} {%
+            set became_sokrio_shohojogi_total = 0 %} {% set became_kormi_total =
+            0 %} {% set became_rukon_total = 0 %} {% for cat in
+            personal_categories %} {% set slug = cat_to_slug[cat] %} {% set row
+            = (city_personal | selectattr('category', 'equalto', cat) | list |
+            first) or none %} {% set teaching_val = row.teaching if row is not
+            none and row.teaching is not none else 0 %} {% set learning_val =
+            row.learning if row is not none and row.learning is not none else 0
+            %} {% set olama_invited_val = row.olama_invited if row is not none
+            and row.olama_invited is not none else 0 %} {% set
+            became_shohojogi_val = row.became_shohojogi if row is not none and
+            row.became_shohojogi is not none else 0 %} {% set
+            became_sokrio_shohojogi_val = row.became_sokrio_shohojogi if row is
+            not none and row.became_sokrio_shohojogi is not none else 0 %} {%
+            set became_kormi_val = row.became_kormi if row is not none and
+            row.became_kormi is not none else 0 %} {% set became_rukon_val =
+            row.became_rukon if row is not none and row.became_rukon is not none
+            else 0 %} {% set teaching_total = teaching_total + teaching_val %}
+            {% set learning_total = learning_total + learning_val %} {% set
+            olama_invited_total = olama_invited_total + olama_invited_val %} {%
+            set became_shohojogi_total = became_shohojogi_total +
+            became_shohojogi_val %} {% set became_sokrio_shohojogi_total =
+            became_sokrio_shohojogi_total + became_sokrio_shohojogi_val %} {%
+            set became_kormi_total = became_kormi_total + became_kormi_val %} {%
+            set became_rukon_total = became_rukon_total + became_rukon_val %}
+            <tr class="text-center hover:bg-cyan-50">
+              <td
+                class="border border-gray-300 px-2 py-1 font-semibold sticky left-0 z-10 bg-white text-left"
+              >
+                {{ cat }}
+              </td>
+              <td class="border border-gray-300 px-2 py-1">
+                {{ teaching_val }}
+              </td>
+              <td
+                class="border border-gray-300 px-2 py-1 border-r-4 border-cyan-300"
+              >
+                {{ learning_val }}
+              </td>
+              <td class="border border-gray-300 px-2 py-1">
+                {{ olama_invited_val }}
+              </td>
+              <td class="border border-gray-300 px-2 py-1">
+                {{ became_shohojogi_val }}
+              </td>
+              <td class="border border-gray-300 px-2 py-1">
+                {{ became_sokrio_shohojogi_val }}
+              </td>
+              <td class="border border-gray-300 px-2 py-1">
+                {{ became_kormi_val }}
+              </td>
+              <td class="border border-gray-300 px-2 py-1">
+                {{ became_rukon_val }}
+              </td>
+            </tr>
+            {% endfor %}
+            <tr class="bg-cyan-100 font-bold">
+              <td
+                class="border border-gray-300 px-4 py-2 text-right sticky left-0 z-10 bg-cyan-100"
+              >
+                মোট
+              </td>
+              <td class="border border-gray-300 px-2 py-2 text-center">
+                {{ teaching_total }}
+              </td>
+              <td
+                class="border border-gray-300 px-2 py-2 text-center border-r-4 border-cyan-300"
+              >
+                {{ learning_total }}
+              </td>
+              <td class="border border-gray-300 px-2 py-2 text-center">
+                {{ olama_invited_total }}
+              </td>
+              <td class="border border-gray-300 px-2 py-2 text-center">
+                {{ became_shohojogi_total }}
+              </td>
+              <td class="border border-gray-300 px-2 py-2 text-center">
+                {{ became_sokrio_shohojogi_total }}
+              </td>
+              <td class="border border-gray-300 px-2 py-2 text-center">
+                {{ became_kormi_total }}
+              </td>
+              <td class="border border-gray-300 px-2 py-2 text-center">
+                {{ became_rukon_total }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+    </div>
+    <!-- Meetings Table (aggregated, read-only) -->
+    <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-400">
+      <h2 class="text-xl font-bold text-blue-700 mb-2">বৈঠকসমূহ (সারাংশ)</h2>
+      {% if city_meetings and meeting_categories %}
+      <div class="overflow-x-auto w-full">
+        <table
+          class="min-w-full border border-gray-300 bg-white rounded-lg text-xs md:text-sm"
+        >
+          <thead>
+            <tr class="bg-cyan-100 text-gray-900 text-center">
+              <th
+                class="border border-gray-300 px-2 py-2 align-middle sticky left-0 z-10 bg-white text-left"
+              >
+                বৈঠকসমূহ
+              </th>
+              <th class="border border-gray-300 px-2 py-2">মহানগরীর কতটি</th>
+              <th class="border border-gray-300 px-2 py-2">
+                মহানগরী গড় উপস্থিতি
+              </th>
+              <th class="border border-gray-300 px-2 py-2">থানা কতটি</th>
+              <th class="border border-gray-300 px-2 py-2">থানা গড় উপস্থিতি</th>
+              <th class="border border-gray-300 px-2 py-2">ওয়ার্ড কতটি</th>
+              <th class="border border-gray-300 px-2 py-2">
+                ওয়ার্ড গড় উপস্থিতি
+              </th>
+              <th class="border border-gray-300 px-2 py-2">মন্তব্য</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for cat in meeting_categories %} {% set slug = cat_to_slug[cat]
+            %} {% set row = (city_meetings | selectattr('category', 'equalto',
+            cat) | list | first) or none %}
+            <tr class="text-center hover:bg-cyan-50">
+              <td
+                class="border border-gray-300 px-2 py-1 font-semibold sticky left-0 z-10 bg-white text-left"
+              >
+                {{ cat }}
+              </td>
+              <td class="border border-gray-300 px-2 py-1">
+                {{ row.city_count if row is not none and row.city_count is not
+                none else 0 }}
+              </td>
+              <td class="border border-gray-300 px-2 py-1">
+                {{ row.city_avg_attendance if row is not none and
+                row.city_avg_attendance is not none else 0 }}
+              </td>
+              <td class="border border-gray-300 px-2 py-1">
+                {{ row.thana_count if row is not none and row.thana_count is not
+                none else 0 }}
+              </td>
+              <td class="border border-gray-300 px-2 py-1">
+                {{ row.thana_avg_attendance if row is not none and
+                row.thana_avg_attendance is not none else 0 }}
+              </td>
+              <td class="border border-gray-300 px-2 py-1">
+                {{ row.ward_count if row is not none and row.ward_count is not
+                none else 0 }}
+              </td>
+              <td class="border border-gray-300 px-2 py-1">
+                {{ row.ward_avg_attendance if row is not none and
+                row.ward_avg_attendance is not none else 0 }}
+              </td>
+              <td class="border border-gray-300 px-2 py-1">
+                {{ row.comments if row is not none and row.comments is not none
+                else '' }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+    </div>
+    <!-- Extras Table (aggregated, read-only) -->
+    <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-400">
+      <h2 class="text-xl font-bold text-green-700 mb-2">
+        মক্তব ও সফর রিপোর্ট (সারাংশ)
+      </h2>
+      {% if city_extras and extra_categories %}
+      <div class="overflow-x-auto">
+        <table
+          class="min-w-full bg-white border rounded-xl shadow divide-y divide-gray-200 text-xs md:text-sm"
+        >
+          <thead>
+            <tr class="bg-cyan-50 text-cyan-800">
+              <th class="px-4 py-2 text-left">বিষয়</th>
+              <th class="px-4 py-2 text-center">সংখ্যা</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for cat in extra_categories %} {% set slug = cat_to_slug[cat] %}
+            {% set row = (city_extras | selectattr('category', 'equalto', cat) |
+            list | first) or none %}
+            <tr class="border-b hover:bg-cyan-50">
+              <td class="px-4 py-2 font-semibold">{{ cat }}</td>
+              <td class="px-2 py-2 text-center">
+                {{ row.number if row is not none and row.number is not none else
+                0 }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+    </div>
+    <!-- Comments Table (aggregated, read-only) -->
+    <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-yellow-400">
+      <h2 class="text-xl font-bold text-yellow-700 mb-2">মন্তব্য (সারাংশ)</h2>
+      <div class="mb-6">
+        <div
+          class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 min-h-[4rem]"
+        >
+          {{ city_comments.comment if city_comments and city_comments.comment is
+          not none else '' }}
+        </div>
+      </div>
+    </div>
+    <!-- Zone Reports Included -->
+    <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-gray-400">
+      <h2 class="text-xl font-bold text-gray-700 mb-2">
+        অন্তর্ভুক্ত জোন রিপোর্টসমূহ
+      </h2>
+      <ul class="list-disc pl-6 text-gray-700">
+        {% for report in reports %}
+        <li>{{ report.zone.name }} (Zone ID: {{ report.zone_id }})</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
 {% endblock %}

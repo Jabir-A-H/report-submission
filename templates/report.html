@@ -38,42 +38,6 @@
           <a href="/download_report?report_type={{ report_type }}&month={{ month }}&year={{ year }}&format=excel" class="block px-4 py-2 text-gray-700 hover:bg-green-50">Excel</a>
         </div>
       </div>
-<script>
-  // Download dropdown toggle logic
-  document.addEventListener('DOMContentLoaded', function() {
-    var btn = document.getElementById('downloadDropdownBtn');
-    var dropdown = document.getElementById('downloadDropdown');
-    var container = document.getElementById('downloadDropdownContainer');
-    if (btn && dropdown) {
-      btn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        dropdown.classList.toggle('hidden');
-      });
-      // Hide dropdown when clicking outside
-      document.addEventListener('click', function(e) {
-        if (!container.contains(e.target)) {
-          dropdown.classList.add('hidden');
-        }
-      });
-      // Hide dropdown on link click
-      // PDF v1 triggers print
-      var pdfV1 = document.getElementById('downloadPdfV1Link');
-      if (pdfV1) {
-        pdfV1.addEventListener('click', function(e) {
-          e.preventDefault();
-          dropdown.classList.add('hidden');
-          window.print();
-        });
-      }
-      // Hide dropdown on link click (except PDF v1, already handled)
-      dropdown.querySelectorAll('a:not(#downloadPdfV1Link)').forEach(function(link) {
-        link.addEventListener('click', function() {
-          dropdown.classList.add('hidden');
-        });
-      });
-    }
-  });
-</script>
     </div>
     {% endif %}
   </div>
