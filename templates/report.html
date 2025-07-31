@@ -112,89 +112,191 @@
         <div class="text-red-500">কোর্স রিপোর্ট তথ্য পাওয়া যায়নি।</div>
       {% endif %}
     </div>
-    <!-- Organizational Table -->
-    <div class="bg-gradient-to-br from-cyan-50 to-white rounded-xl shadow p-6">
-      <h2 class="text-xl font-bold text-cyan-700 mb-4">সংগঠন</h2>
-      {% if report.organizational %}
-        <table class="min-w-full text-sm border rounded-xl overflow-hidden">
-          <thead class="bg-cyan-100 text-cyan-800">
-            <tr><th class="px-3 py-2">ক্যাটাগরি</th><th class="px-3 py-2">সংখ্যা</th></tr>
-          </thead>
-          <tbody>
-            {% for org in report.organizational %}
-            <tr class="hover:bg-cyan-50">
-              <td class="px-3 py-2">{{ org.category }}</td>
-              <td class="px-3 py-2 text-center">{{ org.number }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+    <!-- Organizational Table (from organizational.html, read-only) -->
+    <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-cyan-400">
+      <h2 class="text-xl font-bold text-cyan-700 mb-2">দাওয়াত ও সংগঠন</h2>
+      {% if report.organizational and org_categories and cat_to_slug %}
+        <div class="overflow-x-auto w-full">
+          <table class="min-w-full border border-gray-300 bg-white rounded-lg text-xs md:text-sm">
+            <thead>
+              <tr class="bg-cyan-100 text-gray-900 text-center">
+                <th class="border border-gray-300 px-2 py-2 align-middle sticky left-0 z-10 bg-white text-left">দাওয়াত ও সংগঠন</th>
+                <th class="border border-gray-300 px-2 py-2">সংখ্যা</th>
+                <th class="border border-gray-300 px-2 py-2">বৃদ্ধি</th>
+                <th class="border border-gray-300 px-2 py-2">টাকা</th>
+                <th class="border border-gray-300 px-2 py-2">মন্তব্য</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for cat in org_categories %}
+                {% set slug = cat_to_slug[cat] %}
+                {% set row = report.organizational | selectattr('category', 'equalto', cat) | list | first %}
+                <tr class="text-center hover:bg-cyan-50">
+                  <td class="border border-gray-300 px-2 py-1 font-semibold sticky left-0 z-10 bg-white text-left">{{ cat }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ row.number if row and row.number is not none else 0 }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ row.increase if row and row.increase is not none else 0 }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ row.amount if row and row.amount is not none else 0 }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ row.comments if row and row.comments is not none else '' }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-red-500">সংগঠন তথ্য পাওয়া যায়নি।</div>
       {% endif %}
     </div>
-    <!-- Personal Table -->
-    <div class="bg-gradient-to-br from-pink-50 to-white rounded-xl shadow p-6">
-      <h2 class="text-xl font-bold text-pink-700 mb-4">ব্যক্তিগত</h2>
-      {% if report.personal %}
-        <table class="min-w-full text-sm border rounded-xl overflow-hidden">
-          <thead class="bg-pink-100 text-pink-800">
-            <tr><th class="px-3 py-2">ক্যাটাগরি</th><th class="px-3 py-2">Teaching</th><th class="px-3 py-2">Learning</th></tr>
-          </thead>
-          <tbody>
-            {% for p in report.personal %}
-            <tr class="hover:bg-pink-50">
-              <td class="px-3 py-2">{{ p.category }}</td>
-              <td class="px-3 py-2 text-center">{{ p.teaching }}</td>
-              <td class="px-3 py-2 text-center">{{ p.learning }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+    <!-- Personal Table (from personal.html, read-only) -->
+    <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-pink-400">
+      <h2 class="text-xl font-bold text-pink-700 mb-2">ব্যক্তিগত উদ্যোগে তা’লীমুল কুরআন</h2>
+      {% if report.personal and personal_categories and cat_to_slug %}
+        <div class="overflow-x-auto w-full">
+          <table class="min-w-full border border-gray-300 bg-white rounded-lg text-xs md:text-sm">
+            <thead>
+              <tr class="bg-cyan-100 text-gray-900 text-center">
+                <th class="border border-gray-300 px-2 py-2 align-middle sticky left-0 z-10 bg-white text-left" rowspan="2">ব্যক্তিগত উদ্যোগে তা’লীমুল কুরআন</th>
+                <th class="border border-gray-300 px-2 py-2 align-middle" rowspan="2">কতজন শিখাচ্ছেন</th>
+                <th class="border border-gray-300 px-2 py-2 align-middle border-r-4 border-cyan-300" rowspan="2">কতজনকে শিখাচ্ছেন</th>
+                <th class="border border-gray-300 px-2 py-2 align-middle" rowspan="2">কতজন ওয়ালামাকে দাওয়াত দিয়েছেন</th>
+                <th class="border border-gray-300 px-2 py-2 font-bold" colspan="4">দাওয়াত প্রাপ্ত ওয়ালামার মধ্যে</th>
+              </tr>
+              <tr class="bg-cyan-50 text-gray-800 text-center">
+                <th class="border border-gray-300 px-2 py-1 bg-cyan-100 font-bold">সহযোগী হয়েছেন</th>
+                <th class="border border-gray-300 px-2 py-1 bg-cyan-100 font-bold">সক্রিয় সহযোগী হয়েছেন</th>
+                <th class="border border-gray-300 px-2 py-1 bg-cyan-100 font-bold">কর্মী হয়েছেন</th>
+                <th class="border border-gray-300 px-2 py-1 bg-cyan-100 font-bold">রুকন হয়েছেন</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% set teaching_total = 0 %}
+              {% set learning_total = 0 %}
+              {% set olama_invited_total = 0 %}
+              {% set became_shohojogi_total = 0 %}
+              {% set became_sokrio_shohojogi_total = 0 %}
+              {% set became_kormi_total = 0 %}
+              {% set became_rukon_total = 0 %}
+              {% for cat in personal_categories %}
+                {% set slug = cat_to_slug[cat] %}
+                {% set row = (report.personal | selectattr('category', 'equalto', cat) | list | first) %}
+                {% set teaching_val = row.teaching if row else 0 %}
+                {% set learning_val = row.learning if row else 0 %}
+                {% set olama_invited_val = row.olama_invited if row else 0 %}
+                {% set became_shohojogi_val = row.became_shohojogi if row else 0 %}
+                {% set became_sokrio_shohojogi_val = row.became_sokrio_shohojogi if row else 0 %}
+                {% set became_kormi_val = row.became_kormi if row else 0 %}
+                {% set became_rukon_val = row.became_rukon if row else 0 %}
+                {% set teaching_total = teaching_total + teaching_val %}
+                {% set learning_total = learning_total + learning_val %}
+                {% set olama_invited_total = olama_invited_total + olama_invited_val %}
+                {% set became_shohojogi_total = became_shohojogi_total + became_shohojogi_val %}
+                {% set became_sokrio_shohojogi_total = became_sokrio_shohojogi_total + became_sokrio_shohojogi_val %}
+                {% set became_kormi_total = became_kormi_total + became_kormi_val %}
+                {% set became_rukon_total = became_rukon_total + became_rukon_val %}
+                <tr class="text-center hover:bg-cyan-50">
+                  <td class="border border-gray-300 px-2 py-1 font-semibold sticky left-0 z-10 bg-white text-left">{{ cat }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ teaching_val }}</td>
+                  <td class="border border-gray-300 px-2 py-1 border-r-4 border-cyan-300">{{ learning_val }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ olama_invited_val }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ became_shohojogi_val }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ became_sokrio_shohojogi_val }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ became_kormi_val }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ became_rukon_val }}</td>
+                </tr>
+              {% endfor %}
+              <tr class="bg-cyan-100 font-bold">
+                <td class="border border-gray-300 px-4 py-2 text-right sticky left-0 z-10 bg-cyan-100">মোট</td>
+                <td class="border border-gray-300 px-2 py-2 text-center">{{ teaching_total }}</td>
+                <td class="border border-gray-300 px-2 py-2 text-center border-r-4 border-cyan-300">{{ learning_total }}</td>
+                <td class="border border-gray-300 px-2 py-2 text-center">{{ olama_invited_total }}</td>
+                <td class="border border-gray-300 px-2 py-2 text-center">{{ became_shohojogi_total }}</td>
+                <td class="border border-gray-300 px-2 py-2 text-center">{{ became_sokrio_shohojogi_total }}</td>
+                <td class="border border-gray-300 px-2 py-2 text-center">{{ became_kormi_total }}</td>
+                <td class="border border-gray-300 px-2 py-2 text-center">{{ became_rukon_total }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-red-500">ব্যক্তিগত তথ্য পাওয়া যায়নি।</div>
       {% endif %}
     </div>
-    <!-- Meetings Table -->
-    <div class="bg-gradient-to-br from-blue-50 to-white rounded-xl shadow p-6">
-      <h2 class="text-xl font-bold text-blue-700 mb-4">বৈঠকসমূহ</h2>
-      {% if report.meetings %}
-        <table class="min-w-full text-sm border rounded-xl overflow-hidden">
-          <thead class="bg-blue-100 text-blue-800">
-            <tr><th class="px-3 py-2">ক্যাটাগরি</th><th class="px-3 py-2">City Count</th></tr>
-          </thead>
-          <tbody>
-            {% for m in report.meetings %}
-            <tr class="hover:bg-blue-50">
-              <td class="px-3 py-2">{{ m.category }}</td>
-              <td class="px-3 py-2 text-center">{{ m.city_count }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+    <!-- Meetings Table (from meetings.html, read-only) -->
+    <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-400">
+      <h2 class="text-xl font-bold text-blue-700 mb-2">বৈঠকসমূহ</h2>
+      {% if report.meetings and meeting_categories and cat_to_slug %}
+        <div class="overflow-x-auto w-full">
+          <table class="min-w-full border border-gray-300 bg-white rounded-lg text-xs md:text-sm">
+            <thead>
+              <tr class="bg-cyan-100 text-gray-900 text-center">
+                <th class="border border-gray-300 px-2 py-2 align-middle sticky left-0 z-10 bg-white text-left">বৈঠকসমূহ</th>
+                <th class="border border-gray-300 px-2 py-2">মহানগরীর কতটি</th>
+                <th class="border border-gray-300 px-2 py-2">মহানগরী গড় উপস্থিতি</th>
+                <th class="border border-gray-300 px-2 py-2">থানা কতটি</th>
+                <th class="border border-gray-300 px-2 py-2">থানা গড় উপস্থিতি</th>
+                <th class="border border-gray-300 px-2 py-2">ওয়ার্ড কতটি</th>
+                <th class="border border-gray-300 px-2 py-2">ওয়ার্ড গড় উপস্থিতি</th>
+                <th class="border border-gray-300 px-2 py-2">মন্তব্য</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for cat in meeting_categories %}
+                {% set slug = cat_to_slug[cat] %}
+                {% set row = (report.meetings | selectattr('category', 'equalto', cat) | list | first) %}
+                <tr class="text-center hover:bg-cyan-50">
+                  <td class="border border-gray-300 px-2 py-1 font-semibold sticky left-0 z-10 bg-white text-left">{{ cat }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ row.city_count if row and row.city_count is not none else 0 }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ row.city_avg_attendance if row and row.city_avg_attendance is not none else 0 }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ row.thana_count if row and row.thana_count is not none else 0 }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ row.thana_avg_attendance if row and row.thana_avg_attendance is not none else 0 }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ row.ward_count if row and row.ward_count is not none else 0 }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ row.ward_avg_attendance if row and row.ward_avg_attendance is not none else 0 }}</td>
+                  <td class="border border-gray-300 px-2 py-1">{{ row.comments if row and row.comments is not none else '' }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-red-500">বৈঠক তথ্য পাওয়া যায়নি।</div>
       {% endif %}
     </div>
-    <!-- Extras Table -->
-    <div class="bg-gradient-to-br from-green-50 to-white rounded-xl shadow p-6">
-      <h2 class="text-xl font-bold text-green-700 mb-4">এক্সট্রা</h2>
-      {% if report.extras %}
-        <table class="min-w-full text-sm border rounded-xl overflow-hidden">
-          <thead class="bg-green-100 text-green-800">
-            <tr><th class="px-3 py-2">ক্যাটাগরি</th><th class="px-3 py-2">সংখ্যা</th></tr>
-          </thead>
-          <tbody>
-            {% for e in report.extras %}
-            <tr class="hover:bg-green-50">
-              <td class="px-3 py-2">{{ e.category }}</td>
-              <td class="px-3 py-2 text-center">{{ e.number }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+    <!-- Extras Table (from extras.html, read-only) -->
+    <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-400">
+      <h2 class="text-xl font-bold text-green-700 mb-2">মক্তব ও সফর রিপোর্ট</h2>
+      {% if report.extras and extra_categories and cat_to_slug %}
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white border rounded-xl shadow divide-y divide-gray-200 text-xs md:text-sm">
+            <thead>
+              <tr class="bg-cyan-50 text-cyan-800">
+                <th class="px-4 py-2 text-left">বিষয়</th>
+                <th class="px-4 py-2 text-center">সংখ্যা</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for cat in extra_categories %}
+                {% set slug = cat_to_slug[cat] %}
+                {% set row = (report.extras | selectattr('category', 'equalto', cat) | list | first) %}
+                <tr class="border-b hover:bg-cyan-50">
+                  <td class="px-4 py-2 font-semibold">{{ cat }}</td>
+                  <td class="px-2 py-2 text-center">{{ row.number if row else 0 }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-red-500">এক্সট্রা তথ্য পাওয়া যায়নি।</div>
       {% endif %}
     </div>
-    <!-- Comments Table -->
-    <div class="bg-gradient-to-br from-yellow-50 to-white rounded-xl shadow p-6">
-      <h2 class="text-xl font-bold text-yellow-700 mb-4">মন্তব্য</h2>
-      {% if report.comments %}
-        <div class="text-gray-700 text-sm">{{ report.comments.comment }}</div>
-      {% endif %}
+    <!-- Comments Table (from comments.html, read-only) -->
+    <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-yellow-400">
+      <h2 class="text-xl font-bold text-yellow-700 mb-2">মন্তব্য</h2>
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2" aria-label="মন্তব্য" title="মন্তব্য">মন্তব্য</label>
+        <div class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 min-h-[4rem]">
+          {{ report.comments.comment if report.comments and report.comments.comment is not none else '' }}
+        </div>
+      </div>
     </div>
   </div>
 </div>
