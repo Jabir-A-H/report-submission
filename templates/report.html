@@ -7,27 +7,28 @@
       জোন রিপোর্ট (এক নজরে)
     </h1>
     {% if not request.args.get('report_id') or (current_user and current_user.role != 'admin') %}
-    <form method="get" class="flex flex-wrap gap-2 justify-center mb-4" id="report-filter-form">
-      <select id="report-type-select" name="report_type" class="p-2 border border-gray-300 rounded-lg">
-        <option value="মাসিক" {% if report_type == 'মাসিক' %}selected{% endif %}>মাসিক</option>
-        <option value="ত্রৈমাসিক" {% if report_type == 'ত্রৈমাসিক' %}selected{% endif %}>ত্রৈমাসিক</option>
-        <option value="ষান্মাসিক" {% if report_type == 'ষান্মাসিক' %}selected{% endif %}>ষান্মাসিক</option>
-        <option value="নয়-মাসিক" {% if report_type == 'নয়-মাসিক' %}selected{% endif %}>নয়-মাসিক</option>
-        <option value="বার্ষিক" {% if report_type == 'বার্ষিক' %}selected{% endif %}>বার্ষিক</option>
-      </select>
-      <select id="month-select" name="month" class="p-2 border border-gray-300 rounded-lg">
-        {% for i in range(1, 13) %}
-        <option value="{{ i }}" {% if i == month|int %}selected{% endif %}>{{ i|month_name }}</option>
-        {% endfor %}
-      </select>
-      <select name="year" class="p-2 border border-gray-300 rounded-lg">
-        {% for y in range(2025, 2027) %}
-        <option value="{{ y }}" {% if y == year|int %}selected{% endif %}>{{ y }}</option>
-        {% endfor %}
-      </select>
-      <button type="submit" class="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition">সার্চ করুন</button>
-    </form>
-      <div class="relative">
+    <div class="flex flex-wrap gap-2 justify-center mb-4 items-center" id="report-filter-form-row">
+      <form method="get" class="flex flex-wrap gap-2 items-center" id="report-filter-form">
+        <select id="report-type-select" name="report_type" class="p-2 border border-gray-300 rounded-lg">
+          <option value="মাসিক" {% if report_type == 'মাসিক' %}selected{% endif %}>মাসিক</option>
+          <option value="ত্রৈমাসিক" {% if report_type == 'ত্রৈমাসিক' %}selected{% endif %}>ত্রৈমাসিক</option>
+          <option value="ষান্মাসিক" {% if report_type == 'ষান্মাসিক' %}selected{% endif %}>ষান্মাসিক</option>
+          <option value="নয়-মাসিক" {% if report_type == 'নয়-মাসিক' %}selected{% endif %}>নয়-মাসিক</option>
+          <option value="বার্ষিক" {% if report_type == 'বার্ষিক' %}selected{% endif %}>বার্ষিক</option>
+        </select>
+        <select id="month-select" name="month" class="p-2 border border-gray-300 rounded-lg">
+          {% for i in range(1, 13) %}
+          <option value="{{ i }}" {% if i == month|int %}selected{% endif %}>{{ i|month_name }}</option>
+          {% endfor %}
+        </select>
+        <select name="year" class="p-2 border border-gray-300 rounded-lg">
+          {% for y in range(2025, 2027) %}
+          <option value="{{ y }}" {% if y == year|int %}selected{% endif %}>{{ y }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition">সার্চ করুন</button>
+      </form>
+      <div class="relative" id="downloadDropdownContainer">
         <button type="button" id="downloadDropdownBtn" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition shadow">
           ডাউনলোড
         </button>
@@ -36,6 +37,33 @@
           <a href="/download_report?report_type={{ report_type }}&month={{ month }}&year={{ year }}&format=excel" class="block px-4 py-2 text-gray-700 hover:bg-green-50">Excel</a>
         </div>
       </div>
+<script>
+  // Download dropdown toggle logic
+  document.addEventListener('DOMContentLoaded', function() {
+    var btn = document.getElementById('downloadDropdownBtn');
+    var dropdown = document.getElementById('downloadDropdown');
+    var container = document.getElementById('downloadDropdownContainer');
+    if (btn && dropdown) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        dropdown.classList.toggle('hidden');
+      });
+      // Hide dropdown when clicking outside
+      document.addEventListener('click', function(e) {
+        if (!container.contains(e.target)) {
+          dropdown.classList.add('hidden');
+        }
+      });
+      // Hide dropdown on link click
+      dropdown.querySelectorAll('a').forEach(function(link) {
+        link.addEventListener('click', function() {
+          dropdown.classList.add('hidden');
+        });
+      });
+    }
+  });
+</script>
+    </div>
     {% endif %}
   </div>
   <div class="flex flex-col gap-8">
