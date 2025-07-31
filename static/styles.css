@@ -1,25 +1,29 @@
-/* Use Helvetica Neue for English digits and ASCII letters inside Bangla text */
-.bangla-helvetica-fix, body, html, [lang="bn"] {
+@import url('https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
+
+/* Use Ubuntu for English digits and ASCII letters inside Bangla text */
+.bangla-ubuntu-fix, body, html, [lang="bn"] {
   font-family: 'Tiro Bangla', sans-serif;
 }
-.bangla-helvetica-fix :is(span.en, .en, .ascii, .latin, .eng, .num, .number),
+.bangla-ubuntu-fix :is(span.en, .en, .ascii, .latin, .eng, .num, .number),
 body :is(span.en, .en, .ascii, .latin, .eng, .num, .number),
 html :is(span.en, .en, .ascii, .latin, .eng, .num, .number),
 [lang="bn"] :is(span.en, .en, .ascii, .latin, .eng, .num, .number) {
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+  font-family: 'Ubuntu', sans-serif !important;
   letter-spacing: 0.01em;
 }
 
 /* Automatic font for digits and ASCII letters using unicode-range (for modern browsers) */
 @font-face {
-  font-family: 'HelveticaForDigits';
-  src: local('Helvetica Neue'), local('Helvetica'), local('Arial');
+  font-family: 'UbuntuForDigits';
+  src: local('Ubuntu'), url('https://fonts.gstatic.com/s/ubuntu/v20/4iCs6KVjbNBYlgoKcg72j00.woff2') format('woff2');
   unicode-range: U+0030-0039, U+0041-005A, U+0061-007A;
+  font-style: normal;
+  font-weight: 400;
 }
 body, html, [lang="bn"] {
-  font-family: 'Tiro Bangla', 'HelveticaForDigits', sans-serif;
+  font-family: 'Tiro Bangla', 'UbuntuForDigits', sans-serif;
 }
-@import url('https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&display=swap');
+
 
 /* Print-specific styles for report pages */
 @media print {
@@ -95,7 +99,7 @@ body, html, [lang="bn"] {
 /* Tailwind utility overrides and custom UI styles for Bengali report system */
 
 body {
-  font-family: 'Tiro Bangla', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: 'Tiro Bangla', 'Ubuntu', sans-serif;
   background: linear-gradient(135deg, #fdf6e3 0%, #f0f9ff 100%);
   color: #222;
 }
@@ -104,7 +108,7 @@ body:lang(bn), html:lang(bn), [lang="bn"] {
   font-family: 'Tiro Bangla', sans-serif;
 }
 body:lang(en), html:lang(en), [lang="en"] {
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: 'Ubuntu', sans-serif;
 }
 
 .fade-in {
