@@ -39,21 +39,21 @@
     {% endif %}
   </div>
   <div class="flex flex-col gap-8">
-    <!-- Header Table -->
+    <!-- Header Table (fields from header.html, read-only) -->
     <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-cyan-400">
       <h2 class="text-xl font-bold text-cyan-700 mb-2">মূল তথ্য</h2>
       {% if report.header %}
-        <div class="grid grid-cols-2 gap-2 text-gray-700 text-sm">
-          <div><span class="font-semibold">দায়িত্বপ্রাপ্ত:</span> {{ report.header.responsible_name }}</div>
+        <div class="grid grid-cols-2 gap-4 text-gray-700 text-sm">
+          <div><span class="font-semibold">দায়িত্বশীলের নাম:</span> {{ report.header.responsible_name }}</div>
           <div><span class="font-semibold">থানা:</span> {{ report.header.thana }}</div>
           <div><span class="font-semibold">ওয়ার্ড:</span> {{ report.header.ward }}</div>
-          <div><span class="font-semibold">মোট মুআল্লিমা:</span> {{ report.header.total_muallima }}</div>
-          <div><span class="font-semibold">বৃদ্ধি:</span> {{ report.header.muallima_increase }}</div>
-          <div><span class="font-semibold">হ্রাস:</span> {{ report.header.muallima_decrease }}</div>
-          <div><span class="font-semibold">প্রশিক্ষিত:</span> {{ report.header.certified_muallima }}</div>
-          <div><span class="font-semibold">প্রশিক্ষিত (ক্লাস নিচ্ছেন):</span> {{ report.header.certified_muallima_taking_classes }}</div>
-          <div><span class="font-semibold">ট্রেইনিং প্রাপ্ত:</span> {{ report.header.trained_muallima }}</div>
-          <div><span class="font-semibold">ট্রেইনিং প্রাপ্ত (ক্লাস নিচছেন):</span> {{ report.header.trained_muallima_taking_classes }}</div>
+          <div><span class="font-semibold">মোট মুয়াল্লিমা সংখ্যা:</span> {{ report.header.total_muallima }}</div>
+          <div><span class="font-semibold">মুয়াল্লিমা বৃদ্ধি:</span> {{ report.header.muallima_increase }}</div>
+          <div><span class="font-semibold">মুয়াল্লিমা হ্রাস:</span> {{ report.header.muallima_decrease }}</div>
+          <div><span class="font-semibold">প্রশিক্ষিত মুয়াল্লিমা:</span> {{ report.header.certified_muallima }}</div>
+          <div><span class="font-semibold">প্রশিক্ষিত মুয়াল্লিমা (ক্লাস নিচ্ছেন):</span> {{ report.header.certified_muallima_taking_classes }}</div>
+          <div><span class="font-semibold">ট্রেইনিং প্রাপ্ত মুয়াল্লিমা:</span> {{ report.header.trained_muallima }}</div>
+          <div><span class="font-semibold">ট্রেইনিং প্রাপ্ত মুয়াল্লিমা (ক্লাস নিচ্ছেন):</span> {{ report.header.trained_muallima_taking_classes }}</div>
           <div><span class="font-semibold">মোট ইউনিট:</span> {{ report.header.total_unit }}</div>
           <div><span class="font-semibold">মুয়াল্লিমা সহ ইউনিট:</span> {{ report.header.units_with_muallima }}</div>
         </div>
@@ -61,23 +61,55 @@
         <div class="text-red-500">Header section incomplete.</div>
       {% endif %}
     </div>
-    <!-- Courses Table -->
+    <!-- Courses Table (from courses.html, read-only) -->
     <div class="bg-gradient-to-br from-purple-50 to-white rounded-xl shadow-lg p-6 border-l-4 border-purple-400">
-      <h2 class="text-xl font-bold text-purple-700 mb-4">কোর্স রিপোর্ট</h2>
-      {% if report.courses %}
-        <table class="min-w-full text-sm border rounded-xl overflow-hidden">
-          <thead class="bg-purple-100 text-purple-800">
-            <tr><th class="px-3 py-2">ক্যাটাগরি</th><th class="px-3 py-2">সংখ্যা</th></tr>
-          </thead>
-          <tbody>
-            {% for course in report.courses %}
-            <tr class="hover:bg-purple-50">
-              <td class="px-3 py-2">{{ course.category }}</td>
-              <td class="px-3 py-2 text-center">{{ course.number }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+      <h2 class="text-xl font-bold text-purple-700 mb-4">গ্রুপ / কোর্স রিপোর্ট</h2>
+      {% if report.courses and course_categories and cat_to_slug %}
+        <div class="overflow-x-auto w-full">
+          <table class="min-w-full border border-gray-300 bg-white rounded-lg text-xs md:text-sm">
+            <thead>
+              <tr class="bg-cyan-100 text-gray-900 text-center">
+                <th rowspan="2" class="border border-gray-300 px-2 py-2 align-middle sticky left-0 z-10 bg-white">বিভাগ/ধরন</th>
+                <th colspan="3" class="border border-gray-300 px-2 py-2">গ্রুপ / কোর্স</th>
+                <th rowspan="2" class="border border-gray-300 px-2 py-2 align-middle">অধিবেশন সংখ্যা</th>
+                <th rowspan="2" class="border border-gray-300 px-2 py-2 align-middle">শিক্ষার্থী সংখ্যা</th>
+                <th rowspan="2" class="border border-gray-300 px-2 py-2 align-middle">উপস্থিতি সংখ্যা</th>
+                <th colspan="4" class="border border-gray-300 px-2 py-2">শিক্ষার্থী অবস্থান</th>
+                <th rowspan="2" class="border border-gray-300 px-2 py-2 align-middle">কতজন নিয়ে সমাপ্ত</th>
+                <th rowspan="2" class="border border-gray-300 px-2 py-2 align-middle">সহীহ শিখেছেন কতজন</th>
+              </tr>
+              <tr class="bg-cyan-50 text-gray-800 text-center">
+                <th class="border border-gray-300 px-2 py-1">সংখ্যা</th>
+                <th class="border border-gray-300 px-2 py-1">বৃদ্ধি</th>
+                <th class="border border-gray-300 px-2 py-1">ঘাটতি</th>
+                <th class="border border-gray-300 px-2 py-1">বোর্ডে</th>
+                <th class="border border-gray-300 px-2 py-1">কায়দায়</th>
+                <th class="border border-gray-300 px-2 py-1">আমপারা</th>
+                <th class="border border-gray-300 px-2 py-1">কুরআন</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for category in course_categories %}
+                {% set slug = cat_to_slug[category] %}
+                {% set row = report.courses|selectattr('category', 'equalto', category)|first if report and report.courses else None %}
+                <tr class="text-center hover:bg-cyan-50">
+                  <td class="border border-gray-300 px-2 py-1 font-semibold sticky left-0 z-10 bg-white">{{ category }}</td>
+                  {% set fields = [
+                    'number', 'increase', 'decrease', 'sessions', 'students', 'attendance',
+                    'status_board', 'status_qayda', 'status_ampara', 'status_quran',
+                    'completed', 'correctly_learned'] %}
+                  {% for field in fields %}
+                    <td class="border border-gray-300 px-2 py-1">
+                      {{ row[field] if row and row[field] is not none else 0 }}
+                    </td>
+                  {% endfor %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-red-500">কোর্স রিপোর্ট তথ্য পাওয়া যায়নি।</div>
       {% endif %}
     </div>
     <!-- Organizational Table -->
