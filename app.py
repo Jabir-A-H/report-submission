@@ -646,14 +646,93 @@ def city_report_page():
 
     month = request.args.get("month")
     year = request.args.get("year")
+    report_type = request.args.get("report_type", "মাসিক")
     now = datetime.now()
-    if not month:
+    if not month and report_type == "মাসিক":
         month = now.month
     if not year:
         year = now.year
-    course_totals = {}  # TODO: Replace with real data
+
+    # Category lists and slug mappings (same as report.html)
+    course_categories_raw = [
+        "বিশিষ্টদের",
+        "সাধারণদের",
+        "কর্মীদের",
+        "ইউনিট সভানেত্রী",
+        "অগ্রসরদের",
+        "শিশু- তা'লিমুল কুরআন",
+        "নিরক্ষর- তা'লিমুস সলাত",
+    ]
+    org_categories_raw = [
+        "দাওয়াত দান",
+        "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
+        "সহযোগী হয়েছে",
+        "সম্মতি দিয়েছেন",
+        "সক্রিয় সহযোগী",
+        "কর্মী",
+        "রুকন",
+        "দাওয়াতী ইউনিট",
+        "ইউনিট",
+        "সূধী",
+        "এককালীন",
+        "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
+        "বই বিলি",
+        "বই বিক্রি",
+    ]
+    personal_categories_raw = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
+    meeting_categories_raw = [
+        "কমিটি বৈঠক হয়েছে",
+        "মুয়াল্লিমাদের নিয়ে বৈঠক",
+        "Committee Orientation",
+        "Muallima Orientation",
+    ]
+    extra_categories_raw = [
+        "মক্তব সংখ্যা",
+        "মক্তব বৃদ্ধি",
+        "মহানগরী পরিচালিত",
+        "স্থানীয়ভাবে পরিচালিত",
+        "মহানগরীর সফর",
+        "থানা কমিটির সফর",
+        "থানা প্রতিনিধির সফর",
+        "ওয়ার্ড প্রতিনিধির সফর",
+    ]
+
+    course_categories, cat_to_slug, slug_to_cat = make_slugs(course_categories_raw)
+    org_categories, org_cat_to_slug, org_slug_to_cat = make_slugs(org_categories_raw)
+    personal_categories, personal_cat_to_slug, personal_slug_to_cat = make_slugs(
+        personal_categories_raw
+    )
+    meeting_categories, meeting_cat_to_slug, meeting_slug_to_cat = make_slugs(
+        meeting_categories_raw
+    )
+    extra_categories, extra_cat_to_slug, extra_slug_to_cat = make_slugs(
+        extra_categories_raw
+    )
+
+    # Placeholder for city-wide aggregation (to be implemented)
+    city_summary = {}
+
     return render_template(
-        "city_report.html", month=month, year=year, course_totals=course_totals
+        "city_report.html",
+        month=month,
+        year=year,
+        report_type=report_type,
+        course_categories=course_categories,
+        org_categories=org_categories,
+        personal_categories=personal_categories,
+        meeting_categories=meeting_categories,
+        extra_categories=extra_categories,
+        cat_to_slug=cat_to_slug,
+        slug_to_cat=slug_to_cat,
+        org_cat_to_slug=org_cat_to_slug,
+        org_slug_to_cat=org_slug_to_cat,
+        personal_cat_to_slug=personal_cat_to_slug,
+        personal_slug_to_cat=personal_slug_to_cat,
+        meeting_cat_to_slug=meeting_cat_to_slug,
+        meeting_slug_to_cat=meeting_slug_to_cat,
+        extra_cat_to_slug=extra_cat_to_slug,
+        extra_slug_to_cat=extra_slug_to_cat,
+        city_summary=city_summary,
     )
 
 
