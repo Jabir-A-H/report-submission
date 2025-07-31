@@ -103,7 +103,7 @@
     <!-- Courses Table (from courses.html, read-only) -->
     <div class="bg-gradient-to-br from-purple-50 to-white rounded-xl shadow-lg p-6 border-l-4 border-purple-400">
       <h2 class="text-xl font-bold text-purple-700 mb-4">গ্রুপ / কোর্স রিপোর্ট</h2>
-      {% if report.courses and course_categories and cat_to_slug %}
+      {% if report.courses and course_categories %}
         <div class="overflow-x-auto w-full">
           <table class="min-w-full border border-gray-300 bg-white rounded-lg text-xs md:text-sm">
             <thead>
@@ -154,7 +154,7 @@
     <!-- Organizational Table (from organizational.html, read-only) -->
     <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-cyan-400">
       <h2 class="text-xl font-bold text-cyan-700 mb-2">দাওয়াত ও সংগঠন</h2>
-      {% if report.organizational and org_categories and cat_to_slug %}
+      {% if report.organizational and org_categories %}
         <div class="overflow-x-auto w-full">
           <table class="min-w-full border border-gray-300 bg-white rounded-lg text-xs md:text-sm">
             <thead>
@@ -188,7 +188,7 @@
     <!-- Personal Table (from personal.html, read-only) -->
     <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-pink-400">
       <h2 class="text-xl font-bold text-pink-700 mb-2">ব্যক্তিগত উদ্যোগে তা’লীমুল কুরআন</h2>
-      {% if report.personal and personal_categories and cat_to_slug %}
+      {% if report.personal and personal_categories %}
         <div class="overflow-x-auto w-full">
           <table class="min-w-full border border-gray-300 bg-white rounded-lg text-xs md:text-sm">
             <thead>
@@ -262,7 +262,7 @@
     <!-- Meetings Table (from meetings.html, read-only) -->
     <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-400">
       <h2 class="text-xl font-bold text-blue-700 mb-2">বৈঠকসমূহ</h2>
-      {% if report.meetings and meeting_categories and cat_to_slug %}
+      {% if report.meetings and meeting_categories %}
         <div class="overflow-x-auto w-full">
           <table class="min-w-full border border-gray-300 bg-white rounded-lg text-xs md:text-sm">
             <thead>
@@ -302,7 +302,7 @@
     <!-- Extras Table (from extras.html, read-only) -->
     <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-400">
       <h2 class="text-xl font-bold text-green-700 mb-2">মক্তব ও সফর রিপোর্ট</h2>
-      {% if report.extras and extra_categories and cat_to_slug %}
+      {% if report.extras and extra_categories %}
         <div class="overflow-x-auto">
           <table class="min-w-full bg-white border rounded-xl shadow divide-y divide-gray-200 text-xs md:text-sm">
             <thead>
