@@ -414,6 +414,7 @@ def dashboard():
     ]
 
     if is_admin():
+        reports = Report.query.all()
         return render_template(
             "index_admin.html",
             user=current_user,
@@ -421,6 +422,7 @@ def dashboard():
             year=year,
             report_type=report_type,
             report_types=report_types,
+            reports=reports,
         )
     else:
         # Build sections list with completion status and navigation URLs
