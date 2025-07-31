@@ -634,15 +634,6 @@ def delete_zone(zone_id):
     return redirect(url_for("admin_zones"))
 
 
-@app.route("/zone_reports")
-@login_required
-def zone_reports():
-    if not is_admin():
-        return redirect(url_for("dashboard"))
-    reports = Report.query.all()
-    return render_template("zone_reports.html", reports=reports)
-
-
 # --- City Report Page ---
 @app.route("/city_report")
 @login_required
