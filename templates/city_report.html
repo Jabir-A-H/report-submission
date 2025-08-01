@@ -1,5 +1,6 @@
-{% extends 'base.html' %} {% set page_title = 'সিটি রিপোর্ট' %} {% block content
-%}
+{% extends 'base.html' %}
+{% set page_title = 'সিটি রিপোর্ট' %}
+{% block content%}
 <div class="container mx-auto px-4 py-8 animate-fade-in">
   <div class="text-center mb-8">
     <h1 class="text-4xl font-extrabold text-purple-700 mb-2 text-center">
@@ -43,54 +44,23 @@
     <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-cyan-400">
       <h2 class="text-xl font-bold text-cyan-700 mb-2">মূল তথ্য</h2>
       {% if city_summary %}
-      <div class="grid grid-cols-2 gap-4 text-gray-700 text-sm">
-        <div>
-          <span class="font-semibold">মোট জোন:</span> {{
-          city_summary.total_zones }}
+        <div class="grid grid-cols-2 gap-4 text-gray-700 text-sm">
+          <div><span class="font-semibold">দায়িত্বশীলের নাম:</span> {{ city_summary.responsible_name if city_summary.responsible_name is not none else '' }}</div>
+          <div><span class="font-semibold">থানা:</span> {{ city_summary.thana if city_summary.thana is not none else '' }}</div>
+          <div><span class="font-semibold">ওয়ার্ড:</span> {{ city_summary.ward if city_summary.ward is not none else '' }}</div>
+          <div><span class="font-semibold">মোট জোন:</span> {{ city_summary.total_zones }}</div>
+          <div><span class="font-semibold">মোট মুয়াল্লিমা সংখ্যা:</span> {{ city_summary.total_muallima }}</div>
+          <div><span class="font-semibold">মুয়াল্লিমা বৃদ্ধি:</span> {{ city_summary.muallima_increase }}</div>
+          <div><span class="font-semibold">মুয়াল্লিমা হ্রাস:</span> {{ city_summary.muallima_decrease }}</div>
+          <div><span class="font-semibold">প্রশিক্ষিত মুয়াল্লিমা:</span> {{ city_summary.certified_muallima }}</div>
+          <div><span class="font-semibold">প্রশিক্ষিত মুয়াল্লিমা (ক্লাস নিচ্ছেন):</span> {{ city_summary.certified_muallima_taking_classes }}</div>
+          <div><span class="font-semibold">ট্রেইনিং প্রাপ্ত মুয়াল্লিমা:</span> {{ city_summary.trained_muallima }}</div>
+          <div><span class="font-semibold">ট্রেইনিং প্রাপ্ত মুয়াল্লিমা (ক্লাস নিচ্ছেন):</span> {{ city_summary.trained_muallima_taking_classes }}</div>
+          <div><span class="font-semibold">মোট ইউনিট:</span> {{ city_summary.total_unit }}</div>
+          <div><span class="font-semibold">মুয়াল্লিমা সহ ইউনিট:</span> {{ city_summary.units_with_muallima }}</div>
         </div>
-        <div>
-          <span class="font-semibold">মোট ইউনিট:</span> {{
-          city_summary.total_unit }}
-        </div>
-        <div>
-          <span class="font-semibold">মোট মুয়াল্লিমা সংখ্যা:</span> {{
-          city_summary.total_muallima }}
-        </div>
-        <div>
-          <span class="font-semibold">মুয়াল্লিমা বৃদ্ধি:</span> {{
-          city_summary.muallima_increase }}
-        </div>
-        <div>
-          <span class="font-semibold">মুয়াল্লিমা হ্রাস:</span> {{
-          city_summary.muallima_decrease }}
-        </div>
-        <div>
-          <span class="font-semibold">প্রশিক্ষিত মুয়াল্লিমা:</span> {{
-          city_summary.certified_muallima }}
-        </div>
-        <div>
-          <span class="font-semibold"
-            >প্রশিক্ষিত মুয়াল্লিমা (ক্লাস নিচ্ছেন):</span
-          >
-          {{ city_summary.certified_muallima_taking_classes }}
-        </div>
-        <div>
-          <span class="font-semibold">ট্রেইনিং প্রাপ্ত মুয়াল্লিমা:</span> {{
-          city_summary.trained_muallima }}
-        </div>
-        <div>
-          <span class="font-semibold"
-            >ট্রেইনিং প্রাপ্ত মুয়াল্লিমা (ক্লাস নিচ্ছেন):</span
-          >
-          {{ city_summary.trained_muallima_taking_classes }}
-        </div>
-        <div>
-          <span class="font-semibold">মুয়াল্লিমা সহ ইউনিট:</span> {{
-          city_summary.units_with_muallima }}
-        </div>
-      </div>
       {% else %}
-      <div class="text-red-500">City summary unavailable.</div>
+        <div class="text-red-500">City summary unavailable.</div>
       {% endif %}
     </div>
     <!-- Courses Table (aggregated, read-only) -->
