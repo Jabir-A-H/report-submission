@@ -728,43 +728,37 @@ def city_report_page():
 
     months = get_months(report_type, month)
     year_int = int(year)
-    # Query all zone reports for the selected period
-    report_query = Report.query.filter_by(year=year_int, report_type=report_type)
+    # Always aggregate city report from all zones' মাসিক reports for the relevant months
     if report_type == "মাসিক":
+        report_query = Report.query.filter_by(year=year_int, report_type="মাসিক")
         report_query = report_query.filter(Report.month == int(month))
-    elif months:
-        report_query = report_query.filter(Report.month.in_(months))
+    else:
+        report_query = Report.query.filter_by(year=year_int, report_type="মাসিক")
+        if months:
+            report_query = report_query.filter(Report.month.in_(months))
     reports = report_query.all()
 
     # --- Header Aggregation ---
-    city_summary = {
-        "total_zones": len(set(r.zone_id for r in reports)),
-        "total_unit": 0,
-        "total_muallima": 0,
-        "muallima_increase": 0,
-        "muallima_decrease": 0,
-        "certified_muallima": 0,
-        "certified_muallima_taking_classes": 0,
-        "trained_muallima": 0,
-        "trained_muallima_taking_classes": 0,
-        "units_with_muallima": 0,
-    }
+    header_fields = [
+        "total_unit",
+        "total_muallima",
+        "muallima_increase",
+        "muallima_decrease",
+        "certified_muallima",
+        "certified_muallima_taking_classes",
+        "trained_muallima",
+        "trained_muallima_taking_classes",
+        "units_with_muallima",
+        "ward",
+    ]
+    city_summary = {field: 0 for field in header_fields}
+    city_summary["total_zones"] = len(set(r.zone_id for r in reports))
     for r in reports:
         if r.header:
-            city_summary["total_unit"] += r.header.total_unit or 0
-            city_summary["total_muallima"] += r.header.total_muallima or 0
-            city_summary["muallima_increase"] += r.header.muallima_increase or 0
-            city_summary["muallima_decrease"] += r.header.muallima_decrease or 0
-            city_summary["certified_muallima"] += r.header.certified_muallima or 0
-            city_summary["certified_muallima_taking_classes"] += (
-                r.header.certified_muallima_taking_classes or 0
-            )
-            city_summary["trained_muallima"] += r.header.trained_muallima or 0
-            city_summary["trained_muallima_taking_classes"] += (
-                r.header.trained_muallima_taking_classes or 0
-            )
-            city_summary["units_with_muallima"] += r.header.units_with_muallima or 0
-
+            for field in header_fields:
+                city_summary[field] += getattr(r.header, field, 0) or 0
+    city_summary["responsible_name"] = None
+    city_summary["thana"] = None
     # --- Courses Aggregation ---
     city_courses = []
     for cat in course_categories:
@@ -1500,7 +1494,6 @@ def report_summary():
     agg.header = None
     if reports:
         from collections import defaultdict
-
         header_fields = [
             "total_muallima",
             "muallima_increase",
@@ -1511,29 +1504,20 @@ def report_summary():
             "trained_muallima_taking_classes",
             "total_unit",
             "units_with_muallima",
+            "ward",
         ]
         header_sum = defaultdict(int)
-        responsible_name = thana = ward = None
         for r in reports:
             if r.header:
                 for f in header_fields:
                     header_sum[f] += getattr(r.header, f, 0) or 0
-                if not responsible_name and r.header.responsible_name:
-                    responsible_name = r.header.responsible_name
-                if not thana and r.header.thana:
-                    thana = r.header.thana
-                if not ward and r.header.ward:
-                    ward = r.header.ward
-
         class HeaderObj:
             pass
-
         agg.header = HeaderObj()
         for f in header_fields:
             setattr(agg.header, f, header_sum[f])
-        agg.header.responsible_name = responsible_name or ""
-        agg.header.thana = thana or ""
-        agg.header.ward = ward or ""
+        agg.header.responsible_name = None
+        agg.header.thana = None
     # Courses
     agg.courses = []
     for cat in course_categories:

@@ -1,3 +1,26 @@
+// Month selector toggle for both zone and city report types
+function setupMonthSelectorToggle(typeSelectId, monthWrapperId, isWrapperSpan = false) {
+  var typeSelect = document.getElementById(typeSelectId);
+  var monthWrapper = document.getElementById(monthWrapperId);
+  function toggleMonthSelector() {
+    if (!typeSelect || !monthWrapper) return;
+    var type = typeSelect.value;
+    // For zone report, monthWrapper is a span; for city report, it's the select itself
+    if (type === 'মাসিক') {
+      monthWrapper.style.display = '';
+    } else {
+      monthWrapper.style.display = 'none';
+    }
+  }
+  if (typeSelect && monthWrapper) {
+    typeSelect.addEventListener('change', toggleMonthSelector);
+    toggleMonthSelector();
+  }
+}
+document.addEventListener('DOMContentLoaded', function() {
+  setupMonthSelectorToggle('report-type-select', 'month-select-wrapper', true); // zone report
+  setupMonthSelectorToggle('city-report-type-select', 'city-month-select', false); // city report
+});
 // Download dropdown toggle logic (global)
 document.addEventListener('DOMContentLoaded', function() {
   var btn = document.getElementById('downloadDropdownBtn');

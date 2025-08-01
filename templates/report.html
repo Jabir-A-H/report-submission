@@ -16,11 +16,13 @@
           <option value="নয়-মাসিক" {% if report_type == 'নয়-মাসিক' %}selected{% endif %}>নয়-মাসিক</option>
           <option value="বার্ষিক" {% if report_type == 'বার্ষিক' %}selected{% endif %}>বার্ষিক</option>
         </select>
-        <select id="month-select" name="month" class="p-2 border border-gray-300 rounded-lg">
-          {% for i in range(1, 13) %}
-          <option value="{{ i }}" {% if i == month|int %}selected{% endif %}>{{ i|month_name }}</option>
-          {% endfor %}
-        </select>
+        <span id="month-select-wrapper">
+          <select id="month-select" name="month" class="p-2 border border-gray-300 rounded-lg">
+            {% for i in range(1, 13) %}
+            <option value="{{ i }}" {% if i == month|int %}selected{% endif %}>{{ i|month_name }}</option>
+            {% endfor %}
+          </select>
+        </span>
         <select name="year" class="p-2 border border-gray-300 rounded-lg">
           {% for y in range(2025, 2027) %}
           <option value="{{ y }}" {% if y == year|int %}selected{% endif %}>{{ y }}</option>
