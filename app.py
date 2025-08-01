@@ -577,26 +577,6 @@ def register():
 # --- Admin Management ---
 
 
-# --- Admin City Report Override Model ---
-class CityReportOverride(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    year = db.Column(db.Integer, nullable=False)
-    month = db.Column(db.Integer, nullable=True)
-    report_type = db.Column(db.String(20), nullable=False)
-    # Optionally, you can add zone_id if you want per-zone overrides
-    # zone_id = db.Column(db.Integer, db.ForeignKey("zone.id"), nullable=True)
-    section = db.Column(
-        db.String(50), nullable=False
-    )  # e.g., 'header', 'organizational', etc.
-    field = db.Column(
-        db.String(50), nullable=False
-    )  # e.g., 'total_muallima', 'comments', etc.
-    value = db.Column(db.Text, nullable=True)
-    # Optionally, track who overrode and when
-    admin_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
-    timestamp = db.Column(db.DateTime, server_default=db.func.now())
-
-
 @app.route("/users", methods=["GET", "POST"])
 @login_required
 def admin_users():
@@ -654,6 +634,26 @@ def delete_zone(zone_id):
     db.session.commit()
     flash("Zone deleted successfully.")
     return redirect(url_for("admin_zones"))
+
+
+# --- Admin City Report Override Model ---
+class CityReportOverride(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    year = db.Column(db.Integer, nullable=False)
+    month = db.Column(db.Integer, nullable=True)
+    report_type = db.Column(db.String(20), nullable=False)
+    # Optionally, you can add zone_id if you want per-zone overrides
+    # zone_id = db.Column(db.Integer, db.ForeignKey("zone.id"), nullable=True)
+    section = db.Column(
+        db.String(50), nullable=False
+    )  # e.g., 'header', 'organizational', etc.
+    field = db.Column(
+        db.String(50), nullable=False
+    )  # e.g., 'total_muallima', 'comments', etc.
+    value = db.Column(db.Text, nullable=True)
+    # Optionally, track who overrode and when
+    admin_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+    timestamp = db.Column(db.DateTime, server_default=db.func.now())
 
 
 # --- City Report Page ---
