@@ -753,12 +753,24 @@ def city_report_page():
     ]
     city_summary = {field: 0 for field in header_fields}
     city_summary["total_zones"] = len(set(r.zone_id for r in reports))
+    thana_values = []
     for r in reports:
         if r.header:
             for field in header_fields:
                 city_summary[field] += getattr(r.header, field, 0) or 0
+            thana_val = getattr(r.header, "thana", None)
+            if thana_val is not None:
+                try:
+                    thana_int = int(thana_val)
+                    thana_values.append(thana_int)
+                except (ValueError, TypeError):
+                    thana_values.append(None)
     city_summary["responsible_name"] = None
-    city_summary["thana"] = None
+    # If all thana_values are integers (not None), sum them; else None
+    if thana_values and all(v is not None for v in thana_values):
+        city_summary["thana"] = sum(thana_values)
+    else:
+        city_summary["thana"] = None
     # --- Courses Aggregation ---
     city_courses = []
     for cat in course_categories:
@@ -1494,6 +1506,7 @@ def report_summary():
     agg.header = None
     if reports:
         from collections import defaultdict
+
         header_fields = [
             "total_muallima",
             "muallima_increase",
@@ -1507,17 +1520,30 @@ def report_summary():
             "ward",
         ]
         header_sum = defaultdict(int)
+        thana_values = []
         for r in reports:
             if r.header:
                 for f in header_fields:
                     header_sum[f] += getattr(r.header, f, 0) or 0
+                thana_val = getattr(r.header, "thana", None)
+                if thana_val is not None:
+                    try:
+                        thana_int = int(thana_val)
+                        thana_values.append(thana_int)
+                    except (ValueError, TypeError):
+                        thana_values.append(None)
+
         class HeaderObj:
             pass
+
         agg.header = HeaderObj()
         for f in header_fields:
             setattr(agg.header, f, header_sum[f])
         agg.header.responsible_name = None
-        agg.header.thana = None
+        if thana_values and all(v is not None for v in thana_values):
+            agg.header.thana = sum(thana_values)
+        else:
+            agg.header.thana = None
     # Courses
     agg.courses = []
     for cat in course_categories:
