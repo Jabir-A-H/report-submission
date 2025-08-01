@@ -33,6 +33,7 @@ import re
 import unicodedata
 from pathlib import Path
 from dotenv import load_dotenv
+from flask_migrate import Migrate
 
 load_dotenv()
 
@@ -54,6 +55,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"  # type: ignore
+migrate = Migrate(app, db)
 
 
 # Normalize Unicode to NFC and strip whitespace
