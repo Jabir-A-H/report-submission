@@ -25,6 +25,12 @@
           <option value="{{ y }}" {% if y == year|int %}selected{% endif %}>{{ y }}</option>
           {% endfor %}
         </select>
+        <select name="zone_id" class="p-2 border border-gray-300 rounded-lg">
+          <option value="" {% if not selected_zone_id %}selected{% endif %}>মহানগরী</option>
+          {% for zone in zones %}
+            <option value="{{ zone.id }}" {% if selected_zone_id and zone.id|string == selected_zone_id|string %}selected{% endif %}>{{ zone.name }}</option>
+          {% endfor %}
+        </select>
         <button type="submit" class="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition">সার্চ করুন</button>
       </form>
       <div class="relative" id="downloadDropdownContainer">
@@ -48,7 +54,7 @@
           <div><span class="font-semibold">দায়িত্বশীলের নাম:</span> {{ city_summary.responsible_name if city_summary.responsible_name is not none else '' }}</div>
           <div><span class="font-semibold">থানা:</span> {{ city_summary.thana if city_summary.thana is not none else '' }}</div>
           <div><span class="font-semibold">ওয়ার্ড:</span> {{ city_summary.ward if city_summary.ward is not none else '' }}</div>
-          <div><span class="font-semibold">মোট জোন:</span> {{ city_summary.total_zones }}</div>
+          {# Removed total zones from header #}
           <div><span class="font-semibold">মোট মুয়াল্লিমা সংখ্যা:</span> {{ city_summary.total_muallima }}</div>
           <div><span class="font-semibold">মুয়াল্লিমা বৃদ্ধি:</span> {{ city_summary.muallima_increase }}</div>
           <div><span class="font-semibold">মুয়াল্লিমা হ্রাস:</span> {{ city_summary.muallima_decrease }}</div>
@@ -496,6 +502,9 @@
         <li>{{ report.zone.name }} (Zone ID: {{ report.zone_id }})</li>
         {% endfor %}
       </ul>
+      <div class="mt-2 text-right text-sm text-gray-600">
+        মোট জোন: {{ total_zones }}
+      </div>
     </div>
   </div>
 </div>

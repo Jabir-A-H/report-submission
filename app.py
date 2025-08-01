@@ -577,6 +577,26 @@ def register():
 # --- Admin Management ---
 
 
+# --- Admin City Report Override Model ---
+class CityReportOverride(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    year = db.Column(db.Integer, nullable=False)
+    month = db.Column(db.Integer, nullable=True)
+    report_type = db.Column(db.String(20), nullable=False)
+    # Optionally, you can add zone_id if you want per-zone overrides
+    # zone_id = db.Column(db.Integer, db.ForeignKey("zone.id"), nullable=True)
+    section = db.Column(
+        db.String(50), nullable=False
+    )  # e.g., 'header', 'organizational', etc.
+    field = db.Column(
+        db.String(50), nullable=False
+    )  # e.g., 'total_muallima', 'comments', etc.
+    value = db.Column(db.Text, nullable=True)
+    # Optionally, track who overrode and when
+    admin_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+    timestamp = db.Column(db.DateTime, server_default=db.func.now())
+
+
 @app.route("/users", methods=["GET", "POST"])
 @login_required
 def admin_users():
@@ -647,6 +667,7 @@ def city_report_page():
     month = request.args.get("month")
     year = request.args.get("year")
     report_type = request.args.get("report_type", "মাসিক")
+    zone_id = request.args.get("zone_id")
     now = datetime.now()
     if not month and report_type == "মাসিক":
         month = now.month
@@ -728,15 +749,31 @@ def city_report_page():
 
     months = get_months(report_type, month)
     year_int = int(year)
-    # Always aggregate city report from all zones' মাসিক reports for the relevant months
-    if report_type == "মাসিক":
-        report_query = Report.query.filter_by(year=year_int, report_type="মাসিক")
-        report_query = report_query.filter(Report.month == int(month))
+    # If a zone is selected, show only that zone's reports for the period (for any report type)
+    if zone_id:
+        if report_type == "মাসিক":
+            report_query = Report.query.filter_by(
+                year=year_int, report_type="মাসিক", zone_id=zone_id
+            )
+            report_query = report_query.filter(Report.month == int(month))
+        else:
+            report_query = Report.query.filter_by(
+                year=year_int, report_type="মাসিক", zone_id=zone_id
+            )
+            if months:
+                report_query = report_query.filter(Report.month.in_(months))
+        reports = report_query.all()
     else:
-        report_query = Report.query.filter_by(year=year_int, report_type="মাসিক")
-        if months:
-            report_query = report_query.filter(Report.month.in_(months))
-    reports = report_query.all()
+        # Always aggregate city report from all zones' মাসিক reports for the relevant months
+        if report_type == "মাসিক":
+            report_query = Report.query.filter_by(year=year_int, report_type="মাসিক")
+            report_query = report_query.filter(Report.month == int(month))
+        else:
+            report_query = Report.query.filter_by(year=year_int, report_type="মাসিক")
+            if months:
+                report_query = report_query.filter(Report.month.in_(months))
+        reports = report_query.all()
+    zones = Zone.query.all()
 
     # --- Header Aggregation ---
     header_fields = [
@@ -752,7 +789,6 @@ def city_report_page():
         "ward",
     ]
     city_summary = {field: 0 for field in header_fields}
-    city_summary["total_zones"] = len(set(r.zone_id for r in reports))
     thana_values = []
     for r in reports:
         if r.header:
@@ -801,16 +837,22 @@ def city_report_page():
     # --- Organizational Aggregation ---
     city_organizational = []
     for cat in org_categories:
-        agg = {"category": cat, "number": 0, "increase": 0, "amount": 0, "comments": ""}
+        agg = {"category": cat, "number": 0, "increase": 0, "amount": 0, "comments": 0}
+        found_nonint_comment = False
         for r in reports:
             for row in r.organizational:
                 if normalize_cat(row.category) == normalize_cat(cat):
                     agg["number"] += row.number or 0
                     agg["increase"] += row.increase or 0
                     agg["amount"] += row.amount or 0
-                    # Comments: concatenate or pick first non-empty
-                    if not agg["comments"] and row.comments:
-                        agg["comments"] = row.comments
+                    # Comments: sum if integer, else skip
+                    if row.comments is not None and not found_nonint_comment:
+                        try:
+                            agg["comments"] += int(row.comments)
+                        except (ValueError, TypeError):
+                            found_nonint_comment = True
+        if found_nonint_comment:
+            agg["comments"] = None
         city_organizational.append(agg)
 
     # --- Personal Aggregation ---
@@ -845,8 +887,9 @@ def city_report_page():
             "thana_avg_attendance": 0,
             "ward_count": 0,
             "ward_avg_attendance": 0,
-            "comments": "",
+            "comments": 0,
         }
+        found_nonint_comment = False
         city_count_sum = 0
         city_att_sum = 0
         thana_count_sum = 0
@@ -871,14 +914,20 @@ def city_report_page():
                     if row.ward_count:
                         ward_att_sum += (row.ward_avg_attendance or 0) * row.ward_count
                         n_ward += row.ward_count
-                    if not agg["comments"] and row.comments:
-                        agg["comments"] = row.comments
+                    # Comments: sum if integer, else skip
+                    if row.comments is not None and not found_nonint_comment:
+                        try:
+                            agg["comments"] += int(row.comments)
+                        except (ValueError, TypeError):
+                            found_nonint_comment = True
         agg["city_count"] = city_count_sum
         agg["city_avg_attendance"] = int(city_att_sum / n_city) if n_city else 0
         agg["thana_count"] = thana_count_sum
         agg["thana_avg_attendance"] = int(thana_att_sum / n_thana) if n_thana else 0
         agg["ward_count"] = ward_count_sum
         agg["ward_avg_attendance"] = int(ward_att_sum / n_ward) if n_ward else 0
+        if found_nonint_comment:
+            agg["comments"] = None
         city_meetings.append(agg)
 
     # --- Extras Aggregation ---
@@ -893,11 +942,23 @@ def city_report_page():
 
     # --- Comments Aggregation ---
     city_comments = {"comment": ""}
+    comment_sum = 0
+    found_nonint_comment = False
+    comment_strings = []
     for r in reports:
-        if r.comments and r.comments.comment:
-            city_comments["comment"] = r.comments.comment
-            break
+        if r.comments and r.comments.comment is not None:
+            try:
+                comment_sum += int(r.comments.comment)
+            except (ValueError, TypeError):
+                found_nonint_comment = True
+                if str(r.comments.comment).strip():
+                    comment_strings.append(str(r.comments.comment).strip())
+    if found_nonint_comment:
+        city_comments["comment"] = ", ".join(comment_strings) if comment_strings else ""
+    else:
+        city_comments["comment"] = comment_sum if comment_sum != 0 else ""
 
+    total_zones = len(set(r.zone_id for r in reports))
     return render_template(
         "city_report.html",
         month=month,
@@ -926,6 +987,9 @@ def city_report_page():
         city_extras=city_extras,
         city_comments=city_comments,
         reports=reports,
+        total_zones=total_zones,
+        zones=zones,
+        selected_zone_id=zone_id,
     )
 
 
@@ -1578,16 +1642,23 @@ def report_summary():
             "number": 0,
             "increase": 0,
             "amount": 0,
-            "comments": "",
+            "comments": 0,
         }
+        found_nonint_comment = False
         for r in reports:
             for row in r.organizational:
                 if normalize_cat(row.category) == normalize_cat(cat):
                     agg_row["number"] += row.number or 0
                     agg_row["increase"] += row.increase or 0
                     agg_row["amount"] += row.amount or 0
-                    if not agg_row["comments"] and row.comments:
-                        agg_row["comments"] = row.comments
+                    # Comments: sum if integer, else skip
+                    if row.comments is not None and not found_nonint_comment:
+                        try:
+                            agg_row["comments"] += int(row.comments)
+                        except (ValueError, TypeError):
+                            found_nonint_comment = True
+        if found_nonint_comment:
+            agg_row["comments"] = None
         agg.organizational.append(agg_row)
     # Personal
     agg.personal = []
@@ -1620,7 +1691,7 @@ def report_summary():
             "thana_avg_attendance": 0,
             "ward_count": 0,
             "ward_avg_attendance": 0,
-            "comments": "",
+            "comments": 0,
         }
         city_count_sum = 0
         city_att_sum = 0
@@ -1629,6 +1700,7 @@ def report_summary():
         ward_count_sum = 0
         ward_att_sum = 0
         n_city = n_thana = n_ward = 0
+        found_nonint_comment = False
         for r in reports:
             for row in r.meetings:
                 if normalize_cat(row.category) == normalize_cat(cat):
@@ -1646,14 +1718,20 @@ def report_summary():
                     if row.ward_count:
                         ward_att_sum += (row.ward_avg_attendance or 0) * row.ward_count
                         n_ward += row.ward_count
-                    if not agg_row["comments"] and row.comments:
-                        agg_row["comments"] = row.comments
+                    # Comments: sum if integer, else skip
+                    if row.comments is not None and not found_nonint_comment:
+                        try:
+                            agg_row["comments"] += int(row.comments)
+                        except (ValueError, TypeError):
+                            found_nonint_comment = True
         agg_row["city_count"] = city_count_sum
         agg_row["city_avg_attendance"] = int(city_att_sum / n_city) if n_city else 0
         agg_row["thana_count"] = thana_count_sum
         agg_row["thana_avg_attendance"] = int(thana_att_sum / n_thana) if n_thana else 0
         agg_row["ward_count"] = ward_count_sum
         agg_row["ward_avg_attendance"] = int(ward_att_sum / n_ward) if n_ward else 0
+        if found_nonint_comment:
+            agg_row["comments"] = None
         agg.meetings.append(agg_row)
     # Extras
     agg.extras = []
@@ -1670,11 +1748,21 @@ def report_summary():
         pass
 
     agg.comments = CommentsObj()
-    agg.comments.comment = ""
+    comment_sum = 0
+    found_nonint_comment = False
+    comment_strings = []
     for r in reports:
-        if r.comments and r.comments.comment:
-            agg.comments.comment = r.comments.comment
-            break
+        if r.comments and r.comments.comment is not None:
+            try:
+                comment_sum += int(r.comments.comment)
+            except (ValueError, TypeError):
+                found_nonint_comment = True
+                if str(r.comments.comment).strip():
+                    comment_strings.append(str(r.comments.comment).strip())
+    if found_nonint_comment:
+        agg.comments.comment = ", ".join(comment_strings) if comment_strings else ""
+    else:
+        agg.comments.comment = comment_sum if comment_sum != 0 else ""
 
     return render_template(
         "report.html",
