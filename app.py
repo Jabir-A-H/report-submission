@@ -1323,26 +1323,6 @@ def report_summary():
     if not year:
         year = now.year
 
-    report = None
-    # If report_id is provided and user is admin, show that report
-    if report_id and is_admin():
-        report = Report.query.filter_by(id=report_id).first()
-        # Optionally, set month/year/report_type from the report for display
-        if report:
-            month = report.month
-            year = report.year
-            report_type = report.report_type
-    else:
-        # Get the report object for the current user's zone, type, month, year
-        query = {
-            "zone_id": current_user.zone_id,
-            "year": int(year),
-            "report_type": report_type,
-        }
-        if report_type == "মাসিক":
-            query["month"] = int(month)
-        report = Report.query.filter_by(**query).first()
-
     # Use make_slugs helper for all categories and slug mappings
     course_categories_raw = [
         "বিশিষ্টদের",
@@ -1399,9 +1379,296 @@ def report_summary():
         extra_categories_raw
     )
 
+    # --- Aggregation Logic for user/zone reports ---
+    def get_months(report_type, month):
+        if report_type == "মাসিক":
+            return [int(month)] if month else []
+        elif report_type == "ত্রৈমাসিক":
+            return [1, 2, 3]
+        elif report_type == "ষান্মাসিক":
+            return [1, 2, 3, 4, 5, 6]
+        elif report_type == "নয়-মাসিক":
+            return [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        elif report_type == "বার্ষিক":
+            return list(range(1, 13))
+        return []
+
+    months = get_months(report_type, month)
+    year_int = int(year)
+
+    # If report_id is provided and user is admin, show that report only (no aggregation)
+    if report_id and is_admin():
+        report = Report.query.filter_by(id=report_id).first()
+        # Optionally, set month/year/report_type from the report for display
+        if report:
+            month = report.month
+            year = report.year
+            report_type = report.report_type
+        return render_template(
+            "report.html",
+            report=report,
+            report_type=report_type,
+            month=month,
+            year=year,
+            course_categories=course_categories,
+            org_categories=org_categories,
+            personal_categories=personal_categories,
+            meeting_categories=meeting_categories,
+            extra_categories=extra_categories,
+            cat_to_slug=cat_to_slug,
+            slug_to_cat=slug_to_cat,
+            org_cat_to_slug=org_cat_to_slug,
+            org_slug_to_cat=org_slug_to_cat,
+            personal_cat_to_slug=personal_cat_to_slug,
+            personal_slug_to_cat=personal_slug_to_cat,
+            meeting_cat_to_slug=meeting_cat_to_slug,
+            meeting_slug_to_cat=meeting_slug_to_cat,
+            extra_cat_to_slug=extra_cat_to_slug,
+            extra_slug_to_cat=extra_slug_to_cat,
+        )
+
+    # For users: মাসিক (monthly) report is NOT aggregated, just show the single report for that month
+    if report_type == "মাসিক":
+        report = Report.query.filter_by(
+            zone_id=current_user.zone_id,
+            year=year_int,
+            report_type=report_type,
+            month=int(month),
+        ).first()
+        return render_template(
+            "report.html",
+            report=report,
+            report_type=report_type,
+            month=month,
+            year=year,
+            course_categories=course_categories,
+            org_categories=org_categories,
+            personal_categories=personal_categories,
+            meeting_categories=meeting_categories,
+            extra_categories=extra_categories,
+            cat_to_slug=cat_to_slug,
+            slug_to_cat=slug_to_cat,
+            org_cat_to_slug=org_cat_to_slug,
+            org_slug_to_cat=org_slug_to_cat,
+            personal_cat_to_slug=personal_cat_to_slug,
+            personal_slug_to_cat=personal_slug_to_cat,
+            meeting_cat_to_slug=meeting_cat_to_slug,
+            meeting_slug_to_cat=meeting_slug_to_cat,
+            extra_cat_to_slug=extra_cat_to_slug,
+            extra_slug_to_cat=extra_slug_to_cat,
+        )
+
+    # For other types: aggregate that zone's monthly reports for the required months
+    report_query = Report.query.filter_by(
+        zone_id=current_user.zone_id, year=year_int, report_type="মাসিক"
+    )
+    if months:
+        report_query = report_query.filter(Report.month.in_(months))
+    reports = report_query.all()
+
+    # If no reports, show empty
+    if not reports:
+        return render_template(
+            "report.html",
+            report=None,
+            report_type=report_type,
+            month=month,
+            year=year,
+            course_categories=course_categories,
+            org_categories=org_categories,
+            personal_categories=personal_categories,
+            meeting_categories=meeting_categories,
+            extra_categories=extra_categories,
+            cat_to_slug=cat_to_slug,
+            slug_to_cat=slug_to_cat,
+            org_cat_to_slug=org_cat_to_slug,
+            org_slug_to_cat=org_slug_to_cat,
+            personal_cat_to_slug=personal_cat_to_slug,
+            personal_slug_to_cat=personal_slug_to_cat,
+            meeting_cat_to_slug=meeting_cat_to_slug,
+            meeting_slug_to_cat=meeting_slug_to_cat,
+            extra_cat_to_slug=extra_cat_to_slug,
+            extra_slug_to_cat=extra_slug_to_cat,
+        )
+
+    # --- Aggregate all sections for the selected period (for non-monthly types) ---
+    class AggReport:
+        pass
+
+    agg = AggReport()
+    # Header
+    agg.header = None
+    if reports:
+        from collections import defaultdict
+
+        header_fields = [
+            "total_muallima",
+            "muallima_increase",
+            "muallima_decrease",
+            "certified_muallima",
+            "certified_muallima_taking_classes",
+            "trained_muallima",
+            "trained_muallima_taking_classes",
+            "total_unit",
+            "units_with_muallima",
+        ]
+        header_sum = defaultdict(int)
+        responsible_name = thana = ward = None
+        for r in reports:
+            if r.header:
+                for f in header_fields:
+                    header_sum[f] += getattr(r.header, f, 0) or 0
+                if not responsible_name and r.header.responsible_name:
+                    responsible_name = r.header.responsible_name
+                if not thana and r.header.thana:
+                    thana = r.header.thana
+                if not ward and r.header.ward:
+                    ward = r.header.ward
+
+        class HeaderObj:
+            pass
+
+        agg.header = HeaderObj()
+        for f in header_fields:
+            setattr(agg.header, f, header_sum[f])
+        agg.header.responsible_name = responsible_name or ""
+        agg.header.thana = thana or ""
+        agg.header.ward = ward or ""
+    # Courses
+    agg.courses = []
+    for cat in course_categories:
+        agg_row = {"category": cat}
+        for field in [
+            "number",
+            "increase",
+            "decrease",
+            "sessions",
+            "students",
+            "attendance",
+            "status_board",
+            "status_qayda",
+            "status_ampara",
+            "status_quran",
+            "completed",
+            "correctly_learned",
+        ]:
+            agg_row[field] = 0
+        for r in reports:
+            for row in r.courses:
+                if normalize_cat(row.category) == normalize_cat(cat):
+                    for field in agg_row:
+                        if field != "category":
+                            agg_row[field] += getattr(row, field, 0) or 0
+        agg.courses.append(agg_row)
+    # Organizational
+    agg.organizational = []
+    for cat in org_categories:
+        agg_row = {
+            "category": cat,
+            "number": 0,
+            "increase": 0,
+            "amount": 0,
+            "comments": "",
+        }
+        for r in reports:
+            for row in r.organizational:
+                if normalize_cat(row.category) == normalize_cat(cat):
+                    agg_row["number"] += row.number or 0
+                    agg_row["increase"] += row.increase or 0
+                    agg_row["amount"] += row.amount or 0
+                    if not agg_row["comments"] and row.comments:
+                        agg_row["comments"] = row.comments
+        agg.organizational.append(agg_row)
+    # Personal
+    agg.personal = []
+    for cat in personal_categories:
+        agg_row = {
+            "category": cat,
+            "teaching": 0,
+            "learning": 0,
+            "olama_invited": 0,
+            "became_shohojogi": 0,
+            "became_sokrio_shohojogi": 0,
+            "became_kormi": 0,
+            "became_rukon": 0,
+        }
+        for r in reports:
+            for row in r.personal:
+                if normalize_cat(row.category) == normalize_cat(cat):
+                    for field in agg_row:
+                        if field != "category":
+                            agg_row[field] += getattr(row, field, 0) or 0
+        agg.personal.append(agg_row)
+    # Meetings
+    agg.meetings = []
+    for cat in meeting_categories:
+        agg_row = {
+            "category": cat,
+            "city_count": 0,
+            "city_avg_attendance": 0,
+            "thana_count": 0,
+            "thana_avg_attendance": 0,
+            "ward_count": 0,
+            "ward_avg_attendance": 0,
+            "comments": "",
+        }
+        city_count_sum = 0
+        city_att_sum = 0
+        thana_count_sum = 0
+        thana_att_sum = 0
+        ward_count_sum = 0
+        ward_att_sum = 0
+        n_city = n_thana = n_ward = 0
+        for r in reports:
+            for row in r.meetings:
+                if normalize_cat(row.category) == normalize_cat(cat):
+                    city_count_sum += row.city_count or 0
+                    if row.city_count:
+                        city_att_sum += (row.city_avg_attendance or 0) * row.city_count
+                        n_city += row.city_count
+                    thana_count_sum += row.thana_count or 0
+                    if row.thana_count:
+                        thana_att_sum += (
+                            row.thana_avg_attendance or 0
+                        ) * row.thana_count
+                        n_thana += row.thana_count
+                    ward_count_sum += row.ward_count or 0
+                    if row.ward_count:
+                        ward_att_sum += (row.ward_avg_attendance or 0) * row.ward_count
+                        n_ward += row.ward_count
+                    if not agg_row["comments"] and row.comments:
+                        agg_row["comments"] = row.comments
+        agg_row["city_count"] = city_count_sum
+        agg_row["city_avg_attendance"] = int(city_att_sum / n_city) if n_city else 0
+        agg_row["thana_count"] = thana_count_sum
+        agg_row["thana_avg_attendance"] = int(thana_att_sum / n_thana) if n_thana else 0
+        agg_row["ward_count"] = ward_count_sum
+        agg_row["ward_avg_attendance"] = int(ward_att_sum / n_ward) if n_ward else 0
+        agg.meetings.append(agg_row)
+    # Extras
+    agg.extras = []
+    for cat in extra_categories:
+        agg_row = {"category": cat, "number": 0}
+        for r in reports:
+            for row in r.extras:
+                if normalize_cat(row.category) == normalize_cat(cat):
+                    agg_row["number"] += row.number or 0
+        agg.extras.append(agg_row)
+
+    # Comments: pick first non-empty
+    class CommentsObj:
+        pass
+
+    agg.comments = CommentsObj()
+    agg.comments.comment = ""
+    for r in reports:
+        if r.comments and r.comments.comment:
+            agg.comments.comment = r.comments.comment
+            break
+
     return render_template(
         "report.html",
-        report=report,
+        report=agg,
         report_type=report_type,
         month=month,
         year=year,
