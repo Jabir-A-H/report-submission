@@ -29,6 +29,21 @@ window.initCityReportOverrideForm = function() {
     const fields = Array.isArray(sectionFields[section]) ? sectionFields[section] : [];
     fieldSelect.innerHTML = '<option value="">-- Select Field --</option>' + fields.map(f => `<option value="${f}">${f}</option>`).join('');
     fieldSelect.value = '';
+    // Set hidden category input
+    setCategoryHiddenInput();
+  }
+
+  function setCategoryHiddenInput() {
+    const section = sectionSelect.value;
+    const cat = categorySelect.value;
+    const hiddenInput = document.getElementById('category-hidden-input');
+    if (hiddenInput) {
+      if (["courses","organizational","personal","meetings","extras"].includes(section)) {
+        hiddenInput.value = cat || '';
+      } else {
+        hiddenInput.value = '';
+      }
+    }
   }
 
   function updatePrevValue() {
@@ -51,13 +66,18 @@ window.initCityReportOverrideForm = function() {
   sectionSelect.addEventListener('change', () => {
     updateCategoryAndField();
     updatePrevValue();
+    setCategoryHiddenInput();
   });
-  if (categorySelect) categorySelect.addEventListener('change', updatePrevValue);
+  if (categorySelect) {
+    categorySelect.addEventListener('change', updatePrevValue);
+    categorySelect.addEventListener('change', setCategoryHiddenInput);
+  }
   fieldSelect.addEventListener('change', updatePrevValue);
 
   // Initial setup
   updateCategoryAndField();
   updatePrevValue();
+  setCategoryHiddenInput();
 
   // AJAX submit for override form
   const overrideForm = document.getElementById('override-form');
