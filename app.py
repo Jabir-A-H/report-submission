@@ -211,7 +211,7 @@ def populate_categories_for_report(report_id):
                 db.session.rollback()
 
 
-def get_category_context():
+def get_category_context():  # type: ignore
     return {
         "course_categories": SLUG_MAPS["courses"][0],
         "org_categories": SLUG_MAPS["organizational"][0],
@@ -228,7 +228,7 @@ def get_category_context():
         "meeting_slug_to_cat": SLUG_MAPS["meetings"][1],
         "extra_cat_to_slug": SLUG_MAPS["extras"][2],
         "extra_slug_to_cat": SLUG_MAPS["extras"][1],
-    }
+    }       # type: ignore
 
 
 # --- Models ---
