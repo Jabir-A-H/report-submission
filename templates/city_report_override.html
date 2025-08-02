@@ -1,5 +1,6 @@
 {% import 'macros.html' as macros %} {% extends "base.html" %} {% block
-breadcrumb_page %} {{ macros.context_link('city_report_page', 'সিটি রিপোর্ট') }}
+breadcrumb_page %} {{ macros.context_link('city_report_page', 'সিটি রিপোর্ট',
+year=year, month=month, report_type=report_type) }}
 <svg
   class="w-4 h-4 text-gray-400"
   fill="none"

@@ -32,6 +32,9 @@
   <body>
     <h1>404</h1>
     <p>Sorry, the page you requested was not found.</p>
-    <p>{{ macros.context_link('dashboard', 'Return to Dashboard') }}</p>
+    <p>
+      {{ macros.context_link('dashboard', 'Return to Dashboard', year=year,
+      month=month, report_type=report_type) }}
+    </p>
   </body>
 </html>

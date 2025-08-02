@@ -1,5 +1,8 @@
-{% macro context_link(endpoint, text) -%} {%- set args = dict(year=year,
-month=month, report_type=report_type) -%}
+{% macro context_link(endpoint, text, year=None, month=None, report_type=None)
+-%} {%- set args = {} -%} {%- if year is not none %}{% set _ =
+args.update({'year': year}) %}{% endif %} {%- if month is not none %}{% set _ =
+args.update({'month': month}) %}{% endif %} {%- if report_type is not none %}{%
+set _ = args.update({'report_type': report_type}) %}{% endif %}
 <a
   href="{{ url_for(endpoint, **args) }}"
   class="flex items-center gap-1 px-3 py-2 rounded-lg bg-cyan-100 text-cyan-800 hover:bg-cyan-200 transition shadow"
