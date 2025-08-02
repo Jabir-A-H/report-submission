@@ -50,5 +50,8 @@ project_tree.txt
 website_errors.txt
 .flake8
 
+# Migration scripts
+migrations/
+
 
 

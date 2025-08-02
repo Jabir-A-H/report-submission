@@ -1,3 +1,4 @@
+{% import 'macros.html' as macros %}
 {% extends 'base.html' %}
 {% set page_title = 'সিটি রিপোর্ট' %}
 {% block content%}
@@ -43,6 +44,11 @@
           <a href="/download_city_report?report_type={{ report_type }}&month={{ month }}&year={{ year }}&format=excel" class="block px-4 py-2 text-gray-700 hover:bg-green-50">Excel</a>
         </div>
       </div>
+      {% if override_page_url %}
+        <a href="{{ override_page_url }}" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 font-semibold ml-2">
+          Edit Report
+        </a>
+      {% endif %}
     </div>
   </div>
   <div class="flex flex-col gap-8">

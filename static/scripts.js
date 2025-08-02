@@ -1,3 +1,84 @@
+// --- City Report Override Form Logic ---
+window.initCityReportOverrideForm = function() {
+  const sectionSelect = document.getElementById('section-select');
+  const categoryDiv = document.getElementById('category-div');
+  const categorySelect = document.getElementById('category-select');
+  const fieldSelect = document.getElementById('field-select');
+  const prevValueSpan = document.getElementById('prev-value');
+  if (!sectionSelect || !fieldSelect) return;
+  const data = window.cityReportOverrideData || {};
+  const sectionFields = data.sectionFields || {};
+  const sectionCategories = data.sectionCategories || {};
+  const aggData = data.aggData || {};
+
+  function updateCategoryAndField() {
+    const section = sectionSelect.value;
+    // Show/hide category
+    if (["courses","organizational","personal","meetings","extras"].includes(section)) {
+      categoryDiv.style.display = '';
+      // Populate category
+      const cats = sectionCategories[section] || [];
+      categorySelect.innerHTML = '<option value="">-- Select Category --</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+      categorySelect.required = true;
+    } else {
+      categoryDiv.style.display = 'none';
+      categorySelect.innerHTML = '';
+      categorySelect.required = false;
+    }
+    // Populate field
+    const fields = Array.isArray(sectionFields[section]) ? sectionFields[section] : [];
+    fieldSelect.innerHTML = '<option value="">-- Select Field --</option>' + fields.map(f => `<option value="${f}">${f}</option>`).join('');
+    fieldSelect.value = '';
+  }
+
+  function updatePrevValue() {
+    const section = sectionSelect.value;
+    const field = fieldSelect.value;
+    let prev = '';
+    if (["courses","organizational","personal","meetings","extras"].includes(section)) {
+      const cat = categorySelect.value;
+      if (cat && field) {
+        prev = aggData[section] && aggData[section][cat] ? aggData[section][cat][field] : '';
+      }
+    } else if (section === 'header' && field) {
+      prev = aggData.header ? aggData.header[field] : '';
+    } else if (section === 'comments' && field) {
+      prev = aggData.comments ? aggData.comments[field] : '';
+    }
+    prevValueSpan.textContent = prev !== undefined ? `Prev: ${prev}` : '';
+  }
+
+  sectionSelect.addEventListener('change', () => {
+    updateCategoryAndField();
+    updatePrevValue();
+  });
+  if (categorySelect) categorySelect.addEventListener('change', updatePrevValue);
+  fieldSelect.addEventListener('change', updatePrevValue);
+
+  // Initial setup
+  updateCategoryAndField();
+  updatePrevValue();
+
+  // AJAX submit for override form
+  const overrideForm = document.getElementById('override-form');
+  if (overrideForm) {
+    overrideForm.onsubmit = function(e) {
+      e.preventDefault();
+      const form = e.target;
+      fetch("/city_report/override", {
+        method: "POST",
+        body: new FormData(form)
+      }).then(r => {
+        if (r.ok) location.reload();
+        else alert("Failed to save override");
+      });
+    };
+  }
+};
+// Auto-init if form is present and data is loaded
+if (document.getElementById('override-form') && window.cityReportOverrideData) {
+  window.initCityReportOverrideForm();
+}
 // Month selector toggle for both zone and city report types
 function setupMonthSelectorToggle(typeSelectId, monthWrapperId, isWrapperSpan = false) {
   var typeSelect = document.getElementById(typeSelectId);

@@ -655,7 +655,35 @@ def delete_zone(zone_id):
 
 
 # --- City Report Page ---
-@app.route("/city_report")
+def get_city_report_overrides(year, month, report_type):
+    """Fetch all overrides for the given city report period as a dict: {(section, field): value}"""
+    query = CityReportOverride.query.filter_by(year=year, report_type=report_type)
+    if month:
+        query = query.filter_by(month=month)
+    else:
+        query = query.filter(CityReportOverride.month.is_(None))
+    overrides = query.all()
+    return {(o.section, o.field): o.value for o in overrides}
+
+
+def apply_overrides_to_agg(agg_dict, section, overrides):
+    """Apply overrides to a dict of aggregated values for a section."""
+    for field in agg_dict:
+        key = (section, field)
+        if key in overrides:
+            val = overrides[key]
+            # Try to cast to int if original is int, else keep as string
+            if isinstance(agg_dict[field], int):
+                try:
+                    agg_dict[field] = int(val)
+                except Exception:
+                    agg_dict[field] = val
+            else:
+                agg_dict[field] = val
+    return agg_dict
+
+
+@app.route("/city_report", methods=["GET", "POST"])
 @login_required
 def city_report_page():
     if not is_admin():
@@ -773,6 +801,11 @@ def city_report_page():
         reports = report_query.all()
     zones = Zone.query.all()
 
+    # --- Fetch overrides for this period ---
+    overrides = get_city_report_overrides(
+        year_int, int(month) if month else None, report_type
+    )
+
     # --- Header Aggregation ---
     header_fields = [
         "total_unit",
@@ -805,6 +838,9 @@ def city_report_page():
         city_summary["thana"] = sum(thana_values)
     else:
         city_summary["thana"] = None
+    # Apply overrides to header
+    city_summary = apply_overrides_to_agg(city_summary, "header", overrides)
+
     # --- Courses Aggregation ---
     city_courses = []
     for cat in course_categories:
@@ -830,6 +866,8 @@ def city_report_page():
                     for field in agg:
                         if field != "category":
                             agg[field] += getattr(row, field, 0) or 0
+        # Apply overrides to this course category
+        agg = apply_overrides_to_agg(agg, f"courses:{cat}", overrides)
         city_courses.append(agg)
 
     # --- Organizational Aggregation ---
@@ -851,6 +889,8 @@ def city_report_page():
                             found_nonint_comment = True
         if found_nonint_comment:
             agg["comments"] = None
+        # Apply overrides to this org category
+        agg = apply_overrides_to_agg(agg, f"organizational:{cat}", overrides)
         city_organizational.append(agg)
 
     # --- Personal Aggregation ---
@@ -872,6 +912,7 @@ def city_report_page():
                     for field in agg:
                         if field != "category":
                             agg[field] += getattr(row, field, 0) or 0
+        agg = apply_overrides_to_agg(agg, f"personal:{cat}", overrides)
         city_personal.append(agg)
 
     # --- Meetings Aggregation ---
@@ -926,6 +967,7 @@ def city_report_page():
         agg["ward_avg_attendance"] = int(ward_att_sum / n_ward) if n_ward else 0
         if found_nonint_comment:
             agg["comments"] = None
+        agg = apply_overrides_to_agg(agg, f"meetings:{cat}", overrides)
         city_meetings.append(agg)
 
     # --- Extras Aggregation ---
@@ -936,6 +978,7 @@ def city_report_page():
             for row in r.extras:
                 if normalize_cat(row.category) == normalize_cat(cat):
                     agg["number"] += row.number or 0
+        agg = apply_overrides_to_agg(agg, f"extras:{cat}", overrides)
         city_extras.append(agg)
 
     # --- Comments Aggregation ---
@@ -955,8 +998,12 @@ def city_report_page():
         city_comments["comment"] = ", ".join(comment_strings) if comment_strings else ""
     else:
         city_comments["comment"] = comment_sum if comment_sum != 0 else ""
+    city_comments = apply_overrides_to_agg(city_comments, "comments", overrides)
 
     total_zones = len(set(r.zone_id for r in reports))
+    override_page_url = url_for(
+        "city_report_override", month=month, year=year, report_type=report_type
+    )
     return render_template(
         "city_report.html",
         month=month,
@@ -988,6 +1035,366 @@ def city_report_page():
         total_zones=total_zones,
         zones=zones,
         selected_zone_id=zone_id,
+        overrides=overrides,
+        override_page_url=override_page_url,
+    )
+
+
+# --- City Report Override Admin Page (GET: page, POST: save) ---
+@app.route("/city_report/override", methods=["GET", "POST"])
+@login_required
+def city_report_override():
+    if not is_admin():
+        return redirect(url_for("dashboard"))
+    from datetime import datetime
+
+    if request.method == "POST":
+        year = int(request.form.get("year"))
+        month = request.form.get("month")
+        month = int(month) if month else None
+        report_type = request.form.get("report_type")
+        section = request.form.get("section")
+        field = request.form.get("field")
+        value = request.form.get("value")
+        # Upsert override
+        override = CityReportOverride.query.filter_by(
+            year=year,
+            month=month,
+            report_type=report_type,
+            section=section,
+            field=field,
+        ).first()
+        if override:
+            override.value = value
+        else:
+            override = CityReportOverride(
+                year=year,
+                month=month,
+                report_type=report_type,
+                section=section,
+                field=field,
+                value=value,
+            )
+            db.session.add(override)
+        db.session.commit()
+        # For AJAX: return OK, else redirect for normal POST
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return ("OK", 200)
+        # For normal POST, reload the page with same params
+        return redirect(
+            url_for(
+                "city_report_override", year=year, month=month, report_type=report_type
+            )
+        )
+
+    # GET: show the override page
+    month = request.args.get("month")
+    year = request.args.get("year")
+    report_type = request.args.get("report_type", "মাসিক")
+    now = datetime.now()
+    if not month and report_type == "মাসিক":
+        month = now.month
+    if not year:
+        year = now.year
+    # Category lists and slug mappings (same as city_report_page)
+    course_categories_raw = [
+        "বিশিষ্টদের",
+        "সাধারণদের",
+        "কর্মীদের",
+        "ইউনিট সভানেত্রী",
+        "অগ্রসরদের",
+        "শিশু- তা'লিমুল কুরআন",
+        "নিরক্ষর- তা'লিমুস সলাত",
+    ]
+    org_categories_raw = [
+        "দাওয়াত দান",
+        "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
+        "সহযোগী হয়েছে",
+        "সম্মতি দিয়েছেন",
+        "সক্রিয় সহযোগী",
+        "কর্মী",
+        "রুকন",
+        "দাওয়াতী ইউনিট",
+        "ইউনিট",
+        "সূধী",
+        "এককালীন",
+        "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
+        "বই বিলি",
+        "বই বিক্রি",
+    ]
+    personal_categories_raw = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
+    meeting_categories_raw = [
+        "কমিটি বৈঠক হয়েছে",
+        "মুয়াল্লিমাদের নিয়ে বৈঠক",
+        "Committee Orientation",
+        "Muallima Orientation",
+    ]
+    extra_categories_raw = [
+        "মক্তব সংখ্যা",
+        "মক্তব বৃদ্ধি",
+        "মহানগরী পরিচালিত",
+        "স্থানীয়ভাবে পরিচালিত",
+        "মহানগরীর সফর",
+        "থানা কমিটির সফর",
+        "থানা প্রতিনিধির সফর",
+        "ওয়ার্ড প্রতিনিধির সফর",
+    ]
+    course_categories, cat_to_slug, slug_to_cat = make_slugs(course_categories_raw)
+    org_categories, org_cat_to_slug, org_slug_to_cat = make_slugs(org_categories_raw)
+    personal_categories, personal_cat_to_slug, personal_slug_to_cat = make_slugs(
+        personal_categories_raw
+    )
+    meeting_categories, meeting_cat_to_slug, meeting_slug_to_cat = make_slugs(
+        meeting_categories_raw
+    )
+    extra_categories, extra_cat_to_slug, extra_slug_to_cat = make_slugs(
+        extra_categories_raw
+    )
+
+    # Fetch overrides for this period
+    query = CityReportOverride.query.filter_by(year=int(year), report_type=report_type)
+    if month:
+        query = query.filter_by(month=int(month))
+    else:
+        query = query.filter(CityReportOverride.month.is_(None))
+    overrides = query.order_by(
+        CityReportOverride.section, CityReportOverride.field
+    ).all()
+
+    # --- Aggregation Logic (same as city_report_page, but only for dropdowns/previous values) ---
+    # For simplicity, reuse the aggregation logic for the selected period
+    # Determine which months to include based on report_type
+    def get_months(report_type, month):
+        if report_type == "মাসিক":
+            return [int(month)] if month else []
+        elif report_type == "ত্রৈমাসিক":
+            m = int(month) if month else 1
+            return [m, m - 1, m - 2]
+        elif report_type == "ষান্মাসিক":
+            m = int(month) if month else 1
+            return [m, m - 1, m - 2, m - 3, m - 4, m - 5]
+        elif report_type == "নয়-মাসিক":
+            m = int(month) if month else 1
+            return [m, m - 1, m - 2, m - 3, m - 4, m - 5, m - 6, m - 7, m - 8]
+        elif report_type == "বার্ষিক":
+            return list(range(1, 13))
+        return []
+
+    months = get_months(report_type, month)
+    year_int = int(year)
+    from sqlalchemy import func
+
+    # Always aggregate city report from all zones' মাসিক reports for the relevant months
+    if report_type == "মাসিক":
+        report_query = Report.query.filter_by(
+            year=year_int, month=int(month), report_type=report_type
+        )
+    else:
+        report_query = Report.query.filter_by(
+            year=year_int, report_type="মাসিক"
+        ).filter(Report.month.in_(months))
+    reports = report_query.all()
+
+    # --- Header Aggregation ---
+    header_fields = [
+        "total_unit",
+        "total_muallima",
+        "muallima_increase",
+        "muallima_decrease",
+        "certified_muallima",
+        "certified_muallima_taking_classes",
+        "trained_muallima",
+        "trained_muallima_taking_classes",
+        "units_with_muallima",
+        "ward",
+    ]
+    city_summary = {field: 0 for field in header_fields}
+    thana_values = []
+    for r in reports:
+        if r.header:
+            for field in header_fields:
+                city_summary[field] += getattr(r.header, field, 0) or 0
+            try:
+                thana_val = int(r.header.thana)
+            except (ValueError, TypeError, AttributeError):
+                thana_val = None
+            if thana_val is not None:
+                thana_values.append(thana_val)
+    city_summary["responsible_name"] = None
+    if thana_values and all(v is not None for v in thana_values):
+        city_summary["thana"] = sum(thana_values)
+    else:
+        city_summary["thana"] = None
+
+    # --- Courses Aggregation ---
+    city_courses = []
+    for cat in course_categories:
+        agg = {"category": cat}
+        for field in [
+            "number",
+            "increase",
+            "decrease",
+            "sessions",
+            "students",
+            "attendance",
+            "status_board",
+            "status_qayda",
+            "status_ampara",
+            "status_quran",
+            "completed",
+            "correctly_learned",
+        ]:
+            agg[field] = 0
+        for r in reports:
+            for row in r.courses:
+                if row.category == cat:
+                    for field in agg:
+                        if field != "category":
+                            agg[field] += getattr(row, field, 0) or 0
+        city_courses.append(agg)
+
+    # --- Organizational Aggregation ---
+    city_organizational = []
+    for cat in org_categories:
+        agg = {"category": cat, "number": 0, "increase": 0, "amount": 0, "comments": 0}
+        found_nonint_comment = False
+        for r in reports:
+            for row in r.organizational:
+                if row.category == cat:
+                    agg["number"] += getattr(row, "number", 0) or 0
+                    agg["increase"] += getattr(row, "increase", 0) or 0
+                    agg["amount"] += getattr(row, "amount", 0) or 0
+                    try:
+                        agg["comments"] += int(row.comments)
+                    except (ValueError, TypeError):
+                        found_nonint_comment = True
+        if found_nonint_comment:
+            agg["comments"] = None
+        city_organizational.append(agg)
+
+    # --- Personal Aggregation ---
+    city_personal = []
+    for cat in personal_categories:
+        agg = {
+            "category": cat,
+            "teaching": 0,
+            "learning": 0,
+            "olama_invited": 0,
+            "became_shohojogi": 0,
+            "became_sokrio_shohojogi": 0,
+            "became_kormi": 0,
+            "became_rukon": 0,
+        }
+        for r in reports:
+            for row in r.personal:
+                if row.category == cat:
+                    for field in agg:
+                        if field != "category":
+                            agg[field] += getattr(row, field, 0) or 0
+        city_personal.append(agg)
+
+    # --- Meetings Aggregation ---
+    city_meetings = []
+    for cat in meeting_categories:
+        agg = {
+            "category": cat,
+            "city_count": 0,
+            "city_avg_attendance": 0,
+            "thana_count": 0,
+            "thana_avg_attendance": 0,
+            "ward_count": 0,
+            "ward_avg_attendance": 0,
+            "comments": 0,
+        }
+        found_nonint_comment = False
+        city_count_sum = 0
+        city_att_sum = 0
+        thana_count_sum = 0
+        thana_att_sum = 0
+        ward_count_sum = 0
+        ward_att_sum = 0
+        n_city = n_thana = n_ward = 0
+        for r in reports:
+            for row in r.meetings:
+                if row.category == cat:
+                    agg["city_count"] += getattr(row, "city_count", 0) or 0
+                    agg["thana_count"] += getattr(row, "thana_count", 0) or 0
+                    agg["ward_count"] += getattr(row, "ward_count", 0) or 0
+                    try:
+                        agg["comments"] += int(row.comments)
+                    except (ValueError, TypeError):
+                        found_nonint_comment = True
+                    if row.city_avg_attendance:
+                        city_att_sum += row.city_avg_attendance
+                        n_city += 1
+                    if row.thana_avg_attendance:
+                        thana_att_sum += row.thana_avg_attendance
+                        n_thana += 1
+                    if row.ward_avg_attendance:
+                        ward_att_sum += row.ward_avg_attendance
+                        n_ward += 1
+        agg["city_avg_attendance"] = int(city_att_sum / n_city) if n_city else 0
+        agg["thana_avg_attendance"] = int(thana_att_sum / n_thana) if n_thana else 0
+        agg["ward_avg_attendance"] = int(ward_att_sum / n_ward) if n_ward else 0
+        if found_nonint_comment:
+            agg["comments"] = None
+        city_meetings.append(agg)
+
+    # --- Extras Aggregation ---
+    city_extras = []
+    for cat in extra_categories:
+        agg = {"category": cat, "number": 0}
+        for r in reports:
+            for row in r.extras:
+                if row.category == cat:
+                    agg["number"] += getattr(row, "number", 0) or 0
+        city_extras.append(agg)
+
+    # --- Comments Aggregation ---
+    city_comments = {"comment": ""}
+    comment_sum = 0
+    found_nonint_comment = False
+    comment_strings = []
+    for r in reports:
+        if r.comments and r.comments.comment is not None:
+            try:
+                comment_sum += int(r.comments.comment)
+            except (ValueError, TypeError):
+                found_nonint_comment = True
+                comment_strings.append(str(r.comments.comment))
+    if found_nonint_comment:
+        city_comments["comment"] = ", ".join(comment_strings) if comment_strings else ""
+    else:
+        city_comments["comment"] = comment_sum if comment_sum != 0 else ""
+
+    return render_template(
+        "city_report_override.html",
+        overrides=overrides,
+        year=year,
+        month=month,
+        report_type=report_type,
+        course_categories=course_categories,
+        org_categories=org_categories,
+        personal_categories=personal_categories,
+        meeting_categories=meeting_categories,
+        extra_categories=extra_categories,
+        cat_to_slug=cat_to_slug,
+        slug_to_cat=slug_to_cat,
+        org_cat_to_slug=org_cat_to_slug,
+        org_slug_to_cat=org_slug_to_cat,
+        personal_cat_to_slug=personal_cat_to_slug,
+        personal_slug_to_cat=personal_slug_to_cat,
+        meeting_cat_to_slug=meeting_cat_to_slug,
+        meeting_slug_to_cat=meeting_slug_to_cat,
+        extra_cat_to_slug=extra_cat_to_slug,
+        extra_slug_to_cat=extra_slug_to_cat,
+        city_summary=city_summary,
+        city_courses=city_courses,
+        city_organizational=city_organizational,
+        city_personal=city_personal,
+        city_meetings=city_meetings,
+        city_extras=city_extras,
+        city_comments=city_comments,
     )
 
 

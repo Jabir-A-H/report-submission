@@ -1,3 +1,4 @@
+{% import 'macros.html' as macros %}
 <!DOCTYPE html>
 <html lang="bn">
   <head>
@@ -110,17 +111,16 @@
     </script>
     </header>
     <main class="mx-auto max-w-screen-xl px-4 py-8 mb-8 mt-24">
+      {% macro context_link(endpoint, text) -%}
+        {%- set args = dict(year=year, month=month, report_type=report_type) -%}
+        <a href="{{ url_for(endpoint, **args) }}" class="flex items-center gap-1 px-3 py-2 rounded-lg bg-cyan-100 text-cyan-800 hover:bg-cyan-200 transition shadow">{{ text }}</a>
+      {%- endmacro %}
       {% block breadcrumbs %}
       {% if request.path != '/' %}
       <nav class="mb-6 flex items-center gap-2 text-base font-semibold" aria-label="breadcrumb">
-        <a href="/" class="flex items-center gap-1 px-3 py-2 rounded-lg bg-cyan-100 text-cyan-800 hover:bg-cyan-200 transition shadow">
-          <svg class="w-5 h-5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6"/></svg>
-          হোম
-        </a>
+        {{ macros.context_link('dashboard', 'হোম') }}
         <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-        <span class="px-3 py-2 rounded-lg bg-cyan-50 text-cyan-700" id="breadcrumb-current">
-          {% block breadcrumb_page %}{{ page_title|default('') }}{% endblock %}
-        </span>
+        {% block breadcrumb_page %}{{ page_title|default('') }}{% endblock %}
         <script>
         // If the breadcrumb current item is empty, use the document title (minus site name)
         document.addEventListener('DOMContentLoaded', function() {
