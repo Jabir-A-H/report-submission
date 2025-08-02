@@ -84,7 +84,14 @@ def make_slugs(categories):
 
 
 ###########################
+###########################
 # --- Centralized Category Definitions and Slug Mappings ---
+###########################
+
+
+# Helper to provide all category/slug context for templates
+
+
 ###########################
 
 
@@ -202,6 +209,26 @@ def populate_categories_for_report(report_id):
                 db.session.commit()
             except IntegrityError:
                 db.session.rollback()
+
+
+def get_category_context():
+    return {
+        "course_categories": SLUG_MAPS["courses"][0],
+        "org_categories": SLUG_MAPS["organizational"][0],
+        "personal_categories": SLUG_MAPS["personal"][0],
+        "meeting_categories": SLUG_MAPS["meetings"][0],
+        "extra_categories": SLUG_MAPS["extras"][0],
+        "cat_to_slug": SLUG_MAPS["courses"][2],
+        "slug_to_cat": SLUG_MAPS["courses"][1],
+        "org_cat_to_slug": SLUG_MAPS["organizational"][2],
+        "org_slug_to_cat": SLUG_MAPS["organizational"][1],
+        "personal_cat_to_slug": SLUG_MAPS["personal"][2],
+        "personal_slug_to_cat": SLUG_MAPS["personal"][1],
+        "meeting_cat_to_slug": SLUG_MAPS["meetings"][2],
+        "meeting_slug_to_cat": SLUG_MAPS["meetings"][1],
+        "extra_cat_to_slug": SLUG_MAPS["extras"][2],
+        "extra_slug_to_cat": SLUG_MAPS["extras"][1],
+    }
 
 
 # --- Models ---
@@ -707,14 +734,8 @@ def city_report_page():
     if not year:
         year = now.year
 
-    # Use centralized category and slug maps
-    course_categories, cat_to_slug, slug_to_cat = SLUG_MAPS["courses"]
-    org_categories, org_cat_to_slug, org_slug_to_cat = SLUG_MAPS["organizational"]
-    personal_categories, personal_cat_to_slug, personal_slug_to_cat = SLUG_MAPS[
-        "personal"
-    ]
-    meeting_categories, meeting_cat_to_slug, meeting_slug_to_cat = SLUG_MAPS["meetings"]
-    extra_categories, extra_cat_to_slug, extra_slug_to_cat = SLUG_MAPS["extras"]
+    # Use centralized category and slug maps via helper
+    category_context = get_category_context()
 
     # --- Aggregation Logic ---
     from sqlalchemy import func
@@ -969,21 +990,6 @@ def city_report_page():
         month=month,
         year=year,
         report_type=report_type,
-        course_categories=course_categories,
-        org_categories=org_categories,
-        personal_categories=personal_categories,
-        meeting_categories=meeting_categories,
-        extra_categories=extra_categories,
-        cat_to_slug=cat_to_slug,
-        slug_to_cat=slug_to_cat,
-        org_cat_to_slug=org_cat_to_slug,
-        org_slug_to_cat=org_slug_to_cat,
-        personal_cat_to_slug=personal_cat_to_slug,
-        personal_slug_to_cat=personal_slug_to_cat,
-        meeting_cat_to_slug=meeting_cat_to_slug,
-        meeting_slug_to_cat=meeting_slug_to_cat,
-        extra_cat_to_slug=extra_cat_to_slug,
-        extra_slug_to_cat=extra_slug_to_cat,
         city_summary=city_summary,
         city_courses=city_courses,
         city_organizational=city_organizational,
@@ -997,6 +1003,7 @@ def city_report_page():
         selected_zone_id=zone_id,
         overrides=overrides,
         override_page_url=override_page_url,
+        **category_context,
     )
 
 
@@ -1094,14 +1101,8 @@ def city_report_override():
         month = now.month
     if not year:
         year = now.year
-    # Use centralized category and slug maps
-    course_categories, cat_to_slug, slug_to_cat = SLUG_MAPS["courses"]
-    org_categories, org_cat_to_slug, org_slug_to_cat = SLUG_MAPS["organizational"]
-    personal_categories, personal_cat_to_slug, personal_slug_to_cat = SLUG_MAPS[
-        "personal"
-    ]
-    meeting_categories, meeting_cat_to_slug, meeting_slug_to_cat = SLUG_MAPS["meetings"]
-    extra_categories, extra_cat_to_slug, extra_slug_to_cat = SLUG_MAPS["extras"]
+    # Use centralized category and slug maps via helper
+    category_context = get_category_context()
 
     # Fetch overrides for this period
     query = CityReportOverride.query.filter_by(year=int(year), report_type=report_type)
@@ -1325,21 +1326,6 @@ def city_report_override():
         year=year,
         month=month,
         report_type=report_type,
-        course_categories=course_categories,
-        org_categories=org_categories,
-        personal_categories=personal_categories,
-        meeting_categories=meeting_categories,
-        extra_categories=extra_categories,
-        cat_to_slug=cat_to_slug,
-        slug_to_cat=slug_to_cat,
-        org_cat_to_slug=org_cat_to_slug,
-        org_slug_to_cat=org_slug_to_cat,
-        personal_cat_to_slug=personal_cat_to_slug,
-        personal_slug_to_cat=personal_slug_to_cat,
-        meeting_cat_to_slug=meeting_cat_to_slug,
-        meeting_slug_to_cat=meeting_slug_to_cat,
-        extra_cat_to_slug=extra_cat_to_slug,
-        extra_slug_to_cat=extra_slug_to_cat,
         city_summary=city_summary,
         city_courses=city_courses,
         city_organizational=city_organizational,
@@ -1347,6 +1333,7 @@ def city_report_override():
         city_meetings=city_meetings,
         city_extras=city_extras,
         city_comments=city_comments,
+        **category_context,
     )
 
 
@@ -1704,14 +1691,8 @@ def report_summary():
     if not year:
         year = now.year
 
-    # Use centralized category and slug maps
-    course_categories, cat_to_slug, slug_to_cat = SLUG_MAPS["courses"]
-    org_categories, org_cat_to_slug, org_slug_to_cat = SLUG_MAPS["organizational"]
-    personal_categories, personal_cat_to_slug, personal_slug_to_cat = SLUG_MAPS[
-        "personal"
-    ]
-    meeting_categories, meeting_cat_to_slug, meeting_slug_to_cat = SLUG_MAPS["meetings"]
-    extra_categories, extra_cat_to_slug, extra_slug_to_cat = SLUG_MAPS["extras"]
+    # Use centralized category and slug maps via helper
+    category_context = get_category_context()
 
     # --- Aggregation Logic for user/zone reports ---
     def get_months(report_type, month):
@@ -1738,28 +1719,14 @@ def report_summary():
             month = report.month
             year = report.year
             report_type = report.report_type
-        return render_template(
-            "report.html",
-            report=report,
-            report_type=report_type,
-            month=month,
-            year=year,
-            course_categories=course_categories,
-            org_categories=org_categories,
-            personal_categories=personal_categories,
-            meeting_categories=meeting_categories,
-            extra_categories=extra_categories,
-            cat_to_slug=cat_to_slug,
-            slug_to_cat=slug_to_cat,
-            org_cat_to_slug=org_cat_to_slug,
-            org_slug_to_cat=org_slug_to_cat,
-            personal_cat_to_slug=personal_cat_to_slug,
-            personal_slug_to_cat=personal_slug_to_cat,
-            meeting_cat_to_slug=meeting_cat_to_slug,
-            meeting_slug_to_cat=meeting_slug_to_cat,
-            extra_cat_to_slug=extra_cat_to_slug,
-            extra_slug_to_cat=extra_slug_to_cat,
-        )
+    return render_template(
+        "report.html",
+        report=report,
+        report_type=report_type,
+        month=month,
+        year=year,
+        **category_context,
+    )
 
     # For users: মাসিক (monthly) report is NOT aggregated, just show the single report for that month
     if report_type == "মাসিক":
