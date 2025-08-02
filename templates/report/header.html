@@ -1,5 +1,5 @@
-{% extends 'base.html' %} {% set page_title = 'মূল তথ্য' %} {% macro
-render_input(field, value) %}
+{% import 'macros.html' as macros %} {% extends 'base.html' %} {% set page_title
+= 'মূল তথ্য' %} {% macro render_input(field, value) %}
 <div class="relative">
   <label
     for="{{ field.name }}"
