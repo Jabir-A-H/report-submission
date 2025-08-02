@@ -37,6 +37,7 @@ from flask_migrate import Migrate
 
 load_dotenv()
 
+
 # --- Initialize Flask App and Configurations ---
 BASE_DIR = Path(os.getcwd()).resolve()
 INSTANCE_DIR = BASE_DIR / "instance"
@@ -82,12 +83,13 @@ def make_slugs(categories):
     return norm_categories, slug_to_cat, cat_to_slug
 
 
-# --- Helper: Populate Categories for New Report ---
-def populate_categories_for_report(report_id):
-    from sqlalchemy.exc import IntegrityError
+###########################
+# --- Centralized Category Definitions and Slug Mappings ---
+###########################
 
-    # Course Categories
-    course_categories = [
+
+CATEGORY_DEFS = {
+    "courses": [
         "বিশিষ্টদের",
         "সাধারণদের",
         "কর্মীদের",
@@ -95,22 +97,8 @@ def populate_categories_for_report(report_id):
         "অগ্রসরদের",
         "শিশু- তা'লিমুল কুরআন",
         "নিরক্ষর- তা'লিমুস সলাত",
-    ]
-    for cat in course_categories:
-        norm_cat = normalize_cat(cat)
-        if not ReportCourse.query.filter_by(
-            category=norm_cat, report_id=report_id
-        ).first():
-            try:
-                db.session.add(
-                    ReportCourse(category=norm_cat, number=0, report_id=report_id)
-                )
-                db.session.commit()
-            except IntegrityError:
-                db.session.rollback()
-
-    # Organizational Categories
-    org_categories = [
+    ],
+    "organizational": [
         "দাওয়াত দান",
         "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
         "সহযোগী হয়েছে",
@@ -125,8 +113,47 @@ def populate_categories_for_report(report_id):
         "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
         "বই বিলি",
         "বই বিক্রি",
-    ]
-    for cat in org_categories:
+    ],
+    "personal": ["রুকন", "কর্মী", "সক্রিয় সহযোগী"],
+    "meetings": [
+        "কমিটি বৈঠক হয়েছে",
+        "মুয়াল্লিমাদের নিয়ে বৈঠক",
+        "Committee Orientation",
+        "Muallima Orientation",
+    ],
+    "extras": [
+        "মক্তব সংখ্যা",
+        "মক্তব বৃদ্ধি",
+        "মহানগরী পরিচালিত",
+        "স্থানীয়ভাবে পরিচালিত",
+        "মহানগরীর সফর",
+        "থানা কমিটির সফর",
+        "থানা প্রতিনিধির সফর",
+        "ওয়ার্ড প্রতিনিধির সফর",
+    ],
+}
+
+SLUG_MAPS = {k: make_slugs(v) for k, v in CATEGORY_DEFS.items()}
+
+
+# --- Helper: Populate Categories for New Report ---
+def populate_categories_for_report(report_id):
+    from sqlalchemy.exc import IntegrityError
+
+    for cat in CATEGORY_DEFS["courses"]:
+        norm_cat = normalize_cat(cat)
+        if not ReportCourse.query.filter_by(
+            category=norm_cat, report_id=report_id
+        ).first():
+            try:
+                db.session.add(
+                    ReportCourse(category=norm_cat, number=0, report_id=report_id)
+                )
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+
+    for cat in CATEGORY_DEFS["organizational"]:
         norm_cat = normalize_cat(cat)
         if not ReportOrganizational.query.filter_by(
             category=norm_cat, report_id=report_id
@@ -141,9 +168,7 @@ def populate_categories_for_report(report_id):
             except IntegrityError:
                 db.session.rollback()
 
-    # Personal Activities Categories
-    personal_categories = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
-    for cat in personal_categories:
+    for cat in CATEGORY_DEFS["personal"]:
         norm_cat = normalize_cat(cat)
         if not ReportPersonal.query.filter_by(
             category=norm_cat, report_id=report_id
@@ -154,14 +179,7 @@ def populate_categories_for_report(report_id):
             except IntegrityError:
                 db.session.rollback()
 
-    # Meeting Categories
-    meeting_categories = [
-        "কমিটি বৈঠক হয়েছে",
-        "মুয়াল্লিমাদের নিয়ে বৈঠক",
-        "Committee Orientation",
-        "Muallima Orientation",
-    ]
-    for cat in meeting_categories:
+    for cat in CATEGORY_DEFS["meetings"]:
         norm_cat = normalize_cat(cat)
         if not ReportMeeting.query.filter_by(
             category=norm_cat, report_id=report_id
@@ -172,18 +190,7 @@ def populate_categories_for_report(report_id):
             except IntegrityError:
                 db.session.rollback()
 
-    # Extra Activity Categories
-    extra_categories = [
-        "মক্তব সংখ্যা",
-        "মক্তব বৃদ্ধি",
-        "মহানগরী পরিচালিত",
-        "স্থানীয়ভাবে পরিচালিত",
-        "মহানগরীর সফর",
-        "থানা কমিটির সফর",
-        "থানা প্রতিনিধির সফর",
-        "ওয়ার্ড প্রতিনিধির সফর",
-    ]
-    for cat in extra_categories:
+    for cat in CATEGORY_DEFS["extras"]:
         norm_cat = normalize_cat(cat)
         if not ReportExtra.query.filter_by(
             category=norm_cat, report_id=report_id
@@ -700,61 +707,14 @@ def city_report_page():
     if not year:
         year = now.year
 
-    # Category lists and slug mappings (same as report.html)
-    course_categories_raw = [
-        "বিশিষ্টদের",
-        "সাধারণদের",
-        "কর্মীদের",
-        "ইউনিট সভানেত্রী",
-        "অগ্রসরদের",
-        "শিশু- তা'লিমুল কুরআন",
-        "নিরক্ষর- তা'লিমুস সলাত",
+    # Use centralized category and slug maps
+    course_categories, cat_to_slug, slug_to_cat = SLUG_MAPS["courses"]
+    org_categories, org_cat_to_slug, org_slug_to_cat = SLUG_MAPS["organizational"]
+    personal_categories, personal_cat_to_slug, personal_slug_to_cat = SLUG_MAPS[
+        "personal"
     ]
-    org_categories_raw = [
-        "দাওয়াত দান",
-        "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
-        "সহযোগী হয়েছে",
-        "সম্মতি দিয়েছেন",
-        "সক্রিয় সহযোগী",
-        "কর্মী",
-        "রুকন",
-        "দাওয়াতী ইউনিট",
-        "ইউনিট",
-        "সূধী",
-        "এককালীন",
-        "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
-        "বই বিলি",
-        "বই বিক্রি",
-    ]
-    personal_categories_raw = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
-    meeting_categories_raw = [
-        "কমিটি বৈঠক হয়েছে",
-        "মুয়াল্লিমাদের নিয়ে বৈঠক",
-        "Committee Orientation",
-        "Muallima Orientation",
-    ]
-    extra_categories_raw = [
-        "মক্তব সংখ্যা",
-        "মক্তব বৃদ্ধি",
-        "মহানগরী পরিচালিত",
-        "স্থানীয়ভাবে পরিচালিত",
-        "মহানগরীর সফর",
-        "থানা কমিটির সফর",
-        "থানা প্রতিনিধির সফর",
-        "ওয়ার্ড প্রতিনিধির সফর",
-    ]
-
-    course_categories, cat_to_slug, slug_to_cat = make_slugs(course_categories_raw)
-    org_categories, org_cat_to_slug, org_slug_to_cat = make_slugs(org_categories_raw)
-    personal_categories, personal_cat_to_slug, personal_slug_to_cat = make_slugs(
-        personal_categories_raw
-    )
-    meeting_categories, meeting_cat_to_slug, meeting_slug_to_cat = make_slugs(
-        meeting_categories_raw
-    )
-    extra_categories, extra_cat_to_slug, extra_slug_to_cat = make_slugs(
-        extra_categories_raw
-    )
+    meeting_categories, meeting_cat_to_slug, meeting_slug_to_cat = SLUG_MAPS["meetings"]
+    extra_categories, extra_cat_to_slug, extra_slug_to_cat = SLUG_MAPS["extras"]
 
     # --- Aggregation Logic ---
     from sqlalchemy import func
@@ -1049,19 +1009,57 @@ def city_report_override():
     from datetime import datetime
 
     if request.method == "POST":
+        # Helper to combine section and category for non-header/comments
+        def get_section_with_category(section, category):
+            if section in ["header", "comments"] or not category:
+                return section
+            return f"{section}:{category}"
+
+        # Handle override removal
+        if request.form.get("remove_override"):
+            year = int(request.form.get("year"))
+            month = request.form.get("month")
+            month = int(month) if month else None
+            report_type = request.form.get("report_type")
+            section = request.form.get("section")
+            category = request.form.get("category")
+            field = request.form.get("field")
+            section_full = get_section_with_category(section, category)
+            override = CityReportOverride.query.filter_by(
+                year=year,
+                month=month,
+                report_type=report_type,
+                section=section_full,
+                field=field,
+            ).first()
+            if override:
+                db.session.delete(override)
+                db.session.commit()
+            # Redirect to same page with params
+            return redirect(
+                url_for(
+                    "city_report_override",
+                    year=year,
+                    month=month,
+                    report_type=report_type,
+                )
+            )
+        # Handle upsert (add/update) override
         year = int(request.form.get("year"))
         month = request.form.get("month")
         month = int(month) if month else None
         report_type = request.form.get("report_type")
         section = request.form.get("section")
+        category = request.form.get("category")
         field = request.form.get("field")
         value = request.form.get("value")
+        section_full = get_section_with_category(section, category)
         # Upsert override
         override = CityReportOverride.query.filter_by(
             year=year,
             month=month,
             report_type=report_type,
-            section=section,
+            section=section_full,
             field=field,
         ).first()
         if override:
@@ -1071,7 +1069,7 @@ def city_report_override():
                 year=year,
                 month=month,
                 report_type=report_type,
-                section=section,
+                section=section_full,
                 field=field,
                 value=value,
             )
@@ -1096,60 +1094,14 @@ def city_report_override():
         month = now.month
     if not year:
         year = now.year
-    # Category lists and slug mappings (same as city_report_page)
-    course_categories_raw = [
-        "বিশিষ্টদের",
-        "সাধারণদের",
-        "কর্মীদের",
-        "ইউনিট সভানেত্রী",
-        "অগ্রসরদের",
-        "শিশু- তা'লিমুল কুরআন",
-        "নিরক্ষর- তা'লিমুস সলাত",
+    # Use centralized category and slug maps
+    course_categories, cat_to_slug, slug_to_cat = SLUG_MAPS["courses"]
+    org_categories, org_cat_to_slug, org_slug_to_cat = SLUG_MAPS["organizational"]
+    personal_categories, personal_cat_to_slug, personal_slug_to_cat = SLUG_MAPS[
+        "personal"
     ]
-    org_categories_raw = [
-        "দাওয়াত দান",
-        "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
-        "সহযোগী হয়েছে",
-        "সম্মতি দিয়েছেন",
-        "সক্রিয় সহযোগী",
-        "কর্মী",
-        "রুকন",
-        "দাওয়াতী ইউনিট",
-        "ইউনিট",
-        "সূধী",
-        "এককালীন",
-        "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
-        "বই বিলি",
-        "বই বিক্রি",
-    ]
-    personal_categories_raw = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
-    meeting_categories_raw = [
-        "কমিটি বৈঠক হয়েছে",
-        "মুয়াল্লিমাদের নিয়ে বৈঠক",
-        "Committee Orientation",
-        "Muallima Orientation",
-    ]
-    extra_categories_raw = [
-        "মক্তব সংখ্যা",
-        "মক্তব বৃদ্ধি",
-        "মহানগরী পরিচালিত",
-        "স্থানীয়ভাবে পরিচালিত",
-        "মহানগরীর সফর",
-        "থানা কমিটির সফর",
-        "থানা প্রতিনিধির সফর",
-        "ওয়ার্ড প্রতিনিধির সফর",
-    ]
-    course_categories, cat_to_slug, slug_to_cat = make_slugs(course_categories_raw)
-    org_categories, org_cat_to_slug, org_slug_to_cat = make_slugs(org_categories_raw)
-    personal_categories, personal_cat_to_slug, personal_slug_to_cat = make_slugs(
-        personal_categories_raw
-    )
-    meeting_categories, meeting_cat_to_slug, meeting_slug_to_cat = make_slugs(
-        meeting_categories_raw
-    )
-    extra_categories, extra_cat_to_slug, extra_slug_to_cat = make_slugs(
-        extra_categories_raw
-    )
+    meeting_categories, meeting_cat_to_slug, meeting_slug_to_cat = SLUG_MAPS["meetings"]
+    extra_categories, extra_cat_to_slug, extra_slug_to_cat = SLUG_MAPS["extras"]
 
     # Fetch overrides for this period
     query = CityReportOverride.query.filter_by(year=int(year), report_type=report_type)
@@ -1546,16 +1498,7 @@ def report_courses():
     success = None
     if current_user.is_authenticated:
         report = get_current_report(current_user.zone_id, month, year, report_type)
-        course_categories_raw = [
-            "বিশিষ্টদের",
-            "সাধারণদের",
-            "কর্মীদের",
-            "ইউনিট সভানেত্রী",
-            "অগ্রসরদের",
-            "শিশু- তা'লিমুল কুরআন",
-            "নিরক্ষর- তা'লিমুস সলাত",
-        ]
-        course_categories, slug_to_cat, cat_to_slug = make_slugs(course_categories_raw)
+        course_categories, slug_to_cat, cat_to_slug = SLUG_MAPS["courses"]
         if request.method == "POST" and report:
             fields = [
                 "number",
@@ -1596,23 +1539,7 @@ def report_organizational():
     success = None
     if current_user.is_authenticated:
         report = get_current_report(current_user.zone_id, month, year, report_type)
-        org_categories_raw = [
-            "দাওয়াত দান",
-            "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
-            "সহযোগী হয়েছে",
-            "সম্মতি দিয়েছেন",
-            "সক্রিয় সহযোগী",
-            "কর্মী",
-            "রুকন",
-            "দাওয়াতী ইউনিট",
-            "ইউনিট",
-            "সূধী",
-            "এককালীন",
-            "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
-            "বই বিলি",
-            "বই বিক্রি",
-        ]
-        org_categories, slug_to_cat, cat_to_slug = make_slugs(org_categories_raw)
+        org_categories, slug_to_cat, cat_to_slug = SLUG_MAPS["organizational"]
         if request.method == "POST" and report:
             fields = ["number", "increase", "amount", "comments"]
             handle_section_post(report, "organizational", org_categories, fields)
@@ -1640,10 +1567,7 @@ def report_personal():
     success = None
     if current_user.is_authenticated:
         report = get_current_report(current_user.zone_id, month, year, report_type)
-        personal_categories_raw = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
-        personal_categories, slug_to_cat, cat_to_slug = make_slugs(
-            personal_categories_raw
-        )
+        personal_categories, slug_to_cat, cat_to_slug = SLUG_MAPS["personal"]
         if request.method == "POST" and report:
             fields = [
                 "teaching",
@@ -1679,15 +1603,7 @@ def report_meetings():
     success = None
     if current_user.is_authenticated:
         report = get_current_report(current_user.zone_id, month, year, report_type)
-        meeting_categories_raw = [
-            "কমিটি বৈঠক হয়েছে",
-            "মুয়াল্লিমাদের নিয়ে বৈঠক",
-            "Committee Orientation",
-            "Muallima Orientation",
-        ]
-        meeting_categories, slug_to_cat, cat_to_slug = make_slugs(
-            meeting_categories_raw
-        )
+        meeting_categories, slug_to_cat, cat_to_slug = SLUG_MAPS["meetings"]
         if request.method == "POST" and report:
             fields = [
                 "city_count",
@@ -1723,17 +1639,7 @@ def report_extras():
     success = None
     if current_user.is_authenticated:
         report = get_current_report(current_user.zone_id, month, year, report_type)
-        extra_categories_raw = [
-            "মক্তব সংখ্যা",
-            "মক্তব বৃদ্ধি",
-            "মহানগরী পরিচালিত",
-            "স্থানীয়ভাবে পরিচালিত",
-            "মহানগরীর সফর",
-            "থানা কমিটির সফর",
-            "থানা প্রতিনিধির সফর",
-            "ওয়ার্ড প্রতিনিধির সফর",
-        ]
-        extra_categories, slug_to_cat, cat_to_slug = make_slugs(extra_categories_raw)
+        extra_categories, slug_to_cat, cat_to_slug = SLUG_MAPS["extras"]
         if request.method == "POST" and report:
             fields = ["number"]
             handle_section_post(report, "extras", extra_categories, fields)
@@ -1798,61 +1704,14 @@ def report_summary():
     if not year:
         year = now.year
 
-    # Use make_slugs helper for all categories and slug mappings
-    course_categories_raw = [
-        "বিশিষ্টদের",
-        "সাধারণদের",
-        "কর্মীদের",
-        "ইউনিট সভানেত্রী",
-        "অগ্রসরদের",
-        "শিশু- তা'লিমুল কুরআন",
-        "নিরক্ষর- তা'লিমুস সলাত",
+    # Use centralized category and slug maps
+    course_categories, cat_to_slug, slug_to_cat = SLUG_MAPS["courses"]
+    org_categories, org_cat_to_slug, org_slug_to_cat = SLUG_MAPS["organizational"]
+    personal_categories, personal_cat_to_slug, personal_slug_to_cat = SLUG_MAPS[
+        "personal"
     ]
-    org_categories_raw = [
-        "দাওয়াত দান",
-        "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
-        "সহযোগী হয়েছে",
-        "সম্মতি দিয়েছেন",
-        "সক্রিয় সহযোগী",
-        "কর্মী",
-        "রুকন",
-        "দাওয়াতী ইউনিট",
-        "ইউনিট",
-        "সূধী",
-        "এককালীন",
-        "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
-        "বই বিলি",
-        "বই বিক্রি",
-    ]
-    personal_categories_raw = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
-    meeting_categories_raw = [
-        "কমিটি বৈঠক হয়েছে",
-        "মুয়াল্লিমাদের নিয়ে বৈঠক",
-        "Committee Orientation",
-        "Muallima Orientation",
-    ]
-    extra_categories_raw = [
-        "মক্তব সংখ্যা",
-        "মক্তব বৃদ্ধি",
-        "মহানগরী পরিচালিত",
-        "স্থানীয়ভাবে পরিচালিত",
-        "মহানগরীর সফর",
-        "থানা কমিটির সফর",
-        "থানা প্রতিনিধির সফর",
-        "ওয়ার্ড প্রতিনিধির সফর",
-    ]
-
-    course_categories, cat_to_slug, slug_to_cat = make_slugs(course_categories_raw)
-    org_categories, org_cat_to_slug, org_slug_to_cat = make_slugs(org_categories_raw)
-    personal_categories, personal_cat_to_slug, personal_slug_to_cat = make_slugs(
-        personal_categories_raw
-    )
-    meeting_categories, meeting_cat_to_slug, meeting_slug_to_cat = make_slugs(
-        meeting_categories_raw
-    )
-    extra_categories, extra_cat_to_slug, extra_slug_to_cat = make_slugs(
-        extra_categories_raw
-    )
+    meeting_categories, meeting_cat_to_slug, meeting_slug_to_cat = SLUG_MAPS["meetings"]
+    extra_categories, extra_cat_to_slug, extra_slug_to_cat = SLUG_MAPS["extras"]
 
     # --- Aggregation Logic for user/zone reports ---
     def get_months(report_type, month):
