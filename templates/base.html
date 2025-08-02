@@ -118,7 +118,7 @@
       {% block breadcrumbs %}
       {% if request.path != '/' %}
       <nav class="mb-6 flex items-center gap-2 text-base font-semibold" aria-label="breadcrumb">
-        {{ macros.context_link('dashboard', 'হোম') }}
+        {{ macros.context_link('dashboard', 'হোম', year=year, month=month, report_type=report_type) }}
         <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
         {% block breadcrumb_page %}{{ page_title|default('') }}{% endblock %}
         <script>
