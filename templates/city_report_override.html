@@ -75,6 +75,7 @@ year=year, month=month, report_type=report_type) }}
     <input type="hidden" name="year" value="{{ year }}" />
     <input type="hidden" name="month" value="{{ month }}" />
     <input type="hidden" name="report_type" value="{{ report_type }}" />
+    <input type="hidden" name="category" id="category-hidden-input" value="" />
     <button type="submit" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded">
       Save Override
     </button>
@@ -84,22 +85,70 @@ year=year, month=month, report_type=report_type) }}
     <thead>
       <tr class="bg-gray-100">
         <th class="border px-2 py-1">Section</th>
+        <th class="border px-2 py-1">Category</th>
         <th class="border px-2 py-1">Field</th>
-        <th class="border px-2 py-1">Value</th>
+        <th class="border px-2 py-1">Old Value</th>
+        <th class="border px-2 py-1">Override Value</th>
         <th class="border px-2 py-1">Year</th>
         <th class="border px-2 py-1">Month</th>
         <th class="border px-2 py-1">Report Type</th>
+        <th class="border px-2 py-1">Remove</th>
       </tr>
     </thead>
     <tbody>
       {% for o in overrides %}
       <tr>
-        <td class="border px-2 py-1">{{ o.section }}</td>
+        {# Extract section and category cleanly #} {% set section_name =
+        o.section.split(':')[0] %} {% set category_name =
+        o.section.split(':')[1] if ':' in o.section else None %}
+        <td class="border px-2 py-1">{{ section_name }}</td>
+        <td class="border px-2 py-1">{{ category_name or '' }}</td>
         <td class="border px-2 py-1">{{ o.field }}</td>
+        <td class="border px-2 py-1">
+          {# Robust old value logic for all sections #} {% set old_val = None %}
+          {% if section_name == 'header' %} {% set old_val =
+          city_summary.get(o.field) %} {% elif section_name == 'courses' %} {%
+          for c in city_courses %} {% if c.category == category_name %}{% set
+          old_val = c.get(o.field) %}{% endif %} {% endfor %} {% elif
+          section_name == 'organizational' %} {% for c in city_organizational %}
+          {% if c.category == category_name %}{% set old_val = c.get(o.field)
+          %}{% endif %} {% endfor %} {% elif section_name == 'personal' %} {%
+          for c in city_personal %} {% if c.category == category_name %}{% set
+          old_val = c.get(o.field) %}{% endif %} {% endfor %} {% elif
+          section_name == 'meetings' %} {% for c in city_meetings %} {% if
+          c.category == category_name %}{% set old_val = c.get(o.field) %}{%
+          endif %} {% endfor %} {% elif section_name == 'extras' %} {% for c in
+          city_extras %} {% if c.category == category_name %}{% set old_val =
+          c.get(o.field) %}{% endif %} {% endfor %} {% elif section_name ==
+          'comments' %} {% set old_val = city_comments.get(o.field) %} {% endif
+          %} {{ old_val if old_val is not none else '' }}
+        </td>
         <td class="border px-2 py-1">{{ o.value }}</td>
         <td class="border px-2 py-1">{{ o.year }}</td>
         <td class="border px-2 py-1">{{ o.month or '' }}</td>
         <td class="border px-2 py-1">{{ o.report_type }}</td>
+        <td class="border px-2 py-1">
+          <form method="post" style="display: inline">
+            <input type="hidden" name="remove_override" value="1" />
+            <input type="hidden" name="section" value="{{ o.section }}" />
+            <input type="hidden" name="field" value="{{ o.field }}" />
+            <input type="hidden" name="year" value="{{ o.year }}" />
+            <input type="hidden" name="month" value="{{ o.month }}" />
+            <input
+              type="hidden"
+              name="report_type"
+              value="{{ o.report_type }}"
+            />
+            <button
+              type="submit"
+              class="text-red-600 hover:underline"
+              title="Remove override"
+              onclick="return confirm('Remove this override?')"
+            >
+              Remove
+            </button>
+          </form>
+        </td>
       </tr>
       {% endfor %}
     </tbody>
