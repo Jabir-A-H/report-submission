@@ -40,8 +40,8 @@
         </button>
         <div id="downloadDropdown" class="hidden absolute left-0 mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
           <a href="#" id="downloadPdfV1Link" class="block px-4 py-2 text-gray-700 hover:bg-purple-50">PDF v1</a>
-          <a href="/download_city_report?report_type={{ report_type }}&month={{ month }}&year={{ year }}&format=pdf" class="block px-4 py-2 text-gray-700 hover:bg-purple-50">PDF v2</a>
-          <a href="/download_city_report?report_type={{ report_type }}&month={{ month }}&year={{ year }}&format=excel" class="block px-4 py-2 text-gray-700 hover:bg-green-50">Excel</a>
+          <a href="{{ url_for('download_pdf', report_type=report_type, month=month, year=year, zone_id=selected_zone_id) if selected_zone_id else url_for('download_pdf', report_type=report_type, month=month, year=year) }}" class="block px-4 py-2 text-gray-700 hover:bg-purple-50">PDF</a>
+          <a href="{{ url_for('download_excel', report_type=report_type, month=month, year=year, zone_id=selected_zone_id) if selected_zone_id else url_for('download_excel', report_type=report_type, month=month, year=year) }}" class="block px-4 py-2 text-gray-700 hover:bg-green-50">Excel</a>
         </div>
       </div>
       {% if override_page_url %}
@@ -186,7 +186,7 @@
               </th>
               <th class="border border-gray-300 px-2 py-2">সংখ্যা</th>
               <th class="border border-gray-300 px-2 py-2">বৃদ্ধি</th>
-              <th class="border border-gray-300 px-2 py-2">টাকা</th>
+              <th class="border border-gray-300 px-2 py-2">পরিমাণ</th>
               <th class="border border-gray-300 px-2 py-2">মন্তব্য</th>
             </tr>
           </thead>

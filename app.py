@@ -24,6 +24,9 @@ import unicodedata
 from pathlib import Path
 from dotenv import load_dotenv
 from flask_migrate import Migrate
+import pandas as pd
+import io
+from datetime import datetime
 
 load_dotenv()
 
@@ -798,7 +801,7 @@ def city_report_page():
 
     # --- Header Aggregation ---
     header_fields = [
-        "total_unit",
+        "ward",
         "total_muallima",
         "muallima_increase",
         "muallima_decrease",
@@ -806,8 +809,8 @@ def city_report_page():
         "certified_muallima_taking_classes",
         "trained_muallima",
         "trained_muallima_taking_classes",
+        "total_unit",
         "units_with_muallima",
-        "ward",
     ]
     city_summary = {field: 0 for field in header_fields}
     thana_values = []
@@ -2181,6 +2184,1185 @@ def report_summary():
         extra_cat_to_slug=extra_cat_to_slug,
         extra_slug_to_cat=extra_slug_to_cat,
     )
+
+
+# --- Download Features ---
+
+
+@app.route("/download/excel")
+@login_required
+def download_excel():
+    report_type = request.args.get("report_type", "মাসিক")
+    month = request.args.get("month", "জানুয়ারি")
+    year = int(request.args.get("year", 2025))
+    zone_id = request.args.get("zone_id")  # For admin to download specific zone
+
+    # Get report data based on user role
+    if current_user.role == "admin" and zone_id:
+        # Admin downloading specific zone report
+        zone = Zone.query.get_or_404(zone_id)
+        reports = get_reports_for_period(zone_id, report_type, month, year)
+        filename = f"Zone_{zone.name}_{report_type}_{year}"
+        if report_type == "মাসিক":
+            filename += f"_{month}"
+    elif current_user.role == "admin":
+        # Admin downloading city report (all zones aggregated)
+        reports = []
+        zones = Zone.query.all()
+        for zone in zones:
+            zone_reports = get_reports_for_period(zone.id, report_type, month, year)
+            reports.extend(zone_reports)
+        filename = f"City_Report_{report_type}_{year}"
+        if report_type == "মাসিক":
+            filename += f"_{month}"
+    else:
+        # User downloading their zone report
+        reports = get_reports_for_period(current_user.zone_id, report_type, month, year)
+        filename = f"Zone_{current_user.zone.name}_{report_type}_{year}"
+        if report_type == "মাসিক":
+            filename += f"_{month}"
+
+    filename += ".xlsx"
+
+    # Create comprehensive Excel data with all sections
+    data = []
+
+    # Process report data
+    for report_index, report in enumerate(reports):
+        # Add zone separator
+        if report_index > 0:
+            data.append(["", "", "", "", "", "", ""])  # Empty row separator
+
+        if hasattr(report, "zone") and report.zone:
+            data.append([f"জোন: {report.zone.name}", "", "", "", "", "", ""])
+            data.append(["", "", "", "", "", "", ""])  # Empty row
+
+        # Header section
+        if report.header:
+            data.append(["বিভাগ", "ক্ষেত্র", "মান", "", "", "", ""])
+            data.append(
+                [
+                    "হেডার তথ্য",
+                    "দায়িত্বশীলের নাম",
+                    report.header.responsible_name or "",
+                    "",
+                    "",
+                    "",
+                    "",
+                ]
+            )
+            data.append(
+                ["হেডার তথ্য", "থানা", str(report.header.thana or ""), "", "", "", ""]
+            )
+            data.append(
+                ["হেডার তথ্য", "ওয়ার্ড", str(report.header.ward or ""), "", "", "", ""]
+            )
+            data.append(
+                [
+                    "হেডার তথ্য",
+                    "মোট মুয়াল্লিমা",
+                    str(report.header.total_muallima or 0),
+                    "",
+                    "",
+                    "",
+                    "",
+                ]
+            )
+            data.append(
+                [
+                    "হেডার তথ্য",
+                    "মুয়াল্লিমা বৃদ্ধি",
+                    str(report.header.muallima_increase or 0),
+                    "",
+                    "",
+                    "",
+                    "",
+                ]
+            )
+            data.append(
+                [
+                    "হেডার তথ্য",
+                    "মুয়াল্লিমা হ্রাস",
+                    str(report.header.muallima_decrease or 0),
+                    "",
+                    "",
+                    "",
+                    "",
+                ]
+            )
+            data.append(
+                [
+                    "হেডার তথ্য",
+                    "সার্টিফিকেটধারী মুয়াল্লিমা",
+                    str(report.header.certified_muallima or 0),
+                    "",
+                    "",
+                    "",
+                    "",
+                ]
+            )
+            data.append(
+                [
+                    "হেডার তথ্য",
+                    "সার্টিফিকেটধারী মুয়াল্লিমা ক্লাস নিচ্ছেন",
+                    str(report.header.certified_muallima_taking_classes or 0),
+                    "",
+                    "",
+                    "",
+                    "",
+                ]
+            )
+            data.append(
+                [
+                    "হেডার তথ্য",
+                    "প্রশিক্ষিত মুয়াল্লিমা",
+                    str(report.header.trained_muallima or 0),
+                    "",
+                    "",
+                    "",
+                    "",
+                ]
+            )
+            data.append(
+                [
+                    "হেডার তথ্য",
+                    "প্রশিক্ষিত মুয়াল্লিমা ক্লাস নিচ্ছেন",
+                    str(report.header.trained_muallima_taking_classes or 0),
+                    "",
+                    "",
+                    "",
+                    "",
+                ]
+            )
+            data.append(
+                [
+                    "হেডার তথ্য",
+                    "মোট ইউনিট",
+                    str(report.header.total_unit or 0),
+                    "",
+                    "",
+                    "",
+                    "",
+                ]
+            )
+            data.append(
+                [
+                    "হেডার তথ্য",
+                    "মুয়াল্লিমা সহ ইউনিট",
+                    str(report.header.units_with_muallima or 0),
+                    "",
+                    "",
+                    "",
+                    "",
+                ]
+            )
+            data.append(["", "", "", "", "", "", ""])  # Empty row
+
+        # Courses section
+        if report.courses:
+            data.append(
+                ["বিভাগ", "গ্রুপ/কোর্স", "সংখ্যা", "বৃদ্ধি", "ঘাটতি", "অধিবেশন", "শিক্ষার্থী"]
+            )
+            course_categories = [
+                "বিশিষ্টদের",
+                "সাধারণদের",
+                "কর্মীদের",
+                "ইউনিট সভানেত্রী",
+                "অগ্রসরদের",
+                "শিশু- তা'লিমুল কুরআন",
+                "নিরক্ষর- তা'লিমুস সলাত",
+            ]
+            for category in course_categories:
+                course_row = next(
+                    (c for c in report.courses if c.category == category), None
+                )
+                data.append(
+                    [
+                        "গ্রুপ/কোর্স",
+                        category,
+                        (
+                            course_row.number
+                            if course_row and course_row.number is not None
+                            else 0
+                        ),
+                        (
+                            course_row.increase
+                            if course_row and course_row.increase is not None
+                            else 0
+                        ),
+                        (
+                            course_row.decrease
+                            if course_row and course_row.decrease is not None
+                            else 0
+                        ),
+                        (
+                            course_row.sessions
+                            if course_row and course_row.sessions is not None
+                            else 0
+                        ),
+                        (
+                            course_row.students
+                            if course_row and course_row.students is not None
+                            else 0
+                        ),
+                    ]
+                )
+            data.append(["", "", "", "", "", "", ""])  # Empty row
+
+        # Organizational section
+        if report.organizational:
+            data.append(
+                ["বিভাগ", "দাওয়াত ও সংগঠন", "সংখ্যা", "বৃদ্ধি", "পরিমাণ", "মন্তব্য", ""]
+            )
+            org_categories = [
+                "দাওয়াত দান",
+                "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
+                "সহযোগী হয়েছে",
+                "সম্মতি দিয়েছেন",
+                "সক্রিয় সহযোগী",
+                "কর্মী",
+                "রুকন",
+                "দাওয়াতী ইউনিট",
+                "ইউনিট",
+                "সূধী",
+                "এককালীন",
+                "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
+                "বই বিলি",
+                "বই বিক্রি",
+            ]
+            for category in org_categories:
+                org_row = next(
+                    (o for o in report.organizational if o.category == category), None
+                )
+                data.append(
+                    [
+                        "দাওয়াত ও সংগঠন",
+                        category,
+                        org_row.number if org_row and org_row.number is not None else 0,
+                        (
+                            org_row.increase
+                            if org_row and org_row.increase is not None
+                            else 0
+                        ),
+                        org_row.amount if org_row and org_row.amount is not None else 0,
+                        (
+                            org_row.comments
+                            if org_row and org_row.comments is not None
+                            else ""
+                        ),
+                        "",
+                    ]
+                )
+            data.append(["", "", "", "", "", "", ""])  # Empty row
+
+        # Personal section
+        if report.personal:
+            data.append(
+                [
+                    "বিভাগ",
+                    "ব্যক্তিগত উদ্যোগে তা'লীমুল কুরআন",
+                    "কতজন শিখাচ্ছেন",
+                    "কতজনকে শিখাচ্ছেন",
+                    "ওয়ালামাকে দাওয়াত",
+                    "সহযোগী হয়েছেন",
+                    "কর্মী হয়েছেন",
+                ]
+            )
+            personal_categories = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
+            for category in personal_categories:
+                personal_row = next(
+                    (p for p in report.personal if p.category == category), None
+                )
+                data.append(
+                    [
+                        "ব্যক্তিগত",
+                        category,
+                        (
+                            personal_row.teaching
+                            if personal_row and personal_row.teaching is not None
+                            else 0
+                        ),
+                        (
+                            personal_row.learning
+                            if personal_row and personal_row.learning is not None
+                            else 0
+                        ),
+                        (
+                            personal_row.olama_invited
+                            if personal_row and personal_row.olama_invited is not None
+                            else 0
+                        ),
+                        (
+                            personal_row.became_shohojogi
+                            if personal_row
+                            and personal_row.became_shohojogi is not None
+                            else 0
+                        ),
+                        (
+                            personal_row.became_kormi
+                            if personal_row and personal_row.became_kormi is not None
+                            else 0
+                        ),
+                    ]
+                )
+            data.append(["", "", "", "", "", "", ""])  # Empty row
+
+        # Meetings section
+        if report.meetings:
+            data.append(
+                [
+                    "বিভাগ",
+                    "বৈঠকসমূহ",
+                    "মহানগরী কতটি",
+                    "মহানগরী গড় উপস্থিতি",
+                    "থানা কতটি",
+                    "থানা গড় উপস্থিতি",
+                    "মন্তব্য",
+                ]
+            )
+            meeting_categories = [
+                "কমিটি বৈঠক হয়েছে",
+                "মুয়াল্লিমাদের নিয়ে বৈঠক",
+                "Committee Orientation",
+                "Muallima Orientation",
+            ]
+            for category in meeting_categories:
+                meeting_row = next(
+                    (m for m in report.meetings if m.category == category), None
+                )
+                data.append(
+                    [
+                        "বৈঠকসমূহ",
+                        category,
+                        (
+                            meeting_row.city_count
+                            if meeting_row and meeting_row.city_count is not None
+                            else 0
+                        ),
+                        (
+                            meeting_row.city_avg_attendance
+                            if meeting_row
+                            and meeting_row.city_avg_attendance is not None
+                            else 0
+                        ),
+                        (
+                            meeting_row.thana_count
+                            if meeting_row and meeting_row.thana_count is not None
+                            else 0
+                        ),
+                        (
+                            meeting_row.thana_avg_attendance
+                            if meeting_row
+                            and meeting_row.thana_avg_attendance is not None
+                            else 0
+                        ),
+                        (
+                            meeting_row.comments
+                            if meeting_row and meeting_row.comments is not None
+                            else ""
+                        ),
+                    ]
+                )
+            data.append(["", "", "", "", "", "", ""])  # Empty row
+
+        # Extras section
+        if report.extras:
+            data.append(["বিভাগ", "মক্তব ও সফর রিপোর্ট", "সংখ্যা", "", "", "", ""])
+            extra_categories = [
+                "মক্তব সংখ্যা",
+                "মক্তব বৃদ্ধি",
+                "মহানগরী পরিচালিত",
+                "স্থানীয়ভাবে পরিচালিত",
+                "মহানগরীর সফর",
+                "থানা কমিটির সফর",
+                "থানা প্রতিনিধির সফর",
+                "ওয়ার্ড প্রতিনিধির সফর",
+            ]
+            for category in extra_categories:
+                extra_row = next(
+                    (e for e in report.extras if e.category == category), None
+                )
+                data.append(
+                    [
+                        "মক্তব ও সফর",
+                        category,
+                        (
+                            extra_row.number
+                            if extra_row and extra_row.number is not None
+                            else 0
+                        ),
+                        "",
+                        "",
+                        "",
+                        "",
+                    ]
+                )
+            data.append(["", "", "", "", "", "", ""])  # Empty row
+
+        # Comments section
+        if report.comments and report.comments.comment:
+            data.append(["বিভাগ", "মন্তব্য", "", "", "", "", ""])
+            data.append(["মন্তব্য", report.comments.comment, "", "", "", "", ""])
+            data.append(["", "", "", "", "", "", ""])  # Empty row
+
+    # Create DataFrame with flexible column structure
+    headers = ["বিভাগ", "বিষয়", "কলাম ১", "কলাম ২", "কলাম ৩", "কলাম ৪", "কলাম ৫"]
+    df = pd.DataFrame(data, columns=headers)
+
+    # Create Excel file in memory
+    output = io.BytesIO()
+
+    # Download Tiro Bangla font data for Excel (same as PDF)
+    bengali_font_name = "Times New Roman"  # Default fallback
+    try:
+        import urllib.request
+
+        # Try to download Tiro Bangla font info
+        font_url = (
+            "https://fonts.gstatic.com/s/tirobangla/v6/IuaHaJaHVsk2rGGByzUFTJrmwLs.ttf"
+        )
+        with urllib.request.urlopen(font_url) as response:
+            # If download succeeds, we know the font is available
+            bengali_font_name = "Tiro Bangla"
+    except:
+        # If download fails, use Times New Roman
+        bengali_font_name = "Times New Roman"
+
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        df.to_excel(writer, sheet_name="Report", index=False)
+
+        # Get workbook and worksheet for formatting
+        from openpyxl.styles import Font, PatternFill, Border, Side
+
+        workbook = writer.book
+        worksheet = writer.sheets["Report"]
+
+        # Create Bengali font style
+        bengali_font = Font(name=bengali_font_name, size=11)
+        header_font = Font(name=bengali_font_name, size=12, bold=True, color="FFFFFF")
+
+        # Create header fill
+        header_fill = PatternFill(
+            start_color="4CAF50", end_color="4CAF50", fill_type="solid"
+        )
+
+        # Create border
+        thin_border = Border(
+            left=Side(style="thin"),
+            right=Side(style="thin"),
+            top=Side(style="thin"),
+            bottom=Side(style="thin"),
+        )
+
+        # Format header row
+        for cell in worksheet[1]:
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.border = thin_border
+
+        # Format data rows with Bengali font
+        for row in worksheet.iter_rows(min_row=2):
+            for cell in row:
+                cell.font = bengali_font
+                cell.border = thin_border
+
+        # Auto-adjust column widths
+        for column in worksheet.columns:
+            max_length = 0
+            column_letter = column[0].column_letter
+
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+
+            adjusted_width = min(max_length + 2, 50)  # Cap at 50 characters
+            worksheet.column_dimensions[column_letter].width = adjusted_width
+
+    output.seek(0)
+
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name=filename,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+
+
+@app.route("/download/pdf")
+@login_required
+def download_pdf():
+    report_type = request.args.get("report_type", "মাসিক")
+    month = request.args.get("month", "জানুয়ারি")
+    year = int(request.args.get("year", 2025))
+    zone_id = request.args.get("zone_id")
+
+    # Get report data based on user role
+    if current_user.role == "admin" and zone_id:
+        zone = Zone.query.get_or_404(zone_id)
+        reports = get_reports_for_period(zone_id, report_type, month, year)
+        title = f"Zone: {zone.name}"
+        filename = f"Zone_{zone.name}_{report_type}_{year}"
+    elif current_user.role == "admin":
+        reports = []
+        zones = Zone.query.all()
+        for zone in zones:
+            zone_reports = get_reports_for_period(zone.id, report_type, month, year)
+            reports.extend(zone_reports)
+        title = "City Report"
+        filename = f"City_Report_{report_type}_{year}"
+    else:
+        reports = get_reports_for_period(current_user.zone_id, report_type, month, year)
+        title = f"Zone: {current_user.zone.name}"
+        filename = f"Zone_{current_user.zone.name}_{report_type}_{year}"
+
+    if report_type == "মাসিক":
+        title += f" - {month}"
+        filename += f"_{month}"
+
+    title += f" {year} - {report_type}"
+    filename += ".pdf"
+
+    # Use Playwright for PDF generation
+    return generate_pdf_with_playwright(reports, title, filename)
+
+
+def generate_pdf_with_playwright(reports, title, filename):
+    """Generate PDF using Playwright for perfect Bengali support"""
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        raise Exception(
+            "Playwright not installed. Install with: pip install playwright"
+        )
+
+    # Create comprehensive HTML content with all report sections
+    html_content = f"""
+    <!DOCTYPE html>
+    <html lang="bn">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{title}</title>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;700&display=swap');
+            
+            * {{
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }}
+            
+            body {{
+                font-family: 'Noto Sans Bengali', Arial, sans-serif;
+                font-size: 12px;
+                line-height: 1.4;
+                color: #333;
+                margin: 15px;
+            }}
+            
+            .header {{
+                text-align: center;
+                margin-bottom: 25px;
+                border-bottom: 2px solid #333;
+                padding-bottom: 15px;
+            }}
+            
+            .title {{
+                font-size: 18px;
+                font-weight: bold;
+                margin-bottom: 5px;
+                color: #2c3e50;
+            }}
+            
+            .subtitle {{
+                font-size: 14px;
+                color: #7f8c8d;
+            }}
+            
+            .section {{
+                margin-bottom: 20px;
+                page-break-inside: avoid;
+            }}
+            
+            .section-title {{
+                font-size: 16px;
+                font-weight: bold;
+                background: linear-gradient(135deg, #3498db, #2980b9);
+                color: white;
+                padding: 8px 12px;
+                margin-bottom: 10px;
+                border-radius: 4px;
+                text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            }}
+            
+            table {{
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 15px;
+                font-size: 11px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }}
+            
+            th {{
+                background: linear-gradient(135deg, #34495e, #2c3e50);
+                color: white;
+                padding: 10px 8px;
+                text-align: center;
+                font-weight: bold;
+                border: 1px solid #2c3e50;
+                text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            }}
+            
+            td {{
+                padding: 8px;
+                border: 1px solid #bdc3c7;
+                text-align: center;
+                background-color: #ffffff;
+            }}
+            
+            tr:nth-child(even) td {{
+                background-color: #f8f9fa;
+            }}
+            
+            tr:hover td {{
+                background-color: #e8f4fd;
+            }}
+            
+            .field-name {{
+                font-weight: bold;
+                background-color: #ecf0f1 !important;
+                text-align: left;
+                color: #2c3e50;
+            }}
+            
+            .number-cell {{
+                font-weight: bold;
+                color: #27ae60;
+            }}
+            
+            .timestamp {{
+                margin-top: 20px;
+                text-align: center;
+                font-size: 10px;
+                color: #7f8c8d;
+                border-top: 1px solid #bdc3c7;
+                padding-top: 10px;
+            }}
+            
+            .page-break {{
+                page-break-before: always;
+            }}
+            
+            @media print {{
+                body {{ margin: 10px; }}
+                .section {{ page-break-inside: avoid; }}
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <div class="title">{title}</div>
+            <div class="subtitle">রিপোর্ট সারসংক্ষেপ</div>
+        </div>
+    """
+
+    # Process each report
+    for report_index, report in enumerate(reports):
+        if report_index > 0:
+            html_content += '<div class="page-break"></div>'
+
+        # Header Section
+        if report.header:
+            html_content += """
+            <div class="section">
+                <div class="section-title">📋 হেডার তথ্য (Header Information)</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 40%;">ক্ষেত্র</th>
+                            <th style="width: 60%;">মান</th>
+                        </tr>
+                    </thead>
+                    <tbody>"""
+
+            header_data = [
+                ("দায়িত্বশীলের নাম", report.header.responsible_name or ""),
+                ("থানা", str(report.header.thana or "")),
+                ("ওয়ার্ড", str(report.header.ward or "")),
+                ("মোট মুয়াল্লিমা", str(report.header.total_muallima or 0)),
+                ("মুয়াল্লিমা বৃদ্ধি", str(report.header.muallima_increase or 0)),
+                ("মুয়াল্লিমা হ্রাস", str(report.header.muallima_decrease or 0)),
+                ("সার্টিফিকেটধারী মুয়াল্লিমা", str(report.header.certified_muallima or 0)),
+                (
+                    "সার্টিফিকেটধারী মুয়াল্লিমা ক্লাস নিচ্ছেন",
+                    str(report.header.certified_muallima_taking_classes or 0),
+                ),
+                ("প্রশিক্ষিত মুয়াল্লিমা", str(report.header.trained_muallima or 0)),
+                (
+                    "প্রশিক্ষিত মুয়াল্লিমা ক্লাস নিচ্ছেন",
+                    str(report.header.trained_muallima_taking_classes or 0),
+                ),
+                ("মোট ইউনিট", str(report.header.total_unit or 0)),
+                ("মুয়াল্লিমা সহ ইউনিট", str(report.header.units_with_muallima or 0)),
+            ]
+
+            for field, value in header_data:
+                html_content += f"""
+                        <tr>
+                            <td class="field-name">{field}</td>
+                            <td class="number-cell">{value}</td>
+                        </tr>"""
+
+            html_content += """
+                    </tbody>
+                </table>
+            </div>"""
+
+        # Courses Section
+        if report.courses:
+            html_content += """
+            <div class="section">
+                <div class="section-title">📚 গ্রুপ / কোর্স রিপোর্ট</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th rowspan="2" style="width: 15%;">বিভাগ/ধরন</th>
+                            <th colspan="3" style="border-bottom: 1px solid #bdc3c7;">গ্রুপ / কোর্স</th>
+                            <th rowspan="2">অধিবেশন সংখ্যা</th>
+                            <th rowspan="2">শিক্ষার্থী সংখ্যা</th>
+                            <th rowspan="2">উপস্থিতি সংখ্যা</th>
+                            <th colspan="4" style="border-bottom: 1px solid #bdc3c7;">শিক্ষার্থী অবস্থান</th>
+                            <th rowspan="2">কতজন নিয়ে সমাপ্ত</th>
+                            <th rowspan="2">সহীহ শিখেছেন কতজন</th>
+                        </tr>
+                        <tr>
+                            <th>সংখ্যা</th>
+                            <th>বৃদ্ধি</th>
+                            <th>ঘাটতি</th>
+                            <th>বোর্ডে</th>
+                            <th>কায়দায়</th>
+                            <th>আমপারা</th>
+                            <th>কুরআন</th>
+                        </tr>
+                    </thead>
+                    <tbody>"""
+
+            course_categories = [
+                "বিশিষ্টদের",
+                "সাধারণদের",
+                "কর্মীদের",
+                "ইউনিট সভানেত্রী",
+                "অগ্রসরদের",
+                "শিশু- তা'লিমুল কুরআন",
+                "নিরক্ষর- তা'লিমুস সলাত",
+            ]
+
+            for category in course_categories:
+                # Find the course row for this category
+                course_row = next(
+                    (c for c in report.courses if c.category == category), None
+                )
+
+                html_content += f"""
+                        <tr>
+                            <td class="field-name">{category}</td>
+                            <td class="number-cell">{course_row.number if course_row and course_row.number is not None else 0}</td>
+                            <td class="number-cell">{course_row.increase if course_row and course_row.increase is not None else 0}</td>
+                            <td class="number-cell">{course_row.decrease if course_row and course_row.decrease is not None else 0}</td>
+                            <td class="number-cell">{course_row.sessions if course_row and course_row.sessions is not None else 0}</td>
+                            <td class="number-cell">{course_row.students if course_row and course_row.students is not None else 0}</td>
+                            <td class="number-cell">{course_row.attendance if course_row and course_row.attendance is not None else 0}</td>
+                            <td class="number-cell">{course_row.status_board if course_row and course_row.status_board is not None else 0}</td>
+                            <td class="number-cell">{course_row.status_qayda if course_row and course_row.status_qayda is not None else 0}</td>
+                            <td class="number-cell">{course_row.status_ampara if course_row and course_row.status_ampara is not None else 0}</td>
+                            <td class="number-cell">{course_row.status_quran if course_row and course_row.status_quran is not None else 0}</td>
+                            <td class="number-cell">{course_row.completed if course_row and course_row.completed is not None else 0}</td>
+                            <td class="number-cell">{course_row.correctly_learned if course_row and course_row.correctly_learned is not None else 0}</td>
+                        </tr>"""
+
+            html_content += """
+                    </tbody>
+                </table>
+            </div>"""
+
+        # Organizational Section
+        if report.organizational:
+            html_content += """
+            <div class="section">
+                <div class="section-title">🏢 দাওয়াত ও সংগঠন</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 40%;">দাওয়াত ও সংগঠন</th>
+                            <th>সংখ্যা</th>
+                            <th>বৃদ্ধি</th>
+                            <th>পরিমাণ</th>
+                            <th>মন্তব্য</th>
+                        </tr>
+                    </thead>
+                    <tbody>"""
+
+            org_categories = [
+                "দাওয়াত দান",
+                "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
+                "সহযোগী হয়েছে",
+                "সম্মতি দিয়েছেন",
+                "সক্রিয় সহযোগী",
+                "কর্মী",
+                "রুকন",
+                "দাওয়াতী ইউনিট",
+                "ইউনিট",
+                "সূধী",
+                "এককালীন",
+                "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
+                "বই বিলি",
+                "বই বিক্রি",
+            ]
+
+            for category in org_categories:
+                # Find the organizational row for this category
+                org_row = next(
+                    (o for o in report.organizational if o.category == category), None
+                )
+
+                html_content += f"""
+                        <tr>
+                            <td class="field-name">{category}</td>
+                            <td class="number-cell">{org_row.number if org_row and org_row.number is not None else 0}</td>
+                            <td class="number-cell">{org_row.increase if org_row and org_row.increase is not None else 0}</td>
+                            <td class="number-cell">{org_row.amount if org_row and org_row.amount is not None else 0}</td>
+                            <td>{org_row.comments if org_row and org_row.comments is not None else ""}</td>
+                        </tr>"""
+
+            html_content += """
+                    </tbody>
+                </table>
+            </div>"""
+
+        # Personal Section
+        if report.personal:
+            html_content += """
+            <div class="section">
+                <div class="section-title">👤 ব্যক্তিগত উদ্যোগে তা'লীমুল কুরআন</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th rowspan="2" style="width: 20%;">ব্যক্তিগত উদ্যোগে তা'লীমুল কুরআন</th>
+                            <th rowspan="2">কতজন শিখাচ্ছেন</th>
+                            <th rowspan="2">কতজনকে শিখাচ্ছেন</th>
+                            <th rowspan="2">কতজন ওয়ালামাকে দাওয়াত দিয়েছেন</th>
+                            <th colspan="4" style="border-bottom: 1px solid #bdc3c7;">দাওয়াত প্রাপ্ত ওয়ালামার মধ্যে</th>
+                        </tr>
+                        <tr>
+                            <th>সহযোগী হয়েছেন</th>
+                            <th>সক্রিয় সহযোগী হয়েছেন</th>
+                            <th>কর্মী হয়েছেন</th>
+                            <th>রুকন হয়েছেন</th>
+                        </tr>
+                    </thead>
+                    <tbody>"""
+
+            personal_categories = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
+
+            # Calculate totals
+            teaching_total = 0
+            learning_total = 0
+            olama_invited_total = 0
+            became_shohojogi_total = 0
+            became_sokrio_shohojogi_total = 0
+            became_kormi_total = 0
+            became_rukon_total = 0
+
+            for category in personal_categories:
+                # Find the personal row for this category
+                personal_row = next(
+                    (p for p in report.personal if p.category == category), None
+                )
+
+                teaching_val = (
+                    personal_row.teaching
+                    if personal_row and personal_row.teaching is not None
+                    else 0
+                )
+                learning_val = (
+                    personal_row.learning
+                    if personal_row and personal_row.learning is not None
+                    else 0
+                )
+                olama_invited_val = (
+                    personal_row.olama_invited
+                    if personal_row and personal_row.olama_invited is not None
+                    else 0
+                )
+                became_shohojogi_val = (
+                    personal_row.became_shohojogi
+                    if personal_row and personal_row.became_shohojogi is not None
+                    else 0
+                )
+                became_sokrio_shohojogi_val = (
+                    personal_row.became_sokrio_shohojogi
+                    if personal_row and personal_row.became_sokrio_shohojogi is not None
+                    else 0
+                )
+                became_kormi_val = (
+                    personal_row.became_kormi
+                    if personal_row and personal_row.became_kormi is not None
+                    else 0
+                )
+                became_rukon_val = (
+                    personal_row.became_rukon
+                    if personal_row and personal_row.became_rukon is not None
+                    else 0
+                )
+
+                # Add to totals
+                teaching_total += teaching_val
+                learning_total += learning_val
+                olama_invited_total += olama_invited_val
+                became_shohojogi_total += became_shohojogi_val
+                became_sokrio_shohojogi_total += became_sokrio_shohojogi_val
+                became_kormi_total += became_kormi_val
+                became_rukon_total += became_rukon_val
+
+                html_content += f"""
+                        <tr>
+                            <td class="field-name">{category}</td>
+                            <td class="number-cell">{teaching_val}</td>
+                            <td class="number-cell">{learning_val}</td>
+                            <td class="number-cell">{olama_invited_val}</td>
+                            <td class="number-cell">{became_shohojogi_val}</td>
+                            <td class="number-cell">{became_sokrio_shohojogi_val}</td>
+                            <td class="number-cell">{became_kormi_val}</td>
+                            <td class="number-cell">{became_rukon_val}</td>
+                        </tr>"""
+
+            # Add totals row
+            html_content += f"""
+                        <tr style="background-color: #e0f2fe; font-weight: bold;">
+                            <td class="field-name">মোট</td>
+                            <td class="number-cell">{teaching_total}</td>
+                            <td class="number-cell">{learning_total}</td>
+                            <td class="number-cell">{olama_invited_total}</td>
+                            <td class="number-cell">{became_shohojogi_total}</td>
+                            <td class="number-cell">{became_sokrio_shohojogi_total}</td>
+                            <td class="number-cell">{became_kormi_total}</td>
+                            <td class="number-cell">{became_rukon_total}</td>
+                        </tr>"""
+
+            html_content += """
+                    </tbody>
+                </table>
+            </div>"""
+
+        # Meetings Section
+        if report.meetings:
+            html_content += """
+            <div class="section">
+                <div class="section-title">🤝 বৈঠকসমূহ</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">বৈঠকসমূহ</th>
+                            <th>মহানগরীর কতটি</th>
+                            <th>মহানগরী গড় উপস্থিতি</th>
+                            <th>থানা কতটি</th>
+                            <th>থানা গড় উপস্থিতি</th>
+                            <th>ওয়ার্ড কতটি</th>
+                            <th>ওয়ার্ড গড় উপস্থিতি</th>
+                            <th>মন্তব্য</th>
+                        </tr>
+                    </thead>
+                    <tbody>"""
+
+            meeting_categories = [
+                "কমিটি বৈঠক হয়েছে",
+                "মুয়াল্লিমাদের নিয়ে বৈঠক",
+                "Committee Orientation",
+                "Muallima Orientation",
+            ]
+
+            for category in meeting_categories:
+                # Find the meeting row for this category
+                meeting_row = next(
+                    (m for m in report.meetings if m.category == category), None
+                )
+
+                html_content += f"""
+                        <tr>
+                            <td class="field-name">{category}</td>
+                            <td class="number-cell">{meeting_row.city_count if meeting_row and meeting_row.city_count is not None else 0}</td>
+                            <td class="number-cell">{meeting_row.city_avg_attendance if meeting_row and meeting_row.city_avg_attendance is not None else 0}</td>
+                            <td class="number-cell">{meeting_row.thana_count if meeting_row and meeting_row.thana_count is not None else 0}</td>
+                            <td class="number-cell">{meeting_row.thana_avg_attendance if meeting_row and meeting_row.thana_avg_attendance is not None else 0}</td>
+                            <td class="number-cell">{meeting_row.ward_count if meeting_row and meeting_row.ward_count is not None else 0}</td>
+                            <td class="number-cell">{meeting_row.ward_avg_attendance if meeting_row and meeting_row.ward_avg_attendance is not None else 0}</td>
+                            <td>{meeting_row.comments if meeting_row and meeting_row.comments is not None else ""}</td>
+                        </tr>"""
+
+            html_content += """
+                    </tbody>
+                </table>
+            </div>"""
+
+        # Extras Section
+        if report.extras:
+            html_content += """
+            <div class="section">
+                <div class="section-title">➕ মক্তব ও সফর রিপোর্ট</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 70%;">বিষয়</th>
+                            <th style="width: 30%;">সংখ্যা</th>
+                        </tr>
+                    </thead>
+                    <tbody>"""
+
+            extra_categories = [
+                "মক্তব সংখ্যা",
+                "মক্তব বৃদ্ধি",
+                "মহানগরী পরিচালিত",
+                "স্থানীয়ভাবে পরিচালিত",
+                "মহানগরীর সফর",
+                "থানা কমিটির সফর",
+                "থানা প্রতিনিধির সফর",
+                "ওয়ার্ড প্রতিনিধির সফর",
+            ]
+
+            for category in extra_categories:
+                # Find the extras row for this category
+                extra_row = next(
+                    (e for e in report.extras if e.category == category), None
+                )
+
+                html_content += f"""
+                        <tr>
+                            <td class="field-name">{category}</td>
+                            <td class="number-cell">{extra_row.number if extra_row and extra_row.number is not None else 0}</td>
+                        </tr>"""
+
+            html_content += """
+                    </tbody>
+                </table>
+            </div>"""
+
+        # Comments Section
+        if report.comments and report.comments.comment:
+            html_content += f"""
+            <div class="section">
+                <div class="section-title">💬 মন্তব্য</div>
+                <table>
+                    <tbody>
+                        <tr>
+                            <td style="padding: 15px; text-align: left; background-color: #f8f9fa;">
+                                {report.comments.comment}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>"""
+
+    # Add timestamp
+    html_content += f"""
+        <div class="timestamp">
+            রিপোর্ট তৈরি হয়েছে: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | 
+            সিস্টেম: রিপোর্ট সাবমিশন সিস্টেম
+        </div>
+    </body>
+    </html>
+    """
+
+    # Generate PDF using Playwright
+    with sync_playwright() as p:
+        try:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+
+            # Set content and wait for fonts to load
+            page.set_content(html_content, wait_until="networkidle")
+
+            # Wait a bit for Google Fonts to load
+            page.wait_for_timeout(2000)
+
+            # Generate PDF with high quality settings
+            pdf_bytes = page.pdf(
+                format="A4",
+                margin={
+                    "top": "0.5in",
+                    "right": "0.5in",
+                    "bottom": "0.5in",
+                    "left": "0.5in",
+                },
+                print_background=True,
+                prefer_css_page_size=True,
+            )
+
+            browser.close()
+
+            # Return as downloadable file
+            output = io.BytesIO(pdf_bytes)
+            return send_file(
+                output,
+                as_attachment=True,
+                download_name=filename,
+                mimetype="application/pdf",
+            )
+
+        except Exception as e:
+            print(f"[DEBUG] Playwright PDF generation failed: {e}")
+            browser.close()
+            raise
+
+
+def get_reports_for_period(zone_id, report_type, month, year):
+
+    # Convert month name to number if needed
+    month_name_to_number = {
+        "জানুয়ারি": 1,
+        "ফেব্রুয়ারি": 2,
+        "মার্চ": 3,
+        "এপ্রিল": 4,
+        "মে": 5,
+        "জুন": 6,
+        "জুলাই": 7,
+        "আগস্ট": 8,
+        "সেপ্টেম্বর": 9,
+        "অক্টোবর": 10,
+        "নভেম্বর": 11,
+        "ডিসেম্বর": 12,
+    }
+
+    if report_type == "মাসিক":
+        # Convert month name to number if it's a string
+        if isinstance(month, str) and month in month_name_to_number:
+            month_nums = [month_name_to_number[month]]
+        else:
+            month_nums = [int(month)]
+    elif report_type == "ত্রৈমাসিক":
+        month_nums = [1, 2, 3]
+    elif report_type == "ষান্মাসিক":
+        month_nums = [1, 2, 3, 4, 5, 6]
+    elif report_type == "নয়-মাসিক":
+        month_nums = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    elif report_type == "বার্ষিক":
+        month_nums = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    else:
+        # Default to monthly
+        if isinstance(month, str) and month in month_name_to_number:
+            month_nums = [month_name_to_number[month]]
+        else:
+            month_nums = [int(month)]
+
+    reports = []
+    for m in month_nums:
+        report = Report.query.filter_by(zone_id=zone_id, month=m, year=year).first()
+        if report:
+            reports.append(report)
+
+    return reports
 
 
 # --- Help Page ---
