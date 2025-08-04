@@ -89,7 +89,7 @@ echo Creating update script...
 
 (
 echo $tunnelUrl = "!tunnel_url!"
-echo $loginUrl = $tunnelUrl + "/login"
+echo $appUrl = $tunnelUrl + "/"
 echo $registerUrl = $tunnelUrl + "/register"
 echo.
 echo # Check if index.html exists
@@ -102,14 +102,14 @@ echo # Read the current index.html file
 echo $content = Get-Content "index.html" -Raw -Encoding UTF8
 echo.
 echo # Replace the old URLs with new ones using regex
-echo $content = $content -replace 'href="https://[^"]*\.trycloudflare\.com/login"', "href=`"$loginUrl`""
+echo $content = $content -replace 'href="https://[^"]*\.trycloudflare\.com/"', "href=`"$appUrl`""
 echo $content = $content -replace 'href="https://[^"]*\.trycloudflare\.com/register"', "href=`"$registerUrl`""
 echo.
 echo # Write the updated content back to the file
 echo $content ^| Set-Content "index.html" -NoNewline -Encoding UTF8
 echo.
 echo Write-Host "Successfully updated index.html with new tunnel URLs:" -ForegroundColor Green
-echo Write-Host "Login: $loginUrl" -ForegroundColor Yellow
+echo Write-Host "App URL: $appUrl" -ForegroundColor Yellow
 echo Write-Host "Register: $registerUrl" -ForegroundColor Yellow
 ) > update_html.ps1
 
@@ -159,7 +159,7 @@ echo ========================================
 echo.
 echo Flask App: Running on localhost:5000
 echo New tunnel URL: !tunnel_url!
-echo Login URL: !tunnel_url!/login
+echo App URL: !tunnel_url!/
 echo Register URL: !tunnel_url!/register
 echo.
 echo The index.html file has been updated with new URLs and pushed to GitHub.
