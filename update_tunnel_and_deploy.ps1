@@ -61,7 +61,7 @@ function Cleanup {
             Write-Host "Tunnel process stopped" -ForegroundColor Green
         }
         catch {
-            Write-Warning "Failed to stop tunnel process: $_"
+            Write-Warning "Failed to stop tunnel process: $($_.Exception.Message)"
         }
     }
     
@@ -72,7 +72,7 @@ function Cleanup {
             Write-Host "Flask process stopped" -ForegroundColor Green
         }
         catch {
-            Write-Warning "Failed to stop Flask process: $_"
+            Write-Warning "Failed to stop Flask process: $($_.Exception.Message)"
         }
     }
     
@@ -82,7 +82,7 @@ function Cleanup {
         Get-Process -Name "python" -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -like "*app.py*" } | Stop-Process -Force
     }
     catch {
-        Write-Warning "Error stopping remaining processes: $_"
+        Write-Warning "Error stopping remaining processes: $($_.Exception.Message)"
     }
     
     # Clean up temporary files
@@ -93,7 +93,7 @@ function Cleanup {
                 Write-Host "Removed temp file: $file" -ForegroundColor Green
             }
             catch {
-                Write-Warning "Failed to remove temp file $file: $_"
+                Write-Warning "Failed to remove temp file $file`: $($_.Exception.Message)"
             }
         }
     }
@@ -412,7 +412,7 @@ try {
     $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 }
 catch {
-    Write-Error "Error: $_"
+    Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
     Write-Host ""
     Write-Host "Check the following files for more details:" -ForegroundColor Yellow
     if (Test-Path "flask_output.txt") {
