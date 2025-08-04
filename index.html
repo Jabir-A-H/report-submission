@@ -1,12 +1,185 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-<!--CF_TUNNEL_URL-->
-<!-- <meta http-equiv="refresh" content="0;url=https://example.com"> -->
-  <title>Redirecting…</title>
-</head>
-<body>
-  <p>If you are not redirected automatically, <a href="https://example.com">click here</a>.</p>
-</body>
+<html lang="bn">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>রিপোর্ট সাবমিশন সিস্টেম</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Tiro Bangla", Arial, sans-serif;
+      }
+      .gradient-bg {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+      .card-shadow {
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+          0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      }
+      .btn-hover {
+        transition: all 0.3s ease;
+      }
+      .btn-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+      }
+      .animate-float {
+        animation: float 6s ease-in-out infinite;
+      }
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-20px);
+        }
+      }
+      .text-gradient {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen gradient-bg flex items-center justify-center p-4">
+    <div class="max-w-md w-full">
+      <!-- Logo/Icon Section -->
+      <div class="text-center mb-8 animate-float">
+        <div
+          class="w-24 h-24 mx-auto mb-4 bg-white rounded-full flex items-center justify-center card-shadow"
+        >
+          <svg
+            class="w-12 h-12 text-purple-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            ></path>
+          </svg>
+        </div>
+        <h1 class="text-4xl font-bold text-white mb-2">রিপোর্ট সিস্টেম</h1>
+        <p class="text-purple-100 text-lg">মাসিক প্রতিবেদন ব্যবস্থাপনা</p>
+      </div>
+
+      <!-- Main Card -->
+      <div
+        class="bg-white rounded-2xl p-8 card-shadow backdrop-blur-sm bg-opacity-95"
+      >
+        <div class="text-center mb-8">
+          <h2 class="text-2xl font-semibold text-gradient mb-2">স্বাগতম</h2>
+          <p class="text-gray-600">
+            আপনার অ্যাকাউন্টে প্রবেশ করুন অথবা নতুন অ্যাকাউন্ট তৈরি করুন
+          </p>
+        </div>
+
+        <!-- Login Button -->
+        <div class="space-y-4">
+          <a
+            href="https://pennsylvania-promised-supervisors-realtors.trycloudflare.com/login"
+            class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 px-6 rounded-xl font-semibold text-lg flex items-center justify-center btn-hover"
+          >
+            <svg
+              class="w-5 h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+              ></path>
+            </svg>
+            লগইন করুন
+          </a>
+
+          <!-- Register Button -->
+          <a
+            href="https://pennsylvania-promised-supervisors-realtors.trycloudflare.com/register"
+            class="w-full bg-white border-2 border-purple-300 text-purple-600 py-4 px-6 rounded-xl font-semibold text-lg flex items-center justify-center btn-hover hover:bg-purple-50"
+          >
+            <svg
+              class="w-5 h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+              ></path>
+            </svg>
+            নতুন অ্যাকাউন্ট তৈরি করুন
+          </a>
+        </div>
+
+        <!-- Features -->
+        <div class="mt-8 pt-6 border-t border-gray-200">
+          <div class="grid grid-cols-1 gap-3 text-sm text-gray-600">
+            <div class="flex items-center">
+              <svg
+                class="w-4 h-4 mr-2 text-green-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+              মাসিক ও বার্ষিক রিপোর্ট
+            </div>
+            <div class="flex items-center">
+              <svg
+                class="w-4 h-4 mr-2 text-green-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+              PDF ও Excel ডাউনলোড
+            </div>
+            <div class="flex items-center">
+              <svg
+                class="w-4 h-4 mr-2 text-green-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+              সিটি রিপোর্ট ব্যবস্থাপনা
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="text-center mt-6 text-purple-100 text-sm">
+        <p>© ২০২৫ রিপোর্ট সাবমিশন সিস্টেম। সকল অধিকার সংরক্ষিত।</p>
+      </div>
+    </div>
+  </body>
 </html>
