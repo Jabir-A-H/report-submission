@@ -155,9 +155,23 @@ function Start-FlaskApp {
     $flaskOutputFile = Join-Path $ProjectPath "flask_output.txt"
     $TempFiles += $flaskOutputFile
     
-    # Start Flask app
+    # Check if virtual environment exists
+    $venvPath = Join-Path $ProjectPath "venv"
+    $venvPython = Join-Path $venvPath "Scripts\python.exe"
+    
+    if (!(Test-Path $venvPath)) {
+        throw "Virtual environment not found at $venvPath. Please create it first with 'python -m venv venv'"
+    }
+    
+    if (!(Test-Path $venvPython)) {
+        throw "Python executable not found in virtual environment at $venvPython"
+    }
+    
+    Write-Host "Using virtual environment: $venvPath" -ForegroundColor Green
+    
+    # Start Flask app with virtual environment Python
     $processInfo = New-Object System.Diagnostics.ProcessStartInfo
-    $processInfo.FileName = "python"
+    $processInfo.FileName = $venvPython
     $processInfo.Arguments = "app.py"
     $processInfo.WorkingDirectory = $ProjectPath
     $processInfo.UseShellExecute = $false
