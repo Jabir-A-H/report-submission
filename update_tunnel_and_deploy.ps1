@@ -204,7 +204,7 @@ function Start-FlaskApp {
     # Wait for Flask to start
     Write-Host "Waiting for Flask to start on port 5000..." -ForegroundColor Yellow
     $retryCount = 0
-    $maxFlaskRetries = 10
+    $maxFlaskRetries = 20  # Increased timeout to 20 seconds
     
     do {
         Start-Sleep -Seconds 1
@@ -219,6 +219,17 @@ function Start-FlaskApp {
         }
         catch {
             # Flask might not be ready yet
+        }
+        
+        # Check if process is still running
+        if ($global:FlaskProcess.HasExited) {
+            $exitCode = $global:FlaskProcess.ExitCode
+            Write-Host "Flask process exited early with code $exitCode" -ForegroundColor Red
+            if (Test-Path $flaskOutputFile) {
+                Write-Host "Flask output:" -ForegroundColor Yellow
+                Get-Content $flaskOutputFile | Write-Host
+            }
+            throw "Flask process exited with code $exitCode. Check output above for errors."
         }
         
         Write-Host "Waiting for Flask... ($retryCount/$maxFlaskRetries)" -ForegroundColor Yellow
@@ -394,7 +405,7 @@ function Show-Results {
     Write-Host "Your Flask app and tunnel are running in the background." -ForegroundColor Green
     Write-Host ""
     Write-Host "IMPORTANT: Keep this PowerShell window open to maintain the app and the tunnel!" -ForegroundColor Red
-    Write-Host "Press any key to continue running, or close this window to stop everything." -ForegroundColor Yellow
+    Write-Host "Close this window with the X button to stop everything." -ForegroundColor Yellow
 }
 
 # Main execution
@@ -422,8 +433,18 @@ try {
     # Show results
     Show-Results -TunnelUrl $tunnelUrl
     
-    # Wait for user input to keep processes running
-    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    # Keep processes running indefinitely until window is closed
+    Write-Host ""
+    Write-Host "Window will stay open - close with X button to stop everything." -ForegroundColor Yellow
+    
+    while ($true) {
+        Start-Sleep -Seconds 60
+        # Check if processes are still running
+        if ($FlaskProcess.HasExited -or $TunnelProcess.HasExited) {
+            Write-Host "One or more processes have stopped. Cleaning up..." -ForegroundColor Yellow
+            break
+        }
+    }
 }
 catch {
     Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
@@ -440,6 +461,10 @@ finally {
     Cleanup
     Write-Host ""
     Write-Host "Script completed. All processes stopped." -ForegroundColor Green
-    Write-Host "Press any key to exit..." -ForegroundColor Yellow
-    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    Write-Host "Window will stay open - close with X button when done." -ForegroundColor Yellow
+    
+    # Keep window open indefinitely
+    while ($true) {
+        Start-Sleep -Seconds 60
+    }
 }
