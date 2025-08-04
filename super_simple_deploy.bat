@@ -20,6 +20,7 @@ if not exist "app.py" (
     pause
     exit /b 1
 )
+del tunnel_output.txt
 
 :: Activate virtual environment and start Flask in background
 echo Step 1: Starting Flask app with virtual environment...
