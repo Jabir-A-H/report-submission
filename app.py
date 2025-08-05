@@ -2729,6 +2729,768 @@ def download_pdf():
     return generate_pdf_with_playwright(reports, title, filename)
 
 
+@app.route("/download/city_report_pdf")
+@login_required
+def download_city_report_pdf():
+    """Download aggregated city report as PDF with overrides applied"""
+    if not is_admin():
+        return redirect(url_for("dashboard"))
+
+    from datetime import datetime
+
+    month = request.args.get("month")
+    year = request.args.get("year")
+    report_type = request.args.get("report_type", "মাসিক")
+    now = datetime.now()
+
+    if not month and report_type == "মাসিক":
+        month = now.month
+    if not year:
+        year = now.year
+
+    year_int = int(year)
+
+    # Generate the aggregated city report data (same logic as city_report_page)
+    city_data = generate_city_report_data(year_int, month, report_type)
+
+    # Create filename
+    filename = f"City_Report_{report_type}_{year}"
+    if report_type == "মাসিক":
+        filename += f"_{month}"
+    filename += ".pdf"
+
+    title = f"City Report - {report_type}"
+    if report_type == "মাসিক":
+        title += f" - {month}"
+    title += f" {year}"
+
+    # Generate PDF of the aggregated city report
+    return generate_city_report_pdf(city_data, title, filename)
+
+
+def generate_city_report_data(year, month, report_type):
+    """Generate aggregated city report data with overrides applied"""
+    # Category lists and slug mappings (same as city_report_page)
+    course_categories_raw = [
+        "বিশিষ্টদের",
+        "সাধারণদের",
+        "কর্মীদের",
+        "ইউনিট সভানেত্রী",
+        "অগ্রসরদের",
+        "শিশু- তা'লিমুল কুরআন",
+        "নিরক্ষর- তা'লিমুস সলাত",
+    ]
+    org_categories_raw = [
+        "দাওয়াত দান",
+        "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
+        "সহযোগী হয়েছে",
+        "সম্মতি দিয়েছেন",
+        "সক্রিয় সহযোগী",
+        "কর্মী",
+        "রুকন",
+        "দাওয়াতী ইউনিট",
+        "ইউনিট",
+        "সূধী",
+        "এককালীন",
+        "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
+        "বই বিলি",
+        "বই বিক্রি",
+    ]
+    personal_categories_raw = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
+    meeting_categories_raw = [
+        "কমিটি বৈঠক হয়েছে",
+        "মুয়াল্লিমাদের নিয়ে বৈঠক",
+        "Committee Orientation",
+        "Muallima Orientation",
+    ]
+    extra_categories_raw = [
+        "মক্তব সংখ্যা",
+        "মক্তব বৃদ্ধি",
+        "মহানগরী পরিচালিত",
+        "স্থানীয়ভাবে পরিচালিত",
+        "মহানগরীর সফর",
+        "থানা কমিটির সফর",
+        "থানা প্রতিনিধির সফর",
+        "ওয়ার্ড প্রতিনিধির সফর",
+    ]
+
+    course_categories, cat_to_slug, slug_to_cat = make_slugs(course_categories_raw)
+    org_categories, org_cat_to_slug, org_slug_to_cat = make_slugs(org_categories_raw)
+    personal_categories, personal_cat_to_slug, personal_slug_to_cat = make_slugs(
+        personal_categories_raw
+    )
+    meeting_categories, meeting_cat_to_slug, meeting_slug_to_cat = make_slugs(
+        meeting_categories_raw
+    )
+    extra_categories, extra_cat_to_slug, extra_slug_to_cat = make_slugs(
+        extra_categories_raw
+    )
+
+    # Determine which months to include based on report_type
+    def get_months(report_type, month):
+        if report_type == "মাসিক":
+            return [int(month)] if month else []
+        elif report_type == "ত্রৈমাসিক":
+            return [1, 2, 3]
+        elif report_type == "ষান্মাসিক":
+            return [1, 2, 3, 4, 5, 6]
+        elif report_type == "নয়-মাসিক":
+            return [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        elif report_type == "বার্ষিক":
+            return list(range(1, 13))
+        return []
+
+    months = get_months(report_type, month)
+
+    # Always aggregate city report from all zones' মাসিক reports for the relevant months
+    if report_type == "মাসিক":
+        report_query = Report.query.filter_by(year=year, report_type="মাসিক")
+        report_query = report_query.filter(Report.month == int(month))
+    else:
+        report_query = Report.query.filter_by(year=year, report_type="মাসিক")
+        if months:
+            report_query = report_query.filter(Report.month.in_(months))
+    reports = report_query.all()
+
+    # Fetch overrides for this period
+    overrides = get_city_report_overrides(
+        year, int(month) if month else None, report_type
+    )
+
+    # Header Aggregation
+    header_fields = [
+        "ward",
+        "total_muallima",
+        "muallima_increase",
+        "muallima_decrease",
+        "certified_muallima",
+        "certified_muallima_taking_classes",
+        "trained_muallima",
+        "trained_muallima_taking_classes",
+        "total_unit",
+        "units_with_muallima",
+    ]
+    city_summary = {field: 0 for field in header_fields}
+    thana_values = []
+    for r in reports:
+        if r.header:
+            for field in header_fields:
+                city_summary[field] += getattr(r.header, field, 0) or 0
+            thana_val = getattr(r.header, "thana", None)
+            if thana_val is not None:
+                try:
+                    thana_int = int(thana_val)
+                    thana_values.append(thana_int)
+                except (ValueError, TypeError):
+                    thana_values.append(None)
+    city_summary["responsible_name"] = None
+    # If all thana_values are integers (not None), sum them; else None
+    if thana_values and all(v is not None for v in thana_values):
+        city_summary["thana"] = sum(thana_values)
+    else:
+        city_summary["thana"] = None
+    # Apply overrides to header
+    city_summary = apply_overrides_to_agg(city_summary, "header", overrides)
+
+    # Courses Aggregation
+    city_courses = []
+    for cat in course_categories:
+        agg = {"category": cat}
+        for field in [
+            "number",
+            "increase",
+            "decrease",
+            "sessions",
+            "students",
+            "attendance",
+            "status_board",
+            "status_qayda",
+            "status_ampara",
+            "status_quran",
+            "completed",
+            "correctly_learned",
+        ]:
+            agg[field] = 0
+        for r in reports:
+            for row in r.courses:
+                if normalize_cat(row.category) == normalize_cat(cat):
+                    for field in agg:
+                        if field != "category":
+                            agg[field] += getattr(row, field, 0) or 0
+        # Apply overrides to this course category
+        agg = apply_overrides_to_agg(agg, f"courses:{cat}", overrides)
+        city_courses.append(agg)
+
+    # Organizational Aggregation
+    city_organizational = []
+    for cat in org_categories:
+        agg = {"category": cat, "number": 0, "increase": 0, "amount": 0, "comments": 0}
+        found_nonint_comment = False
+        for r in reports:
+            for row in r.organizational:
+                if normalize_cat(row.category) == normalize_cat(cat):
+                    agg["number"] += row.number or 0
+                    agg["increase"] += row.increase or 0
+                    agg["amount"] += row.amount or 0
+                    # Comments: sum if integer, else skip
+                    if row.comments is not None and not found_nonint_comment:
+                        try:
+                            agg["comments"] += int(row.comments)
+                        except (ValueError, TypeError):
+                            found_nonint_comment = True
+        if found_nonint_comment:
+            agg["comments"] = None
+        # Apply overrides to this org category
+        agg = apply_overrides_to_agg(agg, f"organizational:{cat}", overrides)
+        city_organizational.append(agg)
+
+    # Personal Aggregation
+    city_personal = []
+    for cat in personal_categories:
+        agg = {
+            "category": cat,
+            "teaching": 0,
+            "learning": 0,
+            "olama_invited": 0,
+            "became_shohojogi": 0,
+            "became_sokrio_shohojogi": 0,
+            "became_kormi": 0,
+            "became_rukon": 0,
+        }
+        for r in reports:
+            for row in r.personal:
+                if normalize_cat(row.category) == normalize_cat(cat):
+                    for field in agg:
+                        if field != "category":
+                            agg[field] += getattr(row, field, 0) or 0
+        agg = apply_overrides_to_agg(agg, f"personal:{cat}", overrides)
+        city_personal.append(agg)
+
+    # Meetings Aggregation
+    city_meetings = []
+    for cat in meeting_categories:
+        agg = {
+            "category": cat,
+            "city_count": 0,
+            "city_avg_attendance": 0,
+            "thana_count": 0,
+            "thana_avg_attendance": 0,
+            "ward_count": 0,
+            "ward_avg_attendance": 0,
+            "comments": 0,
+        }
+        found_nonint_comment = False
+        city_count_sum = 0
+        city_att_sum = 0
+        thana_count_sum = 0
+        thana_att_sum = 0
+        ward_count_sum = 0
+        ward_att_sum = 0
+        n_city = n_thana = n_ward = 0
+        for r in reports:
+            for row in r.meetings:
+                if normalize_cat(row.category) == normalize_cat(cat):
+                    city_count_sum += row.city_count or 0
+                    if row.city_count:
+                        city_att_sum += (row.city_avg_attendance or 0) * row.city_count
+                        n_city += row.city_count
+                    thana_count_sum += row.thana_count or 0
+                    if row.thana_count:
+                        thana_att_sum += (
+                            row.thana_avg_attendance or 0
+                        ) * row.thana_count
+                        n_thana += row.thana_count
+                    ward_count_sum += row.ward_count or 0
+                    if row.ward_count:
+                        ward_att_sum += (row.ward_avg_attendance or 0) * row.ward_count
+                        n_ward += row.ward_count
+                    # Comments: sum if integer, else skip
+                    if row.comments is not None and not found_nonint_comment:
+                        try:
+                            agg["comments"] += int(row.comments)
+                        except (ValueError, TypeError):
+                            found_nonint_comment = True
+        agg["city_count"] = city_count_sum
+        agg["city_avg_attendance"] = int(city_att_sum / n_city) if n_city else 0
+        agg["thana_count"] = thana_count_sum
+        agg["thana_avg_attendance"] = int(thana_att_sum / n_thana) if n_thana else 0
+        agg["ward_count"] = ward_count_sum
+        agg["ward_avg_attendance"] = int(ward_att_sum / n_ward) if n_ward else 0
+        if found_nonint_comment:
+            agg["comments"] = None
+        agg = apply_overrides_to_agg(agg, f"meetings:{cat}", overrides)
+        city_meetings.append(agg)
+
+    # Extras Aggregation
+    city_extras = []
+    for cat in extra_categories:
+        agg = {"category": cat, "number": 0}
+        for r in reports:
+            for row in r.extras:
+                if normalize_cat(row.category) == normalize_cat(cat):
+                    agg["number"] += row.number or 0
+        agg = apply_overrides_to_agg(agg, f"extras:{cat}", overrides)
+        city_extras.append(agg)
+
+    # Comments Aggregation
+    city_comments = {"comment": ""}
+    comment_sum = 0
+    found_nonint_comment = False
+    comment_strings = []
+    for r in reports:
+        if r.comments and r.comments.comment is not None:
+            try:
+                comment_sum += int(r.comments.comment)
+            except (ValueError, TypeError):
+                found_nonint_comment = True
+                if str(r.comments.comment).strip():
+                    comment_strings.append(str(r.comments.comment).strip())
+    if found_nonint_comment:
+        city_comments["comment"] = ", ".join(comment_strings) if comment_strings else ""
+    else:
+        city_comments["comment"] = comment_sum if comment_sum != 0 else ""
+    city_comments = apply_overrides_to_agg(city_comments, "comments", overrides)
+
+    total_zones = len(set(r.zone_id for r in reports))
+
+    return {
+        "month": month,
+        "year": year,
+        "report_type": report_type,
+        "course_categories": course_categories,
+        "org_categories": org_categories,
+        "personal_categories": personal_categories,
+        "meeting_categories": meeting_categories,
+        "extra_categories": extra_categories,
+        "city_summary": city_summary,
+        "city_courses": city_courses,
+        "city_organizational": city_organizational,
+        "city_personal": city_personal,
+        "city_meetings": city_meetings,
+        "city_extras": city_extras,
+        "city_comments": city_comments,
+        "total_zones": total_zones,
+        "overrides": overrides,
+    }
+
+
+def generate_city_report_pdf(city_data, title, filename):
+    """Generate PDF from aggregated city report data using Playwright"""
+    try:
+        from playwright.sync_api import sync_playwright
+        import tempfile
+        import os
+
+        # Create HTML content for the city report
+        html_content = f"""
+        <!DOCTYPE html>
+        <html lang="bn">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>{title}</title>
+            <link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
+            <style>
+                body {{
+                    font-family: 'Tiro Bangla', sans-serif;
+                    margin: 20px;
+                    font-size: 12px;
+                    line-height: 1.4;
+                }}
+                .header {{
+                    text-align: center;
+                    margin-bottom: 30px;
+                    border-bottom: 2px solid #333;
+                    padding-bottom: 15px;
+                }}
+                .title {{
+                    font-size: 20px;
+                    font-weight: bold;
+                    margin-bottom: 10px;
+                }}
+                .subtitle {{
+                    font-size: 14px;
+                    color: #666;
+                }}
+                .section {{
+                    margin-bottom: 25px;
+                    page-break-inside: avoid;
+                }}
+                .section-title {{
+                    font-size: 16px;
+                    font-weight: bold;
+                    background-color: #f0f0f0;
+                    padding: 8px;
+                    border-left: 4px solid #333;
+                    margin-bottom: 10px;
+                }}
+                table {{
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 15px;
+                }}
+                th, td {{
+                    border: 1px solid #333;
+                    padding: 6px;
+                    text-align: left;
+                    font-size: 11px;
+                }}
+                th {{
+                    background-color: #f5f5f5;
+                    font-weight: bold;
+                }}
+                .summary-table {{
+                    width: 100%;
+                    margin-bottom: 20px;
+                }}
+                .summary-table td {{
+                    padding: 8px;
+                }}
+                .summary-table .label {{
+                    font-weight: bold;
+                    width: 60%;
+                }}
+                .number {{
+                    font-family: 'Ubuntu', sans-serif;
+                    text-align: right;
+                }}
+                .page-break {{
+                    page-break-before: always;
+                }}
+                .totals {{
+                    background-color: #e8f4f8;
+                    font-weight: bold;
+                }}
+                @media print {{
+                    body {{ margin: 10px; }}
+                    .page-break {{ page-break-before: always; }}
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <div class="title">{title}</div>
+                <div class="subtitle">সিটি রিপোর্ট (সমস্ত জোনের সমন্বিত তথ্য)</div>
+                <div class="subtitle">মোট জোন: {city_data['total_zones']}</div>
+            </div>
+
+            <!-- Header Section -->
+            <div class="section">
+                <div class="section-title">হেডার তথ্য</div>
+                <table class="summary-table">
+        """
+
+        # Add header data
+        header_labels = {
+            "responsible_name": "দায়িত্বশীলের নাম",
+            "thana": "থানা",
+            "ward": "ওয়ার্ড",
+            "total_muallima": "মোট মুয়াল্লিমা",
+            "muallima_increase": "মুয়াল্লিমা বৃদ্ধি",
+            "muallima_decrease": "মুয়াল্লিমা হ্রাস",
+            "certified_muallima": "সার্টিফিকেটপ্রাপ্ত মুয়াল্লিমা",
+            "certified_muallima_taking_classes": "সার্টিফিকেটপ্রাপ্ত মুয়াল্লিমা (ক্লাস নিচ্ছেন)",
+            "trained_muallima": "প্রশিক্ষিত মুয়াল্লিমা",
+            "trained_muallima_taking_classes": "প্রশিক্ষিত মুয়াল্লিমা (ক্লাস নিচ্ছেন)",
+            "total_unit": "মোট ইউনিট",
+            "units_with_muallima": "মুয়াল্লিমা সহ ইউনিট",
+        }
+
+        for field, value in city_data["city_summary"].items():
+            if field in header_labels:
+                html_content += f"""
+                    <tr>
+                        <td class="label">{header_labels[field]}</td>
+                        <td class="number">{value if value is not None else 'N/A'}</td>
+                    </tr>
+                """
+
+        html_content += """
+                </table>
+            </div>
+
+            <!-- Courses Section -->
+            <div class="section page-break">
+                <div class="section-title">কোর্স তথ্য</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ক্যাটেগরি</th>
+                            <th>সংখ্যা</th>
+                            <th>বৃদ্ধি</th>
+                            <th>হ্রাস</th>
+                            <th>সেশন</th>
+                            <th>ছাত্রী</th>
+                            <th>উপস্থিতি</th>
+                            <th>বোর্ড</th>
+                            <th>কায়দা</th>
+                            <th>আমপারা</th>
+                            <th>কুরআন</th>
+                            <th>সম্পন্ন</th>
+                            <th>সঠিকভাবে শিখেছে</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        """
+
+        for course in city_data["city_courses"]:
+            html_content += f"""
+                        <tr>
+                            <td>{course['category']}</td>
+                            <td class="number">{course['number']}</td>
+                            <td class="number">{course['increase']}</td>
+                            <td class="number">{course['decrease']}</td>
+                            <td class="number">{course['sessions']}</td>
+                            <td class="number">{course['students']}</td>
+                            <td class="number">{course['attendance']}</td>
+                            <td class="number">{course['status_board']}</td>
+                            <td class="number">{course['status_qayda']}</td>
+                            <td class="number">{course['status_ampara']}</td>
+                            <td class="number">{course['status_quran']}</td>
+                            <td class="number">{course['completed']}</td>
+                            <td class="number">{course['correctly_learned']}</td>
+                        </tr>
+            """
+
+        html_content += """
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Organizational Section -->
+            <div class="section page-break">
+                <div class="section-title">সাংগঠনিক তথ্য</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ক্যাটেগরি</th>
+                            <th>সংখ্যা</th>
+                            <th>বৃদ্ধি</th>
+                            <th>পরিমাণ</th>
+                            <th>মন্তব্য</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        """
+
+        for org in city_data["city_organizational"]:
+            html_content += f"""
+                        <tr>
+                            <td>{org['category']}</td>
+                            <td class="number">{org['number']}</td>
+                            <td class="number">{org['increase']}</td>
+                            <td class="number">{org['amount']}</td>
+                            <td>{org['comments'] if org['comments'] is not None else ''}</td>
+                        </tr>
+            """
+
+        html_content += """
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Personal Section -->
+            <div class="section page-break">
+                <div class="section-title">ব্যক্তিগত তথ্য</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ক্যাটেগরি</th>
+                            <th>শিক্ষাদান</th>
+                            <th>শিক্ষাগ্রহণ</th>
+                            <th>ওলামা আমন্ত্রিত</th>
+                            <th>সহযোগী হয়েছে</th>
+                            <th>সক্রিয় সহযোগী হয়েছে</th>
+                            <th>কর্মী হয়েছে</th>
+                            <th>রুকন হয়েছে</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        """
+
+        for personal in city_data["city_personal"]:
+            html_content += f"""
+                        <tr>
+                            <td>{personal['category']}</td>
+                            <td class="number">{personal['teaching']}</td>
+                            <td class="number">{personal['learning']}</td>
+                            <td class="number">{personal['olama_invited']}</td>
+                            <td class="number">{personal['became_shohojogi']}</td>
+                            <td class="number">{personal['became_sokrio_shohojogi']}</td>
+                            <td class="number">{personal['became_kormi']}</td>
+                            <td class="number">{personal['became_rukon']}</td>
+                        </tr>
+            """
+
+        html_content += """
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Meetings Section -->
+            <div class="section page-break">
+                <div class="section-title">সভা তথ্য</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ক্যাটেগরি</th>
+                            <th>সিটি সংখ্যা</th>
+                            <th>সিটি গড় উপস্থিতি</th>
+                            <th>থানা সংখ্যা</th>
+                            <th>থানা গড় উপস্থিতি</th>
+                            <th>ওয়ার্ড সংখ্যা</th>
+                            <th>ওয়ার্ড গড় উপস্থিতি</th>
+                            <th>মন্তব্য</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        """
+
+        for meeting in city_data["city_meetings"]:
+            html_content += f"""
+                        <tr>
+                            <td>{meeting['category']}</td>
+                            <td class="number">{meeting['city_count']}</td>
+                            <td class="number">{meeting['city_avg_attendance']}</td>
+                            <td class="number">{meeting['thana_count']}</td>
+                            <td class="number">{meeting['thana_avg_attendance']}</td>
+                            <td class="number">{meeting['ward_count']}</td>
+                            <td class="number">{meeting['ward_avg_attendance']}</td>
+                            <td>{meeting['comments'] if meeting['comments'] is not None else ''}</td>
+                        </tr>
+            """
+
+        html_content += """
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Extras Section -->
+            <div class="section page-break">
+                <div class="section-title">অতিরিক্ত তথ্য</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ক্যাটেগরি</th>
+                            <th>সংখ্যা</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        """
+
+        for extra in city_data["city_extras"]:
+            html_content += f"""
+                        <tr>
+                            <td>{extra['category']}</td>
+                            <td class="number">{extra['number']}</td>
+                        </tr>
+            """
+
+        html_content += f"""
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Comments Section -->
+            <div class="section">
+                <div class="section-title">মন্তব্য</div>
+                <table class="summary-table">
+                    <tr>
+                        <td class="label">মন্তব্য</td>
+                        <td>{city_data['city_comments']['comment']}</td>
+                    </tr>
+                </table>
+            </div>
+        """
+
+        # Add overrides information if any
+        if city_data["overrides"]:
+            html_content += """
+            <div class="section page-break">
+                <div class="section-title">প্রয়োগকৃত ওভাররাইড তথ্য</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>সেকশন</th>
+                            <th>ক্যাটেগরি</th>
+                            <th>ফিল্ড</th>
+                            <th>নতুন মান</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            """
+
+            for override in city_data["overrides"]:
+                section_name = (
+                    override.section.split(":")[0]
+                    if ":" in override.section
+                    else override.section
+                )
+                category_name = (
+                    override.section.split(":")[1] if ":" in override.section else ""
+                )
+                html_content += f"""
+                        <tr>
+                            <td>{section_name}</td>
+                            <td>{category_name}</td>
+                            <td>{override.field}</td>
+                            <td class="number">{override.value}</td>
+                        </tr>
+                """
+
+            html_content += """
+                    </tbody>
+                </table>
+            </div>
+            """
+
+        html_content += """
+        </body>
+        </html>
+        """
+
+        # Generate PDF using Playwright
+        with sync_playwright() as p:
+            browser = p.chromium.launch()
+            page = browser.new_page()
+
+            # Set content and wait for fonts to load
+            page.set_content(html_content)
+            page.wait_for_load_state("networkidle")
+
+            # Generate PDF with high quality settings
+            pdf_bytes = page.pdf(
+                format="A4",
+                print_background=True,
+                margin={
+                    "top": "0.5in",
+                    "bottom": "0.5in",
+                    "left": "0.5in",
+                    "right": "0.5in",
+                },
+            )
+
+            browser.close()
+
+            # Return PDF as response
+            import io
+
+            output = io.BytesIO(pdf_bytes)
+            output.seek(0)
+
+            return send_file(
+                output,
+                as_attachment=True,
+                download_name=filename,
+                mimetype="application/pdf",
+            )
+
+    except Exception as e:
+        print(f"[DEBUG] City Report PDF generation failed: {e}")
+        flash(f"PDF generation failed: {str(e)}", "error")
+        return redirect(url_for("city_report_page"))
+
+
 def generate_pdf_with_playwright(reports, title, filename):
     """Generate PDF using Playwright for perfect Bengali support"""
     try:
