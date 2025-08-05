@@ -40,11 +40,14 @@
         </button>
         <div id="downloadDropdown" class="hidden absolute left-0 mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
           <a href="#" id="downloadPdfV1Link" class="block px-4 py-2 text-gray-700 hover:bg-purple-50">PDF v1</a>
-          <a href="{{ url_for('download_pdf', report_type=report_type, month=month, year=year, zone_id=selected_zone_id) if selected_zone_id else url_for('download_pdf', report_type=report_type, month=month, year=year) }}" class="block px-4 py-2 text-gray-700 hover:bg-purple-50">PDF</a>
+          {% if not selected_zone_id %}
+          <a href="{{ url_for('download_city_report_pdf', report_type=report_type, month=month, year=year) }}" class="block px-4 py-2 text-gray-700 hover:bg-purple-50">সিটি রিপোর্ট PDF</a>
+          {% endif %}
+          <a href="{{ url_for('download_pdf', report_type=report_type, month=month, year=year, zone_id=selected_zone_id) if selected_zone_id else url_for('download_pdf', report_type=report_type, month=month, year=year) }}" class="block px-4 py-2 text-gray-700 hover:bg-purple-50">{% if selected_zone_id %}জোন PDF{% else %}সব জোন PDF{% endif %}</a>
           <a href="{{ url_for('download_excel', report_type=report_type, month=month, year=year, zone_id=selected_zone_id) if selected_zone_id else url_for('download_excel', report_type=report_type, month=month, year=year) }}" class="block px-4 py-2 text-gray-700 hover:bg-green-50">Excel</a>
         </div>
       </div>
-      {% if override_page_url %}
+      {% if override_page_url and not selected_zone_id %}
         <a href="{{ override_page_url }}" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 font-semibold ml-2">
           Edit Report
         </a>
