@@ -20,152 +20,227 @@ year=year, month=month, report_type=report_type) }}
   >আপডেট সিটি রিপোর্ট</span
 >
 {% endblock %} {% block content %}
-<div class="container mx-auto p-4">
-  <h1 class="text-2xl font-bold mb-4">আপডেট সিটি রিপোর্ট</h1>
-  <form id="override-form" method="post" class="mb-8">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <label class="block font-semibold">Section</label>
-        <select
-          name="section"
-          id="section-select"
-          class="border rounded px-2 py-1 w-full"
-          required
-        >
-          <option value="">-- Select Section --</option>
-          <option value="header">Header</option>
-          <option value="courses">Courses</option>
-          <option value="organizational">Organizational</option>
-          <option value="personal">Personal</option>
-          <option value="meetings">Meetings</option>
-          <option value="extras">Extras</option>
-          <option value="comments">Comments</option>
-        </select>
-      </div>
-      <div id="category-div" style="display: none">
-        <label class="block font-semibold">Category</label>
-        <select
-          name="category"
-          id="category-select"
-          class="border rounded px-2 py-1 w-full"
-        ></select>
-      </div>
-      <div>
-        <label class="block font-semibold">Field</label>
-        <select
-          name="field"
-          id="field-select"
-          class="border rounded px-2 py-1 w-full"
-          required
-        ></select>
-      </div>
-      <div>
-        <label class="block font-semibold">Value</label>
-        <div class="flex items-center gap-2">
-          <input
-            name="value"
-            id="value-input"
-            class="border rounded px-2 py-1 w-full"
-            required
-          />
-          <span id="prev-value" class="text-gray-500 text-sm"></span>
+<div class="container mx-auto px-4 py-8">
+  <div class="page-header">
+    <h1 class="page-title">আপডেট সিটি রিপোর্ট</h1>
+    <p class="page-subtitle">সিটি রিপোর্টের তথ্য ওভাররাইড করুন</p>
+  </div>
+
+  <div class="max-w-4xl mx-auto">
+    <div class="modern-card p-8 mb-8">
+      <form id="override-form" method="post" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2"
+              >Section</label
+            >
+            <select
+              name="section"
+              id="section-select"
+              class="modern-input modern-select"
+              required
+            >
+              <option value="">-- সেকশন নির্বাচন করুন --</option>
+              <option value="header">Header (হেডার)</option>
+              <option value="courses">Courses (কোর্স)</option>
+              <option value="organizational">Organizational (সাংগঠনিক)</option>
+              <option value="personal">Personal (ব্যক্তিগত)</option>
+              <option value="meetings">Meetings (সভা)</option>
+              <option value="extras">Extras (অতিরিক্ত)</option>
+              <option value="comments">Comments (মন্তব্য)</option>
+            </select>
+          </div>
+          <div id="category-div" style="display: none">
+            <label class="block text-sm font-semibold text-gray-700 mb-2"
+              >Category (ক্যাটেগরি)</label
+            >
+            <select
+              name="category"
+              id="category-select"
+              class="modern-input modern-select"
+            ></select>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2"
+              >Field (ফিল্ড)</label
+            >
+            <select
+              name="field"
+              id="field-select"
+              class="modern-input modern-select"
+              required
+            ></select>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2"
+              >Value (মান)</label
+            >
+            <div class="flex items-center gap-2">
+              <input
+                name="value"
+                id="value-input"
+                class="modern-input flex-1"
+                required
+              />
+              <span id="prev-value" class="text-gray-500 text-sm"></span>
+            </div>
+          </div>
         </div>
+        <input type="hidden" name="year" value="{{ year }}" />
+        <input type="hidden" name="month" value="{{ month }}" />
+        <input type="hidden" name="report_type" value="{{ report_type }}" />
+        <input
+          type="hidden"
+          name="category"
+          id="category-hidden-input"
+          value=""
+        />
+        <button type="submit" class="modern-btn btn-primary">
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M5 13l4 4L19 7"
+            ></path>
+          </svg>
+          ওভাররাইড সেভ করুন
+        </button>
+      </form>
+    </div>
+
+    <div class="modern-card overflow-hidden">
+      <h2 class="text-2xl font-bold text-gradient p-6 pb-0 mb-6">
+        বর্তমান ওভাররাইডসমূহ
+      </h2>
+      <div class="overflow-x-auto">
+        <table class="modern-table">
+          <thead>
+            <tr>
+              <th>সেকশন</th>
+              <th>ক্যাটেগরি</th>
+              <th>ফিল্ড</th>
+              <th>পুরাতন মান</th>
+              <th>নতুন মান</th>
+              <th>বছর</th>
+              <th>মাস</th>
+              <th>রিপোর্ট টাইপ</th>
+              <th>মুছুন</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for o in overrides %}
+            <tr class="table-row-animate">
+              {# Extract section and category cleanly #} {% set section_name =
+              o.section.split(':')[0] %} {% set category_name =
+              o.section.split(':')[1] if ':' in o.section else None %}
+              <td>{{ section_name }}</td>
+              <td>{{ category_name or '' }}</td>
+              <td>{{ o.field }}</td>
+              <td>
+                {# Robust old value logic for all sections #} {% set old_val =
+                None %} {% if section_name == 'header' %} {% set old_val =
+                city_summary.get(o.field) %} {% elif section_name == 'courses'
+                %} {% for c in city_courses %} {% if c.category == category_name
+                %}{% set old_val = c.get(o.field) %}{% endif %} {% endfor %} {%
+                elif section_name == 'organizational' %} {% for c in
+                city_organizational %} {% if c.category == category_name %}{%
+                set old_val = c.get(o.field) %}{% endif %} {% endfor %} {% elif
+                section_name == 'personal' %} {% for c in city_personal %} {% if
+                c.category == category_name %}{% set old_val = c.get(o.field)
+                %}{% endif %} {% endfor %} {% elif section_name == 'meetings' %}
+                {% for c in city_meetings %} {% if c.category == category_name
+                %}{% set old_val = c.get(o.field) %}{% endif %} {% endfor %} {%
+                elif section_name == 'extras' %} {% for c in city_extras %} {%
+                if c.category == category_name %}{% set old_val = c.get(o.field)
+                %}{% endif %} {% endfor %} {% elif section_name == 'comments' %}
+                {% set old_val = city_comments.get(o.field) %} {% endif %} {{
+                old_val if old_val is not none else '' }}
+              </td>
+              <td>{{ o.value }}</td>
+              <td>{{ o.year }}</td>
+              <td>{{ o.month or '' }}</td>
+              <td>{{ o.report_type }}</td>
+              <td>
+                <form method="post" style="display: inline">
+                  <input type="hidden" name="remove_override" value="1" />
+                  <input type="hidden" name="section" value="{{ o.section }}" />
+                  <input type="hidden" name="field" value="{{ o.field }}" />
+                  <input type="hidden" name="year" value="{{ o.year }}" />
+                  <input type="hidden" name="month" value="{{ o.month }}" />
+                  <input
+                    type="hidden"
+                    name="report_type"
+                    value="{{ o.report_type }}"
+                  />
+                  <button
+                    type="submit"
+                    class="modern-btn btn-danger text-sm"
+                    title="Remove override"
+                    onclick="return confirm('Remove this override?')"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      ></path>
+                    </svg>
+                    ডিলিট করুন
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
     </div>
-    <input type="hidden" name="year" value="{{ year }}" />
-    <input type="hidden" name="month" value="{{ month }}" />
-    <input type="hidden" name="report_type" value="{{ report_type }}" />
-    <input type="hidden" name="category" id="category-hidden-input" value="" />
-    <button type="submit" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded">
-      Save Override
-    </button>
-  </form>
-  <h2 class="text-xl font-semibold mb-2">Current Overrides</h2>
-  <table class="min-w-full border">
-    <thead>
-      <tr class="bg-gray-100">
-        <th class="border px-2 py-1">Section</th>
-        <th class="border px-2 py-1">Category</th>
-        <th class="border px-2 py-1">Field</th>
-        <th class="border px-2 py-1">Old Value</th>
-        <th class="border px-2 py-1">Override Value</th>
-        <th class="border px-2 py-1">Year</th>
-        <th class="border px-2 py-1">Month</th>
-        <th class="border px-2 py-1">Report Type</th>
-        <th class="border px-2 py-1">Remove</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for o in overrides %}
-      <tr>
-        {# Extract section and category cleanly #} {% set section_name =
-        o.section.split(':')[0] %} {% set category_name =
-        o.section.split(':')[1] if ':' in o.section else None %}
-        <td class="border px-2 py-1">{{ section_name }}</td>
-        <td class="border px-2 py-1">{{ category_name or '' }}</td>
-        <td class="border px-2 py-1">{{ o.field }}</td>
-        <td class="border px-2 py-1">
-          {# Robust old value logic for all sections #} {% set old_val = None %}
-          {% if section_name == 'header' %} {% set old_val =
-          city_summary.get(o.field) %} {% elif section_name == 'courses' %} {%
-          for c in city_courses %} {% if c.category == category_name %}{% set
-          old_val = c.get(o.field) %}{% endif %} {% endfor %} {% elif
-          section_name == 'organizational' %} {% for c in city_organizational %}
-          {% if c.category == category_name %}{% set old_val = c.get(o.field)
-          %}{% endif %} {% endfor %} {% elif section_name == 'personal' %} {%
-          for c in city_personal %} {% if c.category == category_name %}{% set
-          old_val = c.get(o.field) %}{% endif %} {% endfor %} {% elif
-          section_name == 'meetings' %} {% for c in city_meetings %} {% if
-          c.category == category_name %}{% set old_val = c.get(o.field) %}{%
-          endif %} {% endfor %} {% elif section_name == 'extras' %} {% for c in
-          city_extras %} {% if c.category == category_name %}{% set old_val =
-          c.get(o.field) %}{% endif %} {% endfor %} {% elif section_name ==
-          'comments' %} {% set old_val = city_comments.get(o.field) %} {% endif
-          %} {{ old_val if old_val is not none else '' }}
-        </td>
-        <td class="border px-2 py-1">{{ o.value }}</td>
-        <td class="border px-2 py-1">{{ o.year }}</td>
-        <td class="border px-2 py-1">{{ o.month or '' }}</td>
-        <td class="border px-2 py-1">{{ o.report_type }}</td>
-        <td class="border px-2 py-1">
-          <form method="post" style="display: inline">
-            <input type="hidden" name="remove_override" value="1" />
-            <input type="hidden" name="section" value="{{ o.section }}" />
-            <input type="hidden" name="field" value="{{ o.field }}" />
-            <input type="hidden" name="year" value="{{ o.year }}" />
-            <input type="hidden" name="month" value="{{ o.month }}" />
-            <input
-              type="hidden"
-              name="report_type"
-              value="{{ o.report_type }}"
-            />
-            <button
-              type="submit"
-              class="text-red-600 hover:underline"
-              title="Remove override"
-              onclick="return confirm('Remove this override?')"
-            >
-              Remove
-            </button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  </div>
 </div>
 <script src="{{ url_for('static', filename='scripts.js') }}"></script>
 <script>
   // Data for override form logic
   window.cityReportOverrideData = {
     sectionFields: {
-      header: {{ city_summary.keys()|reject('equalto', 'responsible_name')|list|tojson }},
-      courses: {{ city_courses[0].keys()|reject('equalto', 'category')|list|tojson }},
-      organizational: {{ city_organizational[0].keys()|reject('equalto', 'category')|list|tojson }},
-      personal: {{ city_personal[0].keys()|reject('equalto', 'category')|list|tojson }},
-      meetings: {{ city_meetings[0].keys()|reject('equalto', 'category')|list|tojson }},
-      extras: {{ city_extras[0].keys()|reject('equalto', 'category')|list|tojson }},
-      comments: {{ city_comments.keys()|list|tojson }}
+      header: [
+        "responsible_name", "thana", "ward", "total_muallima", "muallima_increase",
+        "muallima_decrease", "certified_muallima", "certified_muallima_taking_classes",
+        "trained_muallima", "trained_muallima_taking_classes", "total_unit", "units_with_muallima"
+      ],
+      courses: [
+        "number", "increase", "decrease", "sessions", "students", "attendance",
+        "status_board", "status_qayda", "status_ampara", "status_quran",
+        "completed", "correctly_learned"
+      ],
+      organizational: [
+        "number", "increase", "amount", "comments"
+      ],
+      personal: [
+        "teaching", "learning", "olama_invited", "became_shohojogi",
+        "became_sokrio_shohojogi", "became_kormi", "became_rukon"
+      ],
+      meetings: [
+        "city_count", "city_avg_attendance", "thana_count", "thana_avg_attendance",
+        "ward_count", "ward_avg_attendance", "comments"
+      ],
+      extras: [
+        "number"
+      ],
+      comments: [
+        "comment"
+      ]
     },
     sectionCategories: {
       courses: {{ course_categories|list|tojson }},

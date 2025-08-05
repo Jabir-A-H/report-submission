@@ -1,39 +1,42 @@
 {% extends 'base.html' %} {% block title %}রিপোর্ট ব্যবস্থাপনা{% endblock %} {%
 block content %}
-<div class="container mx-auto px-4 py-8 animate-fade-in">
-  <div class="text-center mb-8">
-    <h1 class="text-3xl font-bold text-cyan-700 mb-2">রিপোর্ট ব্যবস্থাপনা</h1>
-    <p class="text-gray-600">অ্যাডমিন টুলস ও সকল জোন রিপোর্ট</p>
+<div class="container mx-auto px-4 py-8">
+  <div class="page-header">
+    <h1 class="page-title">রিপোর্ট ব্যবস্থাপনা</h1>
+    <p class="page-subtitle">অ্যাডমিন টুলস ও সকল জোন রিপোর্ট</p>
   </div>
+
   <!-- Admin Tools as Cards -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 max-w-5xl mx-auto">
+  <div
+    class="modern-grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 max-w-5xl mx-auto"
+  >
     <a
       href="{{ city_report_url }}"
-      class="block bg-white rounded-xl shadow-lg p-6 hover:bg-cyan-50 transition border border-cyan-100"
+      class="modern-card p-6 hover:scale-105 transition-transform duration-300 group"
     >
       <div class="flex items-center gap-3 mb-2">
-        <span class="text-2xl">🏙️</span>
-        <span class="text-lg font-bold text-cyan-700">সিটি রিপোর্ট</span>
+        <span class="text-3xl animate-float">🏙️</span>
+        <span class="text-lg font-bold text-gradient">সিটি রিপোর্ট</span>
       </div>
       <div class="text-gray-600 text-sm">মহানগরীর রিপোর্ট দেখুন</div>
     </a>
     <a
       href="{{ url_for('admin_users') }}"
-      class="block bg-white rounded-xl shadow-lg p-6 hover:bg-cyan-50 transition border border-cyan-100"
+      class="modern-card p-6 hover:scale-105 transition-transform duration-300 group"
     >
       <div class="flex items-center gap-3 mb-2">
-        <span class="text-2xl">📱</span>
-        <span class="text-lg font-bold text-cyan-700">ইউজার ম্যানেজমেন্ট</span>
+        <span class="text-3xl animate-float">📱</span>
+        <span class="text-lg font-bold text-gradient">ইউজার ম্যানেজমেন্ট</span>
       </div>
       <div class="text-gray-600 text-sm">নতুন ইউজার অনুমোদন ও জোন অ্যাসাইন</div>
     </a>
     <a
       href="{{ url_for('admin_zones') }}"
-      class="block bg-white rounded-xl shadow-lg p-6 hover:bg-cyan-50 transition border border-cyan-100"
+      class="modern-card p-6 hover:scale-105 transition-transform duration-300 group"
     >
       <div class="flex items-center gap-3 mb-2">
-        <span class="text-2xl">🗺️</span>
-        <span class="text-lg font-bold text-cyan-700">জোন ম্যানেজমেন্ট</span>
+        <span class="text-3xl animate-float">🗺️</span>
+        <span class="text-lg font-bold text-gradient">জোন ম্যানেজমেন্ট</span>
       </div>
       <div class="text-gray-600 text-sm">নতুন জোন তৈরি ও ডিলিট</div>
     </a>
@@ -41,36 +44,32 @@ block content %}
 
   <!-- Reports List (like zone_reports) -->
   <div class="mx-auto max-w-5xl">
-    <h2 class="text-2xl font-bold text-cyan-700 mb-6">সকল জোন রিপোর্ট</h2>
+    <h2 class="text-3xl font-bold text-gradient mb-6">সকল জোন রিপোর্ট</h2>
     {% if reports and reports|length > 0 %}
-    <div class="overflow-x-auto rounded-xl shadow-lg">
-      <table class="min-w-full bg-white rounded-xl">
-        <thead class="bg-cyan-100 text-cyan-900">
+    <div class="modern-card overflow-hidden">
+      <table class="modern-table">
+        <thead>
           <tr>
-            <th class="py-3 px-4 text-left font-semibold">Report ID</th>
-            <th class="py-3 px-4 text-left font-semibold">Zone</th>
-            <th class="py-3 px-4 text-left font-semibold">Type</th>
-            <th class="py-3 px-4 text-left font-semibold">Month</th>
-            <th class="py-3 px-4 text-left font-semibold">Year</th>
-            <th class="py-3 px-4 text-left font-semibold">Actions</th>
+            <th>Report ID</th>
+            <th>Zone</th>
+            <th>Type</th>
+            <th>Month</th>
+            <th>Year</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {% for report in reports %}
-          <tr class="border-b hover:bg-cyan-50 transition">
-            <td class="py-2 px-4">{{ report.id }}</td>
-            <td class="py-2 px-4">
-              {{ report.zone.name if report.zone else 'N/A' }}
-            </td>
-            <td class="py-2 px-4">{{ report.report_type }}</td>
-            <td class="py-2 px-4">
-              {{ report.month if report.month else '-' }}
-            </td>
-            <td class="py-2 px-4">{{ report.year }}</td>
-            <td class="py-2 px-4">
+          <tr class="table-row-animate">
+            <td>{{ report.id }}</td>
+            <td>{{ report.zone.name if report.zone else 'N/A' }}</td>
+            <td>{{ report.report_type }}</td>
+            <td>{{ report.month if report.month else '-' }}</td>
+            <td>{{ report.year }}</td>
+            <td>
               <a
                 href="{{ url_for('report_summary') }}?report_id={{ report.id }}"
-                class="inline-flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg shadow hover:bg-cyan-700 transition"
+                class="modern-btn btn-primary"
               >
                 <svg
                   class="w-4 h-4"
@@ -94,11 +93,7 @@ block content %}
       </table>
     </div>
     {% else %}
-    <div
-      class="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 p-4 rounded-xl shadow mt-6"
-    >
-      কোন রিপোর্ট পাওয়া যায়নি।
-    </div>
+    <div class="modern-alert alert-warning">কোন রিপোর্ট পাওয়া যায়নি।</div>
     {% endif %}
   </div>
 </div>

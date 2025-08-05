@@ -2748,13 +2748,13 @@ def generate_pdf_with_playwright(reports, title, filename):
         <title>{title}</title>
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;700&display=swap');
-            
+
             * {{
                 margin: 0;
                 padding: 0;
                 box-sizing: border-box;
             }}
-            
+
             body {{
                 font-family: 'Noto Sans Bengali', Arial, sans-serif;
                 font-size: 12px;
@@ -2762,31 +2762,31 @@ def generate_pdf_with_playwright(reports, title, filename):
                 color: #333;
                 margin: 15px;
             }}
-            
+
             .header {{
                 text-align: center;
                 margin-bottom: 25px;
                 border-bottom: 2px solid #333;
                 padding-bottom: 15px;
             }}
-            
+
             .title {{
                 font-size: 18px;
                 font-weight: bold;
                 margin-bottom: 5px;
                 color: #2c3e50;
             }}
-            
+
             .subtitle {{
                 font-size: 14px;
                 color: #7f8c8d;
             }}
-            
+
             .section {{
                 margin-bottom: 20px;
                 page-break-inside: avoid;
             }}
-            
+
             .section-title {{
                 font-size: 16px;
                 font-weight: bold;
@@ -2797,7 +2797,7 @@ def generate_pdf_with_playwright(reports, title, filename):
                 border-radius: 4px;
                 text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
             }}
-            
+
             table {{
                 width: 100%;
                 border-collapse: collapse;
@@ -2805,7 +2805,7 @@ def generate_pdf_with_playwright(reports, title, filename):
                 font-size: 11px;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             }}
-            
+
             th {{
                 background: linear-gradient(135deg, #34495e, #2c3e50);
                 color: white;
@@ -2815,34 +2815,34 @@ def generate_pdf_with_playwright(reports, title, filename):
                 border: 1px solid #2c3e50;
                 text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
             }}
-            
+
             td {{
                 padding: 8px;
                 border: 1px solid #bdc3c7;
                 text-align: center;
                 background-color: #ffffff;
             }}
-            
+
             tr:nth-child(even) td {{
                 background-color: #f8f9fa;
             }}
-            
+
             tr:hover td {{
                 background-color: #e8f4fd;
             }}
-            
+
             .field-name {{
                 font-weight: bold;
                 background-color: #ecf0f1 !important;
                 text-align: left;
                 color: #2c3e50;
             }}
-            
+
             .number-cell {{
                 font-weight: bold;
                 color: #27ae60;
             }}
-            
+
             .timestamp {{
                 margin-top: 20px;
                 text-align: center;
@@ -2851,11 +2851,11 @@ def generate_pdf_with_playwright(reports, title, filename):
                 border-top: 1px solid #bdc3c7;
                 padding-top: 10px;
             }}
-            
+
             .page-break {{
                 page-break-before: always;
             }}
-            
+
             @media print {{
                 body {{ margin: 10px; }}
                 .section {{ page-break-inside: avoid; }}

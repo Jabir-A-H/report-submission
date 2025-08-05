@@ -1,58 +1,91 @@
 {% extends 'base.html' %} {% block title %}জোন ব্যবস্থাপনা{% endblock %} {%
 block content %}
-<div class="container mx-auto px-4 py-8 animate-fade-in">
-  <div class="text-center mb-8">
-    <h1 class="text-3xl font-bold text-cyan-700 mb-2">জোন ব্যবস্থাপনা</h1>
-    <p class="text-gray-600">নতুন জোন যোগ করুন, মুছুন, ও সম্পাদনা করুন</p>
+<div class="container mx-auto px-4 py-8">
+  <div class="page-header">
+    <h1 class="page-title">জোন ব্যবস্থাপনা</h1>
+    <p class="page-subtitle">নতুন জোন যোগ করুন, মুছুন, ও সম্পাদনা করুন</p>
   </div>
-  <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-8">
-    <form method="post" class="flex flex-col sm:flex-row gap-4 mb-6">
-      <input
-        type="text"
-        name="name"
-        class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-        placeholder="নতুন জোনের নাম লিখুন"
-        aria-label="নতুন জোন"
-        required
-      />
-      <button
-        type="submit"
-        class="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors font-bold"
-      >
-        যোগ করুন
-      </button>
-    </form>
-    <table
-      class="min-w-full border-separate border-spacing-y-1 border-0 rounded shadow text-sm"
-    >
-      <thead class="bg-cyan-50">
-        <tr class="text-cyan-700">
-          <th class="px-4 py-2 border-b">জোনের নাম</th>
-          <th class="px-4 py-2 border-b">অ্যাকশন</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for zone in zones %}
-        <tr class="hover:bg-cyan-50">
-          <td class="px-4 py-2 border-b">{{ zone.name }}</td>
-          <td class="px-4 py-2 border-b">
-            <form
-              method="post"
-              action="/delete_zone/{{ zone.id }}"
-              onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই জোনটি মুছতে চান?');"
-            >
-              <button
-                type="submit"
-                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+
+  <div class="max-w-4xl mx-auto">
+    <!-- Add Zone Form -->
+    <div class="modern-card p-8 mb-8">
+      <h2 class="text-2xl font-bold text-gradient mb-6">নতুন জোন যোগ করুন</h2>
+      <form method="post" class="flex flex-col sm:flex-row gap-4">
+        <input
+          type="text"
+          name="name"
+          class="modern-input flex-1"
+          placeholder="নতুন জোনের নাম লিখুন"
+          aria-label="নতুন জোন"
+          required
+        />
+        <button type="submit" class="modern-btn btn-primary">
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            ></path>
+          </svg>
+          যোগ করুন
+        </button>
+      </form>
+    </div>
+
+    <!-- Zones Table -->
+    <div class="modern-card overflow-hidden">
+      <h2 class="text-2xl font-bold text-gradient p-6 pb-0 mb-6">
+        বিদ্যমান জোনসমূহ
+      </h2>
+      <table class="modern-table">
+        <thead>
+          <tr>
+            <th>আইডি</th>
+            <th>জোনের নাম</th>
+            <th>অ্যাকশন</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for zone in zones %}
+          <tr class="table-row-animate">
+            <td class="font-mono text-gray-500">{{ zone.id }}</td>
+            <td class="font-semibold">{{ zone.name }}</td>
+            <td>
+              <form
+                method="post"
+                action="/delete_zone/{{ zone.id }}"
+                onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই জোনটি মুছতে চান?');"
+                class="inline-block"
               >
-                মুছুন
-              </button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+                <button type="submit" class="modern-btn btn-danger">
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    ></path>
+                  </svg>
+                  ডিলিট করুন
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 {% endblock %}

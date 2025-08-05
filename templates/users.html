@@ -1,59 +1,83 @@
 {% extends 'base.html' %} {% block title %}ইউজার ব্যবস্থাপনা{% endblock %} {%
 block content %}
-<div class="container mx-auto px-4 py-8 animate-fade-in">
-  <div class="text-center mb-8">
-    <h1 class="text-3xl font-bold text-cyan-700 mb-2">ইউজার ব্যবস্থাপনা</h1>
-    <p class="text-gray-600">ইউজার অনুমোদন, রিজেক্ট, জোন অ্যাসাইন/রিএসাইন, ও সম্পাদনা করুন</p>
+<div class="container mx-auto px-4 py-8">
+  <div class="page-header">
+    <h1 class="page-title">ইউজার ব্যবস্থাপনা</h1>
+    <p class="page-subtitle">ইউজার অনুমোদন, রিজেক্ট, জোন অ্যাসাইন/রিএসাইন, ও সম্পাদনা করুন</p>
   </div>
-  <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8">
-    <table class="min-w-full border-separate border-spacing-y-1 border-0 rounded shadow text-sm">
-      <thead class="bg-cyan-50">
-        <tr class="text-cyan-700">
-          <th class="px-4 py-2 border-b">আইডি</th>
-          <th class="px-4 py-2 border-b">নাম</th>
-          <th class="px-4 py-2 border-b">ইমেইল</th>
-          <th class="px-4 py-2 border-b">জোন</th>
-          <th class="px-4 py-2 border-b">রোল</th>
-          <th class="px-4 py-2 border-b">স্ট্যাটাস</th>
-          <th class="px-4 py-2 border-b">অ্যাকশন</th>
+  
+  <div class="max-w-6xl mx-auto modern-card overflow-hidden">
+    <table class="modern-table">
+      <thead>
+        <tr>
+          <th>আইডি</th>
+          <th>নাম</th>
+          <th>ইমেইল</th>
+          <th>জোন</th>
+          <th>রোল</th>
+          <th>স্ট্যাটাস</th>
+          <th>অ্যাকশন</th>
         </tr>
       </thead>
       <tbody>
         {% for user in users %}
-        <tr class="hover:bg-cyan-50">
-          <td class="px-4 py-2 border-b">{{ user.user_id }}</td>
-          <td class="px-4 py-2 border-b">{{ user.name }}</td>
-          <td class="px-4 py-2 border-b">{{ user.email }}</td>
-          <td class="px-4 py-2 border-b">{{ user.zone.name if user.zone else '' }}</td>
-          <td class="px-4 py-2 border-b">{{ user.role }}</td>
-          <td class="px-4 py-2 border-b">
+        <tr class="table-row-animate">
+          <td class="font-mono">{{ user.user_id }}</td>
+          <td class="font-semibold">{{ user.name }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.zone.name if user.zone else '—' }}</td>
+          <td>
+            <span class="px-3 py-1 rounded-full text-xs font-semibold {% if user.role == 'admin' %}bg-purple-100 text-purple-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+              {{ user.role }}
+            </span>
+          </td>
+          <td>
             {% if user.active %}
-              <span class="px-2 py-1 rounded bg-green-100 text-green-700">Active</span>
+              <span class="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">Active</span>
             {% else %}
-              <span class="px-2 py-1 rounded bg-yellow-100 text-yellow-700">Pending</span>
+              <span class="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">Pending</span>
             {% endif %}
           </td>
-          <td class="px-4 py-2 border-b flex flex-col gap-2">
-            <form method="post" style="display:inline-block;" action="/users" onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই ইউজারটি অনুমোদন করতে চান?');">
-              <input type="hidden" name="user_id" value="{{ user.id }}">
-              <input type="hidden" name="action" value="approve">
-              <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">অনুমোদন</button>
-            </form>
-            <form method="post" style="display:inline-block;" action="/users" onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই ইউজারটি রিজেক্ট করতে চান?');">
-              <input type="hidden" name="user_id" value="{{ user.id }}">
-              <input type="hidden" name="action" value="reject">
-              <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">রিজেক্ট</button>
-            </form>
-            <form method="post" style="display:inline-block;" action="/users" onsubmit="return confirm('জোন পরিবর্তন করতে চান?');">
-              <input type="hidden" name="user_id" value="{{ user.id }}">
-              <input type="hidden" name="action" value="assign_zone">
-              <select name="zone_id" class="px-2 py-1 border rounded">
-                {% for zone in zones %}
-                  <option value="{{ zone.id }}" {% if user.zone_id == zone.id %}selected{% endif %}>{{ zone.name }}</option>
-                {% endfor %}
-              </select>
-              <button type="submit" class="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 ml-2">জোন আপডেট</button>
-            </form>
+          <td>
+            <div class="flex flex-col gap-2 min-w-max">
+              <form method="post" action="/users" onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই ইউজারটি অনুমোদন করতে চান?');">
+                <input type="hidden" name="user_id" value="{{ user.id }}">
+                <input type="hidden" name="action" value="approve">
+                <button type="submit" class="modern-btn btn-success text-sm w-full">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  অনুমোদন
+                </button>
+              </form>
+              
+              <form method="post" action="/users" onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই ইউজারটি রিজেক্ট করতে চান?');">
+                <input type="hidden" name="user_id" value="{{ user.id }}">
+                <input type="hidden" name="action" value="reject">
+                <button type="submit" class="modern-btn btn-danger text-sm w-full">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                  ডিলিট করুন
+                </button>
+              </form>
+              
+              <form method="post" action="/users" onsubmit="return confirm('জোন পরিবর্তন করতে চান?');" class="flex gap-2">
+                <input type="hidden" name="user_id" value="{{ user.id }}">
+                <input type="hidden" name="action" value="assign_zone">
+                <select name="zone_id" class="modern-input modern-select flex-1 text-sm">
+                  {% for zone in zones %}
+                    <option value="{{ zone.id }}" {% if user.zone_id == zone.id %}selected{% endif %}>{{ zone.name }}</option>
+                  {% endfor %}
+                </select>
+                <button type="submit" class="modern-btn btn-secondary text-sm">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                  </svg>
+                  আপডেট
+                </button>
+              </form>
+            </div>
           </td>
         </tr>
         {% endfor %}

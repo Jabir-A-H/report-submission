@@ -3,47 +3,48 @@
 {% block content %}
 <main class="container mx-auto px-4 py-8">
   <!-- Header -->
-  <header class="text-center mb-8">
-    <h1 class="text-4xl font-bold text-blue-700 mb-2">রিপোর্ট ড্যাশবোর্ড</h1>
-    <p class="text-xl text-gray-600 mb-4">{{ report_month_year }}</p>
+  <header class="page-header">
+    <h1 class="page-title">রিপোর্ট ড্যাশবোর্ড</h1>
+    <p class="page-subtitle">{{ report_month_year }}</p>
   </header>
 
   <!-- Month/Year selector -->
   <section class="max-w-md mx-auto mb-8">
-    <form method="get" class="flex gap-2">
-      <select name="month" class="flex-1 p-2 border border-gray-300 rounded-lg">
-        {% for i in range(1, 13) %}
-        <option value="{{ i }}" {% if i == month|int %}selected{% endif %}>{{ i|month_name }}</option>
-        {% endfor %}
-      </select>
-      <select name="year" class="flex-1 p-2 border border-gray-300 rounded-lg">
-        {% for y in range(2020, 2030) %}
-        <option value="{{ y }}" {% if y == year|int %}selected{% endif %}>{{ y }}</option>
-        {% endfor %}
-      </select>
-      <button type="submit" class="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition">যান</button>
-    </form>
+    <div class="modern-card p-6">
+      <form method="get" class="flex gap-3">
+        <select name="month" class="modern-input modern-select flex-1">
+          {% for i in range(1, 13) %}
+          <option value="{{ i }}" {% if i == month|int %}selected{% endif %}>{{ i|month_name }}</option>
+          {% endfor %}
+        </select>
+        <select name="year" class="modern-input modern-select flex-1">
+          {% for y in range(2020, 2030) %}
+          <option value="{{ y }}" {% if y == year|int %}selected{% endif %}>{{ y }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="modern-btn btn-primary">যান</button>
+      </form>
+    </div>
   </section>
 
   <!-- Report sections grid -->
   <section class="max-w-6xl mx-auto">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-      <h2 class="text-2xl font-bold text-blue-700 mb-4 md:mb-0">সেকশনসমূহ</h2>
+      <h2 class="text-3xl font-bold text-gradient mb-4 md:mb-0">সেকশনসমূহ</h2>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="modern-grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
       {% for section in sections %}
-      <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 animate-fade-in">
-        <div class="p-6">
-          <div class="flex items-center mb-4">
-            <span class="text-2xl mr-2">{{ section.icon }}</span>
-            <h3 class="text-lg font-semibold text-gray-800 mb-3">{{ section.name }}</h3>
-          </div>
-          <a href="{{ section.url }}" class="block w-full text-center py-2 px-4 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition font-medium">
-            দেখুন/সম্পাদনা করুন
-          </a>
+      <div class="modern-card p-6 group">
+        <div class="flex items-center mb-4">
+          <span class="text-3xl mr-3 icon-bounce">{{ section.icon }}</span>
+          <h3 class="text-lg font-semibold text-gray-800">{{ section.name }}</h3>
         </div>
+        <a href="{{ section.url }}" class="modern-btn btn-secondary w-full justify-center">
+          দেখুন/সম্পাদনা করুন
+        </a>
       </div>
       {% endfor %}
     </div>
   </section>
+</main>
 {% endblock %}

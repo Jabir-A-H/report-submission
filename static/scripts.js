@@ -1,3 +1,87 @@
+// --- Lightweight UI Enhancements ---
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize lightweight interactions
+  initBasicAnimations();
+  initFormEnhancements();
+  initLoadingStates();
+});
+
+// Basic Animation System
+function initBasicAnimations() {
+  // Simple intersection observer for fade-in effects
+  const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -20px 0px'
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('animate-fade-in');
+      }
+    });
+  }, observerOptions);
+
+  // Observe main content areas
+  document.querySelectorAll('.modern-card, .page-header').forEach(el => {
+    observer.observe(el);
+  });
+}
+
+// Simple Form Interactions
+function initFormEnhancements() {
+  // Basic focus/blur for inputs
+  document.querySelectorAll('.modern-input').forEach(input => {
+    input.addEventListener('focus', function() {
+      this.style.borderColor = '#3b82f6';
+    });
+
+    input.addEventListener('blur', function() {
+      if (!this.value) {
+        this.style.borderColor = '#e2e8f0';
+      }
+    });
+  });
+
+  // Simple button hover effects
+  document.querySelectorAll('.modern-btn').forEach(btn => {
+    btn.addEventListener('mouseenter', function() {
+      this.style.transform = 'translateY(-1px)';
+    });
+
+    btn.addEventListener('mouseleave', function() {
+      this.style.transform = 'translateY(0)';
+    });
+  });
+}
+
+// Loading States
+function initLoadingStates() {
+  // Add loading spinner to forms on submit
+  document.querySelectorAll('form').forEach(form => {
+    form.addEventListener('submit', function() {
+      const submitBtn = this.querySelector('button[type="submit"]');
+      if (submitBtn && !submitBtn.disabled) {
+        showLoadingState(submitBtn);
+      }
+    });
+  });
+}
+
+function showLoadingState(button) {
+  const originalText = button.innerHTML;
+  button.disabled = true;
+  button.innerHTML = `
+    <div class="modern-spinner w-5 h-5 mr-2"></div>
+    প্রসেসিং...
+  `;
+  
+  setTimeout(() => {
+    button.disabled = false;
+    button.innerHTML = originalText;
+  }, 2000);
+}
+
 // --- City Report Override Form Logic ---
 window.initCityReportOverrideForm = function() {
   const sectionSelect = document.getElementById('section-select');

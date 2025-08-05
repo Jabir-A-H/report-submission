@@ -1,40 +1,83 @@
 {% import 'macros.html' as macros %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
   <head>
     <meta charset="UTF-8" />
-    <title>404 - Page Not Found</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        background: #f8f8f8;
-        text-align: center;
-        padding-top: 80px;
-      }
-      h1 {
-        font-size: 3em;
-        color: #c00;
-      }
-      p {
-        font-size: 1.2em;
-        color: #555;
-      }
-      a {
-        color: #007bff;
-        text-decoration: none;
-        font-weight: bold;
-      }
-      a:hover {
-        text-decoration: underline;
-      }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>পেজ পাওয়া যায়নি | রিপোর্ট সাবমিশন</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
   </head>
-  <body>
-    <h1>404</h1>
-    <p>Sorry, the page you requested was not found.</p>
-    <p>
-      {{ macros.context_link('dashboard', 'Return to Dashboard', year=year,
-      month=month, report_type=report_type) }}
-    </p>
+  <body class="min-h-screen flex items-center justify-center p-4">
+    <div class="text-center">
+      <!-- 404 Icon -->
+      <div class="animate-float mb-8">
+        <div
+          class="w-32 h-32 mx-auto mb-6 bg-white rounded-full flex items-center justify-center shadow-modern"
+        >
+          <svg
+            class="w-16 h-16 text-red-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.982 16.5c-.77.833.192 2.5 1.732 2.5z"
+            ></path>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Error Message Card -->
+      <div class="modern-card p-8 max-w-md mx-auto">
+        <h1 class="text-6xl font-bold text-gradient mb-4">৪০৪</h1>
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">পেজ পাওয়া যায়নি</h2>
+        <p class="text-gray-600 mb-8">
+          দুঃখিত, আপনি যে পেজটি খুঁজছেন সেটি বিদ্যমান নেই বা সরানো হয়েছে।
+        </p>
+
+        <div class="space-y-4">
+          {{ macros.context_link('dashboard', 'ড্যাশবোর্ডে ফিরে যান', year=year,
+          month=month, report_type=report_type) }}
+
+          <button
+            onclick="history.back()"
+            class="modern-btn btn-outline w-full justify-center"
+          >
+            <svg
+              class="w-5 h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              ></path>
+            </svg>
+            পূর্ববর্তী পেজে ফিরে যান
+          </button>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="mt-8 text-gray-500 text-sm">
+        <p>© ২০২৫ রিপোর্ট সাবমিশন সিস্টেম। সকল অধিকার সংরক্ষিত।</p>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
   </body>
 </html>
