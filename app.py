@@ -2733,7 +2733,10 @@ def download_pdf():
 @login_required
 def download_city_report_pdf():
     """Download aggregated city report as PDF with overrides applied"""
+    print(f"[DEBUG] City report PDF download route called with params: month={request.args.get('month')}, year={request.args.get('year')}, report_type={request.args.get('report_type')}")
+    
     if not is_admin():
+        print("[DEBUG] User is not admin, redirecting to dashboard")
         return redirect(url_for("dashboard"))
 
     from datetime import datetime
@@ -2749,9 +2752,17 @@ def download_city_report_pdf():
         year = now.year
 
     year_int = int(year)
+    print(f"[DEBUG] Final parameters: month={month}, year={year_int}, report_type={report_type}")
 
     # Generate the aggregated city report data (same logic as city_report_page)
-    city_data = generate_city_report_data(year_int, month, report_type)
+    try:
+        print("[DEBUG] Generating city report data...")
+        city_data = generate_city_report_data(year_int, month, report_type)
+        print(f"[DEBUG] City data generated successfully: {len(city_data.get('city_courses', []))} course categories")
+    except Exception as e:
+        print(f"[DEBUG] Error generating city data: {e}")
+        flash(f"Error generating report data: {str(e)}", "error")
+        return redirect(url_for("city_report_page"))
 
     # Create filename
     filename = f"City_Report_{report_type}_{year}"
@@ -2764,8 +2775,15 @@ def download_city_report_pdf():
         title += f" - {month}"
     title += f" {year}"
 
+    print(f"[DEBUG] About to generate PDF with title: {title}, filename: {filename}")
+
     # Generate PDF of the aggregated city report
-    return generate_city_report_pdf(city_data, title, filename)
+    try:
+        return generate_city_report_pdf(city_data, title, filename)
+    except Exception as e:
+        print(f"[DEBUG] Error in PDF generation: {e}")
+        flash(f"PDF generation failed: {str(e)}", "error")
+        return redirect(url_for("city_report_page"))
 
 
 def generate_city_report_data(year, month, report_type):
@@ -3078,9 +3096,12 @@ def generate_city_report_pdf(city_data, title, filename):
     """Generate PDF from aggregated city report data using Playwright"""
     try:
         from playwright.sync_api import sync_playwright
+        from datetime import datetime
         import tempfile
         import os
 
+        print("[DEBUG] Starting PDF generation with Playwright...")
+        
         # Create HTML content for the city report
         html_content = f"""
         <!DOCTYPE html>
@@ -4038,17 +4059,22 @@ def generate_pdf_with_playwright(reports, title, filename):
     """
 
     # Generate PDF using Playwright
+    print("[DEBUG] Starting Playwright PDF generation...")
     with sync_playwright() as p:
         try:
+            print("[DEBUG] Launching browser...")
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
+            print("[DEBUG] Browser launched, setting content...")
 
             # Set content and wait for fonts to load
             page.set_content(html_content, wait_until="networkidle")
+            print("[DEBUG] Content set, waiting for fonts...")
 
             # Wait a bit for Google Fonts to load
             page.wait_for_timeout(2000)
-
+            print("[DEBUG] Generating PDF...")
+            
             # Generate PDF with high quality settings
             pdf_bytes = page.pdf(
                 format="A4",
@@ -4062,10 +4088,13 @@ def generate_pdf_with_playwright(reports, title, filename):
                 prefer_css_page_size=True,
             )
 
+            print(f"[DEBUG] PDF generated successfully, size: {len(pdf_bytes)} bytes")
             browser.close()
 
             # Return as downloadable file
+            import io
             output = io.BytesIO(pdf_bytes)
+            print("[DEBUG] Returning PDF file...")
             return send_file(
                 output,
                 as_attachment=True,
@@ -4076,7 +4105,7 @@ def generate_pdf_with_playwright(reports, title, filename):
         except Exception as e:
             print(f"[DEBUG] Playwright PDF generation failed: {e}")
             browser.close()
-            raise
+        raise
 
 
 def get_reports_for_period(zone_id, report_type, month, year):
