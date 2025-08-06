@@ -3113,8 +3113,7 @@ def generate_city_report_pdf(city_data, title, filename):
     try:
         from playwright.sync_api import sync_playwright
         from datetime import datetime
-        import tempfile
-        import os
+        import io
 
         print("[DEBUG] Starting PDF generation with Playwright...")
 
@@ -3131,93 +3130,172 @@ def generate_city_report_pdf(city_data, title, filename):
                 body {{
                     font-family: 'Tiro Bangla', sans-serif;
                     margin: 20px;
-                    font-size: 12px;
-                    line-height: 1.4;
+                    font-size: 11px;
+                    line-height: 1.3;
+                    color: #333;
                 }}
                 .header {{
                     text-align: center;
                     margin-bottom: 30px;
-                    border-bottom: 2px solid #333;
-                    padding-bottom: 15px;
+                    border-bottom: 3px solid #3498db;
+                    padding-bottom: 20px;
                 }}
                 .title {{
-                    font-size: 20px;
+                    font-size: 24px;
                     font-weight: bold;
                     margin-bottom: 10px;
+                    color: #2c3e50;
                 }}
                 .subtitle {{
-                    font-size: 14px;
-                    color: #666;
+                    font-size: 16px;
+                    color: #7f8c8d;
+                    margin-bottom: 5px;
+                }}
+                .report-info {{
+                    font-size: 12px;
+                    color: #95a5a6;
                 }}
                 .section {{
                     margin-bottom: 25px;
                     page-break-inside: avoid;
                 }}
                 .section-title {{
-                    font-size: 16px;
+                    font-size: 14px;
                     font-weight: bold;
-                    background-color: #f0f0f0;
-                    padding: 8px;
-                    border-left: 4px solid #333;
-                    margin-bottom: 10px;
+                    background: linear-gradient(135deg, #3498db, #2980b9);
+                    color: white;
+                    padding: 10px 15px;
+                    border-radius: 6px;
+                    margin-bottom: 15px;
+                    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }}
+                .header-grid {{
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 15px;
+                    margin-bottom: 20px;
+                }}
+                .header-item {{
+                    padding: 8px 12px;
+                    background: #f8f9fa;
+                    border-left: 4px solid #3498db;
+                    border-radius: 4px;
+                }}
+                .header-label {{
+                    font-weight: bold;
+                    color: #2c3e50;
+                }}
+                .header-value {{
+                    color: #27ae60;
+                    font-weight: 600;
                 }}
                 table {{
                     width: 100%;
                     border-collapse: collapse;
-                    margin-bottom: 15px;
-                }}
-                th, td {{
-                    border: 1px solid #333;
-                    padding: 6px;
-                    text-align: left;
-                    font-size: 11px;
+                    margin-bottom: 20px;
+                    font-size: 10px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                    border-radius: 6px;
+                    overflow: hidden;
                 }}
                 th {{
-                    background-color: #f5f5f5;
+                    background: linear-gradient(135deg, #34495e, #2c3e50);
+                    color: white;
+                    padding: 10px 6px;
+                    text-align: center;
+                    font-weight: bold;
+                    border: 1px solid #2c3e50;
+                    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+                    font-size: 9px;
+                    line-height: 1.2;
+                }}
+                th.sub-header {{
+                    background: linear-gradient(135deg, #5dade2, #3498db);
+                    font-size: 8px;
+                }}
+                td {{
+                    padding: 6px;
+                    border: 1px solid #bdc3c7;
+                    text-align: center;
+                    background-color: #ffffff;
+                    font-size: 9px;
+                }}
+                td.category {{
+                    text-align: left;
+                    font-weight: bold;
+                    background-color: #ecf0f1;
+                    color: #2c3e50;
+                    padding-left: 10px;
+                }}
+                tr:nth-child(even) td {{
+                    background-color: #f8f9fa;
+                }}
+                tr.totals {{
+                    background: linear-gradient(135deg, #85c1e9, #5dade2) !important;
                     font-weight: bold;
                 }}
-                .summary-table {{
-                    width: 100%;
-                    margin-bottom: 20px;
-                }}
-                .summary-table td {{
-                    padding: 8px;
-                }}
-                .summary-table .label {{
+                tr.totals td {{
+                    background: linear-gradient(135deg, #85c1e9, #5dade2) !important;
+                    color: #1a5490;
                     font-weight: bold;
-                    width: 60%;
                 }}
                 .number {{
                     font-family: 'Ubuntu', sans-serif;
+                    text-align: center;
+                    font-weight: 600;
+                    color: #27ae60;
+                }}
+                .comments-box {{
+                    background: #f8f9fa;
+                    border: 2px solid #e9ecef;
+                    border-radius: 6px;
+                    padding: 15px;
+                    min-height: 60px;
+                    line-height: 1.5;
+                }}
+                .zone-list {{
+                    background: #f8f9fa;
+                    border: 1px solid #dee2e6;
+                    border-radius: 6px;
+                    padding: 15px;
+                }}
+                .zone-list ul {{
+                    margin: 0;
+                    padding-left: 20px;
+                }}
+                .zone-list li {{
+                    margin-bottom: 5px;
+                    color: #495057;
+                }}
+                .totals-info {{
                     text-align: right;
-                }}
-                .page-break {{
-                    page-break-before: always;
-                }}
-                .totals {{
-                    background-color: #e8f4f8;
-                    font-weight: bold;
+                    color: #6c757d;
+                    font-size: 10px;
+                    margin-top: 10px;
+                    font-style: italic;
                 }}
                 @media print {{
                     body {{ margin: 10px; }}
-                    .page-break {{ page-break-before: always; }}
+                    .section {{ page-break-inside: avoid; }}
                 }}
             </style>
         </head>
         <body>
             <div class="header">
                 <div class="title">{title}</div>
-                <div class="subtitle">সিটি রিপোর্ট</div>
+                <div class="subtitle">সিটি রিপোর্ট সারসংক্ষেপ</div>
+                <div class="report-info">রিপোর্টের ধরন: {city_data['report_type']} | বছর: {city_data['year']}</div>
             </div>
 
             <!-- Header Section -->
             <div class="section">
-                <div class="section-title">হেডার তথ্য</div>
-                <table class="summary-table">
+                <div class="section-title">📋 মূল তথ্য</div>
+                <div class="header-grid">
         """
 
-        # Add header data in the same order as the city_report.html template
-        header_labels = [
+        # Add header data in grid format matching the web template
+        header_items = [
             ("responsible_name", "দায়িত্বশীলের নাম"),
             ("thana", "থানা"),
             ("ward", "ওয়ার্ড"),
@@ -3232,38 +3310,43 @@ def generate_city_report_pdf(city_data, title, filename):
             ("units_with_muallima", "মুয়াল্লিমা সহ ইউনিট"),
         ]
 
-        for field, label in header_labels:
+        for field, label in header_items:
             value = city_data["city_summary"].get(field)
+            display_value = value if value is not None else "N/A"
             html_content += f"""
-                    <tr>
-                        <td class="label">{label}</td>
-                        <td class="number">{value if value is not None else 'N/A'}</td>
-                    </tr>
+                    <div class="header-item">
+                        <span class="header-label">{label}:</span>
+                        <span class="header-value">{display_value}</span>
+                    </div>
                 """
 
         html_content += """
-                </table>
+                </div>
             </div>
 
             <!-- Courses Section -->
             <div class="section">
-                <div class="section-title">কোর্স তথ্য</div>
+                <div class="section-title">📚 গ্রুপ / কোর্স রিপোর্ট</div>
                 <table>
                     <thead>
                         <tr>
-                            <th>ক্যাটেগরি</th>
+                            <th rowspan="2">বিভাগ/ধরন</th>
+                            <th colspan="3">গ্রুপ / কোর্স</th>
+                            <th rowspan="2">অধিবেশন সংখ্যা</th>
+                            <th rowspan="2">শিক্ষার্থী সংখ্যা</th>
+                            <th rowspan="2">উপস্থিতি সংখ্যা</th>
+                            <th colspan="4">শিক্ষার্থী অবস্থান</th>
+                            <th rowspan="2">কতজন নিয়ে সমাপ্ত</th>
+                            <th rowspan="2">সহীহ শিখেছেন কতজন</th>
+                        </tr>
+                        <tr class="sub-header">
                             <th>সংখ্যা</th>
                             <th>বৃদ্ধি</th>
-                            <th>হ্রাস</th>
-                            <th>সেশন</th>
-                            <th>ছাত্রী</th>
-                            <th>উপস্থিতি</th>
-                            <th>বোর্ড</th>
-                            <th>কায়দা</th>
+                            <th>ঘাটতি</th>
+                            <th>বোর্ডে</th>
+                            <th>কায়দায়</th>
                             <th>আমপারা</th>
                             <th>কুরআন</th>
-                            <th>সম্পন্ন</th>
-                            <th>সঠিকভাবে শিখেছে</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -3272,7 +3355,7 @@ def generate_city_report_pdf(city_data, title, filename):
         for course in city_data["city_courses"]:
             html_content += f"""
                         <tr>
-                            <td>{course['category']}</td>
+                            <td class="category">{course['category']}</td>
                             <td class="number">{course['number']}</td>
                             <td class="number">{course['increase']}</td>
                             <td class="number">{course['decrease']}</td>
@@ -3295,11 +3378,11 @@ def generate_city_report_pdf(city_data, title, filename):
 
             <!-- Organizational Section -->
             <div class="section">
-                <div class="section-title">সাংগঠনিক তথ্য</div>
+                <div class="section-title">🏢 দাওয়াত ও সংগঠন</div>
                 <table>
                     <thead>
                         <tr>
-                            <th>ক্যাটেগরি</th>
+                            <th>দাওয়াত ও সংগঠন</th>
                             <th>সংখ্যা</th>
                             <th>বৃদ্ধি</th>
                             <th>পরিমাণ</th>
@@ -3312,7 +3395,7 @@ def generate_city_report_pdf(city_data, title, filename):
         for org in city_data["city_organizational"]:
             html_content += f"""
                         <tr>
-                            <td>{org['category']}</td>
+                            <td class="category">{org['category']}</td>
                             <td class="number">{org['number']}</td>
                             <td class="number">{org['increase']}</td>
                             <td class="number">{org['amount']}</td>
@@ -3327,29 +3410,47 @@ def generate_city_report_pdf(city_data, title, filename):
 
             <!-- Personal Section -->
             <div class="section">
-                <div class="section-title">ব্যক্তিগত তথ্য</div>
+                <div class="section-title">ব্যক্তিগত উদ্যোগে তা'লীমুল কুরআন</div>
                 <table>
                     <thead>
                         <tr>
-                            <th>ক্যাটেগরি</th>
-                            <th>শিক্ষাদান</th>
-                            <th>শিক্ষাগ্রহণ</th>
-                            <th>ওলামা আমন্ত্রিত</th>
-                            <th>সহযোগী হয়েছে</th>
-                            <th>সক্রিয় সহযোগী হয়েছে</th>
-                            <th>কর্মী হয়েছে</th>
-                            <th>রুকন হয়েছে</th>
+                            <th rowspan="2">ব্যক্তিগত উদ্যোগে তা'লীমুল কুরআন</th>
+                            <th rowspan="2">কতজন শিখাচ্ছেন</th>
+                            <th rowspan="2" style="border-right: 4px solid #3498db;">কতজনকে শিখাচ্ছেন</th>
+                            <th rowspan="2">কতজন ওয়ালামাকে দাওয়াত দিয়েছেন</th>
+                            <th colspan="4">দাওয়াত প্রাপ্ত ওয়ালামার মধ্যে</th>
+                        </tr>
+                        <tr class="sub-header">
+                            <th>সহযোগী হয়েছেন</th>
+                            <th>সক্রিয় সহযোগী হয়েছেন</th>
+                            <th>কর্মী হয়েছেন</th>
+                            <th>রুকন হয়েছেন</th>
                         </tr>
                     </thead>
                     <tbody>
         """
 
+        # Calculate totals for personal section
+        teaching_total = sum(p["teaching"] for p in city_data["city_personal"])
+        learning_total = sum(p["learning"] for p in city_data["city_personal"])
+        olama_invited_total = sum(
+            p["olama_invited"] for p in city_data["city_personal"]
+        )
+        became_shohojogi_total = sum(
+            p["became_shohojogi"] for p in city_data["city_personal"]
+        )
+        became_sokrio_shohojogi_total = sum(
+            p["became_sokrio_shohojogi"] for p in city_data["city_personal"]
+        )
+        became_kormi_total = sum(p["became_kormi"] for p in city_data["city_personal"])
+        became_rukon_total = sum(p["became_rukon"] for p in city_data["city_personal"])
+
         for personal in city_data["city_personal"]:
             html_content += f"""
                         <tr>
-                            <td>{personal['category']}</td>
+                            <td class="category">{personal['category']}</td>
                             <td class="number">{personal['teaching']}</td>
-                            <td class="number">{personal['learning']}</td>
+                            <td class="number" style="border-right: 4px solid #3498db;">{personal['learning']}</td>
                             <td class="number">{personal['olama_invited']}</td>
                             <td class="number">{personal['became_shohojogi']}</td>
                             <td class="number">{personal['became_sokrio_shohojogi']}</td>
@@ -3358,6 +3459,20 @@ def generate_city_report_pdf(city_data, title, filename):
                         </tr>
             """
 
+        # Add totals row for personal section
+        html_content += f"""
+                        <tr class="totals">
+                            <td class="category">মোট</td>
+                            <td class="number">{teaching_total}</td>
+                            <td class="number" style="border-right: 4px solid #1a5490;">{learning_total}</td>
+                            <td class="number">{olama_invited_total}</td>
+                            <td class="number">{became_shohojogi_total}</td>
+                            <td class="number">{became_sokrio_shohojogi_total}</td>
+                            <td class="number">{became_kormi_total}</td>
+                            <td class="number">{became_rukon_total}</td>
+                        </tr>
+        """
+
         html_content += """
                     </tbody>
                 </table>
@@ -3365,16 +3480,16 @@ def generate_city_report_pdf(city_data, title, filename):
 
             <!-- Meetings Section -->
             <div class="section">
-                <div class="section-title">সভা তথ্য</div>
+                <div class="section-title">🤝 বৈঠকসমূহ</div>
                 <table>
                     <thead>
                         <tr>
-                            <th>ক্যাটেগরি</th>
-                            <th>সিটি সংখ্যা</th>
-                            <th>সিটি গড় উপস্থিতি</th>
-                            <th>থানা সংখ্যা</th>
+                            <th>বৈঠকসমূহ</th>
+                            <th>মহানগরীর কতটি</th>
+                            <th>মহানগরী গড় উপস্থিতি</th>
+                            <th>থানা কতটি</th>
                             <th>থানা গড় উপস্থিতি</th>
-                            <th>ওয়ার্ড সংখ্যা</th>
+                            <th>ওয়ার্ড কতটি</th>
                             <th>ওয়ার্ড গড় উপস্থিতি</th>
                             <th>মন্তব্য</th>
                         </tr>
@@ -3385,7 +3500,7 @@ def generate_city_report_pdf(city_data, title, filename):
         for meeting in city_data["city_meetings"]:
             html_content += f"""
                         <tr>
-                            <td>{meeting['category']}</td>
+                            <td class="category">{meeting['category']}</td>
                             <td class="number">{meeting['city_count']}</td>
                             <td class="number">{meeting['city_avg_attendance']}</td>
                             <td class="number">{meeting['thana_count']}</td>
@@ -3403,11 +3518,11 @@ def generate_city_report_pdf(city_data, title, filename):
 
             <!-- Extras Section -->
             <div class="section">
-                <div class="section-title">অতিরিক্ত তথ্য</div>
+                <div class="section-title">📊 মক্তব ও সফর রিপোর্ট</div>
                 <table>
                     <thead>
                         <tr>
-                            <th>ক্যাটেগরি</th>
+                            <th>বিষয়</th>
                             <th>সংখ্যা</th>
                         </tr>
                     </thead>
@@ -3417,7 +3532,7 @@ def generate_city_report_pdf(city_data, title, filename):
         for extra in city_data["city_extras"]:
             html_content += f"""
                         <tr>
-                            <td>{extra['category']}</td>
+                            <td class="category">{extra['category']}</td>
                             <td class="number">{extra['number']}</td>
                         </tr>
             """
@@ -3429,13 +3544,10 @@ def generate_city_report_pdf(city_data, title, filename):
 
             <!-- Comments Section -->
             <div class="section">
-                <div class="section-title">মন্তব্য</div>
-                <table class="summary-table">
-                    <tr>
-                        <td class="label">মন্তব্য</td>
-                        <td>{city_data['city_comments']['comment']}</td>
-                    </tr>
-                </table>
+                <div class="section-title">💬 মন্তব্য</div>
+                <div class="comments-box">
+                    {city_data['city_comments']['comment'] if city_data['city_comments']['comment'] else 'কোনো মন্তব্য নেই'}
+                </div>
             </div>
         """
 
@@ -3468,8 +3580,6 @@ def generate_city_report_pdf(city_data, title, filename):
             browser.close()
 
             # Return PDF as response
-            import io
-
             output = io.BytesIO(pdf_bytes)
             output.seek(0)
 
