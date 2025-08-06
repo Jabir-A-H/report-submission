@@ -795,9 +795,15 @@ def city_report_page():
     zones = Zone.query.all()
 
     # --- Fetch overrides for this period ---
-    overrides = get_city_report_overrides(
-        year_int, int(month) if month else None, report_type
-    )
+    # Only apply overrides for city-wide reports (when zone_id is None)
+    if zone_id:
+        # For zone-specific reports, don't apply any overrides
+        overrides = {}
+    else:
+        # For city-wide aggregated reports, apply overrides
+        overrides = get_city_report_overrides(
+            year_int, int(month) if month else None, report_type
+        )
 
     # --- Header Aggregation ---
     header_fields = [
@@ -994,9 +1000,13 @@ def city_report_page():
     city_comments = apply_overrides_to_agg(city_comments, "comments", overrides)
 
     total_zones = len(set(r.zone_id for r in reports))
-    override_page_url = url_for(
-        "city_report_override", month=month, year=year, report_type=report_type
-    )
+
+    # Only show override page URL for city-wide reports (not zone-specific)
+    override_page_url = None
+    if not zone_id:
+        override_page_url = url_for(
+            "city_report_override", month=month, year=year, report_type=report_type
+        )
     return render_template(
         "city_report.html",
         month=month,
@@ -2733,8 +2743,10 @@ def download_pdf():
 @login_required
 def download_city_report_pdf():
     """Download aggregated city report as PDF with overrides applied"""
-    print(f"[DEBUG] City report PDF download route called with params: month={request.args.get('month')}, year={request.args.get('year')}, report_type={request.args.get('report_type')}")
-    
+    print(
+        f"[DEBUG] City report PDF download route called with params: month={request.args.get('month')}, year={request.args.get('year')}, report_type={request.args.get('report_type')}"
+    )
+
     if not is_admin():
         print("[DEBUG] User is not admin, redirecting to dashboard")
         return redirect(url_for("dashboard"))
@@ -2752,13 +2764,17 @@ def download_city_report_pdf():
         year = now.year
 
     year_int = int(year)
-    print(f"[DEBUG] Final parameters: month={month}, year={year_int}, report_type={report_type}")
+    print(
+        f"[DEBUG] Final parameters: month={month}, year={year_int}, report_type={report_type}"
+    )
 
     # Generate the aggregated city report data (same logic as city_report_page)
     try:
         print("[DEBUG] Generating city report data...")
         city_data = generate_city_report_data(year_int, month, report_type)
-        print(f"[DEBUG] City data generated successfully: {len(city_data.get('city_courses', []))} course categories")
+        print(
+            f"[DEBUG] City data generated successfully: {len(city_data.get('city_courses', []))} course categories"
+        )
     except Exception as e:
         print(f"[DEBUG] Error generating city data: {e}")
         flash(f"Error generating report data: {str(e)}", "error")
@@ -3101,7 +3117,7 @@ def generate_city_report_pdf(city_data, title, filename):
         import os
 
         print("[DEBUG] Starting PDF generation with Playwright...")
-        
+
         # Create HTML content for the city report
         html_content = f"""
         <!DOCTYPE html>
@@ -3191,8 +3207,7 @@ def generate_city_report_pdf(city_data, title, filename):
         <body>
             <div class="header">
                 <div class="title">{title}</div>
-                <div class="subtitle">সিটি রিপোর্ট (সমস্ত জোনের সমন্বিত তথ্য)</div>
-                <div class="subtitle">মোট জোন: {city_data['total_zones']}</div>
+                <div class="subtitle">সিটি রিপোর্ট</div>
             </div>
 
             <!-- Header Section -->
@@ -3201,27 +3216,27 @@ def generate_city_report_pdf(city_data, title, filename):
                 <table class="summary-table">
         """
 
-        # Add header data
-        header_labels = {
-            "responsible_name": "দায়িত্বশীলের নাম",
-            "thana": "থানা",
-            "ward": "ওয়ার্ড",
-            "total_muallima": "মোট মুয়াল্লিমা",
-            "muallima_increase": "মুয়াল্লিমা বৃদ্ধি",
-            "muallima_decrease": "মুয়াল্লিমা হ্রাস",
-            "certified_muallima": "সার্টিফিকেটপ্রাপ্ত মুয়াল্লিমা",
-            "certified_muallima_taking_classes": "সার্টিফিকেটপ্রাপ্ত মুয়াল্লিমা (ক্লাস নিচ্ছেন)",
-            "trained_muallima": "প্রশিক্ষিত মুয়াল্লিমা",
-            "trained_muallima_taking_classes": "প্রশিক্ষিত মুয়াল্লিমা (ক্লাস নিচ্ছেন)",
-            "total_unit": "মোট ইউনিট",
-            "units_with_muallima": "মুয়াল্লিমা সহ ইউনিট",
-        }
+        # Add header data in the same order as the city_report.html template
+        header_labels = [
+            ("responsible_name", "দায়িত্বশীলের নাম"),
+            ("thana", "থানা"),
+            ("ward", "ওয়ার্ড"),
+            ("total_muallima", "মোট মুয়াল্লিমা সংখ্যা"),
+            ("muallima_increase", "মুয়াল্লিমা বৃদ্ধি"),
+            ("muallima_decrease", "মুয়াল্লিমা হ্রাস"),
+            ("certified_muallima", "প্রশিক্ষিত মুয়াল্লিমা"),
+            ("certified_muallima_taking_classes", "প্রশিক্ষিত মুয়াল্লিমা (ক্লাস নিচ্ছেন)"),
+            ("trained_muallima", "ট্রেইনিং প্রাপ্ত মুয়াল্লিমা"),
+            ("trained_muallima_taking_classes", "ট্রেইনিং প্রাপ্ত মুয়াল্লিমা (ক্লাস নিচ্ছেন)"),
+            ("total_unit", "মোট ইউনিট"),
+            ("units_with_muallima", "মুয়াল্লিমা সহ ইউনিট"),
+        ]
 
-        for field, value in city_data["city_summary"].items():
-            if field in header_labels:
-                html_content += f"""
+        for field, label in header_labels:
+            value = city_data["city_summary"].get(field)
+            html_content += f"""
                     <tr>
-                        <td class="label">{header_labels[field]}</td>
+                        <td class="label">{label}</td>
                         <td class="number">{value if value is not None else 'N/A'}</td>
                     </tr>
                 """
@@ -3231,7 +3246,7 @@ def generate_city_report_pdf(city_data, title, filename):
             </div>
 
             <!-- Courses Section -->
-            <div class="section page-break">
+            <div class="section">
                 <div class="section-title">কোর্স তথ্য</div>
                 <table>
                     <thead>
@@ -3279,7 +3294,7 @@ def generate_city_report_pdf(city_data, title, filename):
             </div>
 
             <!-- Organizational Section -->
-            <div class="section page-break">
+            <div class="section">
                 <div class="section-title">সাংগঠনিক তথ্য</div>
                 <table>
                     <thead>
@@ -3311,7 +3326,7 @@ def generate_city_report_pdf(city_data, title, filename):
             </div>
 
             <!-- Personal Section -->
-            <div class="section page-break">
+            <div class="section">
                 <div class="section-title">ব্যক্তিগত তথ্য</div>
                 <table>
                     <thead>
@@ -3349,7 +3364,7 @@ def generate_city_report_pdf(city_data, title, filename):
             </div>
 
             <!-- Meetings Section -->
-            <div class="section page-break">
+            <div class="section">
                 <div class="section-title">সভা তথ্য</div>
                 <table>
                     <thead>
@@ -3387,7 +3402,7 @@ def generate_city_report_pdf(city_data, title, filename):
             </div>
 
             <!-- Extras Section -->
-            <div class="section page-break">
+            <div class="section">
                 <div class="section-title">অতিরিক্ত তথ্য</div>
                 <table>
                     <thead>
@@ -3423,47 +3438,6 @@ def generate_city_report_pdf(city_data, title, filename):
                 </table>
             </div>
         """
-
-        # Add overrides information if any
-        if city_data["overrides"]:
-            html_content += """
-            <div class="section page-break">
-                <div class="section-title">প্রয়োগকৃত ওভাররাইড তথ্য</div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>সেকশন</th>
-                            <th>ক্যাটেগরি</th>
-                            <th>ফিল্ড</th>
-                            <th>নতুন মান</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            """
-
-            for override in city_data["overrides"]:
-                section_name = (
-                    override.section.split(":")[0]
-                    if ":" in override.section
-                    else override.section
-                )
-                category_name = (
-                    override.section.split(":")[1] if ":" in override.section else ""
-                )
-                html_content += f"""
-                        <tr>
-                            <td>{section_name}</td>
-                            <td>{category_name}</td>
-                            <td>{override.field}</td>
-                            <td class="number">{override.value}</td>
-                        </tr>
-                """
-
-            html_content += """
-                    </tbody>
-                </table>
-            </div>
-            """
 
         html_content += """
         </body>
@@ -4074,7 +4048,7 @@ def generate_pdf_with_playwright(reports, title, filename):
             # Wait a bit for Google Fonts to load
             page.wait_for_timeout(2000)
             print("[DEBUG] Generating PDF...")
-            
+
             # Generate PDF with high quality settings
             pdf_bytes = page.pdf(
                 format="A4",
@@ -4093,6 +4067,7 @@ def generate_pdf_with_playwright(reports, title, filename):
 
             # Return as downloadable file
             import io
+
             output = io.BytesIO(pdf_bytes)
             print("[DEBUG] Returning PDF file...")
             return send_file(
