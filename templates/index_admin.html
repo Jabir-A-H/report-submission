@@ -46,51 +46,53 @@ block content %}
   <div class="mx-auto max-w-5xl">
     <h2 class="text-3xl font-bold text-gradient mb-6">সকল জোন রিপোর্ট</h2>
     {% if reports and reports|length > 0 %}
-    <div class="modern-card overflow-hidden">
-      <table class="modern-table">
-        <thead>
-          <tr>
-            <th>Report ID</th>
-            <th>Zone</th>
-            <th>Type</th>
-            <th>Month</th>
-            <th>Year</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for report in reports %}
-          <tr class="table-row-animate">
-            <td>{{ report.id }}</td>
-            <td>{{ report.zone.name if report.zone else 'N/A' }}</td>
-            <td>{{ report.report_type }}</td>
-            <td>{{ report.month if report.month else '-' }}</td>
-            <td>{{ report.year }}</td>
-            <td>
-              <a
-                href="{{ url_for('report_summary') }}?report_id={{ report.id }}"
-                class="modern-btn btn-primary"
-              >
-                <svg
-                  class="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+    <div class="modern-card">
+      <div class="table-container">
+        <table class="modern-table">
+          <thead>
+            <tr>
+              <th>Report ID</th>
+              <th>Zone</th>
+              <th>Type</th>
+              <th>Month</th>
+              <th>Year</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for report in reports %}
+            <tr class="table-row-animate">
+              <td>{{ report.id }}</td>
+              <td>{{ report.zone.name if report.zone else 'N/A' }}</td>
+              <td>{{ report.report_type }}</td>
+              <td>{{ report.month if report.month else '-' }}</td>
+              <td>{{ report.year }}</td>
+              <td>
+                <a
+                  href="{{ url_for('report_summary') }}?report_id={{ report.id }}"
+                  class="modern-btn btn-primary"
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                View
-              </a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  View
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
     {% else %}
     <div class="modern-alert alert-warning">কোন রিপোর্ট পাওয়া যায়নি।</div>

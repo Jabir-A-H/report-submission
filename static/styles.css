@@ -47,6 +47,30 @@ body, html, [lang="bn"] {
   --transition-slow: 0.5s ease-out;
 }
 
+/* Prevent horizontal overflow */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+  margin: 0;
+  padding: 0;
+}
+
+/* Ensure all containers respect viewport */
+.container, .mx-auto {
+  max-width: 100vw;
+  overflow-x: visible;
+}
+
 /* Warm background for the entire site */
 body {
   background: linear-gradient(135deg, #fafafa 0%, #f9fafb 50%, #f3f4f6 100%);
@@ -61,6 +85,55 @@ body {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   color: #1e293b;
   line-height: 1.7;
+  padding: 0;
+  margin: 0;
+}
+
+/* Better container defaults */
+.container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* Ensure full width utilization */
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* Override Tailwind's container if it's too restrictive */
+@media (min-width: 640px) {
+  .container {
+    max-width: 640px;
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 768px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1024px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1280px;
+  }
 }
 
 body:lang(bn), html:lang(bn), [lang="bn"] {
@@ -125,26 +198,98 @@ body:lang(en), html:lang(en), [lang="en"] {
   50% { transform: translateY(-4px); }
 }
 
-/* Modern Card Styles */
+/* Clean Report Section Styles - Minimal Design */
+.report-section {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.report-section h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+/* Remove all visual dividers from report sections */
+.bg-white.rounded-xl.shadow-lg.border-l-4 {
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.bg-gradient-to-br.from-purple-50.to-white.rounded-xl.shadow-lg.border-l-4 {
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Clean section titles - remove bottom borders */
+.text-xl.font-bold.text-cyan-700,
+.text-xl.font-bold.text-purple-700,
+.text-xl.font-bold.text-pink-700,
+.text-xl.font-bold.text-blue-700,
+.text-xl.font-bold.text-green-700,
+.text-xl.font-bold.text-yellow-700 {
+  color: #374151 !important;
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+  margin-bottom: 1rem !important;
+  padding-bottom: 0 !important;
+  border-bottom: none !important;
+}
+
+/* Remove colored borders and gradients from all report sections */
+.border-cyan-400,
+.border-purple-400,
+.border-pink-400,
+.border-blue-400,
+.border-green-400,
+.border-yellow-400 {
+  border-color: #e5e7eb !important;
+}
+
+/* Clean up city report sections - remove all visual dividers */
+.bg-white.rounded-2xl.shadow-xl {
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Clean modern cards - remove all visual dividers */
 .modern-card {
-  background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%);
-  border: 1px solid rgba(243, 244, 246, 0.8);
-  border-radius: var(--border-radius-lg);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  transition: box-shadow 0.2s ease;
-  position: relative;
-  color: #1f2937;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  transition: none !important;
 }
 
 .modern-card:hover {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: none !important;
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-sm);
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
 }
 
 /* Modern Button Styles */
@@ -256,6 +401,36 @@ body:lang(en), html:lang(en), [lang="en"] {
   border-radius: var(--border-radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
+  min-width: 800px; /* Ensure table has minimum width */
+}
+
+/* Table container for horizontal scrolling */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+.table-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: #f7fafc;
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
 }
 
 .modern-table thead {
@@ -270,12 +445,23 @@ body:lang(en), html:lang(en), [lang="en"] {
   font-size: 0.9rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+  white-space: nowrap;
+  min-width: 120px;
 }
 
 .modern-table td {
   padding: 1rem 1.5rem;
   border-bottom: 1px solid #f1f5f9;
   transition: background-color 0.2s ease;
+  white-space: nowrap;
+  min-width: 120px;
+}
+
+/* Allow wrapping for action columns */
+.modern-table td:last-child,
+.modern-table th:last-child {
+  white-space: normal;
+  min-width: 200px;
 }
 
 .modern-table tbody tr:hover {
@@ -561,22 +747,162 @@ body:lang(en), html:lang(en), [lang="en"] {
 
 /* Responsive Design Improvements */
 @media (max-width: 768px) {
+  /* Better mobile spacing and layout */
+  .container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    max-width: 100% !important;
+  }
+  
+  /* More generous mobile padding */
+  .container.mx-auto.px-4 {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
+  
+  /* Remove excessive max-width constraints on mobile */
+  .max-w-6xl, .max-w-4xl, .max-w-3xl, .max-w-2xl {
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  
   .page-title {
     font-size: 2rem;
   }
   
   .modern-card {
-    margin: 0.5rem;
-    padding: 1rem;
+    margin: 0 !important;
+    padding: 1.5rem !important;
+    border-radius: 0.75rem !important;
   }
   
   .modern-btn {
     padding: 0.75rem 1.5rem;
     font-size: 0.9rem;
+    width: 100%;
+    margin-bottom: 0.5rem;
   }
   
   .modern-grid {
     gap: 1rem;
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Better table responsiveness */
+  .modern-table {
+    font-size: 0.75rem !important;
+    min-width: 100% !important;
+  }
+  
+  .modern-table td, .modern-table th {
+    padding: 0.5rem 0.25rem !important;
+    font-size: 0.75rem !important;
+    min-width: 80px !important;
+  }
+  
+  /* Ensure table containers are scrollable */
+  .table-container {
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    margin: 0 !important;
+  }
+  
+  /* Clean mobile cards - remove all visual dividers */
+  .modern-card {
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: transparent !important;
+  }
+  
+  /* Clean report sections on mobile - remove all visual dividers */
+  .bg-white.rounded-xl.shadow-lg.border-l-4,
+  .bg-gradient-to-br.from-purple-50.to-white.rounded-xl.shadow-lg.border-l-4,
+  .bg-white.rounded-2xl.shadow-xl {
+    background: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  /* Allow horizontal scrolling for overflow content */
+  .overflow-hidden {
+    overflow: visible !important;
+  }
+  
+  /* Action buttons in tables */
+  .modern-table .flex.flex-col.gap-2 {
+    min-width: 150px !important;
+  }
+  
+  .modern-table .modern-btn {
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.75rem !important;
+    width: 100% !important;
+    margin-bottom: 0.25rem !important;
+  }
+  
+  /* Form improvements */
+  .modern-input, .modern-select {
+    width: 100% !important;
+    margin-bottom: 1rem;
+  }
+  
+  /* Navigation improvements */
+  #nav-menu {
+    padding: 1rem !important;
+  }
+  
+  /* Better spacing for action buttons */
+  .flex.flex-col.gap-2 {
+    gap: 0.75rem !important;
+  }
+  
+  .flex.gap-2 {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+}
+
+/* Extra small devices (phones in portrait mode) */
+@media (max-width: 480px) {
+  .container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  .modern-card {
+    padding: 1rem !important;
+    margin: 0 !important;
+  }
+  
+  .page-title {
+    font-size: 1.75rem;
+    line-height: 1.2;
+  }
+  
+  .page-subtitle {
+    font-size: 0.875rem;
+  }
+  
+  .modern-btn {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+  }
+  
+  /* Improve table readability on very small screens */
+  .modern-table {
+    font-size: 0.75rem !important;
+  }
+  
+  .modern-table td, .modern-table th {
+    padding: 0.5rem 0.25rem !important;
   }
 }
 
