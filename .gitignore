@@ -4,8 +4,8 @@ __pycache__/
 *.pyc
 *.pyo
 *$py.class
-instance/*
-!instance/.gitkeep
+instance/
+
 
 # Environment and secrets
 .env
@@ -57,3 +57,5 @@ migrations/
 
 /tunnel_output.txt
 
+/.lh
+/export.sql
