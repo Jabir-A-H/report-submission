@@ -4,7 +4,7 @@ def init_db():
     Drops all tables, recreates them, and adds sample users and zones.
     """
     from werkzeug.security import generate_password_hash
-    from app import app, db, User, Zone
+    from app import app, db, People, Zone
 
     with app.app_context():
         db.drop_all()

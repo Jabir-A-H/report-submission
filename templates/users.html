@@ -21,19 +21,19 @@ block content %}
           </tr>
         </thead>
       <tbody>
-        {% for user in users %}
+        {% for people in people %}
         <tr class="table-row-animate">
-          <td class="font-mono">{{ user.user_id }}</td>
-          <td class="font-semibold">{{ user.name }}</td>
-          <td>{{ user.email }}</td>
-          <td>{{ user.zone.name if user.zone else '—' }}</td>
+          <td class="font-mono">{{ people.user_id }}</td>
+          <td class="font-semibold">{{ people.name }}</td>
+          <td>{{ people.email }}</td>
+          <td>{{ people.zone.name if people.zone else '—' }}</td>
           <td>
-            <span class="px-3 py-1 rounded-full text-xs font-semibold {% if user.role == 'admin' %}bg-purple-100 text-purple-800{% else %}bg-blue-100 text-blue-800{% endif %}">
-              {{ user.role }}
+            <span class="px-3 py-1 rounded-full text-xs font-semibold {% if people.role == 'admin' %}bg-purple-100 text-purple-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+              {{ people.role }}
             </span>
           </td>
           <td>
-            {% if user.active %}
+            {% if people.active %}
               <span class="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">Active</span>
             {% else %}
               <span class="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">Pending</span>
@@ -42,7 +42,7 @@ block content %}
           <td>
             <div class="flex flex-col gap-2 min-w-max">
               <form method="post" action="/users" onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই ইউজারটি অনুমোদন করতে চান?');">
-                <input type="hidden" name="user_id" value="{{ user.id }}">
+                <input type="hidden" name="user_id" value="{{ people.id }}">
                 <input type="hidden" name="action" value="approve">
                 <button type="submit" class="modern-btn btn-success text-sm w-full">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -53,7 +53,7 @@ block content %}
               </form>
               
               <form method="post" action="/users" onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই ইউজারটি রিজেক্ট করতে চান?');">
-                <input type="hidden" name="user_id" value="{{ user.id }}">
+                <input type="hidden" name="user_id" value="{{ people.id }}">
                 <input type="hidden" name="action" value="reject">
                 <button type="submit" class="modern-btn btn-danger text-sm w-full">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,11 +64,11 @@ block content %}
               </form>
               
               <form method="post" action="/users" onsubmit="return confirm('জোন পরিবর্তন করতে চান?');" class="flex gap-2">
-                <input type="hidden" name="user_id" value="{{ user.id }}">
+                <input type="hidden" name="user_id" value="{{ people.id }}">
                 <input type="hidden" name="action" value="assign_zone">
                 <select name="zone_id" class="modern-input modern-select flex-1 text-sm">
                   {% for zone in zones %}
-                    <option value="{{ zone.id }}" {% if user.zone_id == zone.id %}selected{% endif %}>{{ zone.name }}</option>
+                    <option value="{{ zone.id }}" {% if people.zone_id == zone.id %}selected{% endif %}>{{ zone.name }}</option>
                   {% endfor %}
                 </select>
                 <button type="submit" class="modern-btn btn-secondary text-sm">
