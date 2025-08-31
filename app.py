@@ -616,15 +616,15 @@ def admin_users():
     if request.method == "POST":
         user_id = request.form["user_id"]
         action = request.form["action"]
-    user = db.session.get(People, int(user_id))
+    people = db.session.get(People, int(user_id))
     if action == "approve":
-        user.active = True
+        people.active = True
     elif action == "reject":
-        db.session.delete(user)
+        db.session.delete(people)
     elif action == "assign_zone":
         zone_id = request.form.get("zone_id")
         if zone_id:
-            user.zone_id = int(zone_id)
+            people.zone_id = int(zone_id)
     db.session.commit()
     users = People.query.all()
     zones = Zone.query.all()
