@@ -9,3 +9,5 @@ playwright>=1.48.0
 gunicorn>=21.2.0
 flask-migrate>=4.0.7
 psycopg2-binary>=2.9.9
+psycopg2
+sqlalchemy
