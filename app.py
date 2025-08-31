@@ -30,19 +30,11 @@ from datetime import datetime
 
 load_dotenv()
 
+
 # --- Initialize Flask App and Configurations ---
-BASE_DIR = Path(os.getcwd()).resolve()
-INSTANCE_DIR = BASE_DIR / "instance"
-INSTANCE_DIR.mkdir(exist_ok=True)
-DEFAULT_DB_PATH = INSTANCE_DIR / "reports.db"
-
-db_uri = os.getenv("SQLALCHEMY_DATABASE_URI")
-if not db_uri:
-    db_uri = f"sqlite:///{DEFAULT_DB_PATH}"
-
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
-app.config["SQLALCHEMY_DATABASE_URI"] = db_uri
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SUPABASE_DB_URI")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
