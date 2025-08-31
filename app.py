@@ -616,16 +616,16 @@ def admin_users():
     if request.method == "POST":
         user_id = request.form["user_id"]
         action = request.form["action"]
-    people = db.session.get(People, int(user_id))
-    if action == "approve":
-        people.active = True
-    elif action == "reject":
-        db.session.delete(people)
-    elif action == "assign_zone":
-        zone_id = request.form.get("zone_id")
-        if zone_id:
-            people.zone_id = int(zone_id)
-    db.session.commit()
+        people = db.session.get(People, int(user_id))
+        if action == "approve":
+            people.active = True
+        elif action == "reject":
+            db.session.delete(people)
+        elif action == "assign_zone":
+            zone_id = request.form.get("zone_id")
+            if zone_id:
+                people.zone_id = int(zone_id)
+        db.session.commit()
     users = People.query.all()
     zones = Zone.query.all()
     return render_template("users.html", users=users, zones=zones)
