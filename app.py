@@ -216,11 +216,11 @@ def populate_categories_for_report(report_id):
 class Zone(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
-    users = db.relationship("User", backref="zone", lazy=True)
+    people = db.relationship("People", backref="zone", lazy=True)
     reports = db.relationship("Report", backref="zone", lazy=True)
 
 
-class User(UserMixin, db.Model):
+class People(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(3), unique=True, nullable=False)  # 3-digit user ID
     name = db.Column(db.String(100), nullable=False)
@@ -356,7 +356,7 @@ class CityReportOverride(db.Model):
 
 @login_manager.user_loader  # type: ignore
 def load_user(user_id):  # type: ignore
-    return db.session.get(User, int(user_id))  # type: ignore
+    return db.session.get(People, int(user_id))  # type: ignore
 
 
 # --- Utility Functions ---
@@ -368,7 +368,7 @@ def is_admin():
 
 # --- Utility function to generate next user_id ---
 def generate_next_user_id():
-    last_user = User.query.order_by(User.user_id.desc()).first()
+    last_user = People.query.order_by(People.user_id.desc()).first()
     if last_user and last_user.user_id.isdigit():
         next_id = int(last_user.user_id) + 1
     else:
@@ -558,8 +558,8 @@ def login():
     if request.method == "POST":
         identifier = request.form["identifier"]  # Can be email or user_id
         password = request.form["password"]
-        user = User.query.filter(
-            (User.email == identifier) | (User.user_id == identifier)
+        user = People.query.filter(
+            (People.email == identifier) | (People.user_id == identifier)
         ).first()
         if user and user.active and check_password_hash(user.password, password):
             login_user(user)
@@ -583,12 +583,12 @@ def register():
         email = request.form["email"]
         password = request.form["password"]
         zone_id = request.form["zone_id"]
-        if User.query.filter_by(email=email).first():
+        if People.query.filter_by(email=email).first():
             flash("Email already registered.")
             return redirect(url_for("register"))
         user_id = generate_next_user_id()
         hashed_pw = generate_password_hash(password)
-        user = User(
+        user = People(
             user_id=user_id,
             name=name,
             email=email,
@@ -616,17 +616,17 @@ def admin_users():
     if request.method == "POST":
         user_id = request.form["user_id"]
         action = request.form["action"]
-        user = db.session.get(User, int(user_id))
-        if action == "approve":
-            user.active = True
-        elif action == "reject":
-            db.session.delete(user)
-        elif action == "assign_zone":
-            zone_id = request.form.get("zone_id")
-            if zone_id:
-                user.zone_id = int(zone_id)
-        db.session.commit()
-    users = User.query.all()
+    user = db.session.get(People, int(user_id))
+    if action == "approve":
+        user.active = True
+    elif action == "reject":
+        db.session.delete(user)
+    elif action == "assign_zone":
+        zone_id = request.form.get("zone_id")
+        if zone_id:
+            user.zone_id = int(zone_id)
+    db.session.commit()
+    users = People.query.all()
     zones = Zone.query.all()
     return render_template("users.html", users=users, zones=zones)
 
@@ -658,7 +658,7 @@ def delete_zone(zone_id):
     if not is_admin():
         return redirect(url_for("dashboard"))
     zone = Zone.query.get_or_404(zone_id)
-    if zone.users:
+    if zone.people:
         flash("Cannot delete zone: users are assigned to this zone.")
         return redirect(url_for("admin_zones"))
     db.session.delete(zone)
