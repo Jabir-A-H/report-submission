@@ -221,6 +221,8 @@ class Zone(db.Model):
 
 
 class People(UserMixin, db.Model):
+    __tablename__ = "people"
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(3), unique=True, nullable=False)  # 3-digit user ID
     name = db.Column(db.String(100), nullable=False)
@@ -626,9 +628,9 @@ def admin_users():
             if zone_id:
                 people.zone_id = int(zone_id)
         db.session.commit()
-    users = People.query.all()
+    people = People.query.all()
     zones = Zone.query.all()
-    return render_template("users.html", users=users, zones=zones)
+    return render_template("users.html", people=people, zones=zones)
 
 
 @app.route("/zones", methods=["GET", "POST"])
