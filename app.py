@@ -623,8 +623,22 @@ def register():
 
         except Exception as e:
             db.session.rollback()
+            error_str = str(e)
             print(f"Registration error: {e}")
-            flash(f"Registration failed: {str(e)}")
+
+            # Handle specific database errors
+            if "UniqueViolation" in error_str or "duplicate key" in error_str:
+                if "people_pkey" in error_str:
+                    flash(
+                        "Database sequence error. Please contact admin to fix the sequence."
+                    )
+                elif "email" in error_str:
+                    flash("Email already registered.")
+                else:
+                    flash("Registration failed: Duplicate data detected.")
+            else:
+                flash(f"Registration failed: {error_str}")
+
             return redirect(url_for("register"))
 
     try:
@@ -4306,6 +4320,38 @@ def help_page():
 @app.errorhandler(404)
 def not_found(e):
     return render_template("404.html"), 404
+
+
+# --- Fix Sequence Route (Admin Only) ---
+@app.route("/fix-sequence")
+@login_required
+def fix_sequence():
+    if current_user.role != "admin":
+        flash("Admin access required.")
+        return redirect(url_for("index"))
+
+    try:
+        from sqlalchemy import text
+
+        # Get the maximum ID from the people table
+        result = db.session.execute(text("SELECT MAX(id) FROM people"))
+        max_id = result.scalar()
+
+        if max_id is None:
+            max_id = 0
+
+        # Set the sequence to max_id + 1
+        next_val = max_id + 1
+        db.session.execute(text(f"SELECT setval('people_id_seq', {next_val}, false)"))
+        db.session.commit()
+
+        flash(f"✅ Sequence fixed! Next ID will be: {next_val}")
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f"❌ Error fixing sequence: {str(e)}")
+
+    return redirect(url_for("admin_users"))
 
 
 # --- Main ---
