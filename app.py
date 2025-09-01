@@ -17,6 +17,7 @@ from flask_login import (
     current_user,
     UserMixin,
 )
+from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import re
@@ -27,7 +28,8 @@ from flask_migrate import Migrate
 import pandas as pd
 import io
 from datetime import datetime
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
+import psycopg2
 
 load_dotenv()
 
@@ -35,7 +37,6 @@ load_dotenv()
 # --- Initialize Flask App and Configurations ---
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
-app.config["DEBUG"] = True  # Enable debug mode to see detailed errors
 
 # Fetch variables
 USER = os.getenv("user")
@@ -44,23 +45,51 @@ HOST = os.getenv("host")
 PORT = os.getenv("port")
 DBNAME = os.getenv("dbname")
 
-# Construct the SQLAlchemy connection string
+# Construct the SQLAlchemy connection string with connection pooling
 DATABASE_URL = (
     f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}?sslmode=require"
 )
 
-# Create the SQLAlchemy engine
-engine = create_engine(DATABASE_URL)
-# If using Transaction Pooler or Session Pooler, we want to ensure we disable SQLAlchemy client side pooling -
-# https://docs.sqlalchemy.org/en/20/core/pooling.html#switching-pool-implementations
-# engine = create_engine(DATABASE_URL, poolclass=NullPool)
+# Create the SQLAlchemy engine with connection pooling optimized for Supabase
+engine = create_engine(
+    DATABASE_URL,
+    pool_size=5,  # Limit concurrent connections
+    max_overflow=10,  # Allow some overflow
+    pool_timeout=30,  # Timeout for getting connection from pool
+    pool_recycle=1800,  # Recycle connections every 30 minutes
+    pool_pre_ping=True,  # Verify connections before use
+    connect_args={
+        "connect_timeout": 10,  # Connection timeout
+        "application_name": "report-submission-app",
+    },
+)
 
-# Test the connection
-try:
-    with engine.connect() as connection:
-        print("Connection successful!")
-except Exception as e:
-    print(f"Failed to connect: {e}")
+
+# Test the connection with retry mechanism
+def test_database_connection():
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            with engine.connect() as connection:
+                # Test with a simple query
+                result = connection.execute(text("SELECT 1"))
+                result.fetchone()
+                print(f"✅ Database connection successful on attempt {attempt + 1}!")
+                return True
+        except Exception as e:
+            print(f"❌ Connection attempt {attempt + 1} failed: {e}")
+            if attempt < max_retries - 1:
+                import time
+
+                time.sleep(2)  # Wait before retry
+            else:
+                print(f"💥 Failed to connect after {max_retries} attempts")
+                return False
+    return False
+
+
+# Test connection on startup
+connection_ok = test_database_connection()
 
 app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 
@@ -70,6 +99,9 @@ db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"  # type: ignore
 migrate = Migrate(app, db)
+
+# Initialize CSRF protection
+csrf = CSRFProtect(app)
 
 
 # Normalize Unicode to NFC and strip whitespace
@@ -430,6 +462,17 @@ app.jinja_env.globals.update(get_current_report=get_current_report)
 
 
 @app.route("/")
+def index():
+    """Landing page - shows different content based on authentication status"""
+    if current_user.is_authenticated:
+        # User is logged in, redirect to dashboard
+        return redirect(url_for('dashboard'))
+    else:
+        # User is not logged in, show landing page
+        return render_template('landing.html')
+
+
+@app.route("/dashboard")
 @login_required
 def dashboard():
     from datetime import datetime
@@ -455,112 +498,168 @@ def dashboard():
     ]
 
     if is_admin():
-        reports = Report.query.all()
-        city_report_url = url_for("city_report_page")
-        return render_template(
-            "index_admin.html",
-            user=current_user,
-            month=month,
-            year=year,
-            report_type=report_type,
-            report_types=report_types,
-            reports=reports,
-            city_report_url=city_report_url,
-        )
+        try:
+            reports = Report.query.all()
+            city_report_url = url_for("city_report_page")
+            return render_template(
+                "index_admin.html",
+                user=current_user,
+                month=month,
+                year=year,
+                report_type=report_type,
+                report_types=report_types,
+                reports=reports,
+                city_report_url=city_report_url,
+            )
+        except psycopg2.OperationalError as e:
+            print(f"Database connection error in admin dashboard: {e}")
+            db.session.rollback()
+            flash("Database connection issue. Please refresh the page.")
+            return render_template(
+                "index_admin.html",
+                user=current_user,
+                month=month,
+                year=year,
+                report_type=report_type,
+                report_types=report_types,
+                reports=[],
+                city_report_url="#",
+            )
+        except Exception as e:
+            print(f"Error in admin dashboard: {e}")
+            db.session.rollback()
+            flash("An error occurred loading the dashboard. Please try again.")
+            return render_template(
+                "index_admin.html",
+                user=current_user,
+                month=month,
+                year=year,
+                report_type=report_type,
+                report_types=report_types,
+                reports=[],
+                city_report_url="#",
+            )
     else:
-        # Build sections list with completion status and navigation URLs
-        section_defs = [
-            {
-                "name": "মূল তথ্য",
-                "icon": "📝",
-                "url": url_for("report_header", month=month, year=year),
-                "model": ReportHeader,
-            },
-            {
-                "name": "গ্রুপ / কোর্স রিপোর্ট",
-                "icon": "📚",
-                "url": url_for("report_courses", month=month, year=year),
-                "model": ReportCourse,
-            },
-            {
-                "name": "দাওয়াত ও সংগঠন",
-                "icon": "🏢",
-                "url": url_for("report_organizational", month=month, year=year),
-                "model": ReportOrganizational,
-            },
-            {
-                "name": "ব্যক্তিগত উদ্যোগে তা’লীমুল কুরআন",
-                "icon": "🗃",
-                "url": url_for("report_personal", month=month, year=year),
-                "model": ReportPersonal,
-            },
-            {
-                "name": "বৈঠকসমূহ",
-                "icon": "🤝",
-                "url": url_for("report_meetings", month=month, year=year),
-                "model": ReportMeeting,
-            },
-            {
-                "name": "মক্তব ও সফর রিপোর্ট",
-                "icon": "✨",
-                "url": url_for("report_extras", month=month, year=year),
-                "model": ReportExtra,
-            },
-            {
-                "name": "মন্তব্য রিপোর্ট",
-                "icon": "💬",
-                "url": url_for("report_comments", month=month, year=year),
-                "model": ReportComment,
-            },
-        ]
-
-        # Find the user's zone report for the selected period
-        report = Report.query.filter_by(
-            zone_id=current_user.zone_id,
-            month=month,
-            year=year,
-        ).first()
-        # If a new report was just created, populate its categories
-        if report:
-            populate_categories_for_report(report.id)
-
-        # Map model class to relationship attribute for uselist=False
-        model_to_attr = {
-            "ReportHeader": "header",
-            "ReportComment": "comments",
-        }
-        sections = []
-        for sdef in section_defs:
-            completed = False
-            if report:
-                model_name = sdef["model"].__name__
-                rel_attr = model_to_attr.get(model_name, model_name.lower())
-                if hasattr(report, rel_attr):
-                    section_obj = getattr(report, rel_attr)
-                    # uselist=False: object, uselist=True: list
-                    if isinstance(section_obj, list):
-                        completed = section_obj and len(section_obj) > 0
-                    else:
-                        completed = section_obj is not None
-            sections.append(
+        try:
+            # Build sections list with completion status and navigation URLs
+            section_defs = [
                 {
-                    "name": sdef["name"],
-                    "icon": sdef["icon"],
-                    "url": sdef["url"],
-                    "completed": completed,
-                }
+                    "name": "মূল তথ্য",
+                    "icon": "📝",
+                    "url": url_for("report_header", month=month, year=year),
+                    "model": ReportHeader,
+                },
+                {
+                    "name": "গ্রুপ / কোর্স রিপোর্ট",
+                    "icon": "📚",
+                    "url": url_for("report_courses", month=month, year=year),
+                    "model": ReportCourse,
+                },
+                {
+                    "name": "দাওয়াত ও সংগঠন",
+                    "icon": "🏢",
+                    "url": url_for("report_organizational", month=month, year=year),
+                    "model": ReportOrganizational,
+                },
+                {
+                    "name": "ব্যক্তিগত উদ্যোগে তা’লীমুল কুরআন",
+                    "icon": "🗃",
+                    "url": url_for("report_personal", month=month, year=year),
+                    "model": ReportPersonal,
+                },
+                {
+                    "name": "বৈঠকসমূহ",
+                    "icon": "🤝",
+                    "url": url_for("report_meetings", month=month, year=year),
+                    "model": ReportMeeting,
+                },
+                {
+                    "name": "মক্তব ও সফর রিপোর্ট",
+                    "icon": "✨",
+                    "url": url_for("report_extras", month=month, year=year),
+                    "model": ReportExtra,
+                },
+                {
+                    "name": "মন্তব্য রিপোর্ট",
+                    "icon": "💬",
+                    "url": url_for("report_comments", month=month, year=year),
+                    "model": ReportComment,
+                },
+            ]
+
+            # Find the user's zone report for the selected period
+            report = Report.query.filter_by(
+                zone_id=current_user.zone_id,
+                month=month,
+                year=year,
+            ).first()
+            # If a new report was just created, populate its categories
+            if report:
+                populate_categories_for_report(report.id)
+
+            # Map model class to relationship attribute for uselist=False
+            model_to_attr = {
+                "ReportHeader": "header",
+                "ReportComment": "comments",
+            }
+            sections = []
+            for sdef in section_defs:
+                completed = False
+                if report:
+                    model_name = sdef["model"].__name__
+                    rel_attr = model_to_attr.get(model_name, model_name.lower())
+                    if hasattr(report, rel_attr):
+                        section_obj = getattr(report, rel_attr)
+                        # uselist=False: object, uselist=True: list
+                        if isinstance(section_obj, list):
+                            completed = section_obj and len(section_obj) > 0
+                        else:
+                            completed = section_obj is not None
+                sections.append(
+                    {
+                        "name": sdef["name"],
+                        "icon": sdef["icon"],
+                        "url": sdef["url"],
+                        "completed": completed,
+                    }
+                )
+
+            report_month_year = f"{month}/{year}"
+
+            return render_template(
+                "index.html",
+                user=current_user,
+                month=month,
+                year=year,
+                sections=sections,
+                report_month_year=report_month_year,
             )
 
-        report_month_year = f"{month}/{year}"
+        except psycopg2.OperationalError as e:
+            print(f"Database connection error in user dashboard: {e}")
+            db.session.rollback()
+            flash("Database connection issue. Please refresh the page.")
+            return render_template(
+                "index.html",
+                user=current_user,
+                month=month,
+                year=year,
+                sections=[],
+                report_month_year=f"{month}/{year}",
+            )
 
-        return render_template(
-            "index.html",
-            user=current_user,
-            month=month,
-            year=year,
-            sections=sections,
-            report_month_year=report_month_year,
-        )
+        except Exception as e:
+            print(f"Error in user dashboard: {e}")
+            db.session.rollback()
+            flash("An error occurred loading the dashboard. Please try again.")
+            return render_template(
+                "index.html",
+                user=current_user,
+                month=month,
+                year=year,
+                sections=[],
+                report_month_year=f"{month}/{year}",
+            )
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -568,14 +667,28 @@ def login():
     if request.method == "POST":
         identifier = request.form["identifier"]  # Can be email or user_id
         password = request.form["password"]
-        user = People.query.filter(
-            (People.email == identifier) | (People.user_id == identifier)
-        ).first()
-        if user and user.active and check_password_hash(user.password, password):
-            login_user(user)
-            return redirect(url_for("dashboard"))
-        else:
-            flash("Invalid credentials or account not approved.")
+
+        try:
+            user = People.query.filter(
+                (People.email == identifier) | (People.user_id == identifier)
+            ).first()
+
+            if user and user.active and check_password_hash(user.password, password):
+                login_user(user)
+                return redirect(url_for("dashboard"))
+            else:
+                flash("Invalid credentials or account not approved.")
+
+        except psycopg2.OperationalError as e:
+            print(f"Database connection error during login: {e}")
+            db.session.rollback()
+            flash("Database connection issue. Please try again in a moment.")
+
+        except Exception as e:
+            print(f"Error during login: {e}")
+            db.session.rollback()
+            flash("An error occurred during login. Please try again.")
+
     return render_template("login.html")
 
 
@@ -4323,7 +4436,7 @@ def not_found(e):
 
 
 # --- Fix Sequence Route (Admin Only) ---
-@app.route("/fix-sequence")
+@app.route("/fix-sequence", methods=["POST"])
 @login_required
 def fix_sequence():
     if current_user.role != "admin":
@@ -4332,6 +4445,16 @@ def fix_sequence():
 
     try:
         from sqlalchemy import text
+
+        # Get the sequence name dynamically using pg_get_serial_sequence
+        sequence_result = db.session.execute(
+            text("SELECT pg_get_serial_sequence('people', 'id')")
+        )
+        sequence_name = sequence_result.scalar()
+        
+        if not sequence_name:
+            flash("❌ Error: Could not find sequence for people.id column")
+            return redirect(url_for("admin_users"))
 
         # Get the maximum ID from the people table
         result = db.session.execute(text("SELECT MAX(id) FROM people"))
@@ -4342,7 +4465,7 @@ def fix_sequence():
 
         # Set the sequence to max_id + 1
         next_val = max_id + 1
-        db.session.execute(text(f"SELECT setval('people_id_seq', {next_val}, false)"))
+        db.session.execute(text(f"SELECT setval('{sequence_name}', {next_val}, false)"))
         db.session.commit()
 
         flash(f"✅ Sequence fixed! Next ID will be: {next_val}")
@@ -4357,8 +4480,25 @@ def fix_sequence():
 # --- Main ---
 
 if __name__ == "__main__":
+    # Try different ports if 8000 is blocked
+    import socket
+
+    def find_free_port():
+        ports_to_try = [5000, 5001, 8000, 8001, 8080, 3000]
+        for port in ports_to_try:
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.bind(("localhost", port))
+                    return port
+            except OSError:
+                continue
+        return 5000  # fallback
+
+    free_port = find_free_port()
+    print(f"Starting server on port {free_port}")
+
     app.run(
-        host="0.0.0.0",
-        port=int(os.environ.get("PORT", 5000)),
+        host="127.0.0.1",  # Use localhost instead of 0.0.0.0
+        port=free_port,
         debug=os.environ.get("FLASK_DEBUG", "false").lower() == "true",
     )

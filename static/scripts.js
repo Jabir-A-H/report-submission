@@ -1,53 +1,93 @@
-// --- Lightweight UI Enhancements ---
+// --- Lightweight UI Enhancements for Non-Tech Users ---
 document.addEventListener('DOMContentLoaded', function() {
-  // Initialize lightweight interactions
-  initBasicAnimations();
+  // Initialize simple interactions
   initFormEnhancements();
   initLoadingStates();
+  initSimpleValidation();
 });
-
-// Basic Animation System
-function initBasicAnimations() {
-  // Simple intersection observer for fade-in effects
-  const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -20px 0px'
-  };
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('animate-fade-in');
-      }
-    });
-  }, observerOptions);
-
-  // Observe main content areas
-  document.querySelectorAll('.modern-card, .page-header').forEach(el => {
-    observer.observe(el);
-  });
-}
 
 // Simple Form Interactions
 function initFormEnhancements() {
-  // Basic focus/blur for inputs
+  // Clear visual feedback for form inputs
   document.querySelectorAll('.modern-input').forEach(input => {
     input.addEventListener('focus', function() {
-      this.style.borderColor = '#3b82f6';
+      this.parentElement.classList.add('focused');
     });
 
     input.addEventListener('blur', function() {
-      if (!this.value) {
-        this.style.borderColor = '#e2e8f0';
+      this.parentElement.classList.remove('focused');
+      if (this.value.trim()) {
+        this.parentElement.classList.add('has-value');
+      } else {
+        this.parentElement.classList.remove('has-value');
       }
     });
   });
 
-  // Simple button hover effects
+  // Simple button feedback
   document.querySelectorAll('.modern-btn').forEach(btn => {
-    btn.addEventListener('mouseenter', function() {
-      this.style.transform = 'translateY(-1px)';
+    btn.addEventListener('click', function() {
+      // Add subtle click feedback
+      this.style.transform = 'scale(0.98)';
+      setTimeout(() => {
+        this.style.transform = '';
+      }, 150);
     });
+  });
+}
+
+// Simple Loading States
+function initLoadingStates() {
+  // Add loading state to form submissions
+  document.querySelectorAll('form').forEach(form => {
+    form.addEventListener('submit', function() {
+      const submitBtn = this.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.classList.add('loading');
+        submitBtn.disabled = true;
+        
+        // Original text backup
+        if (!submitBtn.dataset.originalText) {
+          submitBtn.dataset.originalText = submitBtn.textContent;
+        }
+        submitBtn.textContent = 'দয়া করে অপেক্ষা করুন...';
+      }
+    });
+  });
+}
+
+// Basic form validation feedback
+function initSimpleValidation() {
+  document.querySelectorAll('input[required]').forEach(input => {
+    input.addEventListener('invalid', function() {
+      this.style.borderColor = '#dc2626';
+      
+      // Add simple error message
+      let errorMsg = this.parentElement.querySelector('.error-message');
+      if (!errorMsg) {
+        errorMsg = document.createElement('div');
+        errorMsg.className = 'error-message text-red-600 text-sm mt-1';
+        this.parentElement.appendChild(errorMsg);
+      }
+      
+      if (this.type === 'email') {
+        errorMsg.textContent = 'দয়া করে সঠিক ইমেইল ঠিকানা দিন';
+      } else {
+        errorMsg.textContent = 'এই ঘরটি পূরণ করা আবশ্যক';
+      }
+    });
+    
+    input.addEventListener('input', function() {
+      if (this.validity.valid) {
+        this.style.borderColor = '#22c55e';
+        const errorMsg = this.parentElement.querySelector('.error-message');
+        if (errorMsg) {
+          errorMsg.remove();
+        }
+      }
+    });
+  });
+}
 
     btn.addEventListener('mouseleave', function() {
       this.style.transform = 'translateY(0)';

@@ -36,29 +36,41 @@
 
       <!-- Register Form Card -->
       <div class="modern-card p-8">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          {% for message in messages %}
+          {% if "successful" in message %}
+          <div class="alert alert-success mb-6">
+            <strong>✅ সফল:</strong> {{ message }}
+          </div>
+          {% else %}
+          <div class="alert alert-error mb-6">
+            <strong>⚠️ সমস্যা:</strong> {{ message }}
+          </div>
+          {% endif %}
+          {% endfor %}
+        {% endif %}
+        {% endwith %}
+        
         <form
           id="registerForm"
           method="POST"
-          class="space-y-6"
+          class="space-y-8"
           autocomplete="off"
         >
-          <div>
-            <label for="name" class="block text-sm font-semibold text-gray-700 mb-2"
-              >নাম <span class="text-red-500">*</span></label
-            >
+          <div class="form-group">
+            <label for="name" class="form-label required">নাম</label>
             <input
               type="text"
               name="name"
               id="name"
               required
               class="modern-input"
-              placeholder="আপনার নাম লিখুন"
+              placeholder="আপনার পূর্ণ নাম লিখুন"
             />
           </div>
-          <div>
-            <label for="email" class="block text-sm font-semibold text-gray-700 mb-2"
-              >ইমেইল <span class="text-red-500">*</span></label
-            >
+          <div class="form-group">
+            <label for="email" class="form-label required">ইমেইল</label>
             <input
               type="email"
               name="email"
@@ -68,12 +80,8 @@
               placeholder="example@email.com"
             />
           </div>
-          <div>
-            <label
-              for="password"
-              class="block text-sm font-semibold text-gray-700 mb-2"
-              >পাসওয়ার্ড <span class="text-red-500">*</span></label
-            >
+          <div class="form-group">
+            <label for="password" class="form-label required">পাসওয়ার্ড</label>
             <input
               type="password"
               name="password"
