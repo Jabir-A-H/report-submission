@@ -35,6 +35,7 @@ load_dotenv()
 # --- Initialize Flask App and Configurations ---
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+app.config["DEBUG"] = True  # Enable debug mode to see detailed errors
 
 # Fetch variables
 USER = os.getenv("user")
@@ -370,12 +371,19 @@ def is_admin():
 
 # --- Utility function to generate next user_id ---
 def generate_next_user_id():
-    last_user = People.query.order_by(People.user_id.desc()).first()
-    if last_user and last_user.user_id.isdigit():
-        next_id = int(last_user.user_id) + 1
-    else:
-        next_id = 100
-    return f"{next_id:03d}"
+    try:
+        last_user = People.query.order_by(People.user_id.desc()).first()
+        if last_user and last_user.user_id.isdigit():
+            next_id = int(last_user.user_id) + 1
+        else:
+            next_id = 100
+        return f"{next_id:03d}"
+    except Exception as e:
+        print(f"Error generating user ID: {e}")
+        # Fallback to a random 3-digit number
+        import random
+
+        return f"{random.randint(100, 999):03d}"
 
 
 # --- Jinja2 Filters ---
@@ -581,30 +589,51 @@ def logout():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        name = request.form["name"]
-        email = request.form["email"]
-        password = request.form["password"]
-        zone_id = request.form["zone_id"]
-        if People.query.filter_by(email=email).first():
-            flash("Email already registered.")
+        try:
+            name = request.form["name"]
+            email = request.form["email"]
+            password = request.form["password"]
+            zone_id = request.form["zone_id"]
+
+            # Check if email already exists
+            if People.query.filter_by(email=email).first():
+                flash("Email already registered.")
+                return redirect(url_for("register"))
+
+            # Generate user ID
+            user_id = generate_next_user_id()
+            hashed_pw = generate_password_hash(password)
+
+            # Create new user
+            user = People(
+                user_id=user_id,
+                name=name,
+                email=email,
+                password=hashed_pw,
+                zone_id=int(zone_id),  # Ensure it's an integer
+                role="user",
+                active=False,
+            )
+
+            # Save to database
+            db.session.add(user)
+            db.session.commit()
+            flash("Registration successful! Await admin approval.")
+            return redirect(url_for("login"))
+
+        except Exception as e:
+            db.session.rollback()
+            print(f"Registration error: {e}")
+            flash(f"Registration failed: {str(e)}")
             return redirect(url_for("register"))
-        user_id = generate_next_user_id()
-        hashed_pw = generate_password_hash(password)
-        user = People(
-            user_id=user_id,
-            name=name,
-            email=email,
-            password=hashed_pw,
-            zone_id=zone_id,
-            role="user",
-            active=False,
-        )
-        db.session.add(user)
-        db.session.commit()
-        flash("Registration successful! Await admin approval.")
+
+    try:
+        zones = Zone.query.all()
+        return render_template("register.html", zones=zones)
+    except Exception as e:
+        print(f"Error loading zones: {e}")
+        flash("Error loading registration form.")
         return redirect(url_for("login"))
-    zones = Zone.query.all()
-    return render_template("register.html", zones=zones)
 
 
 # --- Admin Management ---
