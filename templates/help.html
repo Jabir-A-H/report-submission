@@ -2,101 +2,292 @@
 block content %}
 <div class="container mx-auto px-4 py-8 animate-fade-in">
   <div class="text-center mb-8">
-    <h1 class="text-3xl font-bold text-cyan-700 mb-2">সহায়তা / প্রশ্ন</h1>
+    <h1
+      class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2"
+    >
+      সহায়তা / প্রশ্ন
+    </h1>
     <p class="text-gray-600">
-      রিপোর্ট সাবমিশন সিস্টেম ব্যবহারের ধাপে ধাপে নির্দেশিকা ও সাধারণ
-      প্রশ্নোত্তর। এখানে আপনি রিপোর্ট তৈরি, সম্পাদনা, সাবমিট ও ডাউনলোড করার
-      নিয়মাবলী পাবেন।
+      রিপোর্ট তৈরি থেকে শুরু করে জমা দেওয়া পর্যন্ত সম্পূর্ণ গাইড
     </p>
   </div>
-  <div class="max-w-2xl mx-auto">
+
+  <div class="max-w-4xl mx-auto">
+    <!-- Quick Start Guide -->
+    <div class="modern-card p-6 mb-8">
+      <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+        <span class="mr-2">🚀</span> দ্রুত শুরু করুন
+      </h2>
+      <div class="grid md:grid-cols-3 gap-4">
+        <div
+          class="text-center p-4 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg"
+        >
+          <div class="text-3xl mb-2">1️⃣</div>
+          <h3 class="font-semibold text-gray-800 mb-2">লগইন করুন</h3>
+          <p class="text-sm text-gray-600">
+            আপনার ইমেইল ও পাসওয়ার্ড দিয়ে প্রবেশ করুন
+          </p>
+        </div>
+        <div
+          class="text-center p-4 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg"
+        >
+          <div class="text-3xl mb-2">2️⃣</div>
+          <h3 class="font-semibold text-gray-800 mb-2">রিপোর্ট তৈরি</h3>
+          <p class="text-sm text-gray-600">রিপোর্টের ধরন ও সময়কাল বেছে নিন</p>
+        </div>
+        <div
+          class="text-center p-4 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg"
+        >
+          <div class="text-3xl mb-2">3️⃣</div>
+          <h3 class="font-semibold text-gray-800 mb-2">তথ্য পূরণ</h3>
+          <p class="text-sm text-gray-600">
+            প্রতিটি বিভাগে প্রয়োজনীয় তথ্য দিন
+          </p>
+        </div>
+      </div>
+    </div>
+
     <div class="space-y-4">
-      <div class="faq-item bg-white rounded-xl shadow p-4">
+      <!-- FAQ 1: Getting Started -->
+      <div class="faq-item modern-card">
         <button
           type="button"
-          class="w-full text-left font-bold text-cyan-700 text-lg flex justify-between items-center faq-toggle"
+          class="w-full text-left font-bold text-gray-800 text-lg flex justify-between items-center faq-toggle p-6"
           aria-expanded="false"
           aria-controls="faq1"
         >
-          রিপোর্ট তৈরি ও সম্পাদনা
-          <span class="faq-arrow">▼</span>
+          <span class="flex items-center">
+            <span class="mr-3 text-2xl">📝</span>
+            কীভাবে নতুন রিপোর্ট তৈরি করবো?
+          </span>
+          <span class="faq-arrow text-purple-600">▼</span>
         </button>
-        <div id="faq1" class="faq-content hidden mt-2 text-gray-700">
-          <ul class="list-disc pl-5">
-            <li>প্রথমে লগইন করুন অথবা নতুন একাউন্ট তৈরি করুন।</li>
-            <li>
-              ড্যাশবোর্ডে রিপোর্ট টাইপ (মাসিক, ত্রৈমাসিক, ষান্মাসিক, নয়-মাসিক,
-              বার্ষিক) নির্বাচন করুন।
-            </li>
-            <li>
-              মাসিক রিপোর্টের জন্য মাস ও বছর, অন্য রিপোর্টের জন্য শুধু বছর
-              নির্বাচন করুন।
-            </li>
-            <li>
-              প্রতিটি রিপোর্টে ৭টি সেকশন থাকবে: মূল তথ্য, কোর্স, সংগঠন,
-              ব্যক্তিগত, মিটিং, অতিরিক্ত, মন্তব্য।
-            </li>
-            <li>
-              ড্যাশবোর্ড থেকে যেকোনো সেকশনে যেকোনো সময় যেতে পারবেন এবং তথ্য
-              সম্পাদনা করতে পারবেন।
-            </li>
-            <li>
-              প্রতিটি সেকশনে তথ্য পূরণ করুন; পরিবর্তন হলে স্বয়ংক্রিয়ভাবে
-              সংরক্ষণ হবে।
-            </li>
-            <li>ড্যাশবোর্ডে প্রতিটি সেকশনের অগ্রগতি/কমপ্লিশন দেখা যাবে।</li>
-          </ul>
+        <div id="faq1" class="faq-content hidden px-6 pb-6 text-gray-700">
+          <div class="space-y-3">
+            <p><strong>১. প্রথমে লগইন করুন:</strong></p>
+            <ul class="list-disc pl-6 space-y-1">
+              <li>আপনার ইমেইল ও পাসওয়ার্ড দিয়ে সাইটে প্রবেশ করুন</li>
+              <li>
+                নতুন ব্যবহারকারী হলে "নতুন একাউন্ট" এ ক্লিক করে রেজিস্টার করুন
+              </li>
+            </ul>
+
+            <p><strong>২. রিপোর্টের ধরন নির্বাচন করুন:</strong></p>
+            <ul class="list-disc pl-6 space-y-1">
+              <li>
+                <span class="font-medium">মাসিক:</span> প্রতি মাসের রিপোর্ট (মাস
+                ও বছর দুটো বাছাই করুন)
+              </li>
+              <li>
+                <span class="font-medium">ত্রৈমাসিক:</span> ৩ মাসের রিপোর্ট
+              </li>
+              <li>
+                <span class="font-medium">ষান্মাসিক:</span> ৬ মাসের রিপোর্ট
+              </li>
+              <li>
+                <span class="font-medium">বার্ষিক:</span> পুরো বছরের রিপোর্ট
+              </li>
+            </ul>
+
+            <p><strong>৩. "রিপোর্ট দেখুন" বাটনে ক্লিক করুন</strong></p>
+          </div>
         </div>
       </div>
-      <div class="faq-item bg-white rounded-xl shadow p-4">
+
+      <!-- FAQ 2: Filling Reports -->
+      <div class="faq-item modern-card">
         <button
           type="button"
-          class="w-full text-left font-bold text-cyan-700 text-lg flex justify-between items-center faq-toggle"
+          class="w-full text-left font-bold text-gray-800 text-lg flex justify-between items-center faq-toggle p-6"
           aria-expanded="false"
           aria-controls="faq2"
         >
-          রিপোর্ট সাবমিট ও ডাউনলোড
-          <span class="faq-arrow">▼</span>
+          <span class="flex items-center">
+            <span class="mr-3 text-2xl">✏️</span>
+            রিপোর্টের তথ্য কীভাবে পূরণ করবো?
+          </span>
+          <span class="faq-arrow text-purple-600">▼</span>
         </button>
-        <div id="faq2" class="faq-content hidden mt-2 text-gray-700">
-          <ul class="list-disc pl-5">
-            <li>সব সেকশনের তথ্য পূরণ হলে সারাংশ/রিপোর্ট পেজে যান।</li>
-            <li>
-              সারাংশ পেজ থেকে রিপোর্ট Excel বা PDF ফরম্যাটে ডাউনলোড করতে পারবেন।
-            </li>
-            <li>ডাউনলোড ফাইল আপনার ডিভাইসে সংরক্ষিত হবে।</li>
-            <li>পূর্ববর্তী রিপোর্টসমূহ ড্যাশবোর্ড থেকে দেখা যাবে।</li>
-          </ul>
+        <div id="faq2" class="faq-content hidden px-6 pb-6 text-gray-700">
+          <div class="space-y-4">
+            <p>
+              রিপোর্টে ৭টি বিভাগ রয়েছে। প্রতিটি বিভাগে ক্লিক করে তথ্য পূরণ
+              করুন:
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-4">
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="font-semibold text-purple-700 mb-2">📋 মূল তথ্য</h4>
+                <p class="text-sm">রিপোর্টের মূল বিবরণ ও সংক্ষিপ্ত তথ্য</p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="font-semibold text-purple-700 mb-2">📚 কোর্স</h4>
+                <p class="text-sm">বিভিন্ন কোর্স ও প্রশিক্ষণের বিবরণ</p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="font-semibold text-purple-700 mb-2">🏢 সংগঠন</h4>
+                <p class="text-sm">সাংগঠনিক কার্যক্রম ও অনুষ্ঠান</p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="font-semibold text-purple-700 mb-2">👤 ব্যক্তিগত</h4>
+                <p class="text-sm">ব্যক্তিগত উন্নয়ন ও কার্যক্রম</p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="font-semibold text-purple-700 mb-2">🤝 মিটিং</h4>
+                <p class="text-sm">বিভিন্ন মিটিং ও সভার তথ্য</p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="font-semibold text-purple-700 mb-2">➕ অতিরিক্ত</h4>
+                <p class="text-sm">অন্যান্য বিশেষ কার্যক্রম</p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-lg md:col-span-2">
+                <h4 class="font-semibold text-purple-700 mb-2">💭 মন্তব্য</h4>
+                <p class="text-sm">
+                  রিপোর্ট সম্পর্কে অতিরিক্ত মন্তব্য ও পরামর্শ
+                </p>
+              </div>
+            </div>
+
+            <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
+              <p class="font-medium text-blue-800">💡 টিপস:</p>
+              <ul class="text-blue-700 text-sm mt-2 space-y-1">
+                <li>
+                  • যেকোনো সময় যেকোনো বিভাগে গিয়ে তথ্য সম্পাদনা করতে পারবেন
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="faq-item bg-white rounded-xl shadow p-4">
+
+      <!-- FAQ 3: Download Reports -->
+      <div class="faq-item modern-card">
         <button
           type="button"
-          class="w-full text-left font-bold text-cyan-700 text-lg flex justify-between items-center faq-toggle"
+          class="w-full text-left font-bold text-gray-800 text-lg flex justify-between items-center faq-toggle p-6"
           aria-expanded="false"
           aria-controls="faq3"
         >
-          সাধারণ সমস্যা ও সমাধান
-          <span class="faq-arrow">▼</span>
+          <span class="flex items-center">
+            <span class="mr-3 text-2xl">📥</span>
+            রিপোর্ট কীভাবে ডাউনলোড করবো?
+          </span>
+          <span class="faq-arrow text-purple-600">▼</span>
         </button>
-        <div id="faq3" class="faq-content hidden mt-2 text-gray-700">
-          <ul class="list-disc pl-5">
-            <li>
-              রিপোর্ট সাবমিশন বা ডাউনলোডে সমস্যা হলে পেজ রিফ্রেশ করুন বা লগআউট
-              করে পুনরায় লগইন করুন।
-            </li>
-            <li>ডাটাবেস সংক্রান্ত সমস্যা হলে অ্যাডমিনের সাথে যোগাযোগ করুন।</li>
-            <li>প্রজেক্ট অন্যত্র নিলে .env ফাইলের ডাটাবেস path আপডেট করুন।</li>
-            <li>
-              অন্যান্য যেকোনো সমস্যার জন্য help পেজ দেখুন বা অ্যাডমিনকে জানান।
-            </li>
-          </ul>
+        <div id="faq3" class="faq-content hidden px-6 pb-6 text-gray-700">
+          <div class="space-y-4">
+            <div class="flex items-start space-x-3">
+              <span
+                class="bg-purple-100 text-purple-700 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-1"
+                >1</span
+              >
+              <div>
+                <p class="font-medium">রিপোর্ট সারাংশ পেজে যান</p>
+                <p class="text-sm text-gray-600">
+                  ড্যাশবোর্ড থেকে "রিপোর্ট দেখুন" বাটনে ক্লিক করুন
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start space-x-3">
+              <span
+                class="bg-purple-100 text-purple-700 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-1"
+                >2</span
+              >
+              <div>
+                <p class="font-medium">ডাউনলোড বিকল্প বেছে নিন</p>
+                <div class="mt-2 space-y-2">
+                  <div
+                    class="bg-green-50 p-3 rounded border-l-4 border-green-400"
+                  >
+                    <p class="font-medium text-green-800">📄 PDF ফরম্যাট</p>
+                    <p class="text-sm text-green-700">
+                      প্রিন্ট ও শেয়ার করার জন্য আদর্শ
+                    </p>
+                  </div>
+                  <div
+                    class="bg-blue-50 p-3 rounded border-l-4 border-blue-400"
+                  >
+                    <p class="font-medium text-blue-800">📊 Excel ফরম্যাট</p>
+                    <p class="text-sm text-blue-700">
+                      ডেটা এডিট ও এনালাইসিসের জন্য উপযুক্ত
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-start space-x-3">
+              <span
+                class="bg-purple-100 text-purple-700 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-1"
+                >3</span
+              >
+              <div>
+                <p class="font-medium">ফাইল ডাউনলোড হবে</p>
+                <p class="text-sm text-gray-600">
+                  আপনার ডিভাইসের ডাউনলোড ফোল্ডারে ফাইল সেভ হবে
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <!-- Removed: ধাপে ধাপে গাইড FAQ, as the above sections now cover all user steps clearly -->
+
+      <!-- FAQ 4: Common Issues -->
+      <div class="faq-item modern-card">
+        <button
+          type="button"
+          class="w-full text-left font-bold text-gray-800 text-lg flex justify-between items-center faq-toggle p-6"
+          aria-expanded="false"
+          aria-controls="faq4"
+        >
+          <span class="flex items-center">
+            <span class="mr-3 text-2xl">🔧</span>
+            সাধারণ সমস্যা ও সমাধান
+          </span>
+          <span class="faq-arrow text-purple-600">▼</span>
+        </button>
+        <div id="faq4" class="faq-content hidden px-6 pb-6 text-gray-700">
+          <div class="space-y-4">
+            <div class="bg-red-50 p-4 rounded-lg border-l-4 border-red-400">
+              <h4 class="font-medium text-red-800 mb-2">❌ লগইনে সমস্যা</h4>
+              <ul class="text-red-700 text-sm space-y-1">
+                <li>• ইমেইল ও পাসওয়ার্ড সঠিক আছে কিনা চেক করুন</li>
+                <li>• ব্রাউজার রিফ্রেশ করে আবার চেষ্টা করুন</li>
+                <li>• ভুলে গেলে অ্যাডমিনের সাথে যোগাযোগ করুন</li>
+              </ul>
+            </div>
+
+            <div
+              class="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-400"
+            >
+              <h4 class="font-medium text-yellow-800 mb-2">
+                ⚠️ ডেটা সেভ না হলে
+              </h4>
+              <ul class="text-yellow-700 text-sm space-y-1">
+                <li>• ইন্টারনেট কানেকশন চেক করুন</li>
+                <li>• পেজ রিফ্রেশ করে আবার চেষ্টা করুন</li>
+                <li>• অন্য ব্রাউজার ব্যবহার করে দেখুন</li>
+              </ul>
+            </div>
+
+            <div
+              class="bg-purple-50 p-4 rounded-lg border-l-4 border-purple-400"
+            >
+              <h4 class="font-medium text-purple-800 mb-2">
+                📞 আরো সাহায্যের জন্য
+              </h4>
+              <p class="text-purple-700 text-sm">
+                কোনো সমস্যা সমাধান না হলে অ্যাডমিনের সাথে যোগাযোগ করুন
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
+
 <script>
   document.querySelectorAll(".faq-toggle").forEach((btn) => {
     btn.addEventListener("click", function () {

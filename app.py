@@ -136,115 +136,132 @@ def make_slugs(categories):
 def populate_categories_for_report(report_id):
     from sqlalchemy.exc import IntegrityError
 
-    # Course Categories
-    course_categories = [
-        "বিশিষ্টদের",
-        "সাধারণদের",
-        "কর্মীদের",
-        "ইউনিট সভানেত্রী",
-        "অগ্রসরদের",
-        "শিশু- তা'লিমুল কুরআন",
-        "নিরক্ষর- তা'লিমুস সলাত",
-    ]
-    for cat in course_categories:
-        norm_cat = normalize_cat(cat)
-        if not ReportCourse.query.filter_by(
-            category=norm_cat, report_id=report_id
-        ).first():
-            try:
-                db.session.add(
-                    ReportCourse(category=norm_cat, number=0, report_id=report_id)
-                )
-                db.session.commit()
-            except IntegrityError:
-                db.session.rollback()
-
-    # Organizational Categories
-    org_categories = [
-        "দাওয়াত দান",
-        "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
-        "সহযোগী হয়েছে",
-        "সম্মতি দিয়েছেন",
-        "সক্রিয় সহযোগী",
-        "কর্মী",
-        "রুকন",
-        "দাওয়াতী ইউনিট",
-        "ইউনিট",
-        "সূধী",
-        "এককালীন",
-        "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
-        "বই বিলি",
-        "বই বিক্রি",
-    ]
-    for cat in org_categories:
-        norm_cat = normalize_cat(cat)
-        if not ReportOrganizational.query.filter_by(
-            category=norm_cat, report_id=report_id
-        ).first():
-            try:
-                db.session.add(
-                    ReportOrganizational(
-                        category=norm_cat, number=0, report_id=report_id
+    try:
+        # Course Categories
+        course_categories = [
+            "বিশিষ্টদের",
+            "সাধারণদের",
+            "কর্মীদের",
+            "ইউনিট সভানেত্রী",
+            "অগ্রসরদের",
+            "শিশু- তা'লিমুল কুরআন",
+            "নিরক্ষর- তা'লিমুস সলাত",
+        ]
+        for cat in course_categories:
+            norm_cat = normalize_cat(cat)
+            if not ReportCourse.query.filter_by(
+                category=norm_cat, report_id=report_id
+            ).first():
+                try:
+                    db.session.add(
+                        ReportCourse(category=norm_cat, number=0, report_id=report_id)
                     )
-                )
-                db.session.commit()
-            except IntegrityError:
-                db.session.rollback()
+                    db.session.flush()  # Use flush instead of commit for better transaction control
+                except IntegrityError:
+                    db.session.rollback()
+                    continue
 
-    # Personal Activities Categories
-    personal_categories = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
-    for cat in personal_categories:
-        norm_cat = normalize_cat(cat)
-        if not ReportPersonal.query.filter_by(
-            category=norm_cat, report_id=report_id
-        ).first():
-            try:
-                db.session.add(ReportPersonal(category=norm_cat, report_id=report_id))
-                db.session.commit()
-            except IntegrityError:
-                db.session.rollback()
+        # Organizational Categories
+        org_categories = [
+            "দাওয়াত দান",
+            "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
+            "সহযোগী হয়েছে",
+            "সম্মতি দিয়েছেন",
+            "সক্রিয় সহযোগী",
+            "কর্মী",
+            "রুকন",
+            "দাওয়াতী ইউনিট",
+            "ইউনিট",
+            "সূধী",
+            "এককালীন",
+            "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
+            "বই বিলি",
+            "বই বিক্রি",
+        ]
+        for cat in org_categories:
+            norm_cat = normalize_cat(cat)
+            if not ReportOrganizational.query.filter_by(
+                category=norm_cat, report_id=report_id
+            ).first():
+                try:
+                    db.session.add(
+                        ReportOrganizational(
+                            category=norm_cat, number=0, report_id=report_id
+                        )
+                    )
+                    db.session.flush()
+                except IntegrityError:
+                    db.session.rollback()
+                    continue
 
-    # Meeting Categories
-    meeting_categories = [
-        "কমিটি বৈঠক হয়েছে",
-        "মুয়াল্লিমাদের নিয়ে বৈঠক",
-        "Committee Orientation",
-        "Muallima Orientation",
-    ]
-    for cat in meeting_categories:
-        norm_cat = normalize_cat(cat)
-        if not ReportMeeting.query.filter_by(
-            category=norm_cat, report_id=report_id
-        ).first():
-            try:
-                db.session.add(ReportMeeting(category=norm_cat, report_id=report_id))
-                db.session.commit()
-            except IntegrityError:
-                db.session.rollback()
+        # Personal Activities Categories
+        personal_categories = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
+        for cat in personal_categories:
+            norm_cat = normalize_cat(cat)
+            if not ReportPersonal.query.filter_by(
+                category=norm_cat, report_id=report_id
+            ).first():
+                try:
+                    db.session.add(
+                        ReportPersonal(category=norm_cat, report_id=report_id)
+                    )
+                    db.session.flush()
+                except IntegrityError:
+                    db.session.rollback()
+                    continue
 
-    # Extra Activity Categories
-    extra_categories = [
-        "মক্তব সংখ্যা",
-        "মক্তব বৃদ্ধি",
-        "মহানগরী পরিচালিত",
-        "স্থানীয়ভাবে পরিচালিত",
-        "মহানগরীর সফর",
-        "থানা কমিটির সফর",
-        "থানা প্রতিনিধির সফর",
-        "ওয়ার্ড প্রতিনিধির সফর",
-    ]
-    for cat in extra_categories:
-        norm_cat = normalize_cat(cat)
-        if not ReportExtra.query.filter_by(
-            category=norm_cat, report_id=report_id
-        ).first():
-            try:
-                db.session.add(
-                    ReportExtra(category=norm_cat, number=0, report_id=report_id)
-                )
-                db.session.commit()
-            except IntegrityError:
-                db.session.rollback()
+        # Meeting Categories
+        meeting_categories = [
+            "কমিটি বৈঠক হয়েছে",
+            "মুয়াল্লিমাদের নিয়ে বৈঠক",
+            "Committee Orientation",
+            "Muallima Orientation",
+        ]
+        for cat in meeting_categories:
+            norm_cat = normalize_cat(cat)
+            if not ReportMeeting.query.filter_by(
+                category=norm_cat, report_id=report_id
+            ).first():
+                try:
+                    db.session.add(
+                        ReportMeeting(category=norm_cat, report_id=report_id)
+                    )
+                    db.session.flush()
+                except IntegrityError:
+                    db.session.rollback()
+                    continue
+
+        # Extra Activity Categories
+        extra_categories = [
+            "মক্তব সংখ্যা",
+            "মক্তব বৃদ্ধি",
+            "মহানগরী পরিচালিত",
+            "স্থানীয়ভাবে পরিচালিত",
+            "মহানগরীর সফর",
+            "থানা কমিটির সফর",
+            "থানা প্রতিনিধির সফর",
+            "ওয়ার্ড প্রতিনিধির সফর",
+        ]
+        for cat in extra_categories:
+            norm_cat = normalize_cat(cat)
+            if not ReportExtra.query.filter_by(
+                category=norm_cat, report_id=report_id
+            ).first():
+                try:
+                    db.session.add(
+                        ReportExtra(category=norm_cat, number=0, report_id=report_id)
+                    )
+                    db.session.flush()
+                except IntegrityError:
+                    db.session.rollback()
+                    continue
+
+        # Commit all changes at once
+        db.session.commit()
+
+    except Exception as e:
+        db.session.rollback()
+        raise e
 
 
 # --- Models ---
@@ -457,6 +474,46 @@ def get_current_report(zone_id, month, year, report_type):
     if report_type == "মাসিক":
         query["month"] = month
     return Report.query.filter_by(**query).first()
+
+
+def get_or_create_report(zone_id, month, year, report_type):
+    """Get existing report or create new one if it doesn't exist"""
+    query = {
+        "zone_id": zone_id,
+        "year": year,
+        "report_type": report_type,
+    }
+    if report_type == "মাসিক":
+        query["month"] = month
+
+    report = Report.query.filter_by(**query).first()
+    if not report:
+        try:
+            # Create report if not exists
+            report = Report(
+                zone_id=zone_id,
+                month=month,
+                year=year,
+                report_type=report_type,
+            )
+            db.session.add(report)
+            db.session.commit()
+
+            # Populate categories for new report
+            try:
+                populate_categories_for_report(report.id)
+            except Exception as e:
+                # If category population fails, log but don't break the report creation
+                print(
+                    f"Warning: Failed to populate categories for report {report.id}: {e}"
+                )
+
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error creating report: {e}")
+            raise e
+
+    return report
 
 
 app.jinja_env.globals.update(get_current_report=get_current_report)
@@ -1645,22 +1702,20 @@ def report_header():
     error = None
     success = None
     if current_user.is_authenticated:
-        report = Report.query.filter_by(
-            zone_id=current_user.zone_id,
-            month=month,
-            year=year,
-            report_type=report_type,
-        ).first()
-        if not report:
-            # Create report if not exists
+        try:
+            report = get_or_create_report(
+                current_user.zone_id, month, year, report_type
+            )
+        except Exception as e:
+            error = f"রিপোর্ট তৈরিতে সমস্যা হয়েছে: {str(e)}"
+            print(f"Error in report_header: {e}")
+            # Create a minimal report object to prevent template errors
             report = Report(
                 zone_id=current_user.zone_id,
                 month=month,
                 year=year,
                 report_type=report_type,
             )
-            db.session.add(report)
-            db.session.commit()
 
         if request.method == "POST":
             # Get form data
@@ -1730,7 +1785,20 @@ def report_courses():
     error = None
     success = None
     if current_user.is_authenticated:
-        report = get_current_report(current_user.zone_id, month, year, report_type)
+        try:
+            report = get_or_create_report(
+                current_user.zone_id, month, year, report_type
+            )
+        except Exception as e:
+            error = f"রিপোর্ট তৈরিতে সমস্যা হয়েছে: {str(e)}"
+            print(f"Error in report_courses: {e}")
+            # Create a minimal report object to prevent template errors
+            report = Report(
+                zone_id=current_user.zone_id,
+                month=month,
+                year=year,
+                report_type=report_type,
+            )
         course_categories_raw = [
             "বিশিষ্টদের",
             "সাধারণদের",
@@ -1780,7 +1848,7 @@ def report_organizational():
     error = None
     success = None
     if current_user.is_authenticated:
-        report = get_current_report(current_user.zone_id, month, year, report_type)
+        report = get_or_create_report(current_user.zone_id, month, year, report_type)
         org_categories_raw = [
             "দাওয়াত দান",
             "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
@@ -1824,7 +1892,7 @@ def report_personal():
     error = None
     success = None
     if current_user.is_authenticated:
-        report = get_current_report(current_user.zone_id, month, year, report_type)
+        report = get_or_create_report(current_user.zone_id, month, year, report_type)
         personal_categories_raw = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
         personal_categories, slug_to_cat, cat_to_slug = make_slugs(
             personal_categories_raw
@@ -1863,7 +1931,7 @@ def report_meetings():
     error = None
     success = None
     if current_user.is_authenticated:
-        report = get_current_report(current_user.zone_id, month, year, report_type)
+        report = get_or_create_report(current_user.zone_id, month, year, report_type)
         meeting_categories_raw = [
             "কমিটি বৈঠক হয়েছে",
             "মুয়াল্লিমাদের নিয়ে বৈঠক",
@@ -1907,7 +1975,7 @@ def report_extras():
     error = None
     success = None
     if current_user.is_authenticated:
-        report = get_current_report(current_user.zone_id, month, year, report_type)
+        report = get_or_create_report(current_user.zone_id, month, year, report_type)
         extra_categories_raw = [
             "মক্তব সংখ্যা",
             "মক্তব বৃদ্ধি",
@@ -1945,7 +2013,7 @@ def report_comments():
     error = None
     success = None
     if current_user.is_authenticated:
-        report = get_current_report(current_user.zone_id, month, year, report_type)
+        report = get_or_create_report(current_user.zone_id, month, year, report_type)
         if request.method == "POST" and report:
             comment = request.form.get("comment", "").strip() or None
             if report.comments:
@@ -4484,38 +4552,4 @@ def fix_sequence():
 # --- Main ---
 
 if __name__ == "__main__":
-    # Production deployment on Render
-    port = int(os.environ.get("PORT", 5000))
-    debug_mode = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
-
-    # For production, use 0.0.0.0 to accept connections from any IP
-    # For local development, fallback to localhost
-    if os.environ.get("RENDER"):
-        # Running on Render - production settings
-        print(f"🚀 Starting production server on port {port}")
-        app.run(
-            host="0.0.0.0",
-            port=port,
-            debug=False,  # Always disable debug in production
-        )
-    else:
-        # Local development settings
-        def find_free_port():
-            ports_to_try = [5000, 5001, 8000, 8001, 8080, 3000]
-            for port_try in ports_to_try:
-                try:
-                    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                        s.bind(("localhost", port_try))
-                        return port_try
-                except OSError:
-                    continue
-            return 5000  # fallback
-
-        free_port = find_free_port()
-        print(f"🔧 Starting development server on port {free_port}")
-
-        app.run(
-            host="127.0.0.1",
-            port=free_port,
-            debug=debug_mode,
-        )
+    app.run(debug=True)

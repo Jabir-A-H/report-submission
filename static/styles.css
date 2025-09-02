@@ -161,9 +161,9 @@ body, html, [lang="bn"] {
   backdrop-filter: blur(20px);
   border-radius: var(--border-radius-xl);
   box-shadow: var(--shadow-xl);
-  border: 1px solid rgba(102, 126, 234, 0.1);
-  padding: 1.25rem;
-  margin-bottom: 1rem;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
   transition: all var(--transition-slow);
   position: relative;
   overflow: hidden;
@@ -175,9 +175,9 @@ body, html, [lang="bn"] {
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
+  height: 4px;
   background: var(--primary-gradient);
-  opacity: 0;
+  opacity: 0.8;
   transition: opacity var(--transition-base);
 }
 
@@ -187,7 +187,7 @@ body, html, [lang="bn"] {
 
 .modern-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
   border-color: rgba(102, 126, 234, 0.3);
 }
 
@@ -321,6 +321,8 @@ body {
   max-width: 100vw;
   margin: 0;
   padding: 0;
+  background: var(--primary-gradient);
+  min-height: 100vh;
 }
 
 /* Ensure all containers respect viewport */
