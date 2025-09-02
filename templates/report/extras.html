@@ -21,6 +21,7 @@
       </div>
       {% endif %}
       <form method="post" id="extrasForm" autocomplete="off">
+        {{ csrf_token() }}
         <div class="overflow-x-auto">
           <table
             class="min-w-full bg-white border rounded-xl shadow divide-y divide-gray-200"

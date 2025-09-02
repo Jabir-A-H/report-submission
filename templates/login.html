@@ -50,6 +50,7 @@
         {% endif %}
 
         <form id="loginForm" method="POST" class="space-y-8" autocomplete="off">
+          {{ csrf_token() }}
           <div class="form-group">
             <label for="identifier" class="form-label required"
               >ইমেইল অথবা ইউজার আইডি</label

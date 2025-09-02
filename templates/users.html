@@ -66,6 +66,7 @@
 
         <!-- Zone Assignment Form -->
         <form method="post" action="/users" onsubmit="return confirm('জোন পরিবর্তন করতে চান?');" class="mb-3">
+          {{ csrf_token() }}
           <input type="hidden" name="user_id" value="{{ person.id }}">
           <input type="hidden" name="action" value="assign_zone">
           <div class="flex gap-2">
@@ -81,6 +82,7 @@
         <!-- Action Buttons -->
         <div class="flex gap-2">
           <form method="post" action="/users" onsubmit="return confirm('অনুমোদন করতে চান?');" class="flex-1">
+            {{ csrf_token() }}
             <input type="hidden" name="user_id" value="{{ person.id }}">
             <input type="hidden" name="action" value="approve">
             <button type="submit" class="modern-btn btn-success text-sm w-full">
@@ -92,6 +94,7 @@
           </form>
           
           <form method="post" action="/users" onsubmit="return confirm('ডিলিট করতে চান?');">
+            {{ csrf_token() }}
             <input type="hidden" name="user_id" value="{{ person.id }}">
             <input type="hidden" name="action" value="reject">
             <button type="submit" class="modern-btn btn-danger text-sm">

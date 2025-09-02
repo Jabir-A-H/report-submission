@@ -8,6 +8,7 @@
     </h1>
     <p class="text-gray-600">{{ month|month_name }} {{ year }}</p><br>
       <form method="post" id="personalForm" autocomplete="off">
+        {{ csrf_token() }}
         <div class="overflow-x-auto w-full">
           <table class="min-w-full border border-gray-300 bg-white rounded-lg">
             <thead>

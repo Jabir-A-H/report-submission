@@ -66,6 +66,7 @@ block content %}
             action="/delete_zone/{{ zone.id }}"
             onsubmit="return confirm('আপনি কি নিশ্চিতভাবে {{ zone.name }} জোনটি মুছতে চান?');"
           >
+            {{ csrf_token() }}
             <button type="submit" class="modern-btn btn-danger">
               <svg
                 class="w-4 h-4"
@@ -145,6 +146,7 @@ block content %}
     </div>
 
     <form method="post" class="space-y-4">
+      {{ csrf_token() }}
       <div>
         <input
           type="text"

@@ -466,10 +466,10 @@ def index():
     """Landing page - shows different content based on authentication status"""
     if current_user.is_authenticated:
         # User is logged in, redirect to dashboard
-        return redirect(url_for('dashboard'))
+        return redirect(url_for("dashboard"))
     else:
         # User is not logged in, show landing page
-        return render_template('landing.html')
+        return render_template("landing.html")
 
 
 @app.route("/dashboard")
@@ -4451,7 +4451,7 @@ def fix_sequence():
             text("SELECT pg_get_serial_sequence('people', 'id')")
         )
         sequence_name = sequence_result.scalar()
-        
+
         if not sequence_name:
             flash("❌ Error: Could not find sequence for people.id column")
             return redirect(url_for("admin_users"))

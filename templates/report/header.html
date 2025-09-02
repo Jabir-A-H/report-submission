@@ -89,6 +89,7 @@ true}, {"name": "units_with_muallima", "type": "number", "label": "মুয়�
       </div>
       {% endif %}
       <form method="post" id="headerForm">
+        {{ csrf_token() }}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           {% for field in fields %} {% set value =
           (report.header.__dict__[field.name] if report.header and field.name in
