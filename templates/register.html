@@ -36,21 +36,6 @@
 
       <!-- Register Form Card -->
       <div class="modern-card p-8">
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-          {% for message in messages %}
-          {% if "successful" in message %}
-          <div class="alert alert-success mb-6">
-            <strong>✅ সফল:</strong> {{ message }}
-          </div>
-          {% else %}
-          <div class="alert alert-error mb-6">
-            <strong>⚠️ সমস্যা:</strong> {{ message }}
-          </div>
-          {% endif %}
-          {% endfor %}
-        {% endif %}
-        {% endwith %}
         
         <form
           id="registerForm"
@@ -58,7 +43,7 @@
           class="space-y-8"
           autocomplete="off"
         >
-          {{ csrf_token() }}
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <div class="form-group">
             <label for="name" class="form-label required">নাম</label>
             <input

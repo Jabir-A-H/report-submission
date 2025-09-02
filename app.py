@@ -103,6 +103,10 @@ migrate = Migrate(app, db)
 # Initialize CSRF protection
 csrf = CSRFProtect(app)
 
+# Production configuration
+if os.environ.get("RENDER"):
+    app.logger.info("🚀 Report Submission System starting on Render")
+
 
 # Normalize Unicode to NFC and strip whitespace
 def normalize_cat(s):
@@ -4480,25 +4484,38 @@ def fix_sequence():
 # --- Main ---
 
 if __name__ == "__main__":
-    # Try different ports if 8000 is blocked
-    import socket
+    # Production deployment on Render
+    port = int(os.environ.get("PORT", 5000))
+    debug_mode = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
 
-    def find_free_port():
-        ports_to_try = [5000, 5001, 8000, 8001, 8080, 3000]
-        for port in ports_to_try:
-            try:
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.bind(("localhost", port))
-                    return port
-            except OSError:
-                continue
-        return 5000  # fallback
+    # For production, use 0.0.0.0 to accept connections from any IP
+    # For local development, fallback to localhost
+    if os.environ.get("RENDER"):
+        # Running on Render - production settings
+        print(f"🚀 Starting production server on port {port}")
+        app.run(
+            host="0.0.0.0",
+            port=port,
+            debug=False,  # Always disable debug in production
+        )
+    else:
+        # Local development settings
+        def find_free_port():
+            ports_to_try = [5000, 5001, 8000, 8001, 8080, 3000]
+            for port_try in ports_to_try:
+                try:
+                    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                        s.bind(("localhost", port_try))
+                        return port_try
+                except OSError:
+                    continue
+            return 5000  # fallback
 
-    free_port = find_free_port()
-    print(f"Starting server on port {free_port}")
+        free_port = find_free_port()
+        print(f"🔧 Starting development server on port {free_port}")
 
-    app.run(
-        host="127.0.0.1",  # Use localhost instead of 0.0.0.0
-        port=free_port,
-        debug=os.environ.get("FLASK_DEBUG", "false").lower() == "true",
-    )
+        app.run(
+            host="127.0.0.1",
+            port=free_port,
+            debug=debug_mode,
+        )

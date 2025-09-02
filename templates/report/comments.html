@@ -3,7 +3,7 @@
 {% set page_title = 'মন্তব্য রিপোর্ট' %}
 {% block content %}
       <form method="post" id="commentsForm">
-        {{ csrf_token() }}
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <div class="mb-6">
           <label
             for="comment"

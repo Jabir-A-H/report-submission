@@ -21,7 +21,7 @@
       </div>
       {% endif %}
       <form method="post" id="organizationalForm">
-        {{ csrf_token() }}
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="overflow-x-auto w-full">
           <table class="min-w-full border border-gray-300 bg-white rounded-lg">
             <thead>
