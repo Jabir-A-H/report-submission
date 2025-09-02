@@ -1,90 +1,126 @@
-{% extends 'base.html' %} {% block title %}ইউজার ব্যবস্থাপনা{% endblock %} {%
-block content %}
-<div class="container mx-auto px-4 py-8">
-  <div class="page-header">
-    <h1 class="page-title">ইউজার ব্যবস্থাপনা</h1>
-    <p class="page-subtitle">ইউজার অনুমোদন, রিজেক্ট, জোন অ্যাসাইন/রিএসাইন, ও সম্পাদনা করুন</p>
+{% extends 'base.html' %}
+{% block title %}ইউজার ব্যবস্থাপনা{% endblock %}
+{% block content %}
+
+<div class="container mx-auto px-4 py-4">
+  <!-- Header Section -->
+  <div class="text-center mb-6">
+    <div class="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center animate-float">
+      <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+      </svg>
+    </div>
+    <h1 class="text-2xl font-bold text-gradient mb-2">ইউজার ব্যবস্থাপনা</h1>
+    <p class="text-gray-600">ইউজার অনুমোদন, জোন অ্যাসাইনমেন্ট ও ব্যবস্থাপনা</p>
   </div>
-  
-  <div class="max-w-6xl mx-auto modern-card">
-    <div class="table-container">
-      <table class="modern-table">
-        <thead>
-          <tr>
-            <th>আইডি</th>
-            <th>নাম</th>
-            <th>ইমেইল</th>
-            <th>জোন</th>
-            <th>রোল</th>
-            <th>স্ট্যাটাস</th>
-            <th>অ্যাকশন</th>
-          </tr>
-        </thead>
-      <tbody>
-        {% for user in users %}
-        <tr class="table-row-animate">
-          <td class="font-mono">{{ user.user_id }}</td>
-          <td class="font-semibold">{{ user.name }}</td>
-          <td>{{ user.email }}</td>
-          <td>{{ user.zone.name if user.zone else '—' }}</td>
-          <td>
-            <span class="px-3 py-1 rounded-full text-xs font-semibold {% if user.role == 'admin' %}bg-purple-100 text-purple-800{% else %}bg-blue-100 text-blue-800{% endif %}">
-              {{ user.role }}
-            </span>
-          </td>
-          <td>
-            {% if user.active %}
-              <span class="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">Active</span>
-            {% else %}
-              <span class="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">Pending</span>
-            {% endif %}
-          </td>
-          <td>
-            <div class="flex flex-col gap-2 min-w-max">
-              <form method="post" action="/users" onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই ইউজারটি অনুমোদন করতে চান?');">
-                <input type="hidden" name="user_id" value="{{ user.id }}">
-                <input type="hidden" name="action" value="approve">
-                <button type="submit" class="modern-btn btn-success text-sm w-full">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  অনুমোদন
-                </button>
-              </form>
-              
-              <form method="post" action="/users" onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই ইউজারটি রিজেক্ট করতে চান?');">
-                <input type="hidden" name="user_id" value="{{ user.id }}">
-                <input type="hidden" name="action" value="reject">
-                <button type="submit" class="modern-btn btn-danger text-sm w-full">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                  ডিলিট করুন
-                </button>
-              </form>
-              
-              <form method="post" action="/users" onsubmit="return confirm('জোন পরিবর্তন করতে চান?');" class="flex gap-2">
-                <input type="hidden" name="user_id" value="{{ user.id }}">
-                <input type="hidden" name="action" value="assign_zone">
-                <select name="zone_id" class="modern-input modern-select flex-1 text-sm">
-                  {% for zone in zones %}
-                    <option value="{{ zone.id }}" {% if user.zone_id == zone.id %}selected{% endif %}>{{ zone.name }}</option>
-                  {% endfor %}
-                </select>
-                <button type="submit" class="modern-btn btn-secondary text-sm">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                  </svg>
-                  আপডেট
-                </button>
-              </form>
-            </div>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+    <div class="modern-card p-4 text-center">
+      <div class="text-2xl font-bold text-purple-600">{{ people|selectattr('active')|list|length }}</div>
+      <div class="text-sm text-gray-600">সক্রিয় ইউজার</div>
+    </div>
+    <div class="modern-card p-4 text-center">
+      <div class="text-2xl font-bold text-yellow-600">{{ people|rejectattr('active')|list|length }}</div>
+      <div class="text-sm text-gray-600">অপেক্ষমাণ</div>
+    </div>
+    <div class="modern-card p-4 text-center">
+      <div class="text-2xl font-bold text-blue-600">{{ people|selectattr('role', 'equalto', 'admin')|list|length }}</div>
+      <div class="text-sm text-gray-600">অ্যাডমিন</div>
+    </div>
+    <div class="modern-card p-4 text-center">
+      <div class="text-2xl font-bold text-green-600">{{ people|length }}</div>
+      <div class="text-sm text-gray-600">মোট ইউজার</div>
     </div>
   </div>
+
+  <!-- Users List -->
+  <div class="space-y-4">
+    {% for person in people %}
+    <div class="modern-card hover:shadow-2xl transition-all duration-300">
+      <!-- Mobile View -->
+      <div class="p-4">
+        <div class="flex items-start justify-between mb-3">
+          <div>
+            <h3 class="font-bold text-gray-800">{{ person.name }}</h3>
+            <p class="text-sm text-gray-600">{{ person.email }}</p>
+            <p class="text-xs font-mono text-gray-500">ID: {{ person.user_id }}</p>
+          </div>
+          <div class="flex gap-2">
+            {% if person.active %}
+              <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">সক্রিয়</span>
+            {% else %}
+              <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">অপেক্ষমাণ</span>
+            {% endif %}
+          </div>
+        </div>
+        
+        <div class="flex items-center justify-between mb-3">
+          <div class="text-sm">
+            <span class="text-gray-500">জোন:</span> {{ person.zone.name if person.zone else 'অনির্ধারিত' }}
+          </div>
+          <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold {% if person.role == 'admin' %}bg-purple-100 text-purple-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+            {{ 'অ্যাডমিন' if person.role == 'admin' else 'ইউজার' }}
+          </span>
+        </div>
+
+        <!-- Zone Assignment Form -->
+        <form method="post" action="/users" onsubmit="return confirm('জোন পরিবর্তন করতে চান?');" class="mb-3">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <input type="hidden" name="user_id" value="{{ person.id }}">
+          <input type="hidden" name="action" value="assign_zone">
+          <div class="flex gap-2">
+            <select name="zone_id" class="modern-input modern-select flex-1 text-sm">
+              {% for zone in zones %}
+                <option value="{{ zone.id }}" {% if person.zone_id == zone.id %}selected{% endif %}>{{ zone.name }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="modern-btn btn-secondary text-sm">আপডেট</button>
+          </div>
+        </form>
+        
+        <!-- Action Buttons -->
+        <div class="flex gap-2">
+          <form method="post" action="/users" onsubmit="return confirm('অনুমোদন করতে চান?');" class="flex-1">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <input type="hidden" name="user_id" value="{{ person.id }}">
+            <input type="hidden" name="action" value="approve">
+            <button type="submit" class="modern-btn btn-success text-sm w-full">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              অনুমোদন
+            </button>
+          </form>
+          
+          <form method="post" action="/users" onsubmit="return confirm('ডিলিট করতে চান?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <input type="hidden" name="user_id" value="{{ person.id }}">
+            <input type="hidden" name="action" value="reject">
+            <button type="submit" class="modern-btn btn-danger text-sm">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7"/>
+              </svg>
+              ডিলিট
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if not people %}
+  <div class="modern-card p-8 text-center">
+    <div class="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+      <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+      </svg>
+    </div>
+    <h3 class="text-lg font-semibold text-gray-700 mb-2">কোনো ইউজার পাওয়া যায়নি</h3>
+    <p class="text-gray-500">নতুন ইউজার রেজিস্ট্রেশনের জন্য অপেক্ষা করুন।</p>
+  </div>
+  {% endif %}
 </div>
+
 {% endblock %}

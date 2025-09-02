@@ -4,12 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>নিবন্ধন | রিপোর্ট সাবমিশন</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='tailwind.css') }}" />
     <link
       href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/static/styles.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
   </head>
   <body class="min-h-screen flex items-center justify-center p-4">
     <main class="w-full max-w-md">
@@ -36,29 +37,27 @@
 
       <!-- Register Form Card -->
       <div class="modern-card p-8">
+        
         <form
           id="registerForm"
           method="POST"
-          class="space-y-6"
+          class="space-y-8"
           autocomplete="off"
         >
-          <div>
-            <label for="name" class="block text-sm font-semibold text-gray-700 mb-2"
-              >নাম <span class="text-red-500">*</span></label
-            >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <div class="form-group">
+            <label for="name" class="form-label required">নাম</label>
             <input
               type="text"
               name="name"
               id="name"
               required
               class="modern-input"
-              placeholder="আপনার নাম লিখুন"
+              placeholder="আপনার পূর্ণ নাম লিখুন"
             />
           </div>
-          <div>
-            <label for="email" class="block text-sm font-semibold text-gray-700 mb-2"
-              >ইমেইল <span class="text-red-500">*</span></label
-            >
+          <div class="form-group">
+            <label for="email" class="form-label required">ইমেইল</label>
             <input
               type="email"
               name="email"
@@ -68,12 +67,8 @@
               placeholder="example@email.com"
             />
           </div>
-          <div>
-            <label
-              for="password"
-              class="block text-sm font-semibold text-gray-700 mb-2"
-              >পাসওয়ার্ড <span class="text-red-500">*</span></label
-            >
+          <div class="form-group">
+            <label for="password" class="form-label required">পাসওয়ার্ড</label>
             <input
               type="password"
               name="password"

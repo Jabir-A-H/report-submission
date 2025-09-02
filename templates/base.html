@@ -5,59 +5,92 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}রিপোর্ট সাবমিশন সিস্টেম{% endblock %}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='tailwind.css') }}" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:wght@400;700&display=swap">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
     <script src="{{ url_for('static', filename='scripts.js') }}"></script>
-    <style>
-      body, html { font-family: 'Tiro Bangla', 'Ubuntu', sans-serif; }
-      body:lang(bn), html:lang(bn), [lang="bn"] { font-family: 'Tiro Bangla', sans-serif; }
-      body:lang(en), html:lang(en), [lang="en"] { font-family: 'Ubuntu', sans-serif; }
-    </style>
   </head>
-  <body class="min-h-screen">
-    <header class="modern-nav py-4 px-6 flex justify-between items-center border-b border-blue-100">
-      <div class="flex items-center gap-4">
-        <a href="/" class="text-2xl font-bold text-gradient tracking-tight" aria-label="হোম">রিপোর্ট সাবমিশন</a>
-      </div>
-      <!-- Hamburger button for mobile -->
-      <button id="nav-toggle" class="md:hidden flex items-center px-3 py-2 border rounded text-cyan-700 border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400" aria-label="মেনু খুলুন">
-        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-      </button>
-      <nav id="nav-menu" class="hidden md:flex gap-4 items-center absolute md:static top-full left-0 w-full md:w-auto bg-white md:bg-transparent shadow-lg md:shadow-none z-40 md:z-auto flex-col md:flex-row md:gap-4">
-        {% if current_user.is_authenticated %}
-          {% if current_user.role == 'admin' %}
-        {{ macros.context_link('dashboard', 'হোম', year=year, month=month, report_type=report_type) }}
-            <a href="/city_report" class="nav-link text-purple-600 px-3 py-2 rounded hover:bg-purple-50 focus:ring-2 focus:ring-purple-400">সিটি রিপোর্ট</a>
-            <a href="/users" class="nav-link text-green-600 px-3 py-2 rounded hover:bg-green-50 focus:ring-2 focus:ring-green-400">ইউজার</a>
-            <a href="/zones" class="nav-link text-cyan-600 px-3 py-2 rounded hover:bg-cyan-50 focus:ring-2 focus:ring-cyan-400">জোন</a>
-            <a href="/help" class="nav-link text-gray-600 px-3 py-2 rounded hover:bg-blue-50 focus:ring-2 focus:ring-blue-400">সহায়তা</a>
-          {% else %}
-            {{ macros.context_link('dashboard', 'হোম', year=year, month=month, report_type=report_type) }}
-            <a href="/report" class="nav-link text-blue-600 px-3 py-2 rounded hover:bg-blue-50 focus:ring-2 focus:ring-blue-400">রিপোর্ট</a>
-            <a href="/help" class="nav-link text-gray-600 px-3 py-2 rounded hover:bg-blue-50 focus:ring-2 focus:ring-blue-400">সহায়তা</a>
-          {% endif %}
-          <!-- User info collapsible for mobile, dropdown for desktop -->
-          <div class="relative w-full md:w-auto">
-            <button id="user-info-btn" class="modern-btn btn-outline flex items-center gap-2 px-3 py-2 rounded font-semibold focus:ring-2 focus:ring-blue-400 w-full md:w-auto" aria-label="ইউজার তথ্য" tabindex="0" type="button">
-              <span>{% if current_user.zone and current_user.zone.name %}{{ current_user.zone.name }}{% else %}জোন নির্ধারিত নেই{% endif %}</span>
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-            </button>
-            <div id="user-info-dropdown" class="hidden md:absolute md:right-0 mt-2 w-full md:w-56 modern-card transition-all duration-200 z-50">
-              <div class="p-4 text-sm text-gray-700">
-                <div><span class="font-bold">নাম:</span> {{ current_user.name }}</div>
-                <div><span class="font-bold">আইডি:</span> {{ current_user.user_id }}</div>
-                <div><span class="font-bold">ইমেইল:</span> {{ current_user.email }}</div>
-                <div><span class="font-bold">জোন:</span> {% if current_user.zone and current_user.zone.name %}{{ current_user.zone.name }}{% else %}জোন নির্ধারিত নেই{% endif %}</div>
-              </div>
-              <a href="/logout" class="block px-4 py-2 text-red-600 hover:bg-red-50 font-bold rounded-b-xl transition-colors">লগআউট</a>
-            </div>
+  <body class="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
+    <header class="bg-white/90 backdrop-blur-md shadow-lg border-b border-purple-100 sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-14">
+          <div class="flex items-center">
+            <a href="{% if current_user.is_authenticated %}{{ url_for('dashboard', year=year, month=month, report_type=report_type) }}{% else %}/{% endif %}" class="text-lg font-bold text-gradient tracking-tight" aria-label="হোম">রিপোর্ট সাবমিশন</a>
           </div>
-        {% else %}
-          <a href="/login" class="nav-link text-blue-600 px-3 py-2 rounded hover:bg-blue-50 focus:ring-2 focus:ring-blue-400">লগইন</a>
-          <a href="/register" class="nav-link text-green-600 px-3 py-2 rounded hover:bg-green-50 focus:ring-2 focus:ring-green-400">নতুন রেজিস্ট্রেশন</a>
-        {% endif %}
-      </nav>
+          
+          <!-- Mobile menu button -->
+          <button id="nav-toggle" class="md:hidden inline-flex items-center justify-center p-2 rounded-md text-purple-600 hover:text-purple-800 hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-500" aria-label="মেনু খুলুন">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+          
+          <!-- Desktop navigation -->
+          <nav class="hidden md:flex space-x-6 items-center">
+            {% if current_user.is_authenticated %}
+              {% if current_user.role == 'admin' %}
+                {{ macros.context_link('dashboard', 'হোম', year=year, month=month, report_type=report_type) }}
+                <a href="/city_report" class="text-sm text-gray-700 hover:text-purple-600 px-2 py-1 rounded transition-colors {% if request.endpoint == 'city_report_page' %}text-purple-600 font-medium bg-purple-50{% endif %}">সিটি রিপোর্ট</a>
+                <a href="/users" class="text-sm text-gray-700 hover:text-blue-600 px-2 py-1 rounded transition-colors {% if request.endpoint == 'admin_users' %}text-blue-600 font-medium bg-blue-50{% endif %}">ইউজার</a>
+                <a href="/zones" class="text-sm text-gray-700 hover:text-indigo-600 px-2 py-1 rounded transition-colors {% if request.endpoint == 'admin_zones' %}text-indigo-600 font-medium bg-indigo-50{% endif %}">জোন</a>
+                <a href="/help" class="text-sm text-gray-700 hover:text-gray-900 px-2 py-1 rounded transition-colors {% if request.endpoint == 'help' %}text-gray-900 font-medium bg-gray-50{% endif %}">সহায়তা</a>
+              {% else %}
+                {{ macros.context_link('dashboard', 'হোম', year=year, month=month, report_type=report_type) }}
+                <a href="/report" class="text-sm text-gray-700 hover:text-purple-600 px-2 py-1 rounded transition-colors {% if request.endpoint in ['report_summary', 'report_header', 'report_courses', 'report_organizational', 'report_personal', 'report_meetings', 'report_extras', 'report_comments'] %}text-purple-600 font-medium bg-purple-50{% endif %}">রিপোর্ট</a>
+                <a href="/help" class="text-sm text-gray-700 hover:text-gray-900 px-2 py-1 rounded transition-colors {% if request.endpoint == 'help' %}text-gray-900 font-medium bg-gray-50{% endif %}">সহায়তা</a>
+              {% endif %}
+              
+              <!-- User dropdown -->
+              <div class="relative">
+                <button id="user-info-btn" class="flex items-center space-x-1 text-sm bg-gradient-to-r from-purple-100 to-blue-100 hover:from-purple-200 hover:to-blue-200 px-3 py-2 rounded-md transition-all btn-hover" aria-label="ইউজার তথ্য">
+                  <span class="text-purple-800 font-medium">{% if current_user.zone and current_user.zone.name %}{{ current_user.zone.name }}{% else %}জোন নির্ধারিত নেই{% endif %}</span>
+                  <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <div id="user-info-dropdown" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-purple-100 z-50 card-shadow">
+                  <div class="p-4 text-sm text-gray-700 border-b border-purple-50 bg-gradient-to-r from-purple-50 to-blue-50 rounded-t-xl">
+                    <div class="mb-1"><span class="font-semibold text-purple-800">নাম:</span> {{ current_user.name }}</div>
+                    <div class="mb-1"><span class="font-semibold text-purple-800">আইডি:</span> {{ current_user.user_id }}</div>
+                    <div class="mb-1"><span class="font-semibold text-purple-800">ইমেইল:</span> {{ current_user.email }}</div>
+                    <div><span class="font-semibold text-purple-800">জোন:</span> {% if current_user.zone and current_user.zone.name %}{{ current_user.zone.name }}{% else %}জোন নির্ধারিত নেই{% endif %}</div>
+                  </div>
+                  <a href="/logout" class="block px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors rounded-b-xl font-medium">লগআউট</a>
+                </div>
+              </div>
+            {% else %}
+              <a href="/login" class="text-sm text-gray-700 hover:text-purple-600 px-2 py-1 rounded transition-colors">লগইন</a>
+              <a href="/register" class="text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 px-4 py-2 rounded-lg transition-all btn-hover">নতুন রেজিস্ট্রেশন</a>
+            {% endif %}
+          </nav>
+        </div>
+        
+        <!-- Mobile navigation menu -->
+        <div id="nav-menu" class="hidden md:hidden py-3 border-t border-purple-100 bg-gradient-to-r from-purple-50/50 to-blue-50/50">
+          {% if current_user.is_authenticated %}
+            {% if current_user.role == 'admin' %}
+              {{ macros.context_link_mobile('dashboard', 'হোম', year=year, month=month, report_type=report_type) }}
+              <a href="/city_report" class="block py-2 text-sm text-gray-700 hover:text-purple-600 {% if request.endpoint == 'city_report_page' %}text-purple-600 font-medium bg-purple-50 -mx-2 px-2 rounded{% endif %}">সিটি রিপোর্ট</a>
+              <a href="/users" class="block py-2 text-sm text-gray-700 hover:text-blue-600 {% if request.endpoint == 'admin_users' %}text-blue-600 font-medium bg-blue-50 -mx-2 px-2 rounded{% endif %}">ইউজার</a>
+              <a href="/zones" class="block py-2 text-sm text-gray-700 hover:text-indigo-600 {% if request.endpoint == 'admin_zones' %}text-indigo-600 font-medium bg-indigo-50 -mx-2 px-2 rounded{% endif %}">জোন</a>
+              <a href="/help" class="block py-2 text-sm text-gray-700 hover:text-gray-900 {% if request.endpoint == 'help' %}text-gray-900 font-medium bg-gray-50 -mx-2 px-2 rounded{% endif %}">সহায়তা</a>
+            {% else %}
+              {{ macros.context_link_mobile('dashboard', 'হোম', year=year, month=month, report_type=report_type) }}
+              <a href="/report" class="block py-2 text-sm text-gray-700 hover:text-purple-600 {% if request.endpoint in ['report_summary', 'report_header', 'report_courses', 'report_organizational', 'report_personal', 'report_meetings', 'report_extras', 'report_comments'] %}text-purple-600 font-medium bg-purple-50 -mx-2 px-2 rounded{% endif %}">রিপোর্ট</a>
+              <a href="/help" class="block py-2 text-sm text-gray-700 hover:text-gray-900 {% if request.endpoint == 'help' %}text-gray-900 font-medium bg-gray-50 -mx-2 px-2 rounded{% endif %}">সহায়তা</a>
+            {% endif %}
+            
+            <!-- Mobile user info -->
+            <div class="pt-3 mt-3 border-t border-purple-200">
+              <div class="text-sm text-gray-600 mb-2 bg-purple-50 p-3 rounded-lg">
+                <div><span class="font-semibold text-purple-800">নাম:</span> {{ current_user.name }}</div>
+                <div><span class="font-semibold text-purple-800">জোন:</span> {% if current_user.zone and current_user.zone.name %}{{ current_user.zone.name }}{% else %}জোন নির্ধারিত নেই{% endif %}</div>
+              </div>
+              <a href="/logout" class="block py-2 text-sm text-red-600 font-semibold">লগআউট</a>
+            </div>
+          {% else %}
+            <a href="/login" class="block py-2 text-sm text-gray-700 hover:text-purple-600">লগইন</a>
+            <a href="/register" class="block py-2 text-sm text-purple-600 font-semibold">নতুন রেজিস্ট্রেশন</a>
+          {% endif %}
+        </div>
+      </div>
     </header>
     <script>
       // Hamburger menu toggle and keyboard accessibility
@@ -108,14 +141,14 @@
       });
     </script>
     </header>
-    <main class="mx-auto max-w-screen-xl px-4 py-8 mb-8 mt-24 animate-fade-in">
+    <main class="mx-auto max-w-screen-xl px-4 py-4 mb-4 mt-16 animate-fade-in">
       {% macro context_link(endpoint, text) -%}
         {%- set args = dict(year=year, month=month, report_type=report_type) -%}
         <a href="{{ url_for(endpoint, **args) }}" class="modern-btn btn-secondary flex items-center gap-1 px-3 py-2 rounded-lg shadow">{{ text }}</a>
       {%- endmacro %}
       {% block breadcrumbs %}
       {% if request.path != '/' %}
-      <nav class="breadcrumb mb-6 flex items-center gap-2 text-base font-semibold" aria-label="breadcrumb">
+      <nav class="breadcrumb mb-4 flex items-center gap-2 text-sm font-medium" aria-label="breadcrumb">
         {{ macros.context_link('dashboard', 'হোম', year=year, month=month, report_type=report_type) }}
         <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
         {% block breadcrumb_page %}{{ page_title|default('') }}{% endblock %}
@@ -132,11 +165,67 @@
       </nav>
       {% endif %}
       {% endblock %}
+      
+      <!-- Modern Flash Notifications -->
+      {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div id="flash-notifications" class="mb-4 space-y-2">
+          {% for message in messages %}
+          <div class="flash-toast opacity-0 transform translate-y-2 transition-all duration-300 ease-out p-3 rounded-lg border-l-4 {% if 'successful' in message or 'success' in message or 'added' in message or 'deleted' in message %}border-green-500 bg-green-50 text-green-800{% else %}border-amber-500 bg-amber-50 text-amber-800{% endif %} text-sm shadow-sm">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 mr-2">
+                  {% if 'successful' in message or 'success' in message or 'added' in message or 'deleted' in message %}
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                  {% else %}
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    </svg>
+                  {% endif %}
+                </div>
+                <div>{{ message }}</div>
+              </div>
+              <button onclick="this.parentElement.parentElement.remove()" class="ml-3 text-current opacity-50 hover:opacity-100">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <script>
+          // Auto-show notifications with animation
+          document.addEventListener('DOMContentLoaded', function() {
+            const toasts = document.querySelectorAll('.flash-toast');
+            toasts.forEach((toast, index) => {
+              setTimeout(() => {
+                toast.classList.remove('opacity-0', 'translate-y-2');
+                toast.classList.add('opacity-100', 'translate-y-0');
+              }, index * 100);
+              
+              // Auto-dismiss success messages after 5 seconds
+              if (toast.classList.contains('border-green-500')) {
+                setTimeout(() => {
+                  toast.style.transition = 'all 0.3s ease-out';
+                  toast.style.opacity = '0';
+                  toast.style.transform = 'translateY(-10px)';
+                  setTimeout(() => toast.remove(), 300);
+                }, 5000);
+              }
+            });
+          });
+        </script>
+      {% endif %}
+      {% endwith %}
+      
       {% block content %}{% endblock %}
     </main>
     {% block footer %}
     <footer
-      class="footer text-center py-6 border-t border-blue-100 text-gray-500 text-lg font-bold tracking-wide"
+      class="footer text-center py-4 border-t border-purple-100 bg-gradient-to-r from-purple-50/50 to-blue-50/50 text-purple-600 text-sm font-medium"
     >
       &copy; ২০২৫ রিপোর্ট সাবমিশন সিস্টেম | v1.0
     </footer>

@@ -24,27 +24,285 @@ body, html, [lang="bn"] {
   font-family: 'Tiro Bangla', 'UbuntuForDigits', sans-serif;
 }
 
-/* Root CSS Variables for Modern Design System */
+/* Purple Gradient Theme - Modern Compact Design */
+
+/* Theme Variables */
 :root {
+  /* Purple Gradient Theme Colors */
   --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --secondary-gradient: linear-gradient(135deg, #22d3ee 0%, #38bdf8 100%);
+  --secondary-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  --success-gradient: linear-gradient(135deg, #d299c2 0%, #fef9d7 100%);
+  --warning-gradient: linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%);
+  --danger-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+  
+  /* Background Gradients */
+  --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  --card-gradient: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  
+  /* Text Colors */
+  --text-primary: #2d3748;
+  --text-secondary: #4a5568;
+  --text-muted: #718096;
+  --text-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  
+  /* Spacing and Sizing */
+  --border-radius-sm: 0.375rem;
+  --border-radius-md: 0.5rem;
+  --border-radius-lg: 0.75rem;
+  --border-radius-xl: 1rem;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
+  
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.2s ease;
+  --transition-slow: 0.3s ease;
+}
+
+/* Purple Gradient Theme Utilities */
+.gradient-bg {
+  background: var(--primary-gradient);
+}
+
+.card-shadow {
+  box-shadow: var(--shadow-xl);
+}
+
+.btn-hover {
+  transition: all var(--transition-slow);
+}
+
+.btn-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+.text-gradient {
+  background: var(--text-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Mobile-first responsive improvements */
+@media (max-width: 768px) {
+  .modern-btn {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.95rem;
+    min-height: 44px; /* Optimal touch targets */
+  }
+  
+  .modern-input {
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    min-height: 44px;
+  }
+  
+  .page-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .page-subtitle {
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+  }
+  
+  .modern-card {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  /* Compact grid on mobile */
+  .grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem;
+  }
+  
+  .container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+}
+
+/* Compact, modern headers */
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #1e293b;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+}
+
+.page-subtitle {
+  font-size: 1rem;
+  color: #64748b;
+  text-align: center;
+  margin-bottom: 1.25rem;
+}
+
+/* Compact section cards - Purple Gradient Theme */
+.modern-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: all var(--transition-slow);
+  position: relative;
+  overflow: hidden;
+}
+
+.modern-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--primary-gradient);
+  opacity: 0.8;
+  transition: opacity var(--transition-base);
+}
+
+.modern-card:hover::before {
+  opacity: 1;
+}
+
+.modern-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+/* Compact form labels */
+.form-label {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+/* Required field indicator */
+.required::after {
+  content: " *";
+  color: #dc2626;
+  font-weight: bold;
+}
+
+/* Compact spacing between form fields */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+/* Compact alert styling */
+.alert {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.alert-success {
+  background: #dcfce7;
+  border: 1px solid #22c55e;
+  color: #15803d;
+}
+
+.alert-error {
+  background: #fef2f2;
+  border: 1px solid #ef4444;
+  color: #dc2626;
+}
+
+.alert-warning {
+  background: #fffbeb;
+  border: 1px solid #f59e0b;
+  color: #d97706;
+}
+
+/* Simple loading indicator */
+.loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.loading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Compact visual hierarchy for forms */
+.form-section {
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #e5e7eb;
+}
+
+.form-section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+:root {
+  --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  --secondary-gradient: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
   --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
   --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
   
-  --border-radius-sm: 0.5rem;
-  --border-radius-md: 0.75rem;
-  --border-radius-lg: 1rem;
-  --border-radius-xl: 1.5rem;
+  --border-radius-sm: 0.375rem;
+  --border-radius-md: 0.5rem;
+  --border-radius-lg: 0.75rem;
+  --border-radius-xl: 1rem;
   
   --transition-fast: 0.15s ease-out;
-  --transition-normal: 0.3s ease-out;
-  --transition-slow: 0.5s ease-out;
+  --transition-normal: 0.2s ease-out;
+  --transition-slow: 0.3s ease-out;
 }
 
 /* Prevent horizontal overflow */
@@ -63,6 +321,8 @@ body {
   max-width: 100vw;
   margin: 0;
   padding: 0;
+  background: var(--primary-gradient);
+  min-height: 100vh;
 }
 
 /* Ensure all containers respect viewport */
@@ -292,31 +552,50 @@ body:lang(en), html:lang(en), [lang="en"] {
   box-shadow: none !important;
 }
 
-/* Modern Button Styles */
+/* Modern Button Styles - Purple Gradient Theme */
 .modern-btn {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.875rem 2rem;
+  padding: 0.75rem 1.25rem;
   font-weight: 600;
-  font-size: 1rem;
-  border-radius: var(--border-radius-md);
-  transition: all 0.2s ease;
+  font-size: 0.95rem;
+  border-radius: var(--border-radius-lg);
+  transition: all var(--transition-slow);
   text-decoration: none;
   border: none;
   cursor: pointer;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
+  min-height: 44px;
+  background: var(--primary-gradient);
+  color: white;
+  overflow: hidden;
+}
+
+.modern-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.modern-btn:hover::before {
+  left: 100%;
 }
 
 .modern-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-xl);
 }
 
 .modern-btn:active {
-  transform: translateY(0);
+  transform: translateY(-1px);
 }
 
 .btn-primary {
@@ -324,19 +603,23 @@ body:lang(en), html:lang(en), [lang="en"] {
   color: white;
 }
 
+.btn-primary:hover {
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
 .btn-secondary {
   background: var(--secondary-gradient);
-  color: white;
+  color: #4a5568;
 }
 
 .btn-success {
   background: var(--success-gradient);
-  color: white;
+  color: #2d3748;
 }
 
 .btn-warning {
   background: var(--warning-gradient);
-  color: white;
+  color: #2d3748;
 }
 
 .btn-danger {
@@ -345,26 +628,30 @@ body:lang(en), html:lang(en), [lang="en"] {
 }
 
 .btn-outline {
-  background: transparent;
-  color: #3b82f6;
-  border: 2px solid #3b82f6;
+  background: rgba(255, 255, 255, 0.9);
+  color: #667eea;
+  border: 2px solid #667eea;
+  backdrop-filter: blur(10px);
 }
 
 .btn-outline:hover {
-  background: #3b82f6;
+  background: var(--primary-gradient);
   color: white;
+  border-color: transparent;
 }
 
-/* Modern Form Styles */
+/* Modern Form Styles - Compact and Mobile-Friendly */
 .modern-input {
   width: 100%;
-  padding: 1rem 1.25rem;
-  border: 2px solid #e5e7eb;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
   border-radius: var(--border-radius-md);
   font-size: 1rem;
-  transition: border-color 0.2s ease;
-  background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%);
+  line-height: 1.5;
+  transition: all var(--transition-fast);
+  background: #ffffff;
   color: #1f2937;
+  min-height: 44px;
 }
 
 .modern-input:focus {
@@ -372,17 +659,16 @@ body:lang(en), html:lang(en), [lang="en"] {
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   background: #ffffff;
-  color: #1f2937;
 }
 
 .modern-select {
   appearance: none;
-  background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%);
+  background: #ffffff;
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
   background-position: right 0.75rem center;
   background-repeat: no-repeat;
-  background-size: 1.5em 1.5em;
-  padding-right: 3rem;
+  background-size: 1.25em 1.25em;
+  padding-right: 2.5rem;
   color: #1f2937;
 }
 
@@ -392,16 +678,17 @@ body:lang(en), html:lang(en), [lang="en"] {
   padding: 0.5rem;
 }
 
-/* Modern Table Styles */
+/* Modern Table Styles - Compact */
 .modern-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   background: #ffffff;
-  border-radius: var(--border-radius-lg);
+  border-radius: var(--border-radius-md);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
-  min-width: 800px; /* Ensure table has minimum width */
+  min-width: 600px; /* Reduced from 800px */
+  font-size: 0.9rem; /* Compact text size */
 }
 
 /* Table container for horizontal scrolling */
@@ -409,24 +696,25 @@ body:lang(en), html:lang(en), [lang="en"] {
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  border-radius: var(--border-radius-lg);
+  border-radius: var(--border-radius-md);
   box-shadow: var(--shadow-sm);
   scrollbar-width: thin;
   scrollbar-color: #cbd5e0 #f7fafc;
+  margin-bottom: 1rem; /* Reduced spacing */
 }
 
 .table-container::-webkit-scrollbar {
-  height: 8px;
+  height: 6px; /* Thinner scrollbar */
 }
 
 .table-container::-webkit-scrollbar-track {
   background: #f7fafc;
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
 .table-container::-webkit-scrollbar-thumb {
   background: #cbd5e0;
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
 .table-container::-webkit-scrollbar-thumb:hover {
@@ -434,45 +722,45 @@ body:lang(en), html:lang(en), [lang="en"] {
 }
 
 .modern-table thead {
-  background: var(--primary-gradient);
-  color: white;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  color: #374151;
 }
 
 .modern-table th {
-  padding: 1rem 1.5rem;
+  padding: 0.75rem 1rem; /* Reduced from 1rem 1.5rem */
   font-weight: 600;
   text-align: left;
-  font-size: 0.9rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-size: 0.85rem; /* Smaller header text */
+  letter-spacing: 0.025em; /* Reduced letter spacing */
   white-space: nowrap;
-  min-width: 120px;
+  min-width: 100px; /* Reduced from 120px */
+  border-bottom: 2px solid #e5e7eb;
 }
 
 .modern-table td {
-  padding: 1rem 1.5rem;
+  padding: 0.75rem 1rem; /* Reduced from 1rem 1.5rem */
   border-bottom: 1px solid #f1f5f9;
   transition: background-color 0.2s ease;
   white-space: nowrap;
-  min-width: 120px;
+  min-width: 100px; /* Reduced from 120px */
 }
 
 /* Allow wrapping for action columns */
 .modern-table td:last-child,
 .modern-table th:last-child {
   white-space: normal;
-  min-width: 200px;
+  min-width: 150px; /* Reduced from 200px */
 }
 
 .modern-table tbody tr:hover {
-  background: rgba(59, 130, 246, 0.02);
+  background: rgba(59, 130, 246, 0.03);
 }
 
 .modern-table tbody tr:last-child td {
   border-bottom: none;
 }
 
-/* Modern Navigation Styles */
+/* Modern Navigation Styles - Compact */
 .modern-nav {
   background: rgba(255, 255, 255, 0.98);
   border-bottom: 1px solid rgba(226, 232, 240, 0.8);
@@ -482,6 +770,7 @@ body:lang(en), html:lang(en), [lang="en"] {
   left: 0;
   right: 0;
   z-index: 50;
+  backdrop-filter: blur(8px);
 }
 
 .nav-link {
@@ -489,10 +778,58 @@ body:lang(en), html:lang(en), [lang="en"] {
   transition: all 0.2s ease;
   text-decoration: none;
   border-radius: var(--border-radius-sm);
+  font-weight: 500;
+  font-size: 0.9rem;
 }
 
 .nav-link:hover {
   background-color: rgba(59, 130, 246, 0.05);
+  transform: translateY(-1px);
+}
+
+/* Form Section Styles - Compact */
+.form-section {
+  background: white;
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  margin-bottom: 1rem; /* Reduced from default */
+}
+
+.form-section-header {
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  padding: 0.75rem 1rem; /* Reduced from larger padding */
+  border-bottom: 1px solid #e5e7eb;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.form-section-content {
+  padding: 1rem; /* Reduced from larger padding */
+}
+
+/* Layout and Container Styles - Compact */
+.modern-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem; /* Reduced from 2rem */
+}
+
+.modern-grid {
+  display: grid;
+  gap: 1rem; /* Reduced from 2rem */
+}
+
+@media (min-width: 768px) {
+  .modern-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Reduced from 350px */
+  }
+  
+  .modern-container {
+    padding: 0 1.5rem;
+  }
 }
 
 /* Modern Alert Styles */
@@ -943,6 +1280,82 @@ body:lang(en), html:lang(en), [lang="en"] {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Additional Compact Mobile Optimizations */
+body {
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+.container {
+  padding: 0 1rem;
+  max-width: 100%;
+}
+
+/* Compact form elements */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+/* Compact buttons in button groups */
+.btn-group {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-group .modern-btn {
+  flex: 1;
+  min-width: 120px;
+}
+
+/* Compact spacing utilities */
+.mb-1 { margin-bottom: 0.25rem !important; }
+.mb-2 { margin-bottom: 0.5rem !important; }
+.mb-3 { margin-bottom: 0.75rem !important; }
+.mb-4 { margin-bottom: 1rem !important; }
+
+.mt-1 { margin-top: 0.25rem !important; }
+.mt-2 { margin-top: 0.5rem !important; }
+.mt-3 { margin-top: 0.75rem !important; }
+.mt-4 { margin-top: 1rem !important; }
+
+.p-1 { padding: 0.25rem !important; }
+.p-2 { padding: 0.5rem !important; }
+.p-3 { padding: 0.75rem !important; }
+.p-4 { padding: 1rem !important; }
+
+/* Mobile-optimized text sizes */
+@media (max-width: 480px) {
+  body {
+    font-size: 0.9rem;
+  }
+  
+  .page-title {
+    font-size: 1.5rem;
+  }
+  
+  .page-subtitle {
+    font-size: 0.9rem;
+  }
+  
+  .modern-card {
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .btn-group .modern-btn {
+    min-width: 100px;
+    font-size: 0.85rem;
+    padding: 0.6rem 1rem;
   }
 }
 

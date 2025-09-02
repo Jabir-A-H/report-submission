@@ -17,6 +17,7 @@ from flask_login import (
     current_user,
     UserMixin,
 )
+from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import re
@@ -24,31 +25,86 @@ import unicodedata
 from pathlib import Path
 from dotenv import load_dotenv
 from flask_migrate import Migrate
-import pandas as pd
 import io
 from datetime import datetime
+from sqlalchemy import create_engine, text
+import psycopg2
 
 load_dotenv()
 
+
 # --- Initialize Flask App and Configurations ---
-BASE_DIR = Path(os.getcwd()).resolve()
-INSTANCE_DIR = BASE_DIR / "instance"
-INSTANCE_DIR.mkdir(exist_ok=True)
-DEFAULT_DB_PATH = INSTANCE_DIR / "reports.db"
-
-db_uri = os.getenv("SQLALCHEMY_DATABASE_URI")
-if not db_uri:
-    db_uri = f"sqlite:///{DEFAULT_DB_PATH}"
-
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
-app.config["SQLALCHEMY_DATABASE_URI"] = db_uri
+
+# Fetch variables
+USER = os.getenv("user")
+PASSWORD = os.getenv("password")
+HOST = os.getenv("host")
+PORT = os.getenv("port")
+DBNAME = os.getenv("dbname")
+
+# Construct the SQLAlchemy connection string with connection pooling
+DATABASE_URL = (
+    f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}?sslmode=require"
+)
+
+# Create the SQLAlchemy engine with optimized settings
+engine = create_engine(
+    DATABASE_URL,
+    pool_size=3,  # Reduced pool size for faster startup
+    max_overflow=5,  # Reduced overflow
+    pool_timeout=20,  # Reduced timeout
+    pool_recycle=3600,  # Recycle connections every hour
+    pool_pre_ping=False,  # Disable pre-ping for better performance
+    connect_args={
+        "connect_timeout": 5,  # Faster connection timeout
+        "application_name": "report-submission-app",
+    },
+)
+
+
+# Test the connection with retry mechanism
+def test_database_connection():
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            with engine.connect() as connection:
+                # Test with a simple query
+                result = connection.execute(text("SELECT 1"))
+                result.fetchone()
+                print(f"✅ Database connection successful on attempt {attempt + 1}!")
+                return True
+        except Exception as e:
+            print(f"❌ Connection attempt {attempt + 1} failed: {e}")
+            if attempt < max_retries - 1:
+                import time
+
+                time.sleep(2)  # Wait before retry
+            else:
+                print(f"💥 Failed to connect after {max_retries} attempts")
+                return False
+    return False
+
+
+# Test connection on startup (disabled for faster loading)
+# connection_ok = test_database_connection()
+
+app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"  # type: ignore
 migrate = Migrate(app, db)
+
+# Initialize CSRF protection
+csrf = CSRFProtect(app)
+
+# Production configuration
+if os.environ.get("RENDER"):
+    app.logger.info("🚀 Report Submission System starting on Render")
 
 
 # Normalize Unicode to NFC and strip whitespace
@@ -79,115 +135,132 @@ def make_slugs(categories):
 def populate_categories_for_report(report_id):
     from sqlalchemy.exc import IntegrityError
 
-    # Course Categories
-    course_categories = [
-        "বিশিষ্টদের",
-        "সাধারণদের",
-        "কর্মীদের",
-        "ইউনিট সভানেত্রী",
-        "অগ্রসরদের",
-        "শিশু- তা'লিমুল কুরআন",
-        "নিরক্ষর- তা'লিমুস সলাত",
-    ]
-    for cat in course_categories:
-        norm_cat = normalize_cat(cat)
-        if not ReportCourse.query.filter_by(
-            category=norm_cat, report_id=report_id
-        ).first():
-            try:
-                db.session.add(
-                    ReportCourse(category=norm_cat, number=0, report_id=report_id)
-                )
-                db.session.commit()
-            except IntegrityError:
-                db.session.rollback()
-
-    # Organizational Categories
-    org_categories = [
-        "দাওয়াত দান",
-        "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
-        "সহযোগী হয়েছে",
-        "সম্মতি দিয়েছেন",
-        "সক্রিয় সহযোগী",
-        "কর্মী",
-        "রুকন",
-        "দাওয়াতী ইউনিট",
-        "ইউনিট",
-        "সূধী",
-        "এককালীন",
-        "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
-        "বই বিলি",
-        "বই বিক্রি",
-    ]
-    for cat in org_categories:
-        norm_cat = normalize_cat(cat)
-        if not ReportOrganizational.query.filter_by(
-            category=norm_cat, report_id=report_id
-        ).first():
-            try:
-                db.session.add(
-                    ReportOrganizational(
-                        category=norm_cat, number=0, report_id=report_id
+    try:
+        # Course Categories
+        course_categories = [
+            "বিশিষ্টদের",
+            "সাধারণদের",
+            "কর্মীদের",
+            "ইউনিট সভানেত্রী",
+            "অগ্রসরদের",
+            "শিশু- তা'লিমুল কুরআন",
+            "নিরক্ষর- তা'লিমুস সলাত",
+        ]
+        for cat in course_categories:
+            norm_cat = normalize_cat(cat)
+            if not ReportCourse.query.filter_by(
+                category=norm_cat, report_id=report_id
+            ).first():
+                try:
+                    db.session.add(
+                        ReportCourse(category=norm_cat, number=0, report_id=report_id)
                     )
-                )
-                db.session.commit()
-            except IntegrityError:
-                db.session.rollback()
+                    db.session.flush()  # Use flush instead of commit for better transaction control
+                except IntegrityError:
+                    db.session.rollback()
+                    continue
 
-    # Personal Activities Categories
-    personal_categories = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
-    for cat in personal_categories:
-        norm_cat = normalize_cat(cat)
-        if not ReportPersonal.query.filter_by(
-            category=norm_cat, report_id=report_id
-        ).first():
-            try:
-                db.session.add(ReportPersonal(category=norm_cat, report_id=report_id))
-                db.session.commit()
-            except IntegrityError:
-                db.session.rollback()
+        # Organizational Categories
+        org_categories = [
+            "দাওয়াত দান",
+            "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
+            "সহযোগী হয়েছে",
+            "সম্মতি দিয়েছেন",
+            "সক্রিয় সহযোগী",
+            "কর্মী",
+            "রুকন",
+            "দাওয়াতী ইউনিট",
+            "ইউনিট",
+            "সূধী",
+            "এককালীন",
+            "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
+            "বই বিলি",
+            "বই বিক্রি",
+        ]
+        for cat in org_categories:
+            norm_cat = normalize_cat(cat)
+            if not ReportOrganizational.query.filter_by(
+                category=norm_cat, report_id=report_id
+            ).first():
+                try:
+                    db.session.add(
+                        ReportOrganizational(
+                            category=norm_cat, number=0, report_id=report_id
+                        )
+                    )
+                    db.session.flush()
+                except IntegrityError:
+                    db.session.rollback()
+                    continue
 
-    # Meeting Categories
-    meeting_categories = [
-        "কমিটি বৈঠক হয়েছে",
-        "মুয়াল্লিমাদের নিয়ে বৈঠক",
-        "Committee Orientation",
-        "Muallima Orientation",
-    ]
-    for cat in meeting_categories:
-        norm_cat = normalize_cat(cat)
-        if not ReportMeeting.query.filter_by(
-            category=norm_cat, report_id=report_id
-        ).first():
-            try:
-                db.session.add(ReportMeeting(category=norm_cat, report_id=report_id))
-                db.session.commit()
-            except IntegrityError:
-                db.session.rollback()
+        # Personal Activities Categories
+        personal_categories = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
+        for cat in personal_categories:
+            norm_cat = normalize_cat(cat)
+            if not ReportPersonal.query.filter_by(
+                category=norm_cat, report_id=report_id
+            ).first():
+                try:
+                    db.session.add(
+                        ReportPersonal(category=norm_cat, report_id=report_id)
+                    )
+                    db.session.flush()
+                except IntegrityError:
+                    db.session.rollback()
+                    continue
 
-    # Extra Activity Categories
-    extra_categories = [
-        "মক্তব সংখ্যা",
-        "মক্তব বৃদ্ধি",
-        "মহানগরী পরিচালিত",
-        "স্থানীয়ভাবে পরিচালিত",
-        "মহানগরীর সফর",
-        "থানা কমিটির সফর",
-        "থানা প্রতিনিধির সফর",
-        "ওয়ার্ড প্রতিনিধির সফর",
-    ]
-    for cat in extra_categories:
-        norm_cat = normalize_cat(cat)
-        if not ReportExtra.query.filter_by(
-            category=norm_cat, report_id=report_id
-        ).first():
-            try:
-                db.session.add(
-                    ReportExtra(category=norm_cat, number=0, report_id=report_id)
-                )
-                db.session.commit()
-            except IntegrityError:
-                db.session.rollback()
+        # Meeting Categories
+        meeting_categories = [
+            "কমিটি বৈঠক হয়েছে",
+            "মুয়াল্লিমাদের নিয়ে বৈঠক",
+            "Committee Orientation",
+            "Muallima Orientation",
+        ]
+        for cat in meeting_categories:
+            norm_cat = normalize_cat(cat)
+            if not ReportMeeting.query.filter_by(
+                category=norm_cat, report_id=report_id
+            ).first():
+                try:
+                    db.session.add(
+                        ReportMeeting(category=norm_cat, report_id=report_id)
+                    )
+                    db.session.flush()
+                except IntegrityError:
+                    db.session.rollback()
+                    continue
+
+        # Extra Activity Categories
+        extra_categories = [
+            "মক্তব সংখ্যা",
+            "মক্তব বৃদ্ধি",
+            "মহানগরী পরিচালিত",
+            "স্থানীয়ভাবে পরিচালিত",
+            "মহানগরীর সফর",
+            "থানা কমিটির সফর",
+            "থানা প্রতিনিধির সফর",
+            "ওয়ার্ড প্রতিনিধির সফর",
+        ]
+        for cat in extra_categories:
+            norm_cat = normalize_cat(cat)
+            if not ReportExtra.query.filter_by(
+                category=norm_cat, report_id=report_id
+            ).first():
+                try:
+                    db.session.add(
+                        ReportExtra(category=norm_cat, number=0, report_id=report_id)
+                    )
+                    db.session.flush()
+                except IntegrityError:
+                    db.session.rollback()
+                    continue
+
+        # Commit all changes at once
+        db.session.commit()
+
+    except Exception as e:
+        db.session.rollback()
+        raise e
 
 
 # --- Models ---
@@ -196,11 +269,13 @@ def populate_categories_for_report(report_id):
 class Zone(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
-    users = db.relationship("User", backref="zone", lazy=True)
+    people = db.relationship("People", backref="zone", lazy=True)
     reports = db.relationship("Report", backref="zone", lazy=True)
 
 
-class User(UserMixin, db.Model):
+class People(UserMixin, db.Model):
+    __tablename__ = "people"
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(3), unique=True, nullable=False)  # 3-digit user ID
     name = db.Column(db.String(100), nullable=False)
@@ -229,6 +304,11 @@ class Report(db.Model):
     meetings = db.relationship("ReportMeeting", backref="report", lazy=True)
     extras = db.relationship("ReportExtra", backref="report", lazy=True)
     comments = db.relationship("ReportComment", uselist=False, backref="report")
+
+    # Add composite index for common queries
+    __table_args__ = (
+        db.Index("idx_report_zone_month_year", "zone_id", "month", "year"),
+    )
 
 
 class ReportHeader(db.Model):
@@ -336,7 +416,15 @@ class CityReportOverride(db.Model):
 
 @login_manager.user_loader  # type: ignore
 def load_user(user_id):  # type: ignore
-    return db.session.get(User, int(user_id))  # type: ignore
+    # Use joinedload to fetch zone data in one query
+    from sqlalchemy.orm import joinedload
+
+    return (
+        db.session.query(People)
+        .options(joinedload(People.zone))
+        .filter(People.id == int(user_id))
+        .first()
+    )
 
 
 # --- Utility Functions ---
@@ -348,12 +436,19 @@ def is_admin():
 
 # --- Utility function to generate next user_id ---
 def generate_next_user_id():
-    last_user = User.query.order_by(User.user_id.desc()).first()
-    if last_user and last_user.user_id.isdigit():
-        next_id = int(last_user.user_id) + 1
-    else:
-        next_id = 100
-    return f"{next_id:03d}"
+    try:
+        last_user = People.query.order_by(People.user_id.desc()).first()
+        if last_user and last_user.user_id.isdigit():
+            next_id = int(last_user.user_id) + 1
+        else:
+            next_id = 100
+        return f"{next_id:03d}"
+    except Exception as e:
+        print(f"Error generating user ID: {e}")
+        # Fallback to a random 3-digit number
+        import random
+
+        return f"{random.randint(100, 999):03d}"
 
 
 # --- Jinja2 Filters ---
@@ -393,13 +488,86 @@ def get_current_report(zone_id, month, year, report_type):
     return Report.query.filter_by(**query).first()
 
 
+def get_or_create_report(zone_id, month, year, report_type):
+    """Get existing report or create new one if it doesn't exist"""
+    query = {
+        "zone_id": zone_id,
+        "year": year,
+        "report_type": report_type,
+    }
+    if report_type == "মাসিক":
+        query["month"] = month
+
+    report = Report.query.filter_by(**query).first()
+    if not report:
+        try:
+            # Create report if not exists
+            report = Report(
+                zone_id=zone_id,
+                month=month,
+                year=year,
+                report_type=report_type,
+            )
+            db.session.add(report)
+            db.session.commit()
+
+            # Populate categories for new report
+            try:
+                populate_categories_for_report(report.id)
+            except Exception as e:
+                # If category population fails, log but don't break the report creation
+                print(
+                    f"Warning: Failed to populate categories for report {report.id}: {e}"
+                )
+
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error creating report: {e}")
+            raise e
+
+    return report
+
+
 app.jinja_env.globals.update(get_current_report=get_current_report)
+
+# Simple cache for frequently accessed data
+_zone_cache = None
+_zone_cache_time = None
+
+
+def get_zones_cached():
+    """Get zones with simple caching to reduce database hits"""
+    global _zone_cache, _zone_cache_time
+    import time
+
+    current_time = time.time()
+    # Cache for 5 minutes
+    if (
+        _zone_cache is None
+        or _zone_cache_time is None
+        or (current_time - _zone_cache_time) > 300
+    ):
+        _zone_cache = Zone.query.all()
+        _zone_cache_time = current_time
+
+    return _zone_cache
 
 
 # --- Routes ---
 
 
 @app.route("/")
+def index():
+    """Landing page - shows different content based on authentication status"""
+    if current_user.is_authenticated:
+        # User is logged in, redirect to dashboard
+        return redirect(url_for("dashboard"))
+    else:
+        # User is not logged in, show landing page
+        return render_template("landing.html")
+
+
+@app.route("/dashboard")
 @login_required
 def dashboard():
     from datetime import datetime
@@ -425,112 +593,167 @@ def dashboard():
     ]
 
     if is_admin():
-        reports = Report.query.all()
-        city_report_url = url_for("city_report_page")
-        return render_template(
-            "index_admin.html",
-            user=current_user,
-            month=month,
-            year=year,
-            report_type=report_type,
-            report_types=report_types,
-            reports=reports,
-            city_report_url=city_report_url,
-        )
+        try:
+            # Only load recent reports for better performance (last 50 reports)
+            reports = Report.query.order_by(Report.id.desc()).limit(50).all()
+            city_report_url = url_for("city_report_page")
+            return render_template(
+                "index_admin.html",
+                user=current_user,
+                month=month,
+                year=year,
+                report_type=report_type,
+                report_types=report_types,
+                reports=reports,
+                city_report_url=city_report_url,
+            )
+        except psycopg2.OperationalError as e:
+            print(f"Database connection error in admin dashboard: {e}")
+            db.session.rollback()
+            flash("Database connection issue. Please refresh the page.")
+            return render_template(
+                "index_admin.html",
+                user=current_user,
+                month=month,
+                year=year,
+                report_type=report_type,
+                report_types=report_types,
+                reports=[],
+                city_report_url="#",
+            )
+        except Exception as e:
+            print(f"Error in admin dashboard: {e}")
+            db.session.rollback()
+            flash("An error occurred loading the dashboard. Please try again.")
+            return render_template(
+                "index_admin.html",
+                user=current_user,
+                month=month,
+                year=year,
+                report_type=report_type,
+                report_types=report_types,
+                reports=[],
+                city_report_url="#",
+            )
     else:
-        # Build sections list with completion status and navigation URLs
-        section_defs = [
-            {
-                "name": "মূল তথ্য",
-                "icon": "📝",
-                "url": url_for("report_header", month=month, year=year),
-                "model": ReportHeader,
-            },
-            {
-                "name": "গ্রুপ / কোর্স রিপোর্ট",
-                "icon": "📚",
-                "url": url_for("report_courses", month=month, year=year),
-                "model": ReportCourse,
-            },
-            {
-                "name": "দাওয়াত ও সংগঠন",
-                "icon": "🏢",
-                "url": url_for("report_organizational", month=month, year=year),
-                "model": ReportOrganizational,
-            },
-            {
-                "name": "ব্যক্তিগত উদ্যোগে তা’লীমুল কুরআন",
-                "icon": "🗃",
-                "url": url_for("report_personal", month=month, year=year),
-                "model": ReportPersonal,
-            },
-            {
-                "name": "বৈঠকসমূহ",
-                "icon": "🤝",
-                "url": url_for("report_meetings", month=month, year=year),
-                "model": ReportMeeting,
-            },
-            {
-                "name": "মক্তব ও সফর রিপোর্ট",
-                "icon": "✨",
-                "url": url_for("report_extras", month=month, year=year),
-                "model": ReportExtra,
-            },
-            {
-                "name": "মন্তব্য রিপোর্ট",
-                "icon": "💬",
-                "url": url_for("report_comments", month=month, year=year),
-                "model": ReportComment,
-            },
-        ]
-
-        # Find the user's zone report for the selected period
-        report = Report.query.filter_by(
-            zone_id=current_user.zone_id,
-            month=month,
-            year=year,
-        ).first()
-        # If a new report was just created, populate its categories
-        if report:
-            populate_categories_for_report(report.id)
-
-        # Map model class to relationship attribute for uselist=False
-        model_to_attr = {
-            "ReportHeader": "header",
-            "ReportComment": "comments",
-        }
-        sections = []
-        for sdef in section_defs:
-            completed = False
-            if report:
-                model_name = sdef["model"].__name__
-                rel_attr = model_to_attr.get(model_name, model_name.lower())
-                if hasattr(report, rel_attr):
-                    section_obj = getattr(report, rel_attr)
-                    # uselist=False: object, uselist=True: list
-                    if isinstance(section_obj, list):
-                        completed = section_obj and len(section_obj) > 0
-                    else:
-                        completed = section_obj is not None
-            sections.append(
+        try:
+            # Build sections list with completion status and navigation URLs
+            section_defs = [
                 {
-                    "name": sdef["name"],
-                    "icon": sdef["icon"],
-                    "url": sdef["url"],
-                    "completed": completed,
-                }
+                    "name": "মূল তথ্য",
+                    "icon": "📝",
+                    "url": url_for("report_header", month=month, year=year),
+                    "model": ReportHeader,
+                },
+                {
+                    "name": "গ্রুপ / কোর্স রিপোর্ট",
+                    "icon": "📚",
+                    "url": url_for("report_courses", month=month, year=year),
+                    "model": ReportCourse,
+                },
+                {
+                    "name": "দাওয়াত ও সংগঠন",
+                    "icon": "🏢",
+                    "url": url_for("report_organizational", month=month, year=year),
+                    "model": ReportOrganizational,
+                },
+                {
+                    "name": "ব্যক্তিগত উদ্যোগে তা’লীমুল কুরআন",
+                    "icon": "🗃",
+                    "url": url_for("report_personal", month=month, year=year),
+                    "model": ReportPersonal,
+                },
+                {
+                    "name": "বৈঠকসমূহ",
+                    "icon": "🤝",
+                    "url": url_for("report_meetings", month=month, year=year),
+                    "model": ReportMeeting,
+                },
+                {
+                    "name": "মক্তব ও সফর রিপোর্ট",
+                    "icon": "✨",
+                    "url": url_for("report_extras", month=month, year=year),
+                    "model": ReportExtra,
+                },
+                {
+                    "name": "মন্তব্য রিপোর্ট",
+                    "icon": "💬",
+                    "url": url_for("report_comments", month=month, year=year),
+                    "model": ReportComment,
+                },
+            ]
+
+            # Find the user's zone report for the selected period
+            report = Report.query.filter_by(
+                zone_id=current_user.zone_id,
+                month=month,
+                year=year,
+            ).first()
+            # Note: Only populate categories when creating a new report, not on every load
+
+            # Map model class to relationship attribute for uselist=False
+            model_to_attr = {
+                "ReportHeader": "header",
+                "ReportComment": "comments",
+            }
+            sections = []
+            for sdef in section_defs:
+                completed = False
+                if report:
+                    model_name = sdef["model"].__name__
+                    rel_attr = model_to_attr.get(model_name, model_name.lower())
+                    if hasattr(report, rel_attr):
+                        section_obj = getattr(report, rel_attr)
+                        # uselist=False: object, uselist=True: list
+                        if isinstance(section_obj, list):
+                            completed = section_obj and len(section_obj) > 0
+                        else:
+                            completed = section_obj is not None
+                sections.append(
+                    {
+                        "name": sdef["name"],
+                        "icon": sdef["icon"],
+                        "url": sdef["url"],
+                        "completed": completed,
+                    }
+                )
+
+            report_month_year = f"{month}/{year}"
+
+            return render_template(
+                "index.html",
+                user=current_user,
+                month=month,
+                year=year,
+                sections=sections,
+                report_month_year=report_month_year,
             )
 
-        report_month_year = f"{month}/{year}"
+        except psycopg2.OperationalError as e:
+            print(f"Database connection error in user dashboard: {e}")
+            db.session.rollback()
+            flash("Database connection issue. Please refresh the page.")
+            return render_template(
+                "index.html",
+                user=current_user,
+                month=month,
+                year=year,
+                sections=[],
+                report_month_year=f"{month}/{year}",
+            )
 
-        return render_template(
-            "index.html",
-            user=current_user,
-            month=month,
-            year=year,
-            sections=sections,
-            report_month_year=report_month_year,
-        )
+        except Exception as e:
+            print(f"Error in user dashboard: {e}")
+            db.session.rollback()
+            flash("An error occurred loading the dashboard. Please try again.")
+            return render_template(
+                "index.html",
+                user=current_user,
+                month=month,
+                year=year,
+                sections=[],
+                report_month_year=f"{month}/{year}",
+            )
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -538,14 +761,28 @@ def login():
     if request.method == "POST":
         identifier = request.form["identifier"]  # Can be email or user_id
         password = request.form["password"]
-        user = User.query.filter(
-            (User.email == identifier) | (User.user_id == identifier)
-        ).first()
-        if user and user.active and check_password_hash(user.password, password):
-            login_user(user)
-            return redirect(url_for("dashboard"))
-        else:
-            flash("Invalid credentials or account not approved.")
+
+        try:
+            user = People.query.filter(
+                (People.email == identifier) | (People.user_id == identifier)
+            ).first()
+
+            if user and user.active and check_password_hash(user.password, password):
+                login_user(user)
+                return redirect(url_for("dashboard"))
+            else:
+                flash("Invalid credentials or account not approved.")
+
+        except psycopg2.OperationalError as e:
+            print(f"Database connection error during login: {e}")
+            db.session.rollback()
+            flash("Database connection issue. Please try again in a moment.")
+
+        except Exception as e:
+            print(f"Error during login: {e}")
+            db.session.rollback()
+            flash("An error occurred during login. Please try again.")
+
     return render_template("login.html")
 
 
@@ -559,30 +796,65 @@ def logout():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        name = request.form["name"]
-        email = request.form["email"]
-        password = request.form["password"]
-        zone_id = request.form["zone_id"]
-        if User.query.filter_by(email=email).first():
-            flash("Email already registered.")
+        try:
+            name = request.form["name"]
+            email = request.form["email"]
+            password = request.form["password"]
+            zone_id = request.form["zone_id"]
+
+            # Check if email already exists
+            if People.query.filter_by(email=email).first():
+                flash("Email already registered.")
+                return redirect(url_for("register"))
+
+            # Generate user ID
+            user_id = generate_next_user_id()
+            hashed_pw = generate_password_hash(password)
+
+            # Create new user
+            user = People(
+                user_id=user_id,
+                name=name,
+                email=email,
+                password=hashed_pw,
+                zone_id=int(zone_id),  # Ensure it's an integer
+                role="user",
+                active=False,
+            )
+
+            # Save to database
+            db.session.add(user)
+            db.session.commit()
+            flash("Registration successful! Await admin approval.")
+            return redirect(url_for("login"))
+
+        except Exception as e:
+            db.session.rollback()
+            error_str = str(e)
+            print(f"Registration error: {e}")
+
+            # Handle specific database errors
+            if "UniqueViolation" in error_str or "duplicate key" in error_str:
+                if "people_pkey" in error_str:
+                    flash(
+                        "Database sequence error. Please contact admin to fix the sequence."
+                    )
+                elif "email" in error_str:
+                    flash("Email already registered.")
+                else:
+                    flash("Registration failed: Duplicate data detected.")
+            else:
+                flash(f"Registration failed: {error_str}")
+
             return redirect(url_for("register"))
-        user_id = generate_next_user_id()
-        hashed_pw = generate_password_hash(password)
-        user = User(
-            user_id=user_id,
-            name=name,
-            email=email,
-            password=hashed_pw,
-            zone_id=zone_id,
-            role="user",
-            active=False,
-        )
-        db.session.add(user)
-        db.session.commit()
-        flash("Registration successful! Await admin approval.")
+
+    try:
+        zones = get_zones_cached()
+        return render_template("register.html", zones=zones)
+    except Exception as e:
+        print(f"Error loading zones: {e}")
+        flash("Error loading registration form.")
         return redirect(url_for("login"))
-    zones = Zone.query.all()
-    return render_template("register.html", zones=zones)
 
 
 # --- Admin Management ---
@@ -596,19 +868,20 @@ def admin_users():
     if request.method == "POST":
         user_id = request.form["user_id"]
         action = request.form["action"]
-        user = db.session.get(User, int(user_id))
+        people = db.session.get(People, int(user_id))
         if action == "approve":
-            user.active = True
+            people.active = True
         elif action == "reject":
-            db.session.delete(user)
+            db.session.delete(people)
         elif action == "assign_zone":
             zone_id = request.form.get("zone_id")
             if zone_id:
-                user.zone_id = int(zone_id)
+                people.zone_id = int(zone_id)
         db.session.commit()
-    users = User.query.all()
-    zones = Zone.query.all()
-    return render_template("users.html", users=users, zones=zones)
+    # Limit results for better performance
+    people = People.query.limit(100).all()  # Only show first 100 users
+    zones = get_zones_cached()  # Use cached zones
+    return render_template("users.html", people=people, zones=zones)
 
 
 @app.route("/zones", methods=["GET", "POST"])
@@ -625,9 +898,12 @@ def admin_zones():
         else:
             db.session.add(Zone(name=name))
             db.session.commit()
+            # Clear cache when zones are updated
+            global _zone_cache
+            _zone_cache = None
             flash("Zone added successfully.")
             return redirect(url_for("admin_zones"))
-    zones = Zone.query.all()
+    zones = get_zones_cached()
     return render_template("zones.html", zones=zones)
 
 
@@ -638,7 +914,7 @@ def delete_zone(zone_id):
     if not is_admin():
         return redirect(url_for("dashboard"))
     zone = Zone.query.get_or_404(zone_id)
-    if zone.users:
+    if zone.people:
         flash("Cannot delete zone: users are assigned to this zone.")
         return redirect(url_for("admin_zones"))
     db.session.delete(zone)
@@ -1463,22 +1739,20 @@ def report_header():
     error = None
     success = None
     if current_user.is_authenticated:
-        report = Report.query.filter_by(
-            zone_id=current_user.zone_id,
-            month=month,
-            year=year,
-            report_type=report_type,
-        ).first()
-        if not report:
-            # Create report if not exists
+        try:
+            report = get_or_create_report(
+                current_user.zone_id, month, year, report_type
+            )
+        except Exception as e:
+            error = f"রিপোর্ট তৈরিতে সমস্যা হয়েছে: {str(e)}"
+            print(f"Error in report_header: {e}")
+            # Create a minimal report object to prevent template errors
             report = Report(
                 zone_id=current_user.zone_id,
                 month=month,
                 year=year,
                 report_type=report_type,
             )
-            db.session.add(report)
-            db.session.commit()
 
         if request.method == "POST":
             # Get form data
@@ -1548,7 +1822,20 @@ def report_courses():
     error = None
     success = None
     if current_user.is_authenticated:
-        report = get_current_report(current_user.zone_id, month, year, report_type)
+        try:
+            report = get_or_create_report(
+                current_user.zone_id, month, year, report_type
+            )
+        except Exception as e:
+            error = f"রিপোর্ট তৈরিতে সমস্যা হয়েছে: {str(e)}"
+            print(f"Error in report_courses: {e}")
+            # Create a minimal report object to prevent template errors
+            report = Report(
+                zone_id=current_user.zone_id,
+                month=month,
+                year=year,
+                report_type=report_type,
+            )
         course_categories_raw = [
             "বিশিষ্টদের",
             "সাধারণদের",
@@ -1598,7 +1885,7 @@ def report_organizational():
     error = None
     success = None
     if current_user.is_authenticated:
-        report = get_current_report(current_user.zone_id, month, year, report_type)
+        report = get_or_create_report(current_user.zone_id, month, year, report_type)
         org_categories_raw = [
             "দাওয়াত দান",
             "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
@@ -1642,7 +1929,7 @@ def report_personal():
     error = None
     success = None
     if current_user.is_authenticated:
-        report = get_current_report(current_user.zone_id, month, year, report_type)
+        report = get_or_create_report(current_user.zone_id, month, year, report_type)
         personal_categories_raw = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
         personal_categories, slug_to_cat, cat_to_slug = make_slugs(
             personal_categories_raw
@@ -1681,7 +1968,7 @@ def report_meetings():
     error = None
     success = None
     if current_user.is_authenticated:
-        report = get_current_report(current_user.zone_id, month, year, report_type)
+        report = get_or_create_report(current_user.zone_id, month, year, report_type)
         meeting_categories_raw = [
             "কমিটি বৈঠক হয়েছে",
             "মুয়াল্লিমাদের নিয়ে বৈঠক",
@@ -1725,7 +2012,7 @@ def report_extras():
     error = None
     success = None
     if current_user.is_authenticated:
-        report = get_current_report(current_user.zone_id, month, year, report_type)
+        report = get_or_create_report(current_user.zone_id, month, year, report_type)
         extra_categories_raw = [
             "মক্তব সংখ্যা",
             "মক্তব বৃদ্ধি",
@@ -1763,7 +2050,7 @@ def report_comments():
     error = None
     success = None
     if current_user.is_authenticated:
-        report = get_current_report(current_user.zone_id, month, year, report_type)
+        report = get_or_create_report(current_user.zone_id, month, year, report_type)
         if request.method == "POST" and report:
             comment = request.form.get("comment", "").strip() or None
             if report.comments:
@@ -2202,6 +2489,8 @@ def report_summary():
 @app.route("/download/excel")
 @login_required
 def download_excel():
+    import pandas as pd  # Import only when needed
+
     report_type = request.args.get("report_type", "মাসিক")
     month = request.args.get("month", "জানুয়ারি")
     year = int(request.args.get("year", 2025))
@@ -4257,11 +4546,49 @@ def not_found(e):
     return render_template("404.html"), 404
 
 
+# --- Fix Sequence Route (Admin Only) ---
+@app.route("/fix-sequence", methods=["POST"])
+@login_required
+def fix_sequence():
+    if current_user.role != "admin":
+        flash("Admin access required.")
+        return redirect(url_for("index"))
+
+    try:
+        from sqlalchemy import text
+
+        # Get the sequence name dynamically using pg_get_serial_sequence
+        sequence_result = db.session.execute(
+            text("SELECT pg_get_serial_sequence('people', 'id')")
+        )
+        sequence_name = sequence_result.scalar()
+
+        if not sequence_name:
+            flash("❌ Error: Could not find sequence for people.id column")
+            return redirect(url_for("admin_users"))
+
+        # Get the maximum ID from the people table
+        result = db.session.execute(text("SELECT MAX(id) FROM people"))
+        max_id = result.scalar()
+
+        if max_id is None:
+            max_id = 0
+
+        # Set the sequence to max_id + 1
+        next_val = max_id + 1
+        db.session.execute(text(f"SELECT setval('{sequence_name}', {next_val}, false)"))
+        db.session.commit()
+
+        flash(f"✅ Sequence fixed! Next ID will be: {next_val}")
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f"❌ Error fixing sequence: {str(e)}")
+
+    return redirect(url_for("admin_users"))
+
+
 # --- Main ---
 
 if __name__ == "__main__":
-    app.run(
-        host="0.0.0.0",
-        port=int(os.environ.get("PORT", 5000)),
-        debug=os.environ.get("FLASK_DEBUG", "false").lower() == "true",
-    )
+    app.run(debug=True)

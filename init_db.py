@@ -4,7 +4,7 @@ def init_db():
     Drops all tables, recreates them, and adds sample users and zones.
     """
     from werkzeug.security import generate_password_hash
-    from app import app, db, User, Zone
+    from app import app, db, People, Zone
 
     with app.app_context():
         db.drop_all()
@@ -36,7 +36,7 @@ def init_db():
         first_zone = zones[1]
         dcs_zone = next(z for z in zones if z.name == "ডি সি এস")
         users = [
-            User(
+            People(
                 user_id="001",
                 name="Admin",
                 email="admin@example.com",
@@ -45,7 +45,7 @@ def init_db():
                 zone_id=dcs_zone.id,
                 active=True,
             ),
-            User(
+            People(
                 user_id="021",
                 name="User One",
                 email="user1@example.com",
@@ -54,7 +54,7 @@ def init_db():
                 zone_id=first_zone.id,
                 active=True,
             ),
-            User(
+            People(
                 user_id="051",
                 name="User Two",
                 email="user2@example.com",
@@ -63,7 +63,7 @@ def init_db():
                 zone_id=first_zone.id,
                 active=True,
             ),
-            User(
+            People(
                 user_id="100",
                 name="User Three",
                 email="user3@example.com",
