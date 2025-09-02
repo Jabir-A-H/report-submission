@@ -4434,6 +4434,7 @@ def generate_pdf_with_playwright(reports, title, filename):
     # Generate PDF using Playwright
     print("[DEBUG] Starting Playwright PDF generation...")
     with sync_playwright() as p:
+        browser = None
         try:
             print("[DEBUG] Launching browser...")
             browser = p.chromium.launch(headless=True)
@@ -4478,8 +4479,9 @@ def generate_pdf_with_playwright(reports, title, filename):
 
         except Exception as e:
             print(f"[DEBUG] Playwright PDF generation failed: {e}")
-            browser.close()
-        raise
+            if browser:
+                browser.close()
+            raise
 
 
 def get_reports_for_period(zone_id, report_type, month, year):
