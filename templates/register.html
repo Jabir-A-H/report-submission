@@ -4,12 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>নিবন্ধন | রিপোর্ট সাবমিশন</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='tailwind.css') }}" />
     <link
       href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/static/styles.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
   </head>
   <body class="min-h-screen flex items-center justify-center p-4">
     <main class="w-full max-w-md">
