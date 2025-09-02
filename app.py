@@ -25,7 +25,6 @@ import unicodedata
 from pathlib import Path
 from dotenv import load_dotenv
 from flask_migrate import Migrate
-import pandas as pd
 import io
 from datetime import datetime
 from sqlalchemy import create_engine, text
@@ -306,6 +305,11 @@ class Report(db.Model):
     extras = db.relationship("ReportExtra", backref="report", lazy=True)
     comments = db.relationship("ReportComment", uselist=False, backref="report")
 
+    # Add composite index for common queries
+    __table_args__ = (
+        db.Index("idx_report_zone_month_year", "zone_id", "month", "year"),
+    )
+
 
 class ReportHeader(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -412,7 +416,15 @@ class CityReportOverride(db.Model):
 
 @login_manager.user_loader  # type: ignore
 def load_user(user_id):  # type: ignore
-    return db.session.get(People, int(user_id))  # type: ignore
+    # Use joinedload to fetch zone data in one query
+    from sqlalchemy.orm import joinedload
+
+    return (
+        db.session.query(People)
+        .options(joinedload(People.zone))
+        .filter(People.id == int(user_id))
+        .first()
+    )
 
 
 # --- Utility Functions ---
@@ -677,9 +689,7 @@ def dashboard():
                 month=month,
                 year=year,
             ).first()
-            # If a new report was just created, populate its categories
-            if report:
-                populate_categories_for_report(report.id)
+            # Note: Only populate categories when creating a new report, not on every load
 
             # Map model class to relationship attribute for uselist=False
             model_to_attr = {
@@ -2479,6 +2489,8 @@ def report_summary():
 @app.route("/download/excel")
 @login_required
 def download_excel():
+    import pandas as pd  # Import only when needed
+
     report_type = request.args.get("report_type", "মাসিক")
     month = request.args.get("month", "জানুয়ারি")
     year = int(request.args.get("year", 2025))

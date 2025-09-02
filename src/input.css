@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Your custom styles */
+.text-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Custom glass morphism effect */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Bengali font optimization */
+body, html {
+  font-family: 'Tiro Bangla', 'Ubuntu', sans-serif;
+}
+
+body:lang(bn), html:lang(bn), [lang="bn"] {
+  font-family: 'Tiro Bangla', sans-serif;
+}
+
+body:lang(en), html:lang(en), [lang="en"] {
+  font-family: 'Ubuntu', sans-serif;
+}
+
+/* Floating animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.float {
+  animation: float 6s ease-in-out infinite;
+}

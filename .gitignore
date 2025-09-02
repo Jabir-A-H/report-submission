@@ -6,6 +6,15 @@ __pycache__/
 *$py.class
 instance/
 
+# Node.js ignores
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Tailwind CSS generated file (optional - uncomment if you want to ignore the generated CSS)
+static/tailwind.css
 
 # Environment and secrets
 .env
