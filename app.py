@@ -50,16 +50,16 @@ DATABASE_URL = (
     f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}?sslmode=require"
 )
 
-# Create the SQLAlchemy engine with connection pooling optimized for Supabase
+# Create the SQLAlchemy engine with optimized settings
 engine = create_engine(
     DATABASE_URL,
-    pool_size=5,  # Limit concurrent connections
-    max_overflow=10,  # Allow some overflow
-    pool_timeout=30,  # Timeout for getting connection from pool
-    pool_recycle=1800,  # Recycle connections every 30 minutes
-    pool_pre_ping=True,  # Verify connections before use
+    pool_size=3,  # Reduced pool size for faster startup
+    max_overflow=5,  # Reduced overflow
+    pool_timeout=20,  # Reduced timeout
+    pool_recycle=3600,  # Recycle connections every hour
+    pool_pre_ping=False,  # Disable pre-ping for better performance
     connect_args={
-        "connect_timeout": 10,  # Connection timeout
+        "connect_timeout": 5,  # Faster connection timeout
         "application_name": "report-submission-app",
     },
 )
@@ -88,8 +88,8 @@ def test_database_connection():
     return False
 
 
-# Test connection on startup
-connection_ok = test_database_connection()
+# Test connection on startup (disabled for faster loading)
+# connection_ok = test_database_connection()
 
 app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 
@@ -518,6 +518,28 @@ def get_or_create_report(zone_id, month, year, report_type):
 
 app.jinja_env.globals.update(get_current_report=get_current_report)
 
+# Simple cache for frequently accessed data
+_zone_cache = None
+_zone_cache_time = None
+
+
+def get_zones_cached():
+    """Get zones with simple caching to reduce database hits"""
+    global _zone_cache, _zone_cache_time
+    import time
+
+    current_time = time.time()
+    # Cache for 5 minutes
+    if (
+        _zone_cache is None
+        or _zone_cache_time is None
+        or (current_time - _zone_cache_time) > 300
+    ):
+        _zone_cache = Zone.query.all()
+        _zone_cache_time = current_time
+
+    return _zone_cache
+
 
 # --- Routes ---
 
@@ -560,7 +582,8 @@ def dashboard():
 
     if is_admin():
         try:
-            reports = Report.query.all()
+            # Only load recent reports for better performance (last 50 reports)
+            reports = Report.query.order_by(Report.id.desc()).limit(50).all()
             city_report_url = url_for("city_report_page")
             return render_template(
                 "index_admin.html",
@@ -816,7 +839,7 @@ def register():
             return redirect(url_for("register"))
 
     try:
-        zones = Zone.query.all()
+        zones = get_zones_cached()
         return render_template("register.html", zones=zones)
     except Exception as e:
         print(f"Error loading zones: {e}")
@@ -845,8 +868,9 @@ def admin_users():
             if zone_id:
                 people.zone_id = int(zone_id)
         db.session.commit()
-    people = People.query.all()
-    zones = Zone.query.all()
+    # Limit results for better performance
+    people = People.query.limit(100).all()  # Only show first 100 users
+    zones = get_zones_cached()  # Use cached zones
     return render_template("users.html", people=people, zones=zones)
 
 
@@ -864,9 +888,12 @@ def admin_zones():
         else:
             db.session.add(Zone(name=name))
             db.session.commit()
+            # Clear cache when zones are updated
+            global _zone_cache
+            _zone_cache = None
             flash("Zone added successfully.")
             return redirect(url_for("admin_zones"))
-    zones = Zone.query.all()
+    zones = get_zones_cached()
     return render_template("zones.html", zones=zones)
 
 

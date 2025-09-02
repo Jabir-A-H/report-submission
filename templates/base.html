@@ -25,7 +25,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
               </svg>
             </div>
-            <a href="/" class="text-lg font-bold text-gradient tracking-tight" aria-label="হোম">রিপোর্ট সাবমিশন</a>
+            <a href="{% if current_user.is_authenticated %}{{ url_for('dashboard', year=year, month=month, report_type=report_type) }}{% else %}/{% endif %}" class="text-lg font-bold text-gradient tracking-tight" aria-label="হোম">রিপোর্ট সাবমিশন</a>
           </div>
           
           <!-- Mobile menu button -->
@@ -38,14 +38,14 @@
             {% if current_user.is_authenticated %}
               {% if current_user.role == 'admin' %}
                 {{ macros.context_link('dashboard', 'হোম', year=year, month=month, report_type=report_type) }}
-                <a href="/city_report" class="text-sm text-gray-700 hover:text-purple-600 px-2 py-1 rounded transition-colors">সিটি রিপোর্ট</a>
-                <a href="/users" class="text-sm text-gray-700 hover:text-blue-600 px-2 py-1 rounded transition-colors">ইউজার</a>
-                <a href="/zones" class="text-sm text-gray-700 hover:text-indigo-600 px-2 py-1 rounded transition-colors">জোন</a>
-                <a href="/help" class="text-sm text-gray-700 hover:text-gray-900 px-2 py-1 rounded transition-colors">সহায়তা</a>
+                <a href="/city_report" class="text-sm text-gray-700 hover:text-purple-600 px-2 py-1 rounded transition-colors {% if request.endpoint == 'city_report_page' %}text-purple-600 font-medium bg-purple-50{% endif %}">সিটি রিপোর্ট</a>
+                <a href="/users" class="text-sm text-gray-700 hover:text-blue-600 px-2 py-1 rounded transition-colors {% if request.endpoint == 'admin_users' %}text-blue-600 font-medium bg-blue-50{% endif %}">ইউজার</a>
+                <a href="/zones" class="text-sm text-gray-700 hover:text-indigo-600 px-2 py-1 rounded transition-colors {% if request.endpoint == 'admin_zones' %}text-indigo-600 font-medium bg-indigo-50{% endif %}">জোন</a>
+                <a href="/help" class="text-sm text-gray-700 hover:text-gray-900 px-2 py-1 rounded transition-colors {% if request.endpoint == 'help' %}text-gray-900 font-medium bg-gray-50{% endif %}">সহায়তা</a>
               {% else %}
                 {{ macros.context_link('dashboard', 'হোম', year=year, month=month, report_type=report_type) }}
-                <a href="/report" class="text-sm text-gray-700 hover:text-purple-600 px-2 py-1 rounded transition-colors">রিপোর্ট</a>
-                <a href="/help" class="text-sm text-gray-700 hover:text-gray-900 px-2 py-1 rounded transition-colors">সহায়তা</a>
+                <a href="/report" class="text-sm text-gray-700 hover:text-purple-600 px-2 py-1 rounded transition-colors {% if request.endpoint in ['report_summary', 'report_header', 'report_courses', 'report_organizational', 'report_personal', 'report_meetings', 'report_extras', 'report_comments'] %}text-purple-600 font-medium bg-purple-50{% endif %}">রিপোর্ট</a>
+                <a href="/help" class="text-sm text-gray-700 hover:text-gray-900 px-2 py-1 rounded transition-colors {% if request.endpoint == 'help' %}text-gray-900 font-medium bg-gray-50{% endif %}">সহায়তা</a>
               {% endif %}
               
               <!-- User dropdown -->
@@ -75,15 +75,15 @@
         <div id="nav-menu" class="hidden md:hidden py-3 border-t border-purple-100 bg-gradient-to-r from-purple-50/50 to-blue-50/50">
           {% if current_user.is_authenticated %}
             {% if current_user.role == 'admin' %}
-              {{ macros.context_link('dashboard', 'হোম', year=year, month=month, report_type=report_type) }}
-              <a href="/city_report" class="block py-2 text-sm text-gray-700 hover:text-purple-600">সিটি রিপোর্ট</a>
-              <a href="/users" class="block py-2 text-sm text-gray-700 hover:text-blue-600">ইউজার</a>
-              <a href="/zones" class="block py-2 text-sm text-gray-700 hover:text-indigo-600">জোন</a>
-              <a href="/help" class="block py-2 text-sm text-gray-700 hover:text-gray-900">সহায়তা</a>
+              {{ macros.context_link_mobile('dashboard', 'হোম', year=year, month=month, report_type=report_type) }}
+              <a href="/city_report" class="block py-2 text-sm text-gray-700 hover:text-purple-600 {% if request.endpoint == 'city_report_page' %}text-purple-600 font-medium bg-purple-50 -mx-2 px-2 rounded{% endif %}">সিটি রিপোর্ট</a>
+              <a href="/users" class="block py-2 text-sm text-gray-700 hover:text-blue-600 {% if request.endpoint == 'admin_users' %}text-blue-600 font-medium bg-blue-50 -mx-2 px-2 rounded{% endif %}">ইউজার</a>
+              <a href="/zones" class="block py-2 text-sm text-gray-700 hover:text-indigo-600 {% if request.endpoint == 'admin_zones' %}text-indigo-600 font-medium bg-indigo-50 -mx-2 px-2 rounded{% endif %}">জোন</a>
+              <a href="/help" class="block py-2 text-sm text-gray-700 hover:text-gray-900 {% if request.endpoint == 'help' %}text-gray-900 font-medium bg-gray-50 -mx-2 px-2 rounded{% endif %}">সহায়তা</a>
             {% else %}
-              {{ macros.context_link('dashboard', 'হোম', year=year, month=month, report_type=report_type) }}
-              <a href="/report" class="block py-2 text-sm text-gray-700 hover:text-purple-600">রিপোর্ট</a>
-              <a href="/help" class="block py-2 text-sm text-gray-700 hover:text-gray-900">সহায়তা</a>
+              {{ macros.context_link_mobile('dashboard', 'হোম', year=year, month=month, report_type=report_type) }}
+              <a href="/report" class="block py-2 text-sm text-gray-700 hover:text-purple-600 {% if request.endpoint in ['report_summary', 'report_header', 'report_courses', 'report_organizational', 'report_personal', 'report_meetings', 'report_extras', 'report_comments'] %}text-purple-600 font-medium bg-purple-50 -mx-2 px-2 rounded{% endif %}">রিপোর্ট</a>
+              <a href="/help" class="block py-2 text-sm text-gray-700 hover:text-gray-900 {% if request.endpoint == 'help' %}text-gray-900 font-medium bg-gray-50 -mx-2 px-2 rounded{% endif %}">সহায়তা</a>
             {% endif %}
             
             <!-- Mobile user info -->

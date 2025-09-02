@@ -1,11 +1,24 @@
-{% macro context_link(endpoint, text, year=None, month=None, report_type=None)
--%} {%- set args = {} -%} {%- if year is not none %}{% set _ =
-args.update({'year': year}) %}{% endif %} {%- if month is not none %}{% set _ =
-args.update({'month': month}) %}{% endif %} {%- if report_type is not none %}{%
-set _ = args.update({'report_type': report_type}) %}{% endif %}
+{% macro context_link(endpoint, text, year=None, month=None, report_type=None,
+class_override=None) -%} {%- set args = {} -%} {%- if year is not none %}{% set
+_ = args.update({'year': year}) %}{% endif %} {%- if month is not none %}{% set
+_ = args.update({'month': month}) %}{% endif %} {%- if report_type is not none
+%}{% set _ = args.update({'report_type': report_type}) %}{% endif %} {%- set
+default_classes = "text-sm text-gray-700 hover:text-purple-600 px-2 py-1 rounded
+transition-colors" -%} {%- set mobile_classes = "block py-2 text-sm
+text-gray-700 hover:text-purple-600" -%}
 <a
   href="{{ url_for(endpoint, **args) }}"
-  class="flex items-center gap-1 px-3 py-2 rounded-lg bg-cyan-100 text-cyan-800 hover:bg-cyan-200 transition shadow"
+  class="{{ class_override or default_classes }} {% if request.endpoint == endpoint %}text-purple-600 font-medium bg-purple-50{% endif %}"
+  >{{ text }}</a
+>
+{%- endmacro %} {% macro context_link_mobile(endpoint, text, year=None,
+month=None, report_type=None) -%} {%- set args = {} -%} {%- if year is not none
+%}{% set _ = args.update({'year': year}) %}{% endif %} {%- if month is not none
+%}{% set _ = args.update({'month': month}) %}{% endif %} {%- if report_type is
+not none %}{% set _ = args.update({'report_type': report_type}) %}{% endif %}
+<a
+  href="{{ url_for(endpoint, **args) }}"
+  class="block py-2 text-sm text-gray-700 hover:text-purple-600 {% if request.endpoint == endpoint %}text-purple-600 font-medium bg-purple-50 -mx-2 px-2 rounded{% endif %}"
   >{{ text }}</a
 >
 {%- endmacro %}
