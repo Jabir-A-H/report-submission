@@ -443,6 +443,4 @@ For support and questions:
 
 ---
 
-**Made with ❤️ for the Bengali community**
-
 © 2025 রিপোর্ট সাবমিশন সিস্টেম | v1.0
