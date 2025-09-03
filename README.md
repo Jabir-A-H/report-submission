@@ -7,7 +7,6 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13+-336791.svg)](https://postgresql.org/)
 [![Render](https://img.shields.io/badge/Deployed_on-Render-46E3B7.svg)](https://render.com/)
 
-> 🌟 **Live Demo**: [Visit the application](https://report-submission.onrender.com) *(Note: Demo URL may vary based on deployment)*
 
 A comprehensive Bengali/Bangla report submission and management system built with Flask. This application enables organizations to collect, manage, and analyze reports from different zones with user authentication, role-based access control, and comprehensive reporting features.
 
