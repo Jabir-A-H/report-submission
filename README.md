@@ -26,14 +26,6 @@ A comprehensive Bengali/Bangla report submission and management system built wit
 
 ## ✨ Features
 
-### 🖼️ Screenshots
-
-| Login Page | Dashboard | Report Form |
-|------------|-----------|-------------|
-| ![Login](https://via.placeholder.com/300x200?text=Login+Page) | ![Dashboard](https://via.placeholder.com/300x200?text=Dashboard) | ![Report](https://via.placeholder.com/300x200?text=Report+Form) |
-
-> **Note**: Screenshots will be updated with actual application images once deployed.
-
 ### 🔐 Authentication & User Management
 - **Secure User Authentication** - Login/logout with session management
 - **User Registration** - Self-service user registration with admin approval
