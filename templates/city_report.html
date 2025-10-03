@@ -167,6 +167,45 @@
               {% endfor %}
             </tr>
             {% endfor %}
+            <tr class="bg-cyan-100 font-bold">
+              <td class="border border-gray-300 px-4 py-2 text-right sticky left-0 z-10 bg-cyan-100">মোট</td>
+              {% set course_totals = {
+                'number': 0, 'increase': 0, 'decrease': 0, 'sessions': 0, 'students': 0, 'attendance': 0,
+                'status_board': 0, 'status_qayda': 0, 'status_ampara': 0, 'status_quran': 0,
+                'completed': 0, 'correctly_learned': 0
+              } %}
+              {% for category in course_categories %}
+                {% set row = (city_courses | selectattr('category', 'equalto', category) | list | first) or none %}
+                {% if row %}
+                  {% set course_totals = course_totals.update({
+                    'number': course_totals.number + (row.number or 0),
+                    'increase': course_totals.increase + (row.increase or 0),
+                    'decrease': course_totals.decrease + (row.decrease or 0),
+                    'sessions': course_totals.sessions + (row.sessions or 0),
+                    'students': course_totals.students + (row.students or 0),
+                    'attendance': course_totals.attendance + (row.attendance or 0),
+                    'status_board': course_totals.status_board + (row.status_board or 0),
+                    'status_qayda': course_totals.status_qayda + (row.status_qayda or 0),
+                    'status_ampara': course_totals.status_ampara + (row.status_ampara or 0),
+                    'status_quran': course_totals.status_quran + (row.status_quran or 0),
+                    'completed': course_totals.completed + (row.completed or 0),
+                    'correctly_learned': course_totals.correctly_learned + (row.correctly_learned or 0)
+                  }) %}
+                {% endif %}
+              {% endfor %}
+              <td class="border border-gray-300 px-2 py-2 text-center">{{ course_totals.number }}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center">{{ course_totals.increase }}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center">{{ course_totals.decrease }}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center">{{ course_totals.sessions }}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center">{{ course_totals.students }}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center">{{ course_totals.attendance }}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center">{{ course_totals.status_board }}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center">{{ course_totals.status_qayda }}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center">{{ course_totals.status_ampara }}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center">{{ course_totals.status_quran }}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center">{{ course_totals.completed }}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center">{{ course_totals.correctly_learned }}</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -293,32 +332,45 @@
             </tr>
           </thead>
           <tbody>
-            {% set teaching_total = 0 %} {% set learning_total = 0 %} {% set
-            olama_invited_total = 0 %} {% set became_shohojogi_total = 0 %} {%
-            set became_sokrio_shohojogi_total = 0 %} {% set became_kormi_total =
-            0 %} {% set became_rukon_total = 0 %} {% for cat in
-            personal_categories %} {% set slug = cat_to_slug[cat] %} {% set row
+            {% set ns = namespace(
+              teaching_total=0,
+              learning_total=0,
+              olama_invited_total=0,
+              became_shohojogi_total=0,
+              became_sokrio_shohojogi_total=0,
+              became_kormi_total=0,
+              became_rukon_total=0
+            ) %}
+            {% for cat in personal_categories %} {% set slug = cat_to_slug[cat] %} {% set row
             = (city_personal | selectattr('category', 'equalto', cat) | list |
             first) or none %} {% set teaching_val = row.teaching if row is not
-            none and row.teaching is not none else 0 %} {% set learning_val =
-            row.learning if row is not none and row.learning is not none else 0
+            none and row.teaching is not none else (row['teaching'] if row is not
+            none and 'teaching' in row else 0) %} {% set learning_val =
+            row.learning if row is not none and row.learning is not none else
+            (row['learning'] if row is not none and 'learning' in row else 0)
             %} {% set olama_invited_val = row.olama_invited if row is not none
-            and row.olama_invited is not none else 0 %} {% set
+            and row.olama_invited is not none else (row['olama_invited'] if row is
+            not none and 'olama_invited' in row else 0) %} {% set
             became_shohojogi_val = row.became_shohojogi if row is not none and
-            row.became_shohojogi is not none else 0 %} {% set
+            row.became_shohojogi is not none else (row['became_shohojogi'] if row
+            is not none and 'became_shohojogi' in row else 0) %} {% set
             became_sokrio_shohojogi_val = row.became_sokrio_shohojogi if row is
-            not none and row.became_sokrio_shohojogi is not none else 0 %} {%
-            set became_kormi_val = row.became_kormi if row is not none and
-            row.became_kormi is not none else 0 %} {% set became_rukon_val =
-            row.became_rukon if row is not none and row.became_rukon is not none
-            else 0 %} {% set teaching_total = teaching_total + teaching_val %}
-            {% set learning_total = learning_total + learning_val %} {% set
-            olama_invited_total = olama_invited_total + olama_invited_val %} {%
-            set became_shohojogi_total = became_shohojogi_total +
-            became_shohojogi_val %} {% set became_sokrio_shohojogi_total =
-            became_sokrio_shohojogi_total + became_sokrio_shohojogi_val %} {%
-            set became_kormi_total = became_kormi_total + became_kormi_val %} {%
-            set became_rukon_total = became_rukon_total + became_rukon_val %}
+            not none and row.became_sokrio_shohojogi is not none else
+            (row['became_sokrio_shohojogi'] if row is not none and
+            'became_sokrio_shohojogi' in row else 0) %} {% set became_kormi_val =
+            row.became_kormi if row is not none and row.became_kormi is not none
+            else (row['became_kormi'] if row is not none and 'became_kormi' in
+            row else 0) %} {% set became_rukon_val = row.became_rukon if row is
+            not none and row.became_rukon is not none else (row['became_rukon']
+            if row is not none and 'became_rukon' in row else 0) %} {% set
+            ns.teaching_total = ns.teaching_total + teaching_val %} {% set
+            ns.learning_total = ns.learning_total + learning_val %} {% set
+            ns.olama_invited_total = ns.olama_invited_total + olama_invited_val %} {%
+            set ns.became_shohojogi_total = ns.became_shohojogi_total +
+            became_shohojogi_val %} {% set ns.became_sokrio_shohojogi_total =
+            ns.became_sokrio_shohojogi_total + became_sokrio_shohojogi_val %} {%
+            set ns.became_kormi_total = ns.became_kormi_total + became_kormi_val %} {%
+            set ns.became_rukon_total = ns.became_rukon_total + became_rukon_val %}
             <tr class="text-center hover:bg-cyan-50">
               <td
                 class="border border-gray-300 px-2 py-1 font-semibold sticky left-0 z-10 bg-white text-left"
@@ -357,27 +409,27 @@
                 মোট
               </td>
               <td class="border border-gray-300 px-2 py-2 text-center">
-                {{ teaching_total }}
+                {{ ns.teaching_total }}
               </td>
               <td
                 class="border border-gray-300 px-2 py-2 text-center border-r-4 border-cyan-300"
               >
-                {{ learning_total }}
+                {{ ns.learning_total }}
               </td>
               <td class="border border-gray-300 px-2 py-2 text-center">
-                {{ olama_invited_total }}
+                {{ ns.olama_invited_total }}
               </td>
               <td class="border border-gray-300 px-2 py-2 text-center">
-                {{ became_shohojogi_total }}
+                {{ ns.became_shohojogi_total }}
               </td>
               <td class="border border-gray-300 px-2 py-2 text-center">
-                {{ became_sokrio_shohojogi_total }}
+                {{ ns.became_sokrio_shohojogi_total }}
               </td>
               <td class="border border-gray-300 px-2 py-2 text-center">
-                {{ became_kormi_total }}
+                {{ ns.became_kormi_total }}
               </td>
               <td class="border border-gray-300 px-2 py-2 text-center">
-                {{ became_rukon_total }}
+                {{ ns.became_rukon_total }}
               </td>
             </tr>
           </tbody>

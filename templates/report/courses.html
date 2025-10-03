@@ -119,6 +119,85 @@
                 {% endfor %}
               </tr>
               {% endfor %}
+              <tr class="bg-cyan-100 font-bold">
+                <td
+                  class="border border-gray-300 px-4 py-2 text-right sticky left-0 z-10 bg-cyan-100"
+                >
+                  মোট
+                </td>
+                <td
+                  class="border border-gray-300 px-2 py-2 text-center"
+                  id="total_number"
+                >
+                  0
+                </td>
+                <td
+                  class="border border-gray-300 px-2 py-2 text-center"
+                  id="total_increase"
+                >
+                  0
+                </td>
+                <td
+                  class="border border-gray-300 px-2 py-2 text-center"
+                  id="total_decrease"
+                >
+                  0
+                </td>
+                <td
+                  class="border border-gray-300 px-2 py-2 text-center"
+                  id="total_sessions"
+                >
+                  0
+                </td>
+                <td
+                  class="border border-gray-300 px-2 py-2 text-center"
+                  id="total_students"
+                >
+                  0
+                </td>
+                <td
+                  class="border border-gray-300 px-2 py-2 text-center"
+                  id="total_attendance"
+                >
+                  0
+                </td>
+                <td
+                  class="border border-gray-300 px-2 py-2 text-center"
+                  id="total_status_board"
+                >
+                  0
+                </td>
+                <td
+                  class="border border-gray-300 px-2 py-2 text-center"
+                  id="total_status_qayda"
+                >
+                  0
+                </td>
+                <td
+                  class="border border-gray-300 px-2 py-2 text-center"
+                  id="total_status_ampara"
+                >
+                  0
+                </td>
+                <td
+                  class="border border-gray-300 px-2 py-2 text-center"
+                  id="total_status_quran"
+                >
+                  0
+                </td>
+                <td
+                  class="border border-gray-300 px-2 py-2 text-center"
+                  id="total_completed"
+                >
+                  0
+                </td>
+                <td
+                  class="border border-gray-300 px-2 py-2 text-center"
+                  id="total_correctly_learned"
+                >
+                  0
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -134,4 +213,54 @@
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const form = document.querySelector("form");
+
+    // Function to calculate and update totals
+    function updateTotals() {
+      const columns = [
+        { field: "number_", id: "total_number" },
+        { field: "increase_", id: "total_increase" },
+        { field: "decrease_", id: "total_decrease" },
+        { field: "sessions_", id: "total_sessions" },
+        { field: "students_", id: "total_students" },
+        { field: "attendance_", id: "total_attendance" },
+        { field: "status_board_", id: "total_status_board" },
+        { field: "status_qayda_", id: "total_status_qayda" },
+        { field: "status_ampara_", id: "total_status_ampara" },
+        { field: "status_quran_", id: "total_status_quran" },
+        { field: "completed_", id: "total_completed" },
+        { field: "correctly_learned_", id: "total_correctly_learned" },
+      ];
+
+      columns.forEach((column) => {
+        let total = 0;
+        const inputs = form.querySelectorAll(`input[name^="${column.field}"]`);
+
+        inputs.forEach((input) => {
+          const value = parseInt(input.value) || 0;
+          total += value;
+        });
+
+        const totalCell = document.getElementById(column.id);
+        if (totalCell) {
+          totalCell.textContent = total;
+        }
+      });
+    }
+
+    // Add event listeners to all number inputs
+    const numberInputs = form.querySelectorAll('input[type="number"]');
+    numberInputs.forEach((input) => {
+      input.addEventListener("input", updateTotals);
+      input.addEventListener("change", updateTotals);
+    });
+
+    // Initial calculation
+    updateTotals();
+  });
+</script>
+
 {% endblock %}

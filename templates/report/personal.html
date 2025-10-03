@@ -132,6 +132,7 @@
             </tbody>
           </table>
         </div>
+        </div>
         <div class="flex justify-end mt-8 pt-6 border-t">
           <button
             type="submit"
@@ -144,4 +145,49 @@
     </div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('personalForm');
+    
+    // Function to calculate and update totals
+    function updateTotals() {
+        const columns = [
+            'teaching',
+            'learning', 
+            'olama_invited',
+            'became_shohojogi',
+            'became_sokrio_shohojogi',
+            'became_kormi',
+            'became_rukon'
+        ];
+        
+        columns.forEach((column, index) => {
+            let total = 0;
+            const inputs = form.querySelectorAll(`input[name^="${column}_"]`);
+            
+            inputs.forEach(input => {
+                const value = parseInt(input.value) || 0;
+                total += value;
+            });
+            
+            // Update the total cell (index + 1 because first cell is the label)
+            const totalRow = document.querySelector('tr.bg-cyan-100.font-bold');
+            const totalCell = totalRow.children[index + 1];
+            totalCell.textContent = total;
+        });
+    }
+    
+    // Add event listeners to all number inputs
+    const numberInputs = form.querySelectorAll('input[type="number"]');
+    numberInputs.forEach(input => {
+        input.addEventListener('input', updateTotals);
+        input.addEventListener('change', updateTotals);
+    });
+    
+    // Initial calculation
+    updateTotals();
+});
+</script>
+
 {% endblock %}
