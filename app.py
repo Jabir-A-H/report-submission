@@ -33,6 +33,55 @@ import psycopg2
 load_dotenv()
 
 
+# --- Constants for Report Categories ---
+COURSE_CATEGORIES = [
+    "বিশিষ্টদের",
+    "সাধারণদের",
+    "কর্মীদের",
+    "ইউনিট সভানেত্রী",
+    "অগ্রসরদের",
+    "শিশু- তা'লিমুল কুরআন",
+    "নিরক্ষর- তা'লিমুস সলাত",
+]
+
+ORG_CATEGORIES = [
+    "দাওয়াত দান",
+    "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
+    "সহযোগী হয়েছে",
+    "সম্মতি দিয়েছেন",
+    "সক্রিয় সহযোগী",
+    "কর্মী",
+    "রুকন",
+    "দাওয়াতী ইউনিট",
+    "ইউনিট",
+    "সূধী",
+    "এককালীন",
+    "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
+    "বই বিলি",
+    "বই বিক্রি",
+]
+
+PERSONAL_CATEGORIES = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
+
+MEETING_CATEGORIES = [
+    "কমিটি বৈঠক হয়েছে",
+    "মুয়াল্লিমাদের নিয়ে বৈঠক",
+    "Committee Orientation",
+    "Muallima Orientation",
+]
+
+EXTRA_CATEGORIES = [
+    "মক্তব সংখ্যা",
+    "মক্তব বৃদ্ধি",
+    "মহানগরী পরিচালিত",
+    "স্থানীয়ভাবে পরিচালিত",
+    "মহানগরীর সফর",
+    "থানা কমিটির সফর",
+    "থানা প্রতিনিধির সফর",
+    "ওয়ার্ড প্রতিনিধির সফর",
+]
+
+
 # --- Initialize Flask App and Configurations ---
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
@@ -137,16 +186,7 @@ def populate_categories_for_report(report_id):
 
     try:
         # Course Categories
-        course_categories = [
-            "বিশিষ্টদের",
-            "সাধারণদের",
-            "কর্মীদের",
-            "ইউনিট সভানেত্রী",
-            "অগ্রসরদের",
-            "শিশু- তা'লিমুল কুরআন",
-            "নিরক্ষর- তা'লিমুস সলাত",
-        ]
-        for cat in course_categories:
+        for cat in COURSE_CATEGORIES:
             norm_cat = normalize_cat(cat)
             if not ReportCourse.query.filter_by(
                 category=norm_cat, report_id=report_id
@@ -161,23 +201,7 @@ def populate_categories_for_report(report_id):
                     continue
 
         # Organizational Categories
-        org_categories = [
-            "দাওয়াত দান",
-            "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
-            "সহযোগী হয়েছে",
-            "সম্মতি দিয়েছেন",
-            "সক্রিয় সহযোগী",
-            "কর্মী",
-            "রুকন",
-            "দাওয়াতী ইউনিট",
-            "ইউনিট",
-            "সূধী",
-            "এককালীন",
-            "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
-            "বই বিলি",
-            "বই বিক্রি",
-        ]
-        for cat in org_categories:
+        for cat in ORG_CATEGORIES:
             norm_cat = normalize_cat(cat)
             if not ReportOrganizational.query.filter_by(
                 category=norm_cat, report_id=report_id
@@ -194,8 +218,7 @@ def populate_categories_for_report(report_id):
                     continue
 
         # Personal Activities Categories
-        personal_categories = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
-        for cat in personal_categories:
+        for cat in PERSONAL_CATEGORIES:
             norm_cat = normalize_cat(cat)
             if not ReportPersonal.query.filter_by(
                 category=norm_cat, report_id=report_id
@@ -210,13 +233,7 @@ def populate_categories_for_report(report_id):
                     continue
 
         # Meeting Categories
-        meeting_categories = [
-            "কমিটি বৈঠক হয়েছে",
-            "মুয়াল্লিমাদের নিয়ে বৈঠক",
-            "Committee Orientation",
-            "Muallima Orientation",
-        ]
-        for cat in meeting_categories:
+        for cat in MEETING_CATEGORIES:
             norm_cat = normalize_cat(cat)
             if not ReportMeeting.query.filter_by(
                 category=norm_cat, report_id=report_id
@@ -231,17 +248,7 @@ def populate_categories_for_report(report_id):
                     continue
 
         # Extra Activity Categories
-        extra_categories = [
-            "মক্তব সংখ্যা",
-            "মক্তব বৃদ্ধি",
-            "মহানগরী পরিচালিত",
-            "স্থানীয়ভাবে পরিচালিত",
-            "মহানগরীর সফর",
-            "থানা কমিটির সফর",
-            "থানা প্রতিনিধির সফর",
-            "ওয়ার্ড প্রতিনিধির সফর",
-        ]
-        for cat in extra_categories:
+        for cat in EXTRA_CATEGORIES:
             norm_cat = normalize_cat(cat)
             if not ReportExtra.query.filter_by(
                 category=norm_cat, report_id=report_id
@@ -2662,16 +2669,7 @@ def download_excel():
             data.append(
                 ["বিভাগ", "গ্রুপ/কোর্স", "সংখ্যা", "বৃদ্ধি", "ঘাটতি", "অধিবেশন", "শিক্ষার্থী"]
             )
-            course_categories = [
-                "বিশিষ্টদের",
-                "সাধারণদের",
-                "কর্মীদের",
-                "ইউনিট সভানেত্রী",
-                "অগ্রসরদের",
-                "শিশু- তা'লিমুল কুরআন",
-                "নিরক্ষর- তা'লিমুস সলাত",
-            ]
-            for category in course_categories:
+            for category in COURSE_CATEGORIES:
                 course_row = next(
                     (c for c in report.courses if c.category == category), None
                 )
@@ -2713,23 +2711,7 @@ def download_excel():
             data.append(
                 ["বিভাগ", "দাওয়াত ও সংগঠন", "সংখ্যা", "বৃদ্ধি", "পরিমাণ", "মন্তব্য", ""]
             )
-            org_categories = [
-                "দাওয়াত দান",
-                "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
-                "সহযোগী হয়েছে",
-                "সম্মতি দিয়েছেন",
-                "সক্রিয় সহযোগী",
-                "কর্মী",
-                "রুকন",
-                "দাওয়াতী ইউনিট",
-                "ইউনিট",
-                "সূধী",
-                "এককালীন",
-                "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
-                "বই বিলি",
-                "বই বিক্রি",
-            ]
-            for category in org_categories:
+            for category in ORG_CATEGORIES:
                 org_row = next(
                     (o for o in report.organizational if o.category == category), None
                 )
@@ -2767,8 +2749,7 @@ def download_excel():
                     "কর্মী হয়েছেন",
                 ]
             )
-            personal_categories = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
-            for category in personal_categories:
+            for category in PERSONAL_CATEGORIES:
                 personal_row = next(
                     (p for p in report.personal if p.category == category), None
                 )
@@ -2819,13 +2800,7 @@ def download_excel():
                     "মন্তব্য",
                 ]
             )
-            meeting_categories = [
-                "কমিটি বৈঠক হয়েছে",
-                "মুয়াল্লিমাদের নিয়ে বৈঠক",
-                "Committee Orientation",
-                "Muallima Orientation",
-            ]
-            for category in meeting_categories:
+            for category in MEETING_CATEGORIES:
                 meeting_row = next(
                     (m for m in report.meetings if m.category == category), None
                 )
@@ -2867,17 +2842,7 @@ def download_excel():
         # Extras section
         if report.extras:
             data.append(["বিভাগ", "মক্তব ও সফর রিপোর্ট", "সংখ্যা", "", "", "", ""])
-            extra_categories = [
-                "মক্তব সংখ্যা",
-                "মক্তব বৃদ্ধি",
-                "মহানগরী পরিচালিত",
-                "স্থানীয়ভাবে পরিচালিত",
-                "মহানগরীর সফর",
-                "থানা কমিটির সফর",
-                "থানা প্রতিনিধির সফর",
-                "ওয়ার্ড প্রতিনিধির সফর",
-            ]
-            for category in extra_categories:
+            for category in EXTRA_CATEGORIES:
                 extra_row = next(
                     (e for e in report.extras if e.category == category), None
                 )
@@ -4106,17 +4071,7 @@ def generate_pdf_with_playwright(reports, title, filename):
                     </thead>
                     <tbody>"""
 
-            course_categories = [
-                "বিশিষ্টদের",
-                "সাধারণদের",
-                "কর্মীদের",
-                "ইউনিট সভানেত্রী",
-                "অগ্রসরদের",
-                "শিশু- তা'লিমুল কুরআন",
-                "নিরক্ষর- তা'লিমুস সলাত",
-            ]
-
-            for category in course_categories:
+            for category in COURSE_CATEGORIES:
                 # Find the course row for this category
                 course_row = next(
                     (c for c in report.courses if c.category == category), None
@@ -4161,24 +4116,7 @@ def generate_pdf_with_playwright(reports, title, filename):
                     </thead>
                     <tbody>"""
 
-            org_categories = [
-                "দাওয়াত দান",
-                "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
-                "সহযোগী হয়েছে",
-                "সম্মতি দিয়েছেন",
-                "সক্রিয় সহযোগী",
-                "কর্মী",
-                "রুকন",
-                "দাওয়াতী ইউনিট",
-                "ইউনিট",
-                "সূধী",
-                "এককালীন",
-                "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
-                "বই বিলি",
-                "বই বিক্রি",
-            ]
-
-            for category in org_categories:
+            for category in ORG_CATEGORIES:
                 # Find the organizational row for this category
                 org_row = next(
                     (o for o in report.organizational if o.category == category), None
@@ -4221,8 +4159,6 @@ def generate_pdf_with_playwright(reports, title, filename):
                     </thead>
                     <tbody>"""
 
-            personal_categories = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"]
-
             # Calculate totals
             teaching_total = 0
             learning_total = 0
@@ -4232,7 +4168,7 @@ def generate_pdf_with_playwright(reports, title, filename):
             became_kormi_total = 0
             became_rukon_total = 0
 
-            for category in personal_categories:
+            for category in PERSONAL_CATEGORIES:
                 # Find the personal row for this category
                 personal_row = next(
                     (p for p in report.personal if p.category == category), None
@@ -4333,14 +4269,7 @@ def generate_pdf_with_playwright(reports, title, filename):
                     </thead>
                     <tbody>"""
 
-            meeting_categories = [
-                "কমিটি বৈঠক হয়েছে",
-                "মুয়াল্লিমাদের নিয়ে বৈঠক",
-                "Committee Orientation",
-                "Muallima Orientation",
-            ]
-
-            for category in meeting_categories:
+            for category in MEETING_CATEGORIES:
                 # Find the meeting row for this category
                 meeting_row = next(
                     (m for m in report.meetings if m.category == category), None
@@ -4377,18 +4306,7 @@ def generate_pdf_with_playwright(reports, title, filename):
                     </thead>
                     <tbody>"""
 
-            extra_categories = [
-                "মক্তব সংখ্যা",
-                "মক্তব বৃদ্ধি",
-                "মহানগরী পরিচালিত",
-                "স্থানীয়ভাবে পরিচালিত",
-                "মহানগরীর সফর",
-                "থানা কমিটির সফর",
-                "থানা প্রতিনিধির সফর",
-                "ওয়ার্ড প্রতিনিধির সফর",
-            ]
-
-            for category in extra_categories:
+            for category in EXTRA_CATEGORIES:
                 # Find the extras row for this category
                 extra_row = next(
                     (e for e in report.extras if e.category == category), None

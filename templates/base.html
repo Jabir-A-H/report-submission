@@ -141,7 +141,7 @@
       });
     </script>
     </header>
-    <main class="mx-auto max-w-screen-xl px-4 py-4 mb-4 mt-16 animate-fade-in">
+    <main class="mx-auto max-w-screen-xl px-4 py-4 mb-4 animate-fade-in">
       {% macro context_link(endpoint, text) -%}
         {%- set args = dict(year=year, month=month, report_type=report_type) -%}
         <a href="{{ url_for(endpoint, **args) }}" class="modern-btn btn-secondary flex items-center gap-1 px-3 py-2 rounded-lg shadow">{{ text }}</a>

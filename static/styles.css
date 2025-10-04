@@ -1,27 +1,34 @@
-@import url('https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
 
 /* Use Ubuntu for English digits and ASCII letters inside Bangla text */
-.bangla-ubuntu-fix, body, html, [lang="bn"] {
-  font-family: 'Tiro Bangla', sans-serif;
+.bangla-ubuntu-fix,
+body,
+html,
+[lang="bn"] {
+  font-family: "Tiro Bangla", sans-serif;
 }
 .bangla-ubuntu-fix :is(span.en, .en, .ascii, .latin, .eng, .num, .number),
 body :is(span.en, .en, .ascii, .latin, .eng, .num, .number),
 html :is(span.en, .en, .ascii, .latin, .eng, .num, .number),
 [lang="bn"] :is(span.en, .en, .ascii, .latin, .eng, .num, .number) {
-  font-family: 'Ubuntu', sans-serif !important;
+  font-family: "Ubuntu", sans-serif !important;
   letter-spacing: 0.01em;
 }
 
 /* Automatic font for digits and ASCII letters using unicode-range (for modern browsers) */
 @font-face {
-  font-family: 'UbuntuForDigits';
-  src: local('Ubuntu'), url('https://fonts.gstatic.com/s/ubuntu/v20/4iCs6KVjbNBYlgoKcg72j00.woff2') format('woff2');
+  font-family: "UbuntuForDigits";
+  src: local("Ubuntu"),
+    url("https://fonts.gstatic.com/s/ubuntu/v20/4iCs6KVjbNBYlgoKcg72j00.woff2")
+      format("woff2");
   unicode-range: U+0030-0039, U+0041-005A, U+0061-007A;
   font-style: normal;
   font-weight: 400;
 }
-body, html, [lang="bn"] {
-  font-family: 'Tiro Bangla', 'UbuntuForDigits', sans-serif;
+body,
+html,
+[lang="bn"] {
+  font-family: "Tiro Bangla", "UbuntuForDigits", sans-serif;
 }
 
 /* Purple Gradient Theme - Modern Compact Design */
@@ -34,29 +41,29 @@ body, html, [lang="bn"] {
   --success-gradient: linear-gradient(135deg, #d299c2 0%, #fef9d7 100%);
   --warning-gradient: linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%);
   --danger-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
-  
+
   /* Background Gradients */
   --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   --card-gradient: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  
+
   /* Text Colors */
   --text-primary: #2d3748;
   --text-secondary: #4a5568;
   --text-muted: #718096;
   --text-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  
+
   /* Spacing and Sizing */
   --border-radius-sm: 0.375rem;
   --border-radius-md: 0.5rem;
   --border-radius-lg: 0.75rem;
   --border-radius-xl: 1rem;
-  
+
   /* Shadows */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
   --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
-  
+
   /* Transitions */
   --transition-fast: 0.15s ease;
   --transition-base: 0.2s ease;
@@ -82,12 +89,17 @@ body, html, [lang="bn"] {
 }
 
 .animate-float {
-  animation: float 6s ease-in-out infinite;
+  animation: subtleFloat 4s ease-in-out infinite;
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
+@keyframes subtleFloat {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
 }
 
 .text-gradient {
@@ -104,62 +116,45 @@ body, html, [lang="bn"] {
     font-size: 0.95rem;
     min-height: 44px; /* Optimal touch targets */
   }
-  
+
   .modern-input {
     padding: 0.75rem 1rem;
     font-size: 1rem;
     min-height: 44px;
   }
-  
+
   .page-title {
     font-size: 1.5rem;
     margin-bottom: 0.5rem;
   }
-  
+
   .page-subtitle {
     font-size: 0.95rem;
     margin-bottom: 1rem;
   }
-  
+
   .modern-card {
     padding: 1rem;
     margin-bottom: 1rem;
   }
-  
+
   /* Compact grid on mobile */
   .grid {
     grid-template-columns: 1fr !important;
     gap: 0.75rem;
   }
-  
+
   .container {
     padding-left: 1rem !important;
     padding-right: 1rem !important;
   }
 }
 
-/* Compact, modern headers */
-.page-title {
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: #1e293b;
-  text-align: center;
-  margin-bottom: 0.5rem;
-  line-height: 1.2;
-}
-
-.page-subtitle {
-  font-size: 1rem;
-  color: #64748b;
-  text-align: center;
-  margin-bottom: 1.25rem;
-}
-
 /* Compact section cards - Purple Gradient Theme */
 .modern-card {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
-  border-radius: var(--border-radius-xl);
+  border-radius: 1.5rem;
   box-shadow: var(--shadow-xl);
   border: 1px solid rgba(102, 126, 234, 0.2);
   padding: 1.5rem;
@@ -167,22 +162,6 @@ body, html, [lang="bn"] {
   transition: all var(--transition-slow);
   position: relative;
   overflow: hidden;
-}
-
-.modern-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: var(--primary-gradient);
-  opacity: 0.8;
-  transition: opacity var(--transition-base);
-}
-
-.modern-card:hover::before {
-  opacity: 1;
 }
 
 .modern-card:hover {
@@ -212,33 +191,6 @@ body, html, [lang="bn"] {
   margin-bottom: 1rem;
 }
 
-/* Compact alert styling */
-.alert {
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  font-size: 0.95rem;
-  font-weight: 500;
-  margin-bottom: 1rem;
-}
-
-.alert-success {
-  background: #dcfce7;
-  border: 1px solid #22c55e;
-  color: #15803d;
-}
-
-.alert-error {
-  background: #fef2f2;
-  border: 1px solid #ef4444;
-  color: #dc2626;
-}
-
-.alert-warning {
-  background: #fffbeb;
-  border: 1px solid #f59e0b;
-  color: #d97706;
-}
-
 /* Simple loading indicator */
 .loading {
   position: relative;
@@ -266,45 +218,6 @@ body, html, [lang="bn"] {
   }
 }
 
-/* Compact visual hierarchy for forms */
-.form-section {
-  background: #f9fafb;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  border: 1px solid #e5e7eb;
-}
-
-.form-section-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.25rem;
-  border-bottom: 1px solid #e5e7eb;
-}
-:root {
-  --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  --secondary-gradient: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
-  --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
-  
-  --border-radius-sm: 0.375rem;
-  --border-radius-md: 0.5rem;
-  --border-radius-lg: 0.75rem;
-  --border-radius-xl: 1rem;
-  
-  --transition-fast: 0.15s ease-out;
-  --transition-normal: 0.2s ease-out;
-  --transition-slow: 0.3s ease-out;
-}
-
 /* Prevent horizontal overflow */
 * {
   box-sizing: border-box;
@@ -321,32 +234,12 @@ body {
   max-width: 100vw;
   margin: 0;
   padding: 0;
-  background: var(--primary-gradient);
-  min-height: 100vh;
-}
-
-/* Ensure all containers respect viewport */
-.container, .mx-auto {
-  max-width: 100vw;
-  overflow-x: visible;
-}
-
-/* Warm background for the entire site */
-body {
   background: linear-gradient(135deg, #fafafa 0%, #f9fafb 50%, #f3f4f6 100%);
   min-height: 100vh;
   color: #1f2937;
-}
-
-
-/* Modern Body and Global Styles */
-body {
-  font-family: 'Tiro Bangla', 'Ubuntu', sans-serif;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  color: #1e293b;
-  line-height: 1.7;
-  padding: 0;
-  margin: 0;
+  font-family: "Tiro Bangla", "Ubuntu", sans-serif;
+  line-height: 1.5;
+  font-size: 0.95rem;
 }
 
 /* Better container defaults */
@@ -396,26 +289,19 @@ body {
   }
 }
 
-body:lang(bn), html:lang(bn), [lang="bn"] {
-  font-family: 'Tiro Bangla', sans-serif;
-}
-body:lang(en), html:lang(en), [lang="en"] {
-  font-family: 'Ubuntu', sans-serif;
-}
-
 /* Modern Animation Classes - Subtle */
 .animate-fade-in {
   animation: subtleFadeIn 0.3s ease-out both;
 }
 
 @keyframes subtleFadeIn {
-  from { 
-    opacity: 0; 
-    transform: translateY(8px); 
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -424,13 +310,13 @@ body:lang(en), html:lang(en), [lang="en"] {
 }
 
 @keyframes subtleSlideUp {
-  from { 
-    opacity: 0; 
-    transform: translateY(12px); 
+  from {
+    opacity: 0;
+    transform: translateY(12px);
   }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -439,23 +325,14 @@ body:lang(en), html:lang(en), [lang="en"] {
 }
 
 @keyframes subtleScaleIn {
-  from { 
-    opacity: 0; 
-    transform: scale(0.98); 
+  from {
+    opacity: 0;
+    transform: scale(0.98);
   }
-  to { 
-    opacity: 1; 
-    transform: scale(1); 
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
-}
-
-.animate-float {
-  animation: subtleFloat 4s ease-in-out infinite;
-}
-
-@keyframes subtleFloat {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-4px); }
 }
 
 /* Clean Report Section Styles - Minimal Design */
@@ -474,82 +351,6 @@ body:lang(en), html:lang(en), [lang="en"] {
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid #f3f4f6;
-}
-
-/* Remove all visual dividers from report sections */
-.bg-white.rounded-xl.shadow-lg.border-l-4 {
-  background: transparent !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  border: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
-}
-
-.bg-gradient-to-br.from-purple-50.to-white.rounded-xl.shadow-lg.border-l-4 {
-  background: transparent !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  border: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
-}
-
-/* Clean section titles - remove bottom borders */
-.text-xl.font-bold.text-cyan-700,
-.text-xl.font-bold.text-purple-700,
-.text-xl.font-bold.text-pink-700,
-.text-xl.font-bold.text-blue-700,
-.text-xl.font-bold.text-green-700,
-.text-xl.font-bold.text-yellow-700 {
-  color: #374151 !important;
-  font-size: 1.25rem !important;
-  font-weight: 600 !important;
-  margin-bottom: 1rem !important;
-  padding-bottom: 0 !important;
-  border-bottom: none !important;
-}
-
-/* Remove colored borders and gradients from all report sections */
-.border-cyan-400,
-.border-purple-400,
-.border-pink-400,
-.border-blue-400,
-.border-green-400,
-.border-yellow-400 {
-  border-color: #e5e7eb !important;
-}
-
-/* Clean up city report sections - remove all visual dividers */
-.bg-white.rounded-2xl.shadow-xl {
-  background: transparent !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  border: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
-}
-
-/* Clean modern cards - remove all visual dividers */
-.modern-card {
-  background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  transition: none !important;
-}
-
-.modern-card:hover {
-  box-shadow: none !important;
-}
-
-.glass-card {
-  background: #ffffff !important;
-  border: 1px solid #e5e7eb !important;
-  border-radius: 4px !important;
-  box-shadow: none !important;
 }
 
 /* Modern Button Styles - Purple Gradient Theme */
@@ -575,13 +376,18 @@ body:lang(en), html:lang(en), [lang="en"] {
 }
 
 .modern-btn::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
   transition: left 0.5s;
 }
 
@@ -817,16 +623,14 @@ body:lang(en), html:lang(en), [lang="en"] {
   padding: 0 1rem; /* Reduced from 2rem */
 }
 
-.modern-grid {
-  display: grid;
-  gap: 1rem; /* Reduced from 2rem */
-}
-
 @media (min-width: 768px) {
   .modern-grid {
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Reduced from 350px */
+    grid-template-columns: repeat(
+      auto-fit,
+      minmax(300px, 1fr)
+    ); /* Reduced from 350px */
   }
-  
+
   .modern-container {
     padding: 0 1.5rem;
   }
@@ -877,14 +681,17 @@ body:lang(en), html:lang(en), [lang="en"] {
 }
 
 @keyframes modernSpin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Header Styling */
 .page-header {
   text-align: center;
-  margin-bottom: 3rem;
   padding: 2rem 0;
 }
 
@@ -916,27 +723,57 @@ body:lang(en), html:lang(en), [lang="en"] {
   animation: scaleIn 0.6s ease-out both;
 }
 
-.modern-grid > *:nth-child(1) { animation-delay: 0.1s; }
-.modern-grid > *:nth-child(2) { animation-delay: 0.2s; }
-.modern-grid > *:nth-child(3) { animation-delay: 0.3s; }
-.modern-grid > *:nth-child(4) { animation-delay: 0.4s; }
-.modern-grid > *:nth-child(5) { animation-delay: 0.5s; }
-.modern-grid > *:nth-child(6) { animation-delay: 0.6s; }
+.modern-grid > *:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.modern-grid > *:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.modern-grid > *:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.modern-grid > *:nth-child(4) {
+  animation-delay: 0.4s;
+}
+.modern-grid > *:nth-child(5) {
+  animation-delay: 0.5s;
+}
+.modern-grid > *:nth-child(6) {
+  animation-delay: 0.6s;
+}
 
 /* Print-specific styles for report pages */
 @media print {
-  .navbar, .footer, .sidebar, #downloadDropdownContainer, #report-filter-form-row { display: none !important; }
-  body * { visibility: hidden; }
-  .container, .container * { visibility: visible; }
+  .navbar,
+  .footer,
+  .sidebar,
+  #downloadDropdownContainer,
+  #report-filter-form-row {
+    display: none !important;
+  }
+  body * {
+    visibility: hidden;
+  }
+  .container,
+  .container * {
+    visibility: visible;
+  }
   .container {
     position: absolute !important;
-    left: 0; top: 0; width: 100vw; min-width: 0;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    min-width: 0;
     background: white !important;
     box-shadow: none !important;
     padding: 0 !important;
     margin: 0 !important;
   }
-  .overflow-x-auto, .overflow-x-auto > div, .overflow-x-auto > table, .overflow-x-auto > .w-full, .overflow-x-auto > .min-w-full {
+  .overflow-x-auto,
+  .overflow-x-auto > div,
+  .overflow-x-auto > table,
+  .overflow-x-auto > .w-full,
+  .overflow-x-auto > .min-w-full {
     overflow-x: visible !important;
     width: 100% !important;
     max-width: 100vw !important;
@@ -948,7 +785,8 @@ body:lang(en), html:lang(en), [lang="en"] {
     max-width: 100vw !important;
     overflow-x: visible !important;
   }
-  th, td {
+  th,
+  td {
     word-break: break-word;
     white-space: normal !important;
   }
@@ -1016,8 +854,14 @@ body:lang(en), html:lang(en), [lang="en"] {
 }
 
 @keyframes cardPop {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .table-row-animate {
@@ -1048,13 +892,6 @@ body:lang(en), html:lang(en), [lang="en"] {
 }
 
 /* Utility Classes */
-.text-gradient {
-  background: var(--primary-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
 .bg-gradient-primary {
   background: var(--primary-gradient);
 }
@@ -1078,190 +915,13 @@ body:lang(en), html:lang(en), [lang="en"] {
 }
 
 @keyframes subtleIconBounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-2px); }
-}
-
-/* Responsive Design Improvements */
-@media (max-width: 768px) {
-  /* Better mobile spacing and layout */
-  .container {
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
-    max-width: 100% !important;
+  0%,
+  100% {
+    transform: translateY(0);
   }
-  
-  /* More generous mobile padding */
-  .container.mx-auto.px-4 {
-    padding-left: 1.5rem !important;
-    padding-right: 1.5rem !important;
+  50% {
+    transform: translateY(-2px);
   }
-  
-  /* Remove excessive max-width constraints on mobile */
-  .max-w-6xl, .max-w-4xl, .max-w-3xl, .max-w-2xl {
-    max-width: 100% !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-  }
-  
-  .page-title {
-    font-size: 2rem;
-  }
-  
-  .modern-card {
-    margin: 0 !important;
-    padding: 1.5rem !important;
-    border-radius: 0.75rem !important;
-  }
-  
-  .modern-btn {
-    padding: 0.75rem 1.5rem;
-    font-size: 0.9rem;
-    width: 100%;
-    margin-bottom: 0.5rem;
-  }
-  
-  .modern-grid {
-    gap: 1rem;
-    grid-template-columns: 1fr !important;
-  }
-  
-  /* Better table responsiveness */
-  .modern-table {
-    font-size: 0.75rem !important;
-    min-width: 100% !important;
-  }
-  
-  .modern-table td, .modern-table th {
-    padding: 0.5rem 0.25rem !important;
-    font-size: 0.75rem !important;
-    min-width: 80px !important;
-  }
-  
-  /* Ensure table containers are scrollable */
-  .table-container {
-    width: 100% !important;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    margin: 0 !important;
-  }
-  
-  /* Clean mobile cards - remove all visual dividers */
-  .modern-card {
-    margin: 0 !important;
-    padding: 0 !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    border: none !important;
-    background: transparent !important;
-  }
-  
-  /* Clean report sections on mobile - remove all visual dividers */
-  .bg-white.rounded-xl.shadow-lg.border-l-4,
-  .bg-gradient-to-br.from-purple-50.to-white.rounded-xl.shadow-lg.border-l-4,
-  .bg-white.rounded-2xl.shadow-xl {
-    background: transparent !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    border: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-  
-  /* Allow horizontal scrolling for overflow content */
-  .overflow-hidden {
-    overflow: visible !important;
-  }
-  
-  /* Action buttons in tables */
-  .modern-table .flex.flex-col.gap-2 {
-    min-width: 150px !important;
-  }
-  
-  .modern-table .modern-btn {
-    padding: 0.5rem 0.75rem !important;
-    font-size: 0.75rem !important;
-    width: 100% !important;
-    margin-bottom: 0.25rem !important;
-  }
-  
-  /* Form improvements */
-  .modern-input, .modern-select {
-    width: 100% !important;
-    margin-bottom: 1rem;
-  }
-  
-  /* Navigation improvements */
-  #nav-menu {
-    padding: 1rem !important;
-  }
-  
-  /* Better spacing for action buttons */
-  .flex.flex-col.gap-2 {
-    gap: 0.75rem !important;
-  }
-  
-  .flex.gap-2 {
-    flex-direction: column !important;
-    gap: 0.5rem !important;
-  }
-}
-
-/* Extra small devices (phones in portrait mode) */
-@media (max-width: 480px) {
-  .container {
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
-  }
-  
-  .modern-card {
-    padding: 1rem !important;
-    margin: 0 !important;
-  }
-  
-  .page-title {
-    font-size: 1.75rem;
-    line-height: 1.2;
-  }
-  
-  .page-subtitle {
-    font-size: 0.875rem;
-  }
-  
-  .modern-btn {
-    padding: 0.75rem 1rem;
-    font-size: 0.875rem;
-  }
-  
-  /* Improve table readability on very small screens */
-  .modern-table {
-    font-size: 0.75rem !important;
-  }
-  
-  .modern-table td, .modern-table th {
-    padding: 0.5rem 0.25rem !important;
-  }
-}
-
-/* Force Light Mode - Warm Tones */
-.modern-card {
-  background: #fefefe !important;
-  color: #1f2937 !important;
-  border: 1px solid #f3f4f6 !important;
-}
-
-.modern-input,
-.modern-select {
-  background: #ffffff !important;
-  color: #1f2937 !important;
-  border-color: #e5e7eb !important;
-}
-
-.modern-input:focus,
-.modern-select:focus {
-  background: #ffffff !important;
-  color: #1f2937 !important;
-  border-color: #3b82f6 !important;
 }
 
 /* Accessibility Improvements */
@@ -1283,28 +943,6 @@ body:lang(en), html:lang(en), [lang="en"] {
   }
 }
 
-/* Additional Compact Mobile Optimizations */
-body {
-  line-height: 1.5;
-  font-size: 0.95rem;
-}
-
-.container {
-  padding: 0 1rem;
-  max-width: 100%;
-}
-
-/* Compact form elements */
-.form-group {
-  margin-bottom: 1rem;
-}
-
-.form-label {
-  font-size: 0.9rem;
-  font-weight: 500;
-  margin-bottom: 0.25rem;
-}
-
 /* Compact buttons in button groups */
 .btn-group {
   display: flex;
@@ -1317,45 +955,28 @@ body {
   min-width: 120px;
 }
 
-/* Compact spacing utilities */
-.mb-1 { margin-bottom: 0.25rem !important; }
-.mb-2 { margin-bottom: 0.5rem !important; }
-.mb-3 { margin-bottom: 0.75rem !important; }
-.mb-4 { margin-bottom: 1rem !important; }
-
-.mt-1 { margin-top: 0.25rem !important; }
-.mt-2 { margin-top: 0.5rem !important; }
-.mt-3 { margin-top: 0.75rem !important; }
-.mt-4 { margin-top: 1rem !important; }
-
-.p-1 { padding: 0.25rem !important; }
-.p-2 { padding: 0.5rem !important; }
-.p-3 { padding: 0.75rem !important; }
-.p-4 { padding: 1rem !important; }
-
 /* Mobile-optimized text sizes */
 @media (max-width: 480px) {
   body {
     font-size: 0.9rem;
   }
-  
+
   .page-title {
     font-size: 1.5rem;
   }
-  
+
   .page-subtitle {
     font-size: 0.9rem;
   }
-  
+
   .modern-card {
     padding: 0.75rem;
     margin-bottom: 0.75rem;
   }
-  
+
   .btn-group .modern-btn {
     min-width: 100px;
     font-size: 0.85rem;
     padding: 0.6rem 1rem;
   }
 }
-
