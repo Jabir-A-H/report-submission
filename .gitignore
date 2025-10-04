@@ -62,8 +62,6 @@ website_errors.txt
 migrations/
 
 
-
-/tunnel_output.txt
-
 /.lh
 /export.sql
+/.github

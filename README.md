@@ -6,21 +6,32 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4.0+-38B2AC.svg)](https://tailwindcss.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13+-336791.svg)](https://postgresql.org/)
 [![Render](https://img.shields.io/badge/Deployed_on-Render-46E3B7.svg)](https://render.com/)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Jabir-A-H/report-submission)
 
+A comprehensive Bengali report submission and management system. This application enables organizations to collect, manage, and analyze reports from different zones with user authentication, role-based access control, and comprehensive reporting features.
 
-A comprehensive Bengali/Bangla report submission and management system built with Flask. This application enables organizations to collect, manage, and analyze reports from different zones with user authentication, role-based access control, and comprehensive reporting features.
+## 🌐 Live Application
+
+<div align="center">
+  <a href="https://report-submission.onrender.com">
+    <img src="https://img.shields.io/badge/🌐_Visit_Live_Site-46E3B7?style=for-the-badge&logo=render&logoColor=white" alt="Live Site"/>
+  </a>
+</div>
 
 ## 📚 Table of Contents
 
+- [🌐 Live Application](#-live-application)
 - [✨ Features](#-features)
 - [🛠️ Technology Stack](#️-technology-stack)
-- [🚀 Quick Start](#-quick-start)
+- [� GitHub Stats](#-github-stats)
+- [�🚀 Quick Start](#-quick-start)
 - [📖 Usage Guide](#-usage-guide)
 - [🔧 Development](#-development)
 - [🚀 Deployment](#-deployment)
 - [🤝 Contributing](#-contributing)
 - [📄 API Reference](#-api-reference)
 - [🔍 Troubleshooting](#-troubleshooting)
+- [🌟 Connect With Me](#-connect-with-me)
 - [📜 License](#-license)
 - [🙏 Acknowledgments](#-acknowledgments)
 
@@ -97,7 +108,15 @@ A comprehensive Bengali/Bangla report submission and management system built wit
 - **Playwright** - Browser automation for testing
 - **Python-dotenv** - Environment variable management
 
-## 🚀 Quick Start
+## � GitHub Stats
+
+<div align="center">
+  <img src="https://github-readme-stats.vercel.app/api?username=Jabir-A-H&repo=report-submission&show_icons=true&theme=radical" alt="GitHub Stats"/>
+  <br>
+  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=Jabir-A-H&repo=report-submission&layout=compact&theme=radical" alt="Top Languages"/>
+</div>
+
+## �🚀 Quick Start
 
 ### Prerequisites
 - Python 3.8 or higher (tested with Python 3.12)
@@ -166,15 +185,15 @@ The application will be available at `http://localhost:5000`
 
 The application requires the following environment variables:
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `SECRET_KEY` | Flask secret key for sessions | `T-3Cfg718\X}Q,ztG.h(D;_-t>[5VoD/` |
-| `user` | Database username | `postgres.abcdefgh` |
-| `password` | Database password | `your_secure_password` |
-| `host` | Database host | `aws-1-us-east-2.pooler.supabase.com` |
-| `port` | Database port | `5432` |
-| `dbname` | Database name | `postgres` |
-| `RENDER` | Production flag | `true` (only for production) |
+| Variable     | Description                   | Example                               |
+| ------------ | ----------------------------- | ------------------------------------- |
+| `SECRET_KEY` | Flask secret key for sessions | `T-3Cfg718\X}Q,ztG.h(D;_-t>[5VoD/`    |
+| `user`       | Database username             | `postgres.abcdefgh`                   |
+| `password`   | Database password             | `your_secure_password`                |
+| `host`       | Database host                 | `aws-1-us-east-2.pooler.supabase.com` |
+| `port`       | Database port                 | `5432`                                |
+| `dbname`     | Database name                 | `postgres`                            |
+| `RENDER`     | Production flag               | `true` (only for production)          |
 
 > 💡 **Tip**: Use `python generate_secret_key.py` to generate a secure SECRET_KEY
 
@@ -228,19 +247,12 @@ The application requires the following environment variables:
 
 ### Testing
 
-```bash
-# Run application tests
-python test_app_simple.py
+The application includes built-in functionality testing. For manual testing:
 
-# Run login tests
-python test_login.py
-
-# Run comprehensive tests
-python test_everything.py
-
-# Database verification
-python verify_db.py
-```
+- Start the application: `python app.py`
+- Test login with admin credentials
+- Test report submission and export features
+- Test administrative functions (user/zone management)
 
 ### Code Structure
 
@@ -296,130 +308,26 @@ gunicorn --config gunicorn.conf.py app:app
 
 ## 🤝 Contributing
 
-We welcome contributions to improve the Report Submission System! Here's how you can contribute:
-
-### Getting Started
-
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/your-feature-name`
-3. **Make your changes** following the coding standards
-4. **Test your changes** thoroughly
-5. **Commit your changes**: `git commit -m "Add your feature"`
-6. **Push to the branch**: `git push origin feature/your-feature-name`
-7. **Open a Pull Request**
-
-### Coding Standards
-
-- Follow PEP 8 for Python code
-- Use meaningful variable and function names
-- Add comments for complex logic
-- Ensure Bengali text uses proper Unicode encoding
-- Test all UI changes across different screen sizes
-
-### Reporting Issues
-
-- Use the GitHub Issues page to report bugs
-- Provide detailed description of the issue
-- Include steps to reproduce the problem
-- Add screenshots for UI-related issues
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed contribution guidelines, development setup, and coding standards.
 
 ## 📄 API Reference
 
-### Authentication Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | Landing page |
-| GET/POST | `/login` | User authentication |
-| POST | `/logout` | User logout |
-| GET/POST | `/register` | User registration |
-
-### Report Management
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/dashboard` | User dashboard |
-| GET | `/report` | Report summary |
-| GET/POST | `/report/header` | Report header information |
-| GET/POST | `/report/courses` | Course reports |
-| GET/POST | `/report/organizational` | Organizational reports |
-| GET/POST | `/report/personal` | Personal reports |
-| GET/POST | `/report/meetings` | Meeting reports |
-| GET/POST | `/report/extras` | Extra activities reports |
-| GET/POST | `/report/comments` | Report comments |
-
-### Administration
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET/POST | `/users` | User management |
-| GET/POST | `/zones` | Zone management |
-| POST | `/delete_zone/<id>` | Delete zone |
-| GET/POST | `/city_report` | City-level reports |
-| GET/POST | `/city_report/override` | City report overrides |
+Complete API documentation is available in [API.md](API.md), including all endpoints, methods, and descriptions.
 
 ## 🔍 Troubleshooting
 
-### Common Issues
+For common issues and solutions, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
 
-**Database Connection Error**
-```bash
-# Verify database credentials in .env file
-python verify_db.py
+## 🌟 Connect With Me
 
-# Test database connection
-python db_test.py
-```
-
-**CSS Not Loading**
-```bash
-# Install Node.js dependencies first
-npm install
-
-# Rebuild CSS assets
-npm run build-css-prod
-
-# For development with watch mode
-npm run build-css
-```
-
-**Import/Module Errors**
-```bash
-# Ensure virtual environment is activated
-source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate     # Windows
-
-# Reinstall dependencies
-pip install -r requirements.txt
-```
-
-**Permission Denied Errors**
-- Check file permissions: `chmod +x build.sh`
-- Ensure virtual environment is activated
-- Verify all dependencies are installed
-- On Windows, run terminal as administrator if needed
-
-**Bengali Text Display Issues**
-- Ensure proper UTF-8 encoding in your editor
-- Check if Tiro Bangla font is loading properly
-- Verify browser language settings
-- Clear browser cache and reload
-
-**Port Already in Use**
-```bash
-# Find and kill process using port 5000
-lsof -ti:5000 | xargs kill -9  # Linux/Mac
-netstat -ano | findstr :5000   # Windows
-
-# Or use a different port
-export PORT=8000 && python app.py
-```
-
-### Getting Help
-
-- Check the [Issues](https://github.com/Jabir-A-H/report-submission/issues) page
-- Review [DEPLOYMENT.md](DEPLOYMENT.md) for deployment-specific issues
-- Contact the development team
+<div align="center">
+  <a href="https://github.com/Jabir-A-H">
+    <img src="https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white" alt="GitHub"/>
+  </a>
+  <a href="https://linkedin.com/in/jabir-abdullah-haian">
+    <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn"/>
+  </a>
+</div>
 
 ## 📜 License
 
@@ -439,7 +347,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 For support and questions:
 - 📧 Create an issue on GitHub
 - 📖 Check the documentation in this README
-- 🚀 Review deployment guide in DEPLOYMENT.md
+- 🚀 Review deployment guide in [DEPLOYMENT.md](DEPLOYMENT.md)
+- 🔧 See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common issues
+- 📄 Check [API.md](API.md) for endpoint documentation
+- 🤝 Read [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines
 
 ---
 
