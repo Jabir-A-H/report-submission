@@ -1,5 +1,5 @@
-{% extends 'base.html' %} {% block title %}রিপোর্ট ব্যবস্থাপনা{% endblock %} {%
-block content %}
+{% extends 'base.html' %} {% import 'macros.html' as macros %} {% block title
+%}রিপোর্ট ব্যবস্থাপনা{% endblock %} {% block content %}
 <div class="container mx-auto px-4 py-8">
   <div class="page-header">
     <h1 class="page-title">রিপোর্ট ব্যবস্থাপনা</h1>
@@ -44,10 +44,96 @@ block content %}
 
   <!-- Reports List (like zone_reports) -->
   <div class="mx-auto max-w-5xl">
-    <h2 class="text-3xl font-bold text-gradient mb-6">সকল জোন রিপোর্ট</h2>
+    <div
+      class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6"
+    >
+      <h2 class="text-3xl font-bold text-gradient">সকল জোন রিপোর্ট</h2>
+      {% if pagination %}
+      <div class="mt-4 sm:mt-0 text-sm text-gray-600">
+        <span class="font-medium">{{ pagination.total }}</span> টি রিপোর্ট •
+        পৃষ্ঠা <span class="font-medium">{{ pagination.page }}</span> /
+        <span class="font-medium">{{ pagination.pages }}</span>
+      </div>
+      {% endif %}
+    </div>
     {% if reports and reports|length > 0 %}
+    <!-- Per-page selector -->
+    <div
+      class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 p-4 bg-gray-50 rounded-lg"
+    >
+      <div class="text-sm text-gray-600 mb-2 sm:mb-0">
+        প্রতি পৃষ্ঠায় দেখান:
+      </div>
+      <div class="flex items-center space-x-2">
+        {% for size in [10, 25, 50, 100] %}
+        <a
+          href="{{ url_for('dashboard', page=1, per_page=size, month=month, year=year, report_type=report_type) }}"
+          class="px-3 py-1 text-sm rounded-md transition-colors {% if pagination and pagination.per_page == size %}bg-purple-600 text-white{% else %}bg-white text-gray-700 hover:bg-purple-50 border border-gray-300{% endif %}"
+        >
+          {{ size }}
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+
     <div class="modern-card">
-      <div class="table-container">
+      <!-- Mobile Card View -->
+      <div class="block md:hidden space-y-4">
+        {% for report in reports %}
+        <div
+          class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow"
+        >
+          <div class="flex justify-between items-start mb-3">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">
+                Report #{{ report.id }}
+              </h3>
+              <p class="text-sm text-gray-600">{{ report.report_type }}</p>
+            </div>
+            <a
+              href="{{ url_for('report_summary') }}?report_id={{ report.id }}"
+              class="modern-btn btn-primary text-sm px-3 py-2"
+            >
+              <svg
+                class="w-4 h-4 inline mr-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              View
+            </a>
+          </div>
+          <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span class="font-medium text-gray-700">Zone:</span>
+              <span class="text-gray-900"
+                >{{ report.zone.name if report.zone else 'N/A' }}</span
+              >
+            </div>
+            <div>
+              <span class="font-medium text-gray-700">Month:</span>
+              <span class="text-gray-900"
+                >{{ report.month if report.month else '-' }}</span
+              >
+            </div>
+            <div class="col-span-2">
+              <span class="font-medium text-gray-700">Year:</span>
+              <span class="text-gray-900">{{ report.year }}</span>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Desktop Table View -->
+      <div class="hidden md:block table-container">
         <table class="modern-table">
           <thead>
             <tr>
@@ -93,6 +179,13 @@ block content %}
           </tbody>
         </table>
       </div>
+      {{ macros.render_pagination(pagination, endpoint='dashboard', month=month,
+      year=year, report_type=report_type) }} {% if pagination and
+      pagination.pages == 1 %}
+      <div class="mt-2 text-center text-sm text-gray-500">
+        📄 Showing all {{ pagination.total }} reports (Page 1 of 1)
+      </div>
+      {% endif %}
     </div>
     {% else %}
     <div class="modern-alert alert-warning">কোন রিপোর্ট পাওয়া যায়নি।</div>

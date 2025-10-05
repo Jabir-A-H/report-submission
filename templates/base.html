@@ -12,6 +12,11 @@
     <script src="{{ url_for('static', filename='scripts.js') }}"></script>
   </head>
   <body class="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
+    <!-- Skip Navigation Link for Accessibility -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-purple-600 text-white px-4 py-2 rounded-md z-50 transition-all duration-200 hover:bg-purple-700">
+      মূল কন্টেন্টে যান
+    </a>
+
     <header class="bg-white/90 backdrop-blur-md shadow-lg border-b border-purple-100 sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-14">
@@ -20,8 +25,10 @@
           </div>
           
           <!-- Mobile menu button -->
-          <button id="nav-toggle" class="md:hidden inline-flex items-center justify-center p-2 rounded-md text-purple-600 hover:text-purple-800 hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-500" aria-label="মেনু খুলুন">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          <button id="nav-toggle" class="md:hidden inline-flex items-center justify-center p-3 rounded-lg text-purple-600 hover:text-purple-800 hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200 min-h-[44px] min-w-[44px]" aria-label="মেনু খুলুন" aria-expanded="false">
+            <svg id="hamburger-icon" class="w-6 h-6 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
           </button>
           
           <!-- Desktop navigation -->
@@ -63,55 +70,133 @@
         </div>
         
         <!-- Mobile navigation menu -->
-        <div id="nav-menu" class="hidden md:hidden py-3 border-t border-purple-100 bg-gradient-to-r from-purple-50/50 to-blue-50/50">
-          {% if current_user.is_authenticated %}
-            {% if current_user.role == 'admin' %}
-              {{ macros.context_link_mobile('dashboard', 'হোম', year=year, month=month, report_type=report_type) }}
-              <a href="/city_report" class="block py-2 text-sm text-gray-700 hover:text-purple-600 {% if request.endpoint == 'city_report_page' %}text-purple-600 font-medium bg-purple-50 -mx-2 px-2 rounded{% endif %}">সিটি রিপোর্ট</a>
-              <a href="/users" class="block py-2 text-sm text-gray-700 hover:text-blue-600 {% if request.endpoint == 'admin_users' %}text-blue-600 font-medium bg-blue-50 -mx-2 px-2 rounded{% endif %}">ইউজার</a>
-              <a href="/zones" class="block py-2 text-sm text-gray-700 hover:text-indigo-600 {% if request.endpoint == 'admin_zones' %}text-indigo-600 font-medium bg-indigo-50 -mx-2 px-2 rounded{% endif %}">জোন</a>
-              <a href="/help" class="block py-2 text-sm text-gray-700 hover:text-gray-900 {% if request.endpoint == 'help' %}text-gray-900 font-medium bg-gray-50 -mx-2 px-2 rounded{% endif %}">সহায়তা</a>
-            {% else %}
-              {{ macros.context_link_mobile('dashboard', 'হোম', year=year, month=month, report_type=report_type) }}
-              <a href="/report" class="block py-2 text-sm text-gray-700 hover:text-purple-600 {% if request.endpoint in ['report_summary', 'report_header', 'report_courses', 'report_organizational', 'report_personal', 'report_meetings', 'report_extras', 'report_comments'] %}text-purple-600 font-medium bg-purple-50 -mx-2 px-2 rounded{% endif %}">রিপোর্ট</a>
-              <a href="/help" class="block py-2 text-sm text-gray-700 hover:text-gray-900 {% if request.endpoint == 'help' %}text-gray-900 font-medium bg-gray-50 -mx-2 px-2 rounded{% endif %}">সহায়তা</a>
-            {% endif %}
-            
-            <!-- Mobile user info -->
-            <div class="pt-3 mt-3 border-t border-purple-200">
-              <div class="text-sm text-gray-600 mb-2 bg-purple-50 p-3 rounded-lg">
-                <div><span class="font-semibold text-purple-800">নাম:</span> {{ current_user.name }}</div>
-                <div><span class="font-semibold text-purple-800">জোন:</span> {% if current_user.zone and current_user.zone.name %}{{ current_user.zone.name }}{% else %}জোন নির্ধারিত নেই{% endif %}</div>
+        <div id="nav-menu" class="hidden md:hidden overflow-hidden transition-all duration-300 ease-in-out max-h-0 opacity-0">
+          <div class="py-4 border-t border-purple-100 bg-gradient-to-r from-purple-50/80 to-blue-50/80 backdrop-blur-sm">
+            {% if current_user.is_authenticated %}
+              {% if current_user.role == 'admin' %}
+                <div class="space-y-1 mb-4">
+                  {{ macros.context_link_mobile('dashboard', 'হোম', year=year, month=month, report_type=report_type) }}
+                  <a href="/city_report" class="mobile-nav-link {% if request.endpoint == 'city_report_page' %}active{% endif %}">সিটি রিপোর্ট</a>
+                  <a href="/users" class="mobile-nav-link {% if request.endpoint == 'admin_users' %}active{% endif %}">ইউজার</a>
+                  <a href="/zones" class="mobile-nav-link {% if request.endpoint == 'admin_zones' %}active{% endif %}">জোন</a>
+                  <a href="/help" class="mobile-nav-link {% if request.endpoint == 'help' %}active{% endif %}">সহায়তা</a>
+                </div>
+              {% else %}
+                <div class="space-y-1 mb-4">
+                  {{ macros.context_link_mobile('dashboard', 'হোম', year=year, month=month, report_type=report_type) }}
+                  <a href="/report" class="mobile-nav-link {% if request.endpoint in ['report_summary', 'report_header', 'report_courses', 'report_organizational', 'report_personal', 'report_meetings', 'report_extras', 'report_comments'] %}active{% endif %}">রিপোর্ট</a>
+                  <a href="/help" class="mobile-nav-link {% if request.endpoint == 'help' %}active{% endif %}">সহায়তা</a>
+                </div>
+              {% endif %}
+
+              <!-- Mobile user info -->
+              <div class="pt-4 mt-4 border-t border-purple-200">
+                <!-- Mobile user info toggle button -->
+                <button id="mobile-user-info-btn" class="w-full flex items-center justify-between bg-white/60 backdrop-blur-sm rounded-lg p-4 mb-3 shadow-sm hover:bg-white/70 transition-colors" aria-label="ইউজার তথ্য দেখান/লুকান" aria-expanded="false">
+                  <div class="flex items-center space-x-2">
+                    <span class="text-sm font-semibold text-purple-800">ইউজার তথ্য</span>
+                    <span class="text-xs text-gray-600 bg-purple-100 px-2 py-1 rounded-full">{{ current_user.user_id }}</span>
+                  </div>
+                  <svg id="mobile-user-chevron" class="w-4 h-4 text-purple-600 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                  </svg>
+                </button>
+                
+                <!-- Mobile user info details (collapsible) -->
+                <div id="mobile-user-info-details" class="hidden bg-white/60 backdrop-blur-sm rounded-lg p-4 mb-3 shadow-sm">
+                  <div class="text-sm text-gray-700 space-y-2">
+                    <div class="flex justify-between items-center">
+                      <span class="font-semibold text-purple-800">নাম:</span>
+                      <span class="text-right">{{ current_user.name }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span class="font-semibold text-purple-800">আইডি:</span>
+                      <span class="text-right">{{ current_user.user_id }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span class="font-semibold text-purple-800">ইমেইল:</span>
+                      <span class="text-right text-xs break-all">{{ current_user.email }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span class="font-semibold text-purple-800">জোন:</span>
+                      <span class="text-right">{% if current_user.zone and current_user.zone.name %}{{ current_user.zone.name }}{% else %}জোন নির্ধারিত নেই{% endif %}</span>
+                    </div>
+                  </div>
+                </div>
+                <a href="/logout" class="mobile-nav-link mobile-nav-logout">লগআউট</a>
               </div>
-              <a href="/logout" class="block py-2 text-sm text-red-600 font-semibold">লগআউট</a>
-            </div>
-          {% else %}
-            <a href="/login" class="block py-2 text-sm text-gray-700 hover:text-purple-600">লগইন</a>
-            <a href="/register" class="block py-2 text-sm text-purple-600 font-semibold">নতুন রেজিস্ট্রেশন</a>
-          {% endif %}
+            {% else %}
+              <div class="space-y-2">
+                <a href="/login" class="mobile-nav-link">লগইন</a>
+                <a href="/register" class="mobile-nav-link mobile-nav-primary">নতুন রেজিস্ট্রেশন</a>
+              </div>
+            {% endif %}
+          </div>
         </div>
       </div>
     </header>
     <script>
-      // Hamburger menu toggle and keyboard accessibility
+      // Enhanced Mobile Navigation with Animations and Accessibility
       document.addEventListener('DOMContentLoaded', function() {
         const navToggle = document.getElementById('nav-toggle');
         const navMenu = document.getElementById('nav-menu');
+        const hamburgerIcon = document.getElementById('hamburger-icon');
         const userInfoBtn = document.getElementById('user-info-btn');
         const userInfoDropdown = document.getElementById('user-info-dropdown');
+        const mobileUserInfoBtn = document.getElementById('mobile-user-info-btn');
+        const mobileUserInfoDetails = document.getElementById('mobile-user-info-details');
+        const mobileUserChevron = document.getElementById('mobile-user-chevron');
         let userInfoOpen = false;
-        // Hamburger menu
+        let mobileUserInfoOpen = false;
+        let menuOpen = false;
+
+        // Enhanced hamburger menu with animations
         if (navToggle && navMenu) {
-          navToggle.addEventListener('click', function() {
-            navMenu.classList.toggle('hidden');
+          navToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            toggleMobileMenu();
           });
+
           navToggle.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' || e.key === ' ') {
-              navMenu.classList.toggle('hidden');
+              e.preventDefault();
+              toggleMobileMenu();
             }
           });
         }
-        // User info toggle (collapsible on mobile, dropdown on desktop)
+
+        function toggleMobileMenu() {
+          menuOpen = !menuOpen;
+
+          if (menuOpen) {
+            navMenu.classList.remove('hidden');
+            // Trigger animation after a brief delay
+            setTimeout(() => {
+              navMenu.style.maxHeight = '500px';
+              navMenu.style.opacity = '1';
+            }, 10);
+
+            // Animate hamburger to X
+            hamburgerIcon.classList.add('hamburger-x');
+            navToggle.setAttribute('aria-expanded', 'true');
+            navToggle.setAttribute('aria-label', 'মেনু বন্ধ করুন');
+          } else {
+            navMenu.style.maxHeight = '0px';
+            navMenu.style.opacity = '0';
+
+            // Hide menu after animation
+            setTimeout(() => {
+              navMenu.classList.add('hidden');
+            }, 300);
+
+            // Animate X back to hamburger
+            hamburgerIcon.classList.remove('hamburger-x');
+            navToggle.setAttribute('aria-expanded', 'false');
+            navToggle.setAttribute('aria-label', 'মেনু খুলুন');
+          }
+        }
+
+        // Enhanced user info toggle with better mobile handling
         if (userInfoBtn && userInfoDropdown) {
           userInfoBtn.addEventListener('click', function(e) {
             e.stopPropagation();
@@ -122,6 +207,8 @@
               userInfoDropdown.classList.toggle('hidden', !userInfoOpen);
             }
           });
+
+          // Close dropdown when clicking outside
           document.addEventListener('click', function(e) {
             if (window.innerWidth >= 768 && userInfoOpen) {
               if (!userInfoBtn.contains(e.target) && !userInfoDropdown.contains(e.target)) {
@@ -131,17 +218,36 @@
             }
           });
         }
-        // Highlight active nav link
-        const links = document.querySelectorAll('.nav-link');
-        links.forEach(link => {
-          if (link.href === window.location.href) {
-            link.classList.add('border-b-2', 'border-blue-500', 'text-blue-900');
+
+        // Mobile user info toggle
+        if (mobileUserInfoBtn && mobileUserInfoDetails && mobileUserChevron) {
+          mobileUserInfoBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            mobileUserInfoOpen = !mobileUserInfoOpen;
+            mobileUserInfoDetails.classList.toggle('hidden', !mobileUserInfoOpen);
+            mobileUserChevron.classList.toggle('rotate-180', mobileUserInfoOpen);
+            mobileUserInfoBtn.setAttribute('aria-expanded', mobileUserInfoOpen.toString());
+          });
+        }
+
+        // Close mobile menu on escape key
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape' && menuOpen) {
+            toggleMobileMenu();
+          }
+        });
+
+        // Highlight active nav link (improved)
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.mobile-nav-link').forEach(link => {
+          if (link.getAttribute('href') === currentPath) {
+            link.classList.add('active');
           }
         });
       });
     </script>
     </header>
-    <main class="mx-auto max-w-screen-xl px-4 py-4 mb-4 animate-fade-in">
+    <main id="main-content" class="mx-auto max-w-screen-xl px-4 py-4 mb-4 animate-fade-in">
       {% macro context_link(endpoint, text) -%}
         {%- set args = dict(year=year, month=month, report_type=report_type) -%}
         <a href="{{ url_for(endpoint, **args) }}" class="modern-btn btn-secondary flex items-center gap-1 px-3 py-2 rounded-lg shadow">{{ text }}</a>
