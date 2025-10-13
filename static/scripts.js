@@ -315,3 +315,4 @@ function updateDashboardSections(selectedType, selectedYear) {
 function showSaveSuccess() {
     showAlert('সেভ সফল হয়েছে!', 'success');
 }
+
