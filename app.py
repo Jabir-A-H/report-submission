@@ -609,7 +609,7 @@ def dashboard():
             per_page = min(max(per_page, 10), 100)
 
             # Paginate reports for better performance
-            pagination = Report.query.join(Zone).order_by(Report.id.desc()).paginate(
+            pagination = Report.query.outerjoin(Zone).order_by(Report.id.desc()).paginate(
                 page=page, per_page=per_page, error_out=False
             )
             reports = pagination.items
