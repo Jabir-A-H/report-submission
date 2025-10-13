@@ -5,14 +5,14 @@ from flask import (
     redirect,
     url_for,
     flash,
-    jsonify,  # type: ignore
-    send_file,  # type: ignore
+    jsonify,
+    send_file,
 )
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import (
     LoginManager,
-    login_user,  # type: ignore
-    login_required,  # type: ignore
+    login_user,
+    login_required,
     logout_user,
     current_user,
     UserMixin,
@@ -601,8 +601,19 @@ def dashboard():
 
     if is_admin():
         try:
-            # Only load recent reports for better performance (last 50 reports)
-            reports = Report.query.order_by(Report.id.desc()).limit(50).all()
+            # Pagination parameters
+            page = request.args.get("page", 1, type=int)
+            per_page = request.args.get("per_page", 25, type=int)
+
+            # Ensure per_page is within reasonable limits
+            per_page = min(max(per_page, 10), 100)
+
+            # Paginate reports for better performance
+            pagination = Report.query.outerjoin(Zone).order_by(Report.id.desc()).paginate(
+                page=page, per_page=per_page, error_out=False
+            )
+            reports = pagination.items
+
             city_report_url = url_for("city_report_page")
             return render_template(
                 "index_admin.html",
@@ -612,6 +623,7 @@ def dashboard():
                 report_type=report_type,
                 report_types=report_types,
                 reports=reports,
+                pagination=pagination,
                 city_report_url=city_report_url,
             )
         except psycopg2.OperationalError as e:
@@ -626,6 +638,7 @@ def dashboard():
                 report_type=report_type,
                 report_types=report_types,
                 reports=[],
+                pagination=None,
                 city_report_url="#",
             )
         except Exception as e:
@@ -640,6 +653,7 @@ def dashboard():
                 report_type=report_type,
                 report_types=report_types,
                 reports=[],
+                pagination=None,
                 city_report_url="#",
             )
     else:
