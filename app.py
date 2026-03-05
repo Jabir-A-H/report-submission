@@ -568,7 +568,8 @@ def health_check():
     """Lightweight health check endpoint — used by UptimeRobot to keep
     Render awake and Supabase active by making a minimal DB query."""
     try:
-        db.session.execute(text("SELECT 1"))
+        result = db.session.execute(text("SELECT 1"))
+        result.scalar()
         return jsonify({"status": "ok", "db": "connected"}), 200
     except Exception:
         app.logger.exception("Health check failed")
