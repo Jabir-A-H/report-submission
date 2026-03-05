@@ -563,6 +563,19 @@ def get_zones_cached():
 # --- Routes ---
 
 
+@app.route("/health")
+def health_check():
+    """Lightweight health check endpoint — used by UptimeRobot to keep
+    Render awake and Supabase active by making a minimal DB query."""
+    try:
+        result = db.session.execute(text("SELECT 1"))
+        result.scalar()
+        return jsonify({"status": "ok", "db": "connected"}), 200
+    except Exception:
+        app.logger.exception("Health check failed")
+        return jsonify({"status": "error"}), 500
+
+
 @app.route("/")
 def index():
     """Landing page - shows different content based on authentication status"""
