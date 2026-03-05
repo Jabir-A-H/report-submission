@@ -570,8 +570,9 @@ def health_check():
     try:
         db.session.execute(text("SELECT 1"))
         return jsonify({"status": "ok", "db": "connected"}), 200
-    except Exception as e:
-        return jsonify({"status": "error", "detail": str(e)}), 500
+    except Exception:
+        app.logger.exception("Health check failed")
+        return jsonify({"status": "error"}), 500
 
 
 @app.route("/")
