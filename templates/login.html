@@ -50,30 +50,14 @@
       <!-- Login Form Card -->
       <div class="modern-card p-8">
         <form id="loginForm" method="POST" class="space-y-8" autocomplete="off">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          {{ form.hidden_tag() }}
           <div class="form-group">
-            <label for="identifier" class="form-label required"
-              >ইমেইল অথবা ইউজার আইডি</label
-            >
-            <input
-              type="text"
-              name="identifier"
-              id="identifier"
-              required
-              class="modern-input"
-              placeholder="example@email.com বা ০০১"
-            />
+            {{ form.identifier.label(class="form-label required") }}
+            {{ form.identifier(class="modern-input", placeholder="example@email.com বা ০০১") }}
           </div>
           <div class="form-group">
-            <label for="password" class="form-label required">পাসওয়ার্ড</label>
-            <input
-              type="password"
-              name="password"
-              id="password"
-              required
-              class="modern-input"
-              placeholder="পাসওয়ার্ড লিখুন"
-            />
+            {{ form.password.label(class="form-label required") }}
+            {{ form.password(class="modern-input", placeholder="পাসওয়ার্ড লিখুন") }}
           </div>
           <button
             type="submit"
@@ -101,7 +85,7 @@
         >
           নতুন ব্যবহারকারী?
           <a
-            href="/register"
+            href="{{ url_for('auth.register') }}"
             class="text-gradient font-semibold hover:underline transition-all"
             >নিবন্ধন করুন</a
           >

@@ -44,56 +44,26 @@
           class="space-y-8"
           autocomplete="off"
         >
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          {{ form.hidden_tag() }}
+          
           <div class="form-group">
-            <label for="name" class="form-label required">নাম</label>
-            <input
-              type="text"
-              name="name"
-              id="name"
-              required
-              class="modern-input"
-              placeholder="আপনার পূর্ণ নাম লিখুন"
-            />
+            {{ form.name.label(class="form-label required") }}
+            {{ form.name(class="modern-input", placeholder="আপনার পূর্ণ নাম লিখুন") }}
           </div>
+
           <div class="form-group">
-            <label for="email" class="form-label required">ইমেইল</label>
-            <input
-              type="email"
-              name="email"
-              id="email"
-              required
-              class="modern-input"
-              placeholder="example@email.com"
-            />
+            {{ form.email.label(class="form-label required") }}
+            {{ form.email(class="modern-input", placeholder="example@email.com") }}
           </div>
+
           <div class="form-group">
-            <label for="password" class="form-label required">পাসওয়ার্ড</label>
-            <input
-              type="password"
-              name="password"
-              id="password"
-              required
-              minlength="8"
-              class="modern-input"
-              placeholder="কমপক্ষে ৮ অক্ষর"
-            />
+            {{ form.password.label(class="form-label required") }}
+            {{ form.password(class="modern-input", placeholder="কমপক্ষে ৬ অক্ষর") }}
           </div>
+
           <div>
-            <label for="zone" class="block text-sm font-semibold text-gray-700 mb-2"
-              >জোন নির্বাচন করুন <span class="text-red-500">*</span></label
-            >
-            <select
-              name="zone_id"
-              id="zone"
-              required
-              class="modern-input modern-select"
-            >
-              <option value="" disabled selected>জোন নির্বাচন করুন</option>
-              {% for zone in zones %}
-              <option value="{{ zone.id }}">{{ zone.name }}</option>
-              {% endfor %}
-            </select>
+            {{ form.zone_id.label(class="block text-sm font-semibold text-gray-700 mb-2") }}
+            {{ form.zone_id(class="modern-input modern-select") }}
           </div>
           <button
             type="submit"
@@ -118,7 +88,7 @@
         
         <div class="mt-6 pt-6 border-t border-gray-200 text-center text-gray-600">
           ইতিমধ্যে নিবন্ধিত?
-          <a href="/login" class="text-gradient font-semibold hover:underline transition-all"
+          <a href="{{ url_for('auth.login') }}" class="text-gradient font-semibold hover:underline transition-all"
             >লগইন করুন</a
           >
         </div>
