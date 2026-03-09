@@ -21,7 +21,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-14">
           <div class="flex items-center">
-            <a href="{% if current_user.is_authenticated %}{{ url_for('dashboard', year=year, month=month, report_type=report_type) }}{% else %}/{% endif %}" class="text-lg font-bold text-gradient tracking-tight" aria-label="হোম">রিপোর্ট সাবমিশন</a>
+            <a href="{% if current_user.is_authenticated %}{{ url_for('reports.dashboard', year=year, month=month, report_type=report_type) }}{% else %}/{% endif %}" class="text-lg font-bold text-gradient tracking-tight" aria-label="হোম">রিপোর্ট সাবমিশন</a>
           </div>
           
           <!-- Mobile menu button -->
@@ -59,12 +59,12 @@
                     <div class="mb-1"><span class="font-semibold text-purple-800">ইমেইল:</span> {{ current_user.email }}</div>
                     <div><span class="font-semibold text-purple-800">জোন:</span> {% if current_user.zone and current_user.zone.name %}{{ current_user.zone.name }}{% else %}জোন নির্ধারিত নেই{% endif %}</div>
                   </div>
-                  <a href="/logout" class="block px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors rounded-b-xl font-medium">লগআউট</a>
+                  <a href="{{ url_for('auth.logout') }}" class="block px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors rounded-b-xl font-medium">লগআউট</a>
                 </div>
               </div>
             {% else %}
-              <a href="/login" class="text-sm text-gray-700 hover:text-purple-600 px-2 py-1 rounded transition-colors">লগইন</a>
-              <a href="/register" class="text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 px-4 py-2 rounded-lg transition-all btn-hover">নতুন রেজিস্ট্রেশন</a>
+              <a href="{{ url_for('auth.login') }}" class="text-sm text-gray-700 hover:text-purple-600 px-2 py-1 rounded transition-colors">লগইন</a>
+              <a href="{{ url_for('auth.register') }}" class="text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 px-4 py-2 rounded-lg transition-all btn-hover">নতুন রেজিস্ট্রেশন</a>
             {% endif %}
           </nav>
         </div>
@@ -123,12 +123,12 @@
                     </div>
                   </div>
                 </div>
-                <a href="/logout" class="mobile-nav-link mobile-nav-logout">লগআউট</a>
+                <a href="{{ url_for('auth.logout') }}" class="mobile-nav-link mobile-nav-logout">লগআউট</a>
               </div>
             {% else %}
-              <div class="space-y-2">
-                <a href="/login" class="mobile-nav-link">লগইন</a>
-                <a href="/register" class="mobile-nav-link mobile-nav-primary">নতুন রেজিস্ট্রেশন</a>
+              <div class="px-4 py-3 border-t border-purple-100 flex flex-col gap-2 bg-white">
+                <a href="{{ url_for('auth.login') }}" class="mobile-nav-link">লগইন</a>
+                <a href="{{ url_for('auth.register') }}" class="mobile-nav-link mobile-nav-primary">নতুন রেজিস্ট্রেশন</a>
               </div>
             {% endif %}
           </div>

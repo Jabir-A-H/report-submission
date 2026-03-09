@@ -21,7 +21,7 @@
       <div class="text-gray-600 text-sm">মহানগরীর রিপোর্ট দেখুন</div>
     </a>
     <a
-      href="{{ url_for('admin_users') }}"
+      href="{{ url_for('admin.admin_users') }}"
       class="modern-card p-6 hover:scale-105 transition-transform duration-300 group"
     >
       <div class="flex items-center gap-3 mb-2">
@@ -31,7 +31,7 @@
       <div class="text-gray-600 text-sm">নতুন ইউজার অনুমোদন ও জোন অ্যাসাইন</div>
     </a>
     <a
-      href="{{ url_for('admin_zones') }}"
+      href="{{ url_for('admin.admin_zones') }}"
       class="modern-card p-6 hover:scale-105 transition-transform duration-300 group"
     >
       <div class="flex items-center gap-3 mb-2">
@@ -67,7 +67,7 @@
       <div class="flex items-center space-x-2">
         {% for size in [10, 25, 50, 100] %}
         <a
-          href="{{ url_for('dashboard', page=1, per_page=size, month=month, year=year, report_type=report_type) }}"
+          href="{{ url_for('reports.dashboard', page=1, per_page=size, month=month, year=year, report_type=report_type) }}"
           class="px-3 py-1 text-sm rounded-md transition-colors {% if pagination and pagination.per_page == size %}bg-purple-600 text-white{% else %}bg-white text-gray-700 hover:bg-purple-50 border border-gray-300{% endif %}"
         >
           {{ size }}
@@ -91,7 +91,7 @@
               <p class="text-sm text-gray-600">{{ report.report_type }}</p>
             </div>
             <a
-              href="{{ url_for('report_summary') }}?report_id={{ report.id }}"
+              href="{{ url_for('reports.report_summary') }}?report_id={{ report.id }}"
               class="modern-btn btn-primary text-sm px-3 py-2"
             >
               <svg
@@ -155,7 +155,7 @@
               <td>{{ report.year }}</td>
               <td>
                 <a
-                  href="{{ url_for('report_summary') }}?report_id={{ report.id }}"
+                  href="{{ url_for('reports.report_summary') }}?report_id={{ report.id }}"
                   class="modern-btn btn-primary"
                 >
                   <svg
