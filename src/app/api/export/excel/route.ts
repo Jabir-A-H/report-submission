@@ -1,6 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
-import ExcelJS from 'exceljs';
+import * as ExcelJS from 'exceljs';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

@@ -1,0 +1,36 @@
+name: Daily Supabase Database Backup
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Every day at midnight
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout private backup repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ secrets.BACKUP_REPO }} # e.g. "Jabir-A-H/report-backups-private"
+          token: ${{ secrets.BACKUP_TOKEN }}
+          path: backup-repo
+
+      - name: Install Postgres Client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Perform pg_dump
+        env:
+          PGPASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: |
+          DATE=$(date +%Y-%m-%d)
+          pg_dump -h db.pxdkvewaglagnfcqeckn.supabase.co -U postgres -d postgres > backup-repo/backups/db_backup_$DATE.sql
+
+      - name: Commit and Push
+        working-directory: backup-repo
+        run: |
+          git config --global user.name "Backup Bot"
+          git config --global user.email "backup@bot.com"
+          git add backups/
+          git commit -m "Automated backup for $(date +%Y-%m-%d)"
+          git push

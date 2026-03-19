@@ -1,92 +1,56 @@
-# Python ignores
-__pycache__/
-*.py[cod]
-*.pyc
-*.pyo
-*$py.class
-instance/
-
-# Node.js ignores
+# ──────────────────────────────────────────
+# Node.js & Frameworks
+# ──────────────────────────────────────────
 node_modules/
+.next/
+out/
+.turbopack/
+.vercel/
+next-env.d.ts
+
+# Build Info & Types
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+
+# ──────────────────────────────────────────
+# Environment & Secrets
+# ──────────────────────────────────────────
+# Local environment files (not for repository)
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ──────────────────────────────────────────
+# Editor & OS Files
+# ──────────────────────────────────────────
+# OS generated
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editors & Extensions
+.vscode/
+*.swp
+*~
+
+# ──────────────────────────────────────────
+# Logs & Caches
+# ──────────────────────────────────────────
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
-# Tailwind CSS generated file (optional - uncomment if you want to ignore the generated CSS)
-static/tailwind.css
-
-# Environment and secrets
-.env
-*.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-.pytest_cache/
-.mypy_cache/
-
-# Database files (ensure no sensitive data is tracked)
-*.db
-*.sqlite3
-
-# Data files (remove if you want to track these)
-*.xlsx
-*.csv
-
-# OS generated files
-.DS_Store
-Thumbs.db
-ehthumbs.db
-Icon?
-
-# Backup and temp files
-*.bak
-*.tmp
-*~
-
-# Editor directories and files
-
-
-# VS Code
-.vscode/
-
-# Project-specific ignores
-project_idea_extras/
-project_tree.txt
-website_errors.txt
-.flake8
-
-# Migration scripts
-migrations/
-
-
-/.lh
-/export.sql
-/.github
 
 # ──────────────────────────────────────────
-# Next.js / web folder
+# Legacy Archive (Local Only)
 # ──────────────────────────────────────────
-
-# Build output
-web/.next/
-web/out/
-
-# Turbopack cache
-web/.turbopack/
-
-# Next.js TypeScript declarations (auto-generated)
-web/next-env.d.ts
-
-# Local environment files (each developer has their own)
-web/.env.local
-web/.env.*.local
-
-# Vercel deployment output
-web/.vercel/
-
-# TypeScript build info
-web/tsconfig.tsbuildinfo
-web/*.tsbuildinfo
+legacy/
