@@ -53,7 +53,7 @@ class DashboardView(MethodView):
         else:
             template = "index_admin.html"
 
-        pagination = query.order_by(desc(Report.created_at)).paginate(
+        pagination = query.order_by(desc(Report.id)).paginate(
             page=page, per_page=per_page, error_out=False
         )
         reports = pagination.items

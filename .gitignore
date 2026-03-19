@@ -65,3 +65,28 @@ migrations/
 /.lh
 /export.sql
 /.github
+
+# ──────────────────────────────────────────
+# Next.js / web folder
+# ──────────────────────────────────────────
+
+# Build output
+web/.next/
+web/out/
+
+# Turbopack cache
+web/.turbopack/
+
+# Next.js TypeScript declarations (auto-generated)
+web/next-env.d.ts
+
+# Local environment files (each developer has their own)
+web/.env.local
+web/.env.*.local
+
+# Vercel deployment output
+web/.vercel/
+
+# TypeScript build info
+web/tsconfig.tsbuildinfo
+web/*.tsbuildinfo
