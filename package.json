@@ -13,29 +13,32 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@hookform/resolvers": "latest",
+    "@react-pdf/renderer": "latest",
+    "@supabase/ssr": "latest",
+    "@supabase/supabase-js": "latest",
+    "clsx": "latest",
+    "exceljs": "^4.4.0",
+    "lucide-react": "latest",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "lucide-react": "latest",
-    "clsx": "latest",
-    "tailwind-merge": "latest",
-    "@supabase/supabase-js": "latest",
-    "@supabase/ssr": "latest",
     "react-hook-form": "latest",
-    "zod": "latest",
-    "@hookform/resolvers": "latest",
-    "exceljs": "^4.4.0",
-    "@react-pdf/renderer": "latest"
+    "tailwind-merge": "latest",
+    "zod": "latest"
   },
   "devDependencies": {
-    "typescript": "latest",
+    "@tailwindcss/postcss": "^4.2.2",
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
-    "postcss": "latest",
-    "tailwindcss": "latest",
     "autoprefixer": "latest",
     "eslint": "latest",
-    "eslint-config-next": "latest"
+    "eslint-config-next": "latest",
+    "framer-motion": "^12.38.0",
+    "kbar": "^0.1.0-beta.48",
+    "postcss": "latest",
+    "tailwindcss": "latest",
+    "typescript": "latest"
   }
 }

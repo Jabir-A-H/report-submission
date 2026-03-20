@@ -9,20 +9,28 @@ import { useDebounce } from '@/hooks/use-debounce'
 import { createClient } from '@/utils/supabase/client'
 
 const courses = [
-  "Quran Class",
-  "Tajweed Class",
-  "Hifz Class",
-  "Dawah Class",
-  "General Education",
+  "বিশিষ্টদের",
+  "সাধারণদের",
+  "কর্মীদের",
+  "ইউনিট সভানেত্রী",
+  "অগ্রসরদের",
+  "শিশু- তা'লিমুল কুরআন",
+  "নিরক্ষর- তা'লিমুস সলাত",
 ]
 
 const fieldLabels = [
+  { id: 'number', label: 'Number' },
+  { id: 'increase', label: 'Increase' },
+  { id: 'decrease', label: 'Decrease' },
   { id: 'sessions', label: 'Sessions' },
   { id: 'students', label: 'Students' },
   { id: 'attendance', label: 'Attendance' },
-  { id: 'status_quran', label: 'Quran' },
+  { id: 'status_board', label: 'Board' },
   { id: 'status_qayda', label: 'Qayda' },
   { id: 'status_ampara', label: 'Ampara' },
+  { id: 'status_quran', label: 'Quran' },
+  { id: 'completed', label: 'Completed' },
+  { id: 'correctly_learned', label: 'Correct' },
 ]
 
 export function CoursesForm() {
@@ -40,17 +48,18 @@ export function CoursesForm() {
 
       setIsSaving(true)
       try {
-        const updates = Object.entries(debouncedData).map(([category, values]: [string, any]) => ({
-          report_id: reportId,
-          category,
-          ...values
-        }))
+        // Send updates concurrently for each modified category
+        const updatePromises = Object.entries(debouncedData).map(([category, values]) => {
+          if (!values) return Promise.resolve()
+          
+          return supabase
+            .from('report_course')
+            .update(values)
+            .eq('report_id', reportId)
+            .eq('category', category)
+        })
 
-        const { error } = await supabase
-          .from('report_course')
-          .upsert(updates, { onConflict: 'report_id,category' })
-
-        if (error) throw error
+        await Promise.all(updatePromises)
         setLastSaved(new Date())
       } catch (err) {
         console.error('Failed to sync courses:', err)
@@ -60,12 +69,12 @@ export function CoursesForm() {
     }
 
     syncData()
-  }, [debouncedData, reportId, setIsSaving, setLastSaved])
+  }, [debouncedData, reportId, setIsSaving, setLastSaved, supabase])
 
   return (
     <div id="courses" className="space-y-6 scroll-mt-24">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-800">Courses Detail</h2>
+        <h2 className="text-2xl font-bold text-gray-800">Courses Detail (তা'লিমুল কুরআন)</h2>
         <span className="text-xs font-semibold bg-cyan-100 text-cyan-700 px-2.5 py-1 rounded-full uppercase">Matrix View</span>
       </div>
 
@@ -90,7 +99,7 @@ export function CoursesForm() {
 
             {expandedCourse === course && (
               <div className="p-6 border-t border-gray-50 bg-white">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
                   {fieldLabels.map((field) => (
                     <MatrixField key={field.id} label={field.label}>
                       <input 

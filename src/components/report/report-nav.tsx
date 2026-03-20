@@ -1,6 +1,6 @@
 'use client'
 
-import { usePathname, useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
 import { CheckCircle2, Circle, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -21,26 +21,56 @@ export function ReportNav({ currentSection }: { currentSection: string }) {
   }
 
   return (
-    <nav className="flex flex-col gap-2 p-4 bg-white rounded-xl shadow-sm border border-gray-100 h-fit sticky top-24">
-      <h3 className="font-bold text-gray-500 text-xs uppercase tracking-wider mb-2 px-2">Sections</h3>
-      {sections.map((section) => (
-        <button
-          key={section.id}
-          onClick={() => scrollTo(section.id)}
-          className={cn(
-            "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all group w-full text-left",
-            currentSection === section.id 
-              ? "bg-cyan-50 text-cyan-700 shadow-sm border border-cyan-100" 
-              : "text-gray-500 hover:bg-gray-50"
-          )}
-        >
-          <section.icon className={cn(
-            "w-4 h-4",
-            currentSection === section.id ? "text-cyan-600" : "text-gray-400 group-hover:text-gray-600"
-          )} />
-          {section.title}
-        </button>
-      ))}
+    <nav className="flex flex-col gap-1.5 p-3 glass-panel rounded-2xl shadow-xl h-fit sticky top-24 w-60 overflow-hidden">
+      <div className="flex items-center justify-between mb-4 px-3">
+        <h3 className="font-bold text-primary/70 text-[10px] uppercase tracking-[0.2em]">Navigation</h3>
+        <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+      </div>
+      
+      <div className="relative space-y-1">
+        {sections.map((section) => {
+          const isActive = currentSection === section.id
+          
+          return (
+            <button
+              key={section.id}
+              onClick={() => scrollTo(section.id)}
+              className={cn(
+                "relative flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all group w-full text-left outline-none",
+                isActive ? "text-primary-foreground" : "text-foreground/60 hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5"
+              )}
+            >
+              {isActive && (
+                <motion.div
+                  layoutId="lava-lamp"
+                  className="absolute inset-0 bg-primary shadow-lg shadow-primary/25 z-0"
+                  initial={false}
+                  transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 30
+                  }}
+                  style={{ borderRadius: '0.75rem' }}
+                />
+              )}
+              
+              <section.icon className={cn(
+                "w-4 h-4 z-10 relative",
+                isActive ? "text-white" : "text-foreground/40 group-hover:text-foreground/70"
+              )} />
+              
+              <span className="relative z-10">{section.title}</span>
+              
+              {isActive && (
+                <motion.div 
+                  layoutId="active-dot"
+                  className="absolute right-3 w-1.5 h-1.5 bg-white rounded-full z-10"
+                />
+              )}
+            </button>
+          )
+        })}
+      </div>
     </nav>
   )
 }
