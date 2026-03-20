@@ -45,36 +45,56 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-xl border border-gray-100">
-      <h2 className="text-3xl font-bold text-center text-cyan-800 mb-8">Login</h2>
+    <div className="w-full max-w-md p-8 glass-panel rounded-3xl shadow-2xl border border-white/20 light-catch mt-20">
+      <div className="text-center mb-10">
+        <h2 className="text-4xl font-extrabold text-primary mb-3 tracking-tight">Login</h2>
+        <p className="text-sm text-foreground/50">Access your report dashboard</p>
+      </div>
+      
       <form onSubmit={handleLogin} className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <div className="space-y-2">
+          <label className="block text-xs font-bold text-primary/70 uppercase tracking-widest ml-1">Email Address</label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition-all"
+            className="w-full p-4 bg-white/50 dark:bg-black/20 border border-border rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all font-medium"
+            placeholder="name@example.com"
             required
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+        
+        <div className="space-y-2">
+          <label className="block text-xs font-bold text-primary/70 uppercase tracking-widest ml-1">Password</label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition-all"
+            className="w-full p-4 bg-white/50 dark:bg-black/20 border border-border rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all font-medium"
+            placeholder="••••••••"
             required
           />
         </div>
-        {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+
+        {error && (
+          <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl">
+            <p className="text-red-600 dark:text-red-400 text-xs font-bold text-center">{error}</p>
+          </div>
+        )}
+
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 bg-cyan-600 text-white font-semibold rounded-lg hover:bg-cyan-700 active:scale-95 transition-all disabled:opacity-50"
+          className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-2xl hover:shadow-lg hover:shadow-primary/30 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 group"
         >
-          {loading ? 'Logging in...' : 'Login'}
+          {loading ? (
+            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          ) : (
+            <>
+              Login to Dashboard
+              <span className="group-hover:translate-x-1 transition-transform">→</span>
+            </>
+          )}
         </button>
       </form>
     </div>

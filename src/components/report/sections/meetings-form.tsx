@@ -8,10 +8,19 @@ import { useDebounce } from '@/hooks/use-debounce'
 import { createClient } from '@/utils/supabase/client'
 
 const categories = [
-  "City Level",
-  "Thana Level",
-  "Ward Level",
-  "Unit Level",
+  "কমিটি বৈঠক হয়েছে",
+  "মুয়াল্লিমাদের নিয়ে বৈঠক",
+  "Committee Orientation",
+  "Muallima Orientation",
+]
+
+const fields = [
+  { id: 'city_count', label: 'City Count' },
+  { id: 'city_avg_attendance', label: 'City Avg' },
+  { id: 'thana_count', label: 'Thana Count' },
+  { id: 'thana_avg_attendance', label: 'Thana Avg' },
+  { id: 'ward_count', label: 'Ward Count' },
+  { id: 'ward_avg_attendance', label: 'Ward Avg' },
 ]
 
 export function MeetingsForm() {
@@ -24,23 +33,21 @@ export function MeetingsForm() {
 
   useEffect(() => {
     async function syncData() {
-      if (!reportId || !debouncedData.meetings) return
+      if (!reportId || Object.keys(debouncedData).length === 0) return
 
       setIsSaving(true)
       try {
-        // Map UI labels to DB columns
-        const updates = Object.entries(debouncedData.meetings).map(([category, values]: [string, any]) => ({
-          report_id: reportId,
-          category,
-          thana_count: values.count,
-          thana_avg_attendance: values.avg
-        }))
+        const updatePromises = Object.entries(debouncedData).map(([category, values]) => {
+          if (!values) return Promise.resolve()
+          
+          return supabase
+            .from('report_meeting')
+            .update(values)
+            .eq('report_id', reportId)
+            .eq('category', category)
+        })
 
-        const { error } = await supabase
-          .from('report_meeting')
-          .upsert(updates, { onConflict: 'report_id,category' })
-
-        if (error) throw error
+        await Promise.all(updatePromises)
         setLastSaved(new Date())
       } catch (err) {
         console.error('Failed to sync meetings:', err)
@@ -50,32 +57,41 @@ export function MeetingsForm() {
     }
 
     syncData()
-  }, [debouncedData, reportId, setIsSaving, setLastSaved])
+  }, [debouncedData, reportId, setIsSaving, setLastSaved, supabase])
 
   return (
-    <div id="meetings" className="scroll-mt-24">
-      <AdaptiveMatrix title="Meetings & Attendance" desktopColumns={2}>
+    <div id="meetings" className="scroll-mt-24 space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-800">Meetings & Attendance</h2>
+        <span className="text-xs font-semibold bg-orange-100 text-orange-700 px-2.5 py-1 rounded-full uppercase">Update Mode</span>
+      </div>
+
+      <div className="space-y-6">
         {categories.map((cat) => (
-          <React.Fragment key={cat}>
-            <MatrixField label={`${cat} - Count`}>
+          <div key={cat} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h3 className="font-bold text-gray-700 mb-4 border-b pb-2">{cat}</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-4">
+              {fields.map((field) => (
+                <MatrixField key={field.id} label={field.label}>
+                  <input 
+                    type="number"
+                    {...register(`${cat}.${field.id}`, { valueAsNumber: true })}
+                    className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none transition-all text-center text-sm"
+                    defaultValue={0}
+                  />
+                </MatrixField>
+              ))}
+            </div>
+            <MatrixField label="Comments / Notes">
               <input 
-                type="number"
-                {...register(`meetings.${cat}.count`, { valueAsNumber: true })}
-                className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none transition-all"
-                defaultValue={0}
+                {...register(`${cat}.comments`)}
+                className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none transition-all text-sm"
+                placeholder="Add any specific meeting notes here..."
               />
             </MatrixField>
-            <MatrixField label={`${cat} - Avg Attendance`}>
-              <input 
-                type="number"
-                {...register(`meetings.${cat}.avg`, { valueAsNumber: true })}
-                className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none transition-all"
-                defaultValue={0}
-              />
-            </MatrixField>
-          </React.Fragment>
+          </div>
         ))}
-      </AdaptiveMatrix>
+      </div>
     </div>
   )
 }

@@ -1,21 +1,123 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-primary: hsl(190 90% 40%);
+  --color-primary-foreground: hsl(0 0% 100%);
+  --color-secondary: hsl(220 15% 95%);
+  --color-secondary-foreground: hsl(220 50% 10%);
+  --color-accent: hsl(190 90% 95%);
+  --color-accent-foreground: hsl(190 90% 20%);
+  --color-muted: hsl(220 15% 96%);
+  --color-muted-foreground: hsl(220 15% 45%);
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(220 50% 10%);
+  --color-popover: hsl(0 0% 100%);
+  --color-popover-foreground: hsl(220 50% 10%);
+  --color-border: hsl(220 15% 90%);
+  --color-input: hsl(220 15% 90%);
+  --color-ring: hsl(190 90% 40%);
+  
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --background: 220 33% 98%;
+  --foreground: 220 50% 10%;
+  
+  --primary: 190 90% 40%;
+  --primary-foreground: 0 0% 100%;
+  
+  --card: 0 0% 100%;
+  --card-foreground: 220 50% 10%;
+  
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 50% 10%;
+  
+  --secondary: 220 15% 95%;
+  --secondary-foreground: 220 50% 10%;
+  
+  --muted: 220 15% 96%;
+  --muted-foreground: 220 15% 55%;
+  
+  --accent: 190 90% 95%;
+  --accent-foreground: 190 90% 20%;
+  
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  
+  --border: 220 15% 90%;
+  --input: 220 15% 90%;
+  --ring: 190 90% 40%;
+  
+  --radius: 0.75rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-[hsl(var(--background))] text-[hsl(var(--foreground))] min-h-screen antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+/* Premium Layout Utilities */
+.glass-panel {
+  @apply bg-white/70 backdrop-blur-[20px] border shadow-2xl;
+  border-color: hsla(0, 0%, 100%, 0.3);
+  box-shadow: 0 8px 32px 0 hsla(var(--primary) / 0.1);
+}
+
+.premium-card {
+  @apply rounded-2xl border border-border bg-card p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300;
+}
+
+/* Light-Catch Border Utility */
+.light-catch {
+  position: relative;
+}
+.light-catch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.2), transparent);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Slim Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-primary/20 rounded-full hover:bg-primary/40 transition-colors;
+}
+
+/* Smooth Input Handling */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input:focus {
+  @apply ring-4 ring-primary/10 border-primary outline-none;
+}
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
 }

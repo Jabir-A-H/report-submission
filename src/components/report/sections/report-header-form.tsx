@@ -51,11 +51,30 @@ export function ReportHeaderForm() {
       try {
         let currentReportId = reportId
 
-        // 1. Create report if it doesn't exist
+        // 1. Get current user and their zone_id
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) throw new Error("Not authenticated")
+
+        const { data: profile } = await supabase
+          .from('people')
+          .select('zone_id')
+          .eq('supabase_uid', user.id)
+          .single()
+        
+        const zoneId = profile?.zone_id || 1 // Fallback to 1 if unknown
+
+        // 2. Create report if it doesn't exist
         if (!currentReportId) {
+          // Note: In a real app, month/year/type would come from props or a picker
+          const now = new Date()
           const { data: newReport, error: reportError } = await supabase
-            .from('reports')
-            .insert({ status: 'draft' })
+            .from('report') // Correct singular table name
+            .insert({ 
+              zone_id: zoneId,
+              month: now.getMonth() + 1,
+              year: now.getFullYear(),
+              report_type: 'মাসিক' 
+            })
             .select()
             .single()
           
@@ -64,13 +83,13 @@ export function ReportHeaderForm() {
           setReportId(newReport.id)
         }
 
-        // 2. Upsert header data
+        // 3. Update header data (Trigger already seeded the row)
         const { error } = await supabase
           .from('report_header')
-          .upsert({
-            report_id: currentReportId,
+          .update({
             ...debouncedData
           })
+          .eq('report_id', currentReportId)
 
         if (error) throw error
         setLastSaved(new Date())
@@ -82,7 +101,7 @@ export function ReportHeaderForm() {
     }
 
     syncData()
-  }, [debouncedData, reportId, setReportId, setIsSaving, setLastSaved])
+  }, [debouncedData, reportId, setReportId, setIsSaving, setLastSaved, supabase])
 
   return (
     <AdaptiveMatrix title="Report Header" desktopColumns={3}>
