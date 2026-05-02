@@ -123,13 +123,13 @@ export default async function AdminDashboard() {
             <h3 className="text-xl font-black text-gray-900">Organizational Sums</h3>
             <span className="text-xs font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-full uppercase tracking-widest">Aggregate</span>
           </div>
-          <div className="p-8 space-y-6 flex-grow">
+          <div className="p-8 space-y-6 grow">
             {organizationalAgg?.map((s, i) => (
               <div key={i} className="flex items-center gap-6 group">
                 <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all">
                   <BarChart3 size={20} />
                 </div>
-                <div className="flex-grow">
+                <div className="grow">
                   <div className="flex justify-between items-end mb-2">
                     <h4 className="font-bold text-gray-800 text-sm">{s.category}</h4>
                     <div className="flex items-center gap-2">

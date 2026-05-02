@@ -48,11 +48,11 @@ export default function NewReportPage() {
         
         <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row gap-8">
-            <aside className="w-full lg:w-64 flex-shrink-0">
+            <aside className="w-full lg:w-64 shrink-0">
               <ReportNav currentSection="header" />
             </aside>
             
-            <div className="flex-grow">
+            <div className="grow">
               <div className="space-y-12 pb-20">
                 <ReportHeaderForm />
                 <CoursesForm />

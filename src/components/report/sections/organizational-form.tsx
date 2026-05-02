@@ -1,13 +1,9 @@
-'use client'
+"use client";
 
-import React, { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import { AdaptiveMatrix, MatrixField } from '../adaptive-matrix'
-import { useReport } from '../report-context'
-import { useDebounce } from '@/hooks/use-debounce'
-import { createClient } from '@/utils/supabase/client'
+import { AutoSaveField } from "../auto-save-field";
+import { Users2 } from "lucide-react";
 
-const categories = [
+export const ORG_CATEGORIES = [
   "দাওয়াত দান",
   "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
   "সহযোগী হয়েছে",
@@ -22,83 +18,61 @@ const categories = [
   "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
   "বই বিলি",
   "বই বিক্রি",
-]
+];
 
 export function OrganizationalForm() {
-  const { reportId, setIsSaving, setLastSaved } = useReport()
-  const supabase = createClient()
-  
-  const { register, watch } = useForm()
-  const formData = watch()
-  const debouncedData = useDebounce(formData, 1000)
-
-  useEffect(() => {
-    async function syncData() {
-      if (!reportId || Object.keys(debouncedData).length === 0) return
-
-      setIsSaving(true)
-      try {
-        const updatePromises = Object.entries(debouncedData).map(([category, values]) => {
-          if (!values) return Promise.resolve()
-          
-          return supabase
-            .from('report_organizational')
-            .update(values)
-            .eq('report_id', reportId)
-            .eq('category', category)
-        })
-
-        await Promise.all(updatePromises)
-        setLastSaved(new Date())
-      } catch (err) {
-        console.error('Failed to sync organizational data:', err)
-      } finally {
-        setIsSaving(false)
-      }
-    }
-
-    syncData()
-  }, [debouncedData, reportId, setIsSaving, setLastSaved, supabase])
-
   return (
-    <div id="organizational" className="scroll-mt-24 space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-800">Organizational Details</h2>
-        <span className="text-xs font-semibold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full uppercase">Update-only Mode</span>
-      </div>
-
-      <AdaptiveMatrix title="Category Tracking" desktopColumns={4}>
-        {categories.map((cat) => (
-          <React.Fragment key={cat}>
-            <div className="lg:col-span-1 flex items-center">
-              <span className="text-sm font-bold text-gray-700">{cat}</span>
+    <div className="space-y-6">
+      {ORG_CATEGORIES.map((category) => (
+        <div 
+          key={category} 
+          className="bg-card border border-border/60 rounded-3xl p-5 shadow-sm hover:shadow-md hover:border-cyan-500/30 transition-all"
+        >
+          {/* Section Header */}
+          <div className="flex items-center gap-3 mb-5 border-b border-border/40 pb-3">
+            <div className="p-2 bg-cyan-500/10 rounded-xl text-cyan-600">
+               <Users2 className="w-4 h-4" />
             </div>
-            <MatrixField label="Total">
-              <input 
-                type="number"
-                {...register(`${cat}.number`, { valueAsNumber: true })}
-                className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-center"
-                defaultValue={0}
-              />
-            </MatrixField>
-            <MatrixField label="Increase">
-              <input 
-                type="number"
-                {...register(`${cat}.increase`, { valueAsNumber: true })}
-                className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-center"
-                defaultValue={0}
-              />
-            </MatrixField>
-            <MatrixField label="Amount/Comment">
-              <input 
-                {...register(`${cat}.amount`)}
-                className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm"
-                placeholder="..."
-              />
-            </MatrixField>
-          </React.Fragment>
-        ))}
-      </AdaptiveMatrix>
+            <h3 className="text-lg font-bold text-foreground leading-tight">{category}</h3>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+             <AutoSaveField 
+               label="সংখ্যা" 
+               name="number" 
+               type="number" 
+               section="organizational" 
+               table="report_organizational" 
+               category={category} 
+             />
+             <AutoSaveField 
+               label="বৃদ্ধি" 
+               name="increase" 
+               type="number" 
+               section="organizational" 
+               table="report_organizational" 
+               category={category} 
+             />
+             <AutoSaveField 
+               label="পরিমাণ" 
+               name="amount" 
+               type="number" 
+               section="organizational" 
+               table="report_organizational" 
+               category={category} 
+             />
+             <AutoSaveField 
+               label="মন্তব্য" 
+               name="comments" 
+               type="text" 
+               section="organizational" 
+               table="report_organizational" 
+               category={category} 
+               placeholder="প্রয়োজন হলে মন্তব্য লিখুন"
+             />
+          </div>
+        </div>
+      ))}
     </div>
-  )
+  );
 }

@@ -8,7 +8,9 @@ import {
   Settings, 
   LogOut, 
   ChevronRight,
-  LayoutDashboard
+  LayoutDashboard,
+  MapPin,
+  UserCheck
 } from "lucide-react";
 
 export default async function AdminLayout({
@@ -50,10 +52,12 @@ export default async function AdminLayout({
           </div>
         </div>
 
-        <nav className="flex-grow p-6 space-y-2">
+        <nav className="grow p-6 space-y-2">
           <AdminNavLink href="/admin/dashboard" icon={<LayoutDashboard size={18} />} label="Dashboard" active />
           <AdminNavLink href="/admin/reports" icon={<FileText size={18} />} label="All Reports" />
-          <AdminNavLink href="/admin/approval" icon={<Users size={18} />} label="User Management" />
+          <AdminNavLink href="/admin/users" icon={<Users size={18} />} label="User Management" />
+          <AdminNavLink href="/admin/zones" icon={<MapPin size={18} />} label="Zone Management" />
+          <AdminNavLink href="/admin/approval" icon={<UserCheck size={18} />} label="User Approvals" />
           <AdminNavLink href="/admin/settings" icon={<Settings size={18} />} label="System Settings" />
         </nav>
 
@@ -62,7 +66,7 @@ export default async function AdminLayout({
             <div className="w-8 h-8 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-700 font-bold text-xs">
               {user.email?.[0].toUpperCase()}
             </div>
-            <div className="truncate flex-grow">
+            <div className="truncate grow">
               <p className="text-xs font-bold text-gray-900 truncate">{user.email}</p>
               <p className="text-[10px] text-gray-400 font-medium">Administrator</p>
             </div>
@@ -77,7 +81,7 @@ export default async function AdminLayout({
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-grow p-10 overflow-auto">
+      <main className="grow p-10 overflow-auto">
         {children}
       </main>
     </div>

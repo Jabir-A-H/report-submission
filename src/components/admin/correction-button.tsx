@@ -58,7 +58,7 @@ export function CorrectionButton({ year, month, section, field, category, curren
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-100">
         <div className="p-6 border-b border-gray-50 flex justify-between items-start">
           <div>
@@ -96,14 +96,14 @@ export function CorrectionButton({ year, month, section, field, category, curren
         <div className="p-6 bg-gray-50/50 flex gap-3">
           <button 
             onClick={() => setIsOpen(false)}
-            className="flex-grow px-6 py-4 text-sm font-bold text-gray-500 hover:text-gray-700 transition-all"
+            className="grow px-6 py-4 text-sm font-bold text-gray-500 hover:text-gray-700 transition-all"
           >
             Cancel
           </button>
           <button 
             onClick={handleSave}
             disabled={isSaving}
-            className="flex-grow flex items-center justify-center gap-2 px-6 py-4 bg-cyan-600 text-white rounded-2xl text-sm font-black shadow-lg shadow-cyan-100 hover:bg-cyan-700 disabled:opacity-50 transition-all"
+            className="grow flex items-center justify-center gap-2 px-6 py-4 bg-cyan-600 text-white rounded-2xl text-sm font-black shadow-lg shadow-cyan-100 hover:bg-cyan-700 disabled:opacity-50 transition-all"
           >
             {isSaving ? <Check className="animate-pulse" /> : <Check size={18} />}
             Confirm Correction

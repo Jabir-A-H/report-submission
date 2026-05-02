@@ -70,7 +70,7 @@ export function CommandBar({ children }: { children: React.ReactNode }) {
   return (
     <KBarProvider actions={actions}>
       <KBarPortal>
-        <KBarPositioner className="bg-black/60 backdrop-blur-sm p-4 z-[9999]">
+        <KBarPositioner className="bg-black/60 backdrop-blur-sm p-4 z-9999">
           <KBarAnimator className="w-full max-w-[600px] bg-card rounded-2xl border border-border overflow-hidden shadow-2xl">
             <div className="flex items-center px-5 py-4 border-b border-border bg-card">
               <Search className="w-5 h-5 text-muted-foreground mr-3" />
