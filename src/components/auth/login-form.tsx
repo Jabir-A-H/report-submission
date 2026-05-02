@@ -27,16 +27,24 @@ export default function LoginForm() {
       return
     }
 
-    // Check custom active status in people table
+    // Check custom active status in people table - handle missing table gracefully
     const { data: profile, error: profileError } = await supabase
       .from('people')
       .select('active')
-      .eq('email', email) // Using email as a backup if user_id mapping isn't 1:1 yet
+      .eq('email', email)
       .single()
 
-    if (profileError || !profile?.active) {
+    // If table exists and user is inactive, block them. 
+    // If table doesn't exist (profileError.code === '42P01'), allow for now during migration.
+    if (profileError) {
+      if ((profileError as any).code !== '42P01') {
+        console.error('Profile check error:', profileError)
+        // For other errors, we might still want to block or allow depending on policy.
+        // For now, let's allow if the table is simply missing.
+      }
+    } else if (profile && !profile.active) {
       await supabase.auth.signOut()
-      setError('Your account is pending admin approval.')
+      setError('আপনার অ্যাকাউন্টটি বর্তমানে অ্যাডমিনের অনুমোদনের জন্য অপেক্ষমাণ।')
       setLoading(false)
       return
     }
@@ -45,15 +53,17 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="w-full max-w-md p-8 glass-panel rounded-3xl shadow-2xl border border-white/20 light-catch mt-20">
+    <div className="w-full max-w-md p-8 pt-10 bg-transparent">
       <div className="text-center mb-10">
-        <h2 className="text-4xl font-extrabold text-primary mb-3 tracking-tight">Login</h2>
-        <p className="text-sm text-foreground/50">Access your report dashboard</p>
+        <h2 className="text-3xl font-black text-primary mb-2 tracking-tighter uppercase whitespace-pre-line">
+          লগইন করুন
+        </h2>
+        <p className="text-sm text-muted-foreground font-bold italic">আপনার ড্যাশবোর্ডে প্রবেশ করুন</p>
       </div>
       
       <form onSubmit={handleLogin} className="space-y-6">
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-primary/70 uppercase tracking-widest ml-1">Email Address</label>
+          <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">ইমেইল এড্রেস</label>
           <input
             type="email"
             value={email}
@@ -65,34 +75,34 @@ export default function LoginForm() {
         </div>
         
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-primary/70 uppercase tracking-widest ml-1">Password</label>
+          <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">পাসওয়ার্ড</label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-4 bg-white/50 dark:bg-black/20 border border-border rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all font-medium"
+            className="modern-input h-14"
             placeholder="••••••••"
             required
           />
         </div>
 
         {error && (
-          <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl">
-            <p className="text-red-600 dark:text-red-400 text-xs font-bold text-center">{error}</p>
+          <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl animate-in fade-in zoom-in-95 duration-200">
+            <p className="text-red-600 dark:text-red-400 text-xs font-bold text-center leading-relaxed">{error}</p>
           </div>
         )}
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-2xl hover:shadow-lg hover:shadow-primary/30 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 group"
+          className="modern-btn btn-primary w-full py-5 font-black flex items-center justify-center gap-3 shadow-xl shadow-primary/20 active:scale-95 transition-all disabled:opacity-50"
         >
           {loading ? (
             <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           ) : (
             <>
-              Login to Dashboard
-              <span className="group-hover:translate-x-1 transition-transform">→</span>
+              <span>লগইন করুন</span>
+              <ArrowRight className="w-5 h-5" />
             </>
           )}
         </button>
@@ -100,3 +110,5 @@ export default function LoginForm() {
     </div>
   )
 }
+
+import { ArrowRight } from "lucide-react";

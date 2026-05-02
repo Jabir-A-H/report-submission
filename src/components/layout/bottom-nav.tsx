@@ -1,0 +1,53 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useLanguage } from "@/components/providers/language-provider";
+import { Home, ClipboardList, Users, Map, HelpCircle } from "lucide-react";
+
+export function BottomNav() {
+  const { t } = useLanguage();
+  const pathname = usePathname();
+
+  const isAuthPage = ["/login", "/register", "/auth", "/landing"].includes(pathname);
+  if (isAuthPage) return null;
+  const navItems = [
+    { label: "হোম", href: "/", icon: Home },
+    { label: t.report, href: "/report", icon: ClipboardList },
+    { label: t.help, href: "/help", icon: HelpCircle },
+  ];
+
+  // Admin items (placeholder check)
+  const isAdmin = true; // Temporary
+  if (isAdmin) {
+    navItems.splice(2, 0, 
+      { label: "ইউজার", href: "/admin/users", icon: Users },
+      { label: "জোন", href: "/admin/zones", icon: Map }
+    );
+  }
+
+  return (
+    <nav className="fixed bottom-0 left-0 z-50 w-full h-16 bg-background border-t md:hidden">
+      <div className="grid h-full max-w-lg grid-cols-5 mx-auto font-medium">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`inline-flex flex-col items-center justify-center px-5 hover:bg-muted group ${
+                isActive ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              <Icon className={`w-6 h-6 mb-1 group-active:scale-90 transition-transform ${isActive ? "text-primary" : ""}`} />
+              <span className="text-[10px] leading-tight truncate w-full text-center">
+                {item.label}
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}

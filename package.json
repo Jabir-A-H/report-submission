@@ -1,11 +1,25 @@
 {
   "name": "talimul-quran-report-submission",
   "version": "0.1.0",
+  "private": true,
+  "description": "Modern, high-fidelity report submission and management system.",
+  "author": "Jabir A.H <jabir@example.com>",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/Jabir-A-H/report-submission.git"
   },
-  "private": true,
+  "bugs": {
+    "url": "https://github.com/Jabir-A-H/report-submission/issues"
+  },
+  "homepage": "https://github.com/Jabir-A-H/report-submission#readme",
+  "keywords": [
+    "nextjs",
+    "supabase",
+    "report-submission",
+    "dashboard",
+    "premium-ui"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -19,8 +33,10 @@
     "@supabase/supabase-js": "latest",
     "clsx": "latest",
     "exceljs": "^4.4.0",
-    "lucide-react": "latest",
+    "framer-motion": "^12.38.0",
+    "lucide-react": "^0.577.0",
     "next": "latest",
+    "next-themes": "^0.4.6",
     "react": "latest",
     "react-dom": "latest",
     "react-hook-form": "latest",
@@ -35,8 +51,6 @@
     "autoprefixer": "latest",
     "eslint": "latest",
     "eslint-config-next": "latest",
-    "framer-motion": "^12.38.0",
-    "kbar": "^0.1.0-beta.48",
     "postcss": "latest",
     "tailwindcss": "latest",
     "typescript": "latest"

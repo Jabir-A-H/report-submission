@@ -1,97 +1,61 @@
-'use client'
+"use client";
 
-import React, { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import { AdaptiveMatrix, MatrixField } from '../adaptive-matrix'
-import { useReport } from '../report-context'
-import { useDebounce } from '@/hooks/use-debounce'
-import { createClient } from '@/utils/supabase/client'
+import { AutoSaveField } from "../auto-save-field";
+import { Users } from "lucide-react";
 
-const categories = [
+export const MEETING_CATEGORIES = [
   "কমিটি বৈঠক হয়েছে",
   "মুয়াল্লিমাদের নিয়ে বৈঠক",
   "Committee Orientation",
   "Muallima Orientation",
-]
-
-const fields = [
-  { id: 'city_count', label: 'City Count' },
-  { id: 'city_avg_attendance', label: 'City Avg' },
-  { id: 'thana_count', label: 'Thana Count' },
-  { id: 'thana_avg_attendance', label: 'Thana Avg' },
-  { id: 'ward_count', label: 'Ward Count' },
-  { id: 'ward_avg_attendance', label: 'Ward Avg' },
-]
+];
 
 export function MeetingsForm() {
-  const { reportId, setIsSaving, setLastSaved } = useReport()
-  const supabase = createClient()
-  
-  const { register, watch } = useForm()
-  const formData = watch()
-  const debouncedData = useDebounce(formData, 1000)
-
-  useEffect(() => {
-    async function syncData() {
-      if (!reportId || Object.keys(debouncedData).length === 0) return
-
-      setIsSaving(true)
-      try {
-        const updatePromises = Object.entries(debouncedData).map(([category, values]) => {
-          if (!values) return Promise.resolve()
-          
-          return supabase
-            .from('report_meeting')
-            .update(values)
-            .eq('report_id', reportId)
-            .eq('category', category)
-        })
-
-        await Promise.all(updatePromises)
-        setLastSaved(new Date())
-      } catch (err) {
-        console.error('Failed to sync meetings:', err)
-      } finally {
-        setIsSaving(false)
-      }
-    }
-
-    syncData()
-  }, [debouncedData, reportId, setIsSaving, setLastSaved, supabase])
-
   return (
-    <div id="meetings" className="scroll-mt-24 space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-800">Meetings & Attendance</h2>
-        <span className="text-xs font-semibold bg-orange-100 text-orange-700 px-2.5 py-1 rounded-full uppercase">Update Mode</span>
-      </div>
-
-      <div className="space-y-6">
-        {categories.map((cat) => (
-          <div key={cat} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h3 className="font-bold text-gray-700 mb-4 border-b pb-2">{cat}</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-4">
-              {fields.map((field) => (
-                <MatrixField key={field.id} label={field.label}>
-                  <input 
-                    type="number"
-                    {...register(`${cat}.${field.id}`, { valueAsNumber: true })}
-                    className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none transition-all text-center text-sm"
-                    defaultValue={0}
-                  />
-                </MatrixField>
-              ))}
+    <div className="space-y-6">
+      {MEETING_CATEGORIES.map((category) => (
+        <div 
+          key={category} 
+          className="bg-card border border-border/60 rounded-3xl p-6 shadow-sm hover:border-blue-500/30 transition-all"
+        >
+          {/* Section Header */}
+          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border/40">
+            <div className="p-2.5 bg-blue-500/10 rounded-2xl text-blue-600">
+               <Users className="w-5 h-5" />
             </div>
-            <MatrixField label="Comments / Notes">
-              <input 
-                {...register(`${cat}.comments`)}
-                className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none transition-all text-sm"
-                placeholder="Add any specific meeting notes here..."
-              />
-            </MatrixField>
+            <h3 className="text-xl font-bold text-foreground leading-tight">{category}</h3>
           </div>
-        ))}
-      </div>
+
+          <div className="space-y-6">
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* City Level */}
+                <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10 space-y-4">
+                  <h4 className="font-bold text-blue-700">মহানগরী</h4>
+                  <AutoSaveField label="কতটি" name="city_count" type="number" section="meeting" table="report_meeting" category={category} />
+                  <AutoSaveField label="গড় উপস্থিতি" name="city_avg_attendance" type="number" section="meeting" table="report_meeting" category={category} />
+                </div>
+
+                {/* Thana Level */}
+                <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10 space-y-4">
+                  <h4 className="font-bold text-blue-700">থানা</h4>
+                  <AutoSaveField label="কতটি" name="thana_count" type="number" section="meeting" table="report_meeting" category={category} />
+                  <AutoSaveField label="গড় উপস্থিতি" name="thana_avg_attendance" type="number" section="meeting" table="report_meeting" category={category} />
+                </div>
+
+                {/* Ward Level */}
+                <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10 space-y-4">
+                  <h4 className="font-bold text-blue-700">ওয়ার্ড</h4>
+                  <AutoSaveField label="কতটি" name="ward_count" type="number" section="meeting" table="report_meeting" category={category} />
+                  <AutoSaveField label="গড় উপস্থিতি" name="ward_avg_attendance" type="number" section="meeting" table="report_meeting" category={category} />
+                </div>
+             </div>
+
+             <div className="pt-2">
+                <AutoSaveField label="মন্তব্য" name="comments" type="text" section="meeting" table="report_meeting" category={category} placeholder="মন্তব্য (যদি থাকে)" />
+             </div>
+          </div>
+        </div>
+      ))}
     </div>
-  )
+  );
 }

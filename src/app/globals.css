@@ -1,21 +1,21 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: hsl(190 90% 40%);
-  --color-primary-foreground: hsl(0 0% 100%);
-  --color-secondary: hsl(220 15% 95%);
-  --color-secondary-foreground: hsl(220 50% 10%);
-  --color-accent: hsl(190 90% 95%);
-  --color-accent-foreground: hsl(190 90% 20%);
-  --color-muted: hsl(220 15% 96%);
-  --color-muted-foreground: hsl(220 15% 45%);
-  --color-card: hsl(0 0% 100%);
-  --color-card-foreground: hsl(220 50% 10%);
-  --color-popover: hsl(0 0% 100%);
-  --color-popover-foreground: hsl(220 50% 10%);
-  --color-border: hsl(220 15% 90%);
-  --color-input: hsl(220 15% 90%);
-  --color-ring: hsl(190 90% 40%);
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
   
   --radius-xl: 1rem;
   --radius-2xl: 1.5rem;
@@ -25,33 +25,84 @@
 :root {
   --background: 220 33% 98%;
   --foreground: 220 50% 10%;
-  
   --primary: 190 90% 40%;
   --primary-foreground: 0 0% 100%;
-  
   --card: 0 0% 100%;
   --card-foreground: 220 50% 10%;
-  
   --popover: 0 0% 100%;
   --popover-foreground: 220 50% 10%;
-  
   --secondary: 220 15% 95%;
   --secondary-foreground: 220 50% 10%;
-  
   --muted: 220 15% 96%;
   --muted-foreground: 220 15% 55%;
-  
   --accent: 190 90% 95%;
   --accent-foreground: 190 90% 20%;
-  
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-  
   --border: 220 15% 90%;
   --input: 220 15% 90%;
   --ring: 190 90% 40%;
-  
   --radius: 0.75rem;
+}
+
+.dark {
+  --background: 222 47% 11%;
+  --foreground: 213 31% 91%;
+  --primary: 190 90% 45%;
+  --primary-foreground: 222.2 47.4% 1.2%;
+  --card: 222.2 84% 4.9%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222.2 84% 5.9%;
+  --popover-foreground: 210 40% 98%;
+  --secondary: 222.2 47.4% 11.2%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 222.2 47.4% 11.2%;
+  --muted-foreground: 215.4 16.3% 66.9%;
+  --accent: 222.2 47.4% 11.2%;
+  --accent-foreground: 210 40% 98%;
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 190 90% 45%;
+}
+
+.solarized-light {
+  --background: 44 87% 94%; /* base3 */
+  --foreground: 192 100% 13%; /* base03 */
+  --primary: 175 59% 40%; /* cyan */
+  --primary-foreground: 44 87% 94%;
+  --card: 45 100% 96%; /* base2 */
+  --card-foreground: 192 100% 13%;
+  --popover: 45 100% 96%;
+  --popover-foreground: 192 100% 13%;
+  --secondary: 46 32% 88%; /* base1 */
+  --secondary-foreground: 192 100% 13%;
+  --muted: 46 32% 90%;
+  --muted-foreground: 196 13% 45%; /* base01 */
+  --accent: 175 59% 40%;
+  --accent-foreground: 44 87% 94%;
+  --border: 46 32% 80%;
+  --input: 46 32% 80%;
+  --ring: 175 59% 40%;
+}
+
+.solarized-dark {
+  --background: 192 100% 13%; /* base03 */
+  --foreground: 46 32% 90%; /* base0 */
+  --primary: 175 59% 40%; /* cyan */
+  --primary-foreground: 192 100% 11%;
+  --card: 192 100% 11%; /* base02 */
+  --card-foreground: 46 32% 90%;
+  --popover: 192 100% 11%;
+  --popover-foreground: 46 32% 90%;
+  --secondary: 195 45% 7%; /* base03 darker */
+  --secondary-foreground: 46 32% 90%;
+  --muted: 192 100% 15%;
+  --muted-foreground: 196 13% 45%; /* base01 */
+  --accent: 175 59% 40%;
+  --accent-foreground: 192 100% 11%;
+  --border: 192 100% 18%;
+  --input: 192 100% 18%;
+  --ring: 175 59% 40%;
 }
 
 @layer base {
@@ -60,7 +111,29 @@
   }
   body {
     @apply bg-[hsl(var(--background))] text-[hsl(var(--foreground))] min-h-screen antialiased;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  }
+  
+  .lang-bn body {
+    font-family: var(--font-tiro-bangla), serif;
+  }
+
+  /* iOS Auto-zoom prevention & Mobile tap targets */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+  
+  button, a, .tap-target {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    @apply transition-transform;
+  }
+  
+  button:active, a:active {
+    transform: scale(0.96);
   }
 }
 
@@ -87,6 +160,7 @@
   padding: 1px;
   background: linear-gradient(to bottom, rgba(255,255,255,0.2), transparent);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   pointer-events: none;
