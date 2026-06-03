@@ -138,6 +138,10 @@
 }
 
 /* Premium Layout Utilities */
+.container {
+  @apply mx-auto px-4 w-full max-w-7xl;
+}
+
 .glass-panel {
   @apply bg-white/70 backdrop-blur-[20px] border shadow-2xl;
   border-color: hsla(0, 0%, 100%, 0.3);

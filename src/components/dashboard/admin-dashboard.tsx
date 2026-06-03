@@ -12,18 +12,60 @@ import {
   ArrowRight,
   ExternalLink,
   User,
-  Building2
+  Building2,
+  Loader2
 } from "lucide-react";
 import Link from "next/link";
+import { useState, useEffect } from "react";
+import { createClient } from "@/utils/supabase/client";
+
+// Bengali month names
+const BN_MONTHS: Record<number, string> = {
+  1: "জানুয়ারি", 2: "ফেব্রুয়ারি", 3: "মার্চ", 4: "এপ্রিল",
+  5: "মে", 6: "জুন", 7: "জুলাই", 8: "আগস্ট",
+  9: "সেপ্টেম্বর", 10: "অক্টোবর", 11: "নভেম্বর", 12: "ডিসেম্বর",
+};
 
 export function AdminDashboard() {
   const { t } = useLanguage();
+  const supabase = createClient();
 
-  const stats = [
-    { label: t.adminActions.userManagement, value: "২৪", icon: Users, color: "text-blue-600", bg: "bg-blue-500/10" },
-    { label: t.adminActions.zoneManagement, value: "১২", icon: MapPin, color: "text-purple-600", bg: "bg-purple-500/10" },
-    { label: "জমাকৃত রিপোর্ট", value: "১৮/২৪", icon: FileCheck, color: "text-green-600", bg: "bg-green-500/10" },
-    { label: "প্রবৃদ্ধি", value: "+১২%", icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-500/10" },
+  const [stats, setStats] = useState({ users: 0, zones: 0, reports: 0 });
+  const [recentReports, setRecentReports] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      const [
+        { count: userCount },
+        { count: zoneCount },
+        { count: reportCount },
+        { data: reports }
+      ] = await Promise.all([
+        supabase.from("people").select("*", { count: "exact", head: true }),
+        supabase.from("zone").select("*", { count: "exact", head: true }),
+        supabase.from("report").select("*", { count: "exact", head: true }),
+        supabase.from("report").select("id, month, year, report_type, zone_id, zone:zone_id(name)").order("created_at", { ascending: false }).limit(5)
+      ]);
+
+      setStats({
+        users: userCount || 0,
+        zones: zoneCount || 0,
+        reports: reportCount || 0
+      });
+      setRecentReports(reports || []);
+      setLoading(false);
+    }
+    loadData();
+  }, [supabase]);
+
+  const toBn = (num: number) => num.toString().replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[parseInt(d, 10)]);
+
+  const statCards = [
+    { label: t.adminActions.userManagement, value: toBn(stats.users), icon: Users, color: "text-blue-600", bg: "bg-blue-500/10" },
+    { label: t.adminActions.zoneManagement, value: toBn(stats.zones), icon: MapPin, color: "text-purple-600", bg: "bg-purple-500/10" },
+    { label: "জমাকৃত রিপোর্ট", value: toBn(stats.reports), icon: FileCheck, color: "text-green-600", bg: "bg-green-500/10" },
+    { label: "সক্রিয় জোন", value: toBn(stats.zones), icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-500/10" },
   ];
 
   return (
@@ -47,14 +89,14 @@ export function AdminDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-        {stats.map((stat, i) => (
+        {statCards.map((stat, i) => (
           <div key={i} className="premium-card p-6 flex items-center gap-5 group transition-all hover:translate-y-[-4px]">
             <div className={`w-14 h-14 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110`}>
               <stat.icon className="w-7 h-7" />
             </div>
             <div>
               <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground mb-1">{stat.label}</p>
-              <p className="text-2xl font-black">{stat.value}</p>
+              <p className="text-2xl font-black">{loading ? <Loader2 className="w-5 h-5 animate-spin" /> : stat.value}</p>
             </div>
           </div>
         ))}
@@ -118,30 +160,40 @@ export function AdminDashboard() {
 
            <div className="premium-card overflow-hidden">
              <div className="divide-y divide-border">
-                {[1, 2, 3, 4, 5].map((item) => (
-                  <div key={item} className="p-5 flex items-center justify-between hover:bg-muted/30 transition-colors group">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-muted rounded-2xl flex items-center justify-center text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                        <User className="w-5 h-5" />
+                {loading ? (
+                  <div className="p-10 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+                ) : recentReports.length === 0 ? (
+                  <div className="p-10 text-center text-muted-foreground font-medium">কোনো রিপোর্ট জমা হয়নি</div>
+                ) : (
+                  recentReports.map((item) => (
+                    <div key={item.id} className="p-5 flex items-center justify-between hover:bg-muted/30 transition-colors group">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-muted rounded-2xl flex items-center justify-center text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                          <FileCheck className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="font-black text-foreground">
+                            {item.zone?.name || "অজানা জোন"}
+                          </p>
+                          <p className="text-[10px] uppercase font-bold tracking-tighter text-muted-foreground">
+                            {BN_MONTHS[item.month]} {toBn(item.year)} • {item.report_type}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-black text-foreground">ঢাকা উত্তর - জোন {item}</p>
-                        <p className="text-[10px] uppercase font-bold tracking-tighter text-muted-foreground">মার্চ ২০২০৫ • জমাদানকারী: আব্দুল্লাহ</p>
+                      <div className="flex items-center gap-3">
+                         <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold uppercase py-1 px-3 bg-green-500/10 text-green-600 rounded-full">
+                           সফল
+                         </span>
+                         <Link 
+                          href={`/report?zone_id=${item.zone_id}&report_id=${item.id}`} 
+                          className="p-2 hover:bg-primary/10 rounded-lg text-primary transition-colors"
+                         >
+                           <ArrowRight className="w-5 h-5" />
+                         </Link>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                       <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold uppercase py-1 px-3 bg-green-500/10 text-green-600 rounded-full">
-                         সফল
-                       </span>
-                       <Link 
-                        href={`/admin/reports/${item}`} 
-                        className="p-2 hover:bg-primary/10 rounded-lg text-primary transition-colors"
-                       >
-                         <ArrowRight className="w-5 h-5" />
-                       </Link>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
              </div>
            </div>
         </div>

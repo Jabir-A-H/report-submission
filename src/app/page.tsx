@@ -11,8 +11,14 @@ export default async function Home() {
     return <AuthView />;
   }
 
-  // Determine role (simplified for now, check metadata/database)
-  const isAdmin = user.user_metadata?.role === "admin" || user.email?.includes("admin");
+  // Fetch real role from people table
+  const { data: profile } = await supabase
+    .from("people")
+    .select("role")
+    .eq("auth_user_id", user.id)
+    .single();
+
+  const isAdmin = profile?.role === "admin" || profile?.role === "superadmin";
 
   return (
     <div className="min-h-screen">
