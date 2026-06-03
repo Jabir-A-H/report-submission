@@ -38,11 +38,32 @@ export async function middleware(request: NextRequest) {
     (path) => request.nextUrl.pathname === path || request.nextUrl.pathname.startsWith(path + '/')
   )
 
+  const isApiRoute = request.nextUrl.pathname.startsWith('/api/')
+
   // Redirect unauthenticated users away from protected routes
   if (!user && !isPublicRoute) {
+    // For API routes, return 401 JSON instead of redirect
+    if (isApiRoute) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
+  }
+
+  // If user is authenticated, check if they are active (approved)
+  if (user && !isPublicRoute && !isApiRoute) {
+    const { data: person } = await supabase
+      .from('people')
+      .select('active')
+      .eq('auth_user_id', user.id)
+      .single()
+
+    if (person && person.active === false) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/pending-approval'
+      return NextResponse.redirect(url)
+    }
   }
 
   // If user is authenticated and hitting /login, redirect to home (dashboard)

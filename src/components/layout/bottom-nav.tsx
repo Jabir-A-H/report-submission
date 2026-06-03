@@ -1,13 +1,32 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
+import { createClient } from "@/utils/supabase/client";
 import { Home, ClipboardList, Users, Map, HelpCircle } from "lucide-react";
 
 export function BottomNav() {
   const { t } = useLanguage();
   const pathname = usePathname();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from("people")
+        .select("role")
+        .eq("auth_user_id", user.id)
+        .single();
+      if (data && (data.role === "admin" || data.role === "superadmin")) {
+        setIsAdmin(true);
+      }
+    })();
+  }, []);
 
   const isAuthPage = ["/login", "/register", "/auth", "/landing"].includes(pathname);
   if (isAuthPage) return null;
@@ -17,8 +36,6 @@ export function BottomNav() {
     { label: t.help, href: "/help", icon: HelpCircle },
   ];
 
-  // Admin items (placeholder check)
-  const isAdmin = true; // Temporary
   if (isAdmin) {
     navItems.splice(2, 0, 
       { label: "ইউজার", href: "/admin/users", icon: Users },
