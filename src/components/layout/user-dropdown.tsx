@@ -28,10 +28,11 @@ export function UserDropdown() {
           .single();
         
         if (profile) {
+          const zoneObj = profile.zone as any;
           setUser({
             name: profile.name || authUser.email?.split("@")[0] || "User",
             role: profile.role,
-            zone: profile.zone?.name || "—",
+            zone: zoneObj?.name || "—",
           });
         } else {
           setUser({
