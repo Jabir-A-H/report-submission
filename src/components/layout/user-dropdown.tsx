@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import { useLanguage } from "@/components/providers/language-provider";
 import { User, LogOut, Settings, ShieldCheck, Settings2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 import { LanguageToggle } from "./language-toggle";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -11,13 +13,37 @@ export function UserDropdown() {
   const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const supabase = createClient();
+  const [user, setUser] = useState<{name: string, role: string, zone: string} | null>(null);
 
-  // Placeholder user info
-  const user = {
-    name: "User Name",
-    role: "admin",
-    zone: "Dhaka North",
-  };
+  useEffect(() => {
+    async function loadUser() {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (authUser) {
+        const { data: profile } = await supabase
+          .from("people")
+          .select("name, role, zone(name)")
+          .eq("auth_user_id", authUser.id)
+          .single();
+        
+        if (profile) {
+          setUser({
+            name: profile.name || authUser.email?.split("@")[0] || "User",
+            role: profile.role,
+            zone: profile.zone?.name || "—",
+          });
+        } else {
+          setUser({
+            name: authUser.email?.split("@")[0] || "User",
+            role: "user",
+            zone: "—",
+          });
+        }
+      }
+    }
+    loadUser();
+  }, [supabase]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -39,16 +65,16 @@ export function UserDropdown() {
           <User className="w-5 h-5" />
         </div>
         <div className="hidden lg:flex flex-col items-start leading-tight">
-          <span className="text-sm font-black truncate max-w-[100px]">{user.name}</span>
-          <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{user.role}</span>
+          <span className="text-sm font-black truncate max-w-[100px]">{user?.name || "..."}</span>
+          <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{user?.role || "..."}</span>
         </div>
       </button>
 
       {isOpen && (
         <div className="absolute right-0 mt-3 w-64 rounded-2xl border bg-card shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-100">
           <div className="p-5 bg-linear-to-br from-primary/5 to-transparent border-b">
-            <p className="text-sm font-black">{user.name}</p>
-            <p className="text-xs text-muted-foreground font-bold">{user.zone}</p>
+            <p className="text-sm font-black">{user?.name || "..."}</p>
+            <p className="text-xs text-muted-foreground font-bold">{user?.zone || "..."}</p>
           </div>
           
           <div className="p-3">
@@ -70,7 +96,7 @@ export function UserDropdown() {
               <span>প্রোফাইল</span>
             </Link>
             
-            {user.role === "admin" && (
+            {user?.role === "admin" && (
               <Link
                 href="/admin/users"
                 className="group flex items-center gap-3 px-3 py-2.5 text-sm font-bold rounded-xl hover:bg-primary/5 transition-all text-muted-foreground hover:text-primary"
@@ -85,9 +111,10 @@ export function UserDropdown() {
             
             <button
               className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold rounded-xl hover:bg-red-50 text-red-600 transition-all active:scale-95 text-left"
-              onClick={() => {
+              onClick={async () => {
                 setIsOpen(false);
-                // logout logic placeholder
+                await fetch("/auth/logout", { method: "POST" });
+                router.push("/login");
               }}
             >
               <LogOut className="w-4 h-4" />
