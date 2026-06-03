@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
 import { useReport, ReportProvider } from "@/components/report/report-context";
@@ -12,21 +12,86 @@ import { PersonalForm } from "@/components/report/sections/personal-form";
 import { MeetingsForm } from "@/components/report/sections/meetings-form";
 import { ExtrasForm } from "@/components/report/sections/extras-form";
 import { CommentsForm } from "@/components/report/sections/comments-form";
+import { createClient } from "@/utils/supabase/client";
+import { Loader2 } from "lucide-react";
 
 function SectionSwitcher() {
   const { section } = useParams();
   const { t } = useLanguage();
   const { reportId, setReportId, loadReport } = useReport();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // For now, let's assume we have a report ID from the URL or state
-  // In a real app, we'd fetch the active report for the user/period
   useEffect(() => {
-    // Placeholder ID for development
-    if (!reportId) {
-      setReportId(1); 
-      loadReport(1);
+    if (reportId) {
+      setIsLoading(false);
+      return;
     }
+
+    const fetchActiveReport = async () => {
+      setIsLoading(true);
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setError("ব্যবহারকারী চিহ্নিত করা যায়নি।");
+        setIsLoading(false);
+        return;
+      }
+
+      // Get the user's person record for their zone
+      const { data: person } = await supabase
+        .from("people")
+        .select("zone_id")
+        .eq("auth_user_id", user.id)
+        .single();
+
+      if (!person?.zone_id) {
+        setError("আপনার জোন এখনও নির্ধারণ করা হয়নি।");
+        setIsLoading(false);
+        return;
+      }
+
+      // Find the current period's report for this zone
+      const now = new Date();
+      const { data: report } = await supabase
+        .from("report")
+        .select("id")
+        .eq("zone_id", person.zone_id)
+        .eq("year", now.getFullYear())
+        .eq("month", now.getMonth() + 1)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (report) {
+        setReportId(report.id);
+        await loadReport(report.id);
+      } else {
+        setError("এই মাসের জন্য কোনো রিপোর্ট পাওয়া যায়নি। প্রথমে একটি নতুন রিপোর্ট তৈরি করুন।");
+      }
+      setIsLoading(false);
+    };
+
+    fetchActiveReport();
   }, [reportId, setReportId, loadReport]);
+
+  if (isLoading) {
+    return (
+      <SectionLayout title="">
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </SectionLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <SectionLayout title="">
+        <div className="text-center py-20 text-muted-foreground">{error}</div>
+      </SectionLayout>
+    );
+  }
 
   switch (section) {
     case "header":
@@ -87,3 +152,4 @@ export default function ReportSectionPage() {
     </ReportProvider>
   );
 }
+

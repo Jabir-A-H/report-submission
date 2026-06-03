@@ -40,6 +40,14 @@ export function Navbar() {
             >
               {t.report}
             </Link>
+            <Link
+              href="/help"
+              className={`transition-all hover:text-primary ${
+                pathname.startsWith("/help") ? "text-primary px-2 py-1 bg-primary/5 rounded-lg" : "text-muted-foreground"
+              }`}
+            >
+              {t.help || "সাহায্য"}
+            </Link>
           </nav>
         </div>
         <div className="flex items-center gap-2">
