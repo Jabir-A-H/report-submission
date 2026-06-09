@@ -20,7 +20,7 @@ export function BottomNav() {
       const { data } = await supabase
         .from("people")
         .select("role")
-        .eq("auth_user_id", user.id)
+        .eq("supabase_uid", user.id)
         .single();
       if (data && (data.role === "admin" || data.role === "superadmin")) {
         setIsAdmin(true);

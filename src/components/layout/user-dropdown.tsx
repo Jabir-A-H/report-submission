@@ -24,7 +24,7 @@ export function UserDropdown() {
         const { data: profile } = await supabase
           .from("people")
           .select("name, role, zone(name)")
-          .eq("auth_user_id", authUser.id)
+          .eq("supabase_uid", authUser.id)
           .single();
         
         if (profile) {

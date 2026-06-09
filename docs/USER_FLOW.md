@@ -5,9 +5,10 @@ This document outlines the User Experience (UX) and navigation paths for standar
 
 ## 1. Authentication Flow
 1. **Registration**: User signs up with Email/Password, providing their Name and Zone. Supabase Auth handles the sign-up, and an automated Database Trigger (`on_auth_user_created`) securely intercepts the new user to create their profile in the `people` table with an automatically generated sequential `user_id`.
-2. **Approval Gate**: Post-registration, the user is redirected to a `/pending-approval` screen. Their account defaults to `active = false`.
-3. **Login**: Once an Admin approves the account (sets `active = true`), the user can successfully log in and route to the User Dashboard.
-4. **Header Data & Logout**: The global header features a `UserDropdown` component that dynamically fetches the logged-in user's name, zone, and role from the `people` table. The logout flow calls an auth endpoint to clear Supabase cookies and redirects to `/login`.
+2. **Email Confirmation**: Supabase Auth strictly requires the user to click a confirmation link sent to their registered email. Until this is done, login is disabled.
+3. **Approval Gate**: Post-registration, the user is redirected to a `/pending-approval` screen which instructs them to confirm their email and wait for admin approval. Their account defaults to `active = false`.
+4. **Login**: When logging in, if the email is confirmed, the server action verifies if the user's `active` status is `true`. If they are not active (still pending approval), the system securely terminates the session and redirects them to `/pending-approval`. Once an Admin approves the account, they can successfully access the User Dashboard.
+5. **Header Data & Logout**: The global header features a `UserDropdown` component that dynamically fetches the logged-in user's name, zone, and role from the `people` table. The logout flow calls an auth endpoint to clear Supabase cookies and redirects to `/login`.
 
 ## 2. Dashboard Flow
 1. **Landing**: User lands on `/` (Dashboard).

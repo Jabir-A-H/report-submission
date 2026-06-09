@@ -35,13 +35,28 @@ export async function login(formData: FormData) {
   const email = rawIdOrEmail.includes('@') ? rawIdOrEmail : `${rawIdOrEmail}@report.local`
   const password = formData.get('password') as string
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data: authData, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   })
 
   if (error) {
-    return redirect('/login?message=Could not authenticate user')
+    // Return the exact error message so we know if it's "Email not confirmed", "Invalid login credentials", etc.
+    return redirect(`/login?message=${encodeURIComponent(error.message)}`)
+  }
+
+  // Check if user is active using the user object returned from signInWithPassword
+  if (authData?.user) {
+    const { data: profile, error: profileError } = await supabase
+      .from('people')
+      .select('active')
+      .eq('supabase_uid', authData.user.id)
+      .single()
+
+    if (!profileError && profile && !profile.active) {
+      await supabase.auth.signOut()
+      return redirect('/pending-approval')
+    }
   }
 
   revalidatePath('/', 'layout')

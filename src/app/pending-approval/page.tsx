@@ -16,7 +16,7 @@ export default function PendingApprovalPage() {
             রেজিস্ট্রেশন সফল!
           </h1>
           <p className="text-muted-foreground font-bold leading-relaxed text-lg">
-            আপনার অ্যাকাউন্ট তৈরি হয়েছে। অ্যাডমিনের অনুমোদনের জন্য অপেক্ষা করুন।
+            আপনার অ্যাকাউন্ট তৈরি হয়েছে। আপনার ইমেইল ইনবক্স চেক করে ইমেইলটি ভেরিফাই করুন এবং অ্যাডমিনের অনুমোদনের জন্য অপেক্ষা করুন।
           </p>
         </div>
 
@@ -26,6 +26,7 @@ export default function PendingApprovalPage() {
           <div className="space-y-3">
             {[
               { done: true, text: 'অ্যাকাউন্ট তৈরি সম্পন্ন' },
+              { done: false, text: 'ইমেইল ভেরিফিকেশন (ইমেইলে পাঠানো লিংক চেক করুন)' },
               { done: false, text: 'অ্যাডমিনের অনুমোদন (অপেক্ষমাণ)' },
               { done: false, text: 'লগইন করুন এবং রিপোর্ট সাবমিট করুন' },
             ].map((step, i) => (

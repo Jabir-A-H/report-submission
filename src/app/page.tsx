@@ -15,7 +15,7 @@ export default async function Home() {
   const { data: profile } = await supabase
     .from("people")
     .select("role")
-    .eq("auth_user_id", user.id)
+    .eq("supabase_uid", user.id)
     .single();
 
   const isAdmin = profile?.role === "admin" || profile?.role === "superadmin";

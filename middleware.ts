@@ -56,7 +56,7 @@ export async function middleware(request: NextRequest) {
     const { data: person } = await supabase
       .from('people')
       .select('active')
-      .eq('auth_user_id', user.id)
+      .eq('supabase_uid', user.id)
       .single()
 
     if (person && person.active === false) {

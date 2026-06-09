@@ -45,7 +45,7 @@ export default async function LoginPage({
             <p className="text-muted-foreground font-medium">ড্যাশবোর্ডে প্রবেশ করতে লগ-ইন করুন</p>
           </div>
 
-          <form className="animate-in flex-1 flex flex-col w-full justify-center gap-6 text-foreground">
+          <form action={login} className="animate-in flex-1 flex flex-col w-full justify-center gap-6 text-foreground">
             
             <div className="space-y-4">
                <div>
@@ -53,7 +53,7 @@ export default async function LoginPage({
                      ইউজার আইডি / ইমেইল
                   </label>
                   <input
-                    className="modern-input w-full h-14 text-lg bg-muted/40 focus:bg-background transition-colors"
+                    className="modern-input w-full h-14 text-lg bg-muted/40 focus:bg-background transition-colors px-4 rounded-xl border border-border"
                     name="email"
                     placeholder="ex: 021 or 001"
                     required
@@ -67,7 +67,7 @@ export default async function LoginPage({
                     </label>
                  </div>
                  <input
-                   className="modern-input w-full h-14 text-lg bg-muted/40 focus:bg-background transition-colors tracking-widest"
+                   className="modern-input w-full h-14 text-lg bg-muted/40 focus:bg-background transition-colors tracking-widest px-4 rounded-xl border border-border"
                    type="password"
                    name="password"
                    placeholder="••••••••"
@@ -76,7 +76,7 @@ export default async function LoginPage({
                </div>
             </div>
 
-            <button formAction={login} className="modern-btn btn-primary h-14 text-lg font-bold w-full flex items-center justify-center gap-3 group mt-2 shadow-xl shadow-primary/20">
+            <button type="submit" className="modern-btn btn-primary h-14 text-lg font-bold w-full flex items-center justify-center gap-3 group mt-2 shadow-xl shadow-primary/20 bg-primary text-primary-foreground rounded-xl">
                লগ-ইন করুন
                <LogIn className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>

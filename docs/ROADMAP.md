@@ -11,6 +11,7 @@
 - [ ] Develop custom, condensed PDF/Excel Export logic.
 
 ## Phase 2: Post-MVP & Improvements
+- [ ] **Realtime Pending Page Tracking**: Use Supabase Realtime to auto-refresh the `/pending-approval` page and seamlessly redirect the user once their email is confirmed and an admin approves the account.
 - [ ] **Google One Tap Login**: Simplify authentication for Zone Managers alongside standard Email/Password.
 - [ ] **OTP / Magic Links**: Implement passwordless login via Supabase.
 - [ ] **Enhanced Analytics**: Add visual charts to the Admin Dashboard to track metrics over time.

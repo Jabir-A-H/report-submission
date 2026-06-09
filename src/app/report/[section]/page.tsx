@@ -42,7 +42,7 @@ function SectionSwitcher() {
       const { data: person } = await supabase
         .from("people")
         .select("zone_id")
-        .eq("auth_user_id", user.id)
+        .eq("supabase_uid", user.id)
         .single();
 
       if (!person?.zone_id) {
