@@ -1,14 +1,14 @@
 import { createClient } from "@/utils/supabase/server";
 import { AdminDashboard } from "@/components/dashboard/admin-dashboard";
 import { UserDashboard } from "@/components/dashboard/user-dashboard";
-import { AuthView } from "@/components/auth/auth-view";
+import { redirect } from "next/navigation";
 
 export default async function Home() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) {
-    return <AuthView />;
+    redirect("/home");
   }
 
   // Fetch real role from people table

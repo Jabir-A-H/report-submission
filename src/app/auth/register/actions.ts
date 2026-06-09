@@ -34,11 +34,11 @@ export async function register(formData: FormData) {
   const zoneId = formData.get('zone_id') as string
 
   if (!name || !email || !password || !zoneId) {
-    return redirect('/login?message=সকল তথ্য পূরণ করুন')
+    return redirect('/register?message=সকল তথ্য পূরণ করুন')
   }
 
   if (password.length < 6) {
-    return redirect('/login?message=পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে')
+    return redirect('/register?message=পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে')
   }
 
   // 1. Create Supabase Auth user
@@ -46,7 +46,7 @@ export async function register(formData: FormData) {
     email,
     password,
     options: {
-      data: { name }, // Store name in auth metadata for convenience
+      data: { name, zone_id: parseInt(zoneId) }, // Store name and zone_id so the database trigger can insert into people
     },
   })
 
@@ -54,37 +54,7 @@ export async function register(formData: FormData) {
     const msg = authError.message === 'User already registered' 
       ? 'এই ইমেইল দিয়ে আগেই নিবন্ধন করা হয়েছে।' 
       : authError.message
-    return redirect(`/login?message=${encodeURIComponent(msg)}`)
-  }
-
-  // 2. Generate a 3-digit user_id (matching legacy convention)
-  const { data: maxUser } = await supabase
-    .from('people')
-    .select('user_id')
-    .order('user_id', { ascending: false })
-    .limit(1)
-    .single()
-
-  const nextUserId = maxUser?.user_id 
-    ? String(Number(maxUser.user_id) + 1).padStart(3, '0')
-    : '001'
-
-  // 3. Insert into people table (inactive by default — needs admin approval)
-  const { error: profileError } = await supabase
-    .from('people')
-    .insert({
-      user_id: nextUserId,
-      name,
-      email,
-      role: 'user',
-      active: false,
-      zone_id: parseInt(zoneId),
-      supabase_uid: authData.user?.id,
-    })
-
-  if (profileError) {
-    console.error('Profile creation error:', profileError)
-    return redirect(`/login?message=${encodeURIComponent('প্রোফাইল তৈরিতে সমস্যা হয়েছে। অ্যাডমিনের সাথে যোগাযোগ করুন।')}`)
+    return redirect(`/register?message=${encodeURIComponent(msg)}`)
   }
 
   // Sign out immediately — user must wait for admin approval

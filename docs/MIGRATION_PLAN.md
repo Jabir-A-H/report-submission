@@ -1,5 +1,7 @@
-# Migration Plan
+# Migration Plan (DEPRECATED)
 
+> [!WARNING]
+> **LEGACY DOCUMENT**: This document describes the migration process from the old system. The migration has been completed. This file is kept for historical reference only.
 ## Overview
 This document outlines the step-by-step strategy for migrating from the legacy Flask system to the modern Next.js + Supabase architecture safely, with zero data loss.
 

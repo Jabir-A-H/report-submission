@@ -1,7 +1,7 @@
 # System Architecture
 
 ## Overview
-The Report Submission System has been modernized from a legacy Flask/PostgreSQL architecture to a modern **Next.js** (Frontend) and **Supabase** (Backend/Database) stack. This architecture provides high performance, a premium UI, and a streamlined developer experience.
+The Report Submission System is built on a modern **Next.js** (Frontend) and **Supabase** (Backend/Database) stack. This architecture provides high performance, a premium UI, and a streamlined developer experience.
 
 ## Technology Stack
 - **Frontend Framework**: Next.js (App Router)

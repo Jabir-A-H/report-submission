@@ -1,5 +1,7 @@
-# Legacy Mapping
+# Legacy Mapping (DEPRECATED)
 
+> [!WARNING]
+> **LEGACY DOCUMENT**: This document describes the old Python/Flask system and its mapping to the new system. It is kept for historical reference only and does not reflect the current applied process.
 ## Overview
 This document maps the legacy Flask/SQLAlchemy definitions (`models.py`) to the new Supabase PostgreSQL schema. While some field names may be tweaked during implementation, the structural mapping remains consistent.
 

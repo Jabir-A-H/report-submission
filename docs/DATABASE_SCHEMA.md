@@ -9,10 +9,12 @@ This system runs on a **managed Supabase PostgreSQL** database. The schema is de
 Supabase handles core authentication via its internal `auth.users` table. Application-specific user data is stored in the public schema.
 - **`people`**: Stores user profiles.
   - `id` (UUID, maps to auth.users)
-  - `user_id` (String, 3-digit legacy ID)
+  - `user_id` (String, 3-digit sequential ID, e.g., '021')
   - `name`, `email`, `role` ('user' or 'admin')
   - `active` (Boolean, defaults to `false`. Requires admin approval for login).
   - `zone_id` (Foreign Key to `zones`)
+  
+  *Note: A Postgres database trigger (`on_auth_user_created`) automatically populates the `people` table securely when a new user registers via Supabase Auth, bypassing RLS limitations.*
 
 ### Core Business Entities
 - **`zones`**: Stores the ~14 geographical zones.

@@ -4,9 +4,9 @@
 This document outlines the User Experience (UX) and navigation paths for standard users (Zone Managers). The frontend focuses on an accessible, adaptive UI built with Next.js and Tailwind v4.
 
 ## 1. Authentication Flow
-1. **Registration**: User signs up with Email/Password (and potentially Google One Tap).
+1. **Registration**: User signs up with Email/Password, providing their Name and Zone. Supabase Auth handles the sign-up, and an automated Database Trigger (`on_auth_user_created`) securely intercepts the new user to create their profile in the `people` table with an automatically generated sequential `user_id`.
 2. **Approval Gate**: Post-registration, the user is redirected to a `/pending-approval` screen. Their account defaults to `active = false`.
-3. **Login**: Once an Admin approves the account, the user can successfully log in and route to the User Dashboard.
+3. **Login**: Once an Admin approves the account (sets `active = true`), the user can successfully log in and route to the User Dashboard.
 4. **Header Data & Logout**: The global header features a `UserDropdown` component that dynamically fetches the logged-in user's name, zone, and role from the `people` table. The logout flow calls an auth endpoint to clear Supabase cookies and redirects to `/login`.
 
 ## 2. Dashboard Flow

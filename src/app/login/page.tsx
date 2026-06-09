@@ -1,5 +1,6 @@
 import { login } from './actions'
 import { Building2, LogIn } from 'lucide-react'
+import Link from 'next/link'
 
 export default async function LoginPage({
   searchParams,
@@ -79,6 +80,15 @@ export default async function LoginPage({
                লগ-ইন করুন
                <LogIn className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
+
+            <div className="flex flex-col sm:flex-row items-center justify-between pt-4 text-sm text-muted-foreground font-medium gap-4 border-t border-border/40 mt-4">
+              <Link href="/home" className="hover:text-primary transition-colors">
+                &larr; হোম পেজ
+              </Link>
+              <Link href="/register" className="hover:text-primary transition-colors">
+                অ্যাকাউন্ট নেই? <span className="text-primary font-bold underline underline-offset-2">নিবন্ধন করুন</span>
+              </Link>
+            </div>
 
             {resolvedParams?.message && (
               <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-600 rounded-2xl text-center font-bold text-sm animate-in zoom-in duration-300">

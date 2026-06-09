@@ -37,7 +37,7 @@ export default function PendingApprovalPage() {
                 }`}>
                   {step.done ? <CheckCircle2 className="w-4 h-4" /> : i + 1}
                 </div>
-                <span className={`text-sm font-bold ${step.done ? 'text-green-700 line-through' : 'text-foreground'}`}>
+                <span className={`text-sm font-bold ${step.done ? 'text-green-700' : 'text-foreground'}`}>
                   {step.text}
                 </span>
               </div>
