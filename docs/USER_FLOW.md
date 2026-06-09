@@ -7,6 +7,7 @@ This document outlines the User Experience (UX) and navigation paths for standar
 1. **Registration**: User signs up with Email/Password (and potentially Google One Tap).
 2. **Approval Gate**: Post-registration, the user is redirected to a `/pending-approval` screen. Their account defaults to `active = false`.
 3. **Login**: Once an Admin approves the account, the user can successfully log in and route to the User Dashboard.
+4. **Header Data & Logout**: The global header features a `UserDropdown` component that dynamically fetches the logged-in user's name, zone, and role from the `people` table. The logout flow calls an auth endpoint to clear Supabase cookies and redirects to `/login`.
 
 ## 2. Dashboard Flow
 1. **Landing**: User lands on `/` (Dashboard).
@@ -19,8 +20,10 @@ This document outlines the User Experience (UX) and navigation paths for standar
    - 🟢 (Green): Fully completed.
    *(This encourages users to input '0' even for empty fields to achieve a green state).*
 
+*Note: The UI strictly follows the 4-theme system (Light, Dark, Solarized Light, Solarized Dark). While interactive power-user features like `kbar` and `framer-motion` were explored, they have been explicitly omitted to prioritize a minimalist, highly accessible experience tailored to non-tech-savvy field managers.*
+
 ## 3. Data Entry Flow (Adaptive Matrix)
-1. **Navigation**: User clicks a section card and routes to `/report/[section]`.
+1. **Navigation**: User clicks a section card and routes to `/report/[section]`. A visible "Nav Stepper" component tracks progress across the 7 sections.
 2. **Layout**:
    - **Desktop**: A sticky, tabular adaptive grid.
    - **Mobile**: Grouped cards with a Fixed Bottom Navigation Bar (no hamburger menu).

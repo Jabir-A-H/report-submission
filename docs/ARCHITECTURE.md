@@ -20,6 +20,8 @@ Supabase Edge/API Layer
        │
        ├─ Auth (Email/Password, Google One Tap)
        │
+       ├─ Middleware (`middleware.ts` for route protection)
+       │
        ├─ Edge Functions (Excel Export, custom PDF generator)
        │
        ▼
@@ -37,3 +39,6 @@ To ensure data safety while minimizing operational costs:
 ## Exports Strategy
 - Excel and PDF exports will be generated using whichever method is fastest (Next.js API routes vs. Supabase Edge Functions).
 - PDF exports will be customized to heavily condense the output for easier printing and review.
+
+## Aggregation Strategy
+All aggregations, including cross-month aggregations (Quarterly, Yearly), are executed entirely via **PostgreSQL Views** at the database layer. The frontend simply queries the pre-calculated view, remaining lightweight and fast without performing client-side `SUM` operations.

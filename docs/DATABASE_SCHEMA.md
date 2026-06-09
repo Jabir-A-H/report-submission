@@ -35,7 +35,14 @@ Reports are broken down structurally similar to the legacy models.
   - Replaces aggregated sums dynamically in Views without altering user data.
 
 ## PostgreSQL Views (Aggregations)
-Instead of calculating city-wide totals on the fly via the Next.js frontend or an API route, the system leverages PostgreSQL views (e.g., `city_monthly_aggregates_view`). This keeps aggregation logic at the database layer, allowing for instant query returns.
+Instead of calculating city-wide totals on the fly via the Next.js frontend or an API route, the system leverages PostgreSQL views. This keeps aggregation logic at the database layer, allowing for instant query returns.
+The system relies on 6 explicit views corresponding to the report sections:
+- `view_city_header_agg`
+- `view_city_course_agg`
+- `view_city_organizational_agg`
+- `view_city_personal_agg`
+- `view_city_meeting_agg`
+- `view_city_extra_agg`
 
 ## Row Level Security (RLS)
 - **Users**: Can only `SELECT`, `INSERT`, and `UPDATE` reports tied to their `zone_id`.

@@ -4,7 +4,7 @@
 This document enforces consistent code style, folder structure, and commit practices across the codebase to ensure long-term maintainability.
 
 ## 1. Tech Stack Conventions
-- **Framework**: Next.js App Router. Use Server Components by default. Use `"use client"` only when interactivity (hooks, state, Framer Motion) is strictly required.
+- **Framework**: Next.js App Router. Use Server Components by default. Use `"use client"` only when interactivity (hooks, state) is strictly required.
 - **Styling**: Tailwind CSS v4. Avoid inline styles.
 - **Language**: TypeScript is mandatory. Use strict typing for Supabase responses.
 - **Components**: Functional components only.
@@ -35,7 +35,10 @@ We strictly adhere to Conventional Commits to automate changelogs.
 - `refactor:` - Code changes that neither fix a bug nor add a feature
 - `chore:` - Build process or auxiliary tool changes
 
-## 5. UI/UX Principles
-- **Minimalism**: Focus on utility. Keep forms clean.
+## 5. UI/UX Principles & Design System
+- **HSL Tokens**: Ensure all custom colors use `hsl()` CSS variables defined in `globals.css` (e.g., `hsl(var(--primary))`) to smoothly support the 4-theme suite, especially Solarized Light/Dark.
+- **Minimalism & Accessibility**: Focus on utility. Keep forms clean. Avoid complex JavaScript animations like `framer-motion` for basic navigation; rely on standard snappy CSS transitions.
 - **Mobile-First**: Design for small screens first, scale up to desktop sticky grids.
 - **Feedback**: Every action (especially auto-saves) must provide visual feedback (spinners, checkmarks).
+- **Glassmorphism**: Use the custom `.glass-panel` utility class for elevated layered elements (adds a `20px` backblur and subtle white opacity overlay).
+- **Light-Catch Borders**: Use the `.light-catch` utility for a premium, physical feel on prominent cards and buttons.
