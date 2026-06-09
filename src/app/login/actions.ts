@@ -46,14 +46,34 @@ export async function login(formData: FormData) {
   }
 
   // Check if user is active using the user object returned from signInWithPassword
-  if (authData?.user) {
-    const { data: profile, error: profileError } = await supabase
+  // We must create a new client using the explicit session token because the SSR client
+  // still reads from stale request cookies, causing RLS to block the query.
+  if (authData?.user && authData?.session) {
+    const { createClient } = await import('@supabase/supabase-js');
+    const userClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${authData.session.access_token}`
+          }
+        }
+      }
+    );
+
+    const { data: profile, error: profileError } = await userClient
       .from('people')
       .select('active')
       .eq('supabase_uid', authData.user.id)
       .single()
 
-    if (!profileError && profile && !profile.active) {
+    if (profileError) {
+      await supabase.auth.signOut()
+      return redirect(`/login?message=${encodeURIComponent('প্রোফাইল চেক করতে সমস্যা হয়েছে: ' + profileError.message)}`)
+    }
+
+    if (!profile.active) {
       await supabase.auth.signOut()
       return redirect('/pending-approval')
     }
