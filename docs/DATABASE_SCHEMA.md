@@ -10,12 +10,14 @@ Supabase handles core authentication via its internal `auth.users` table. Applic
 - **`people`**: Stores user profiles.
   - `id` (Primary Key, Integer)
   - `supabase_uid` (UUID, Foreign Key mapping to `auth.users.id`)
-  - `user_id` (String, 3-digit sequential ID, e.g., '021')
+  - `user_id` (String, Unique constraint, custom ID chosen by the user during registration, e.g., 'sumona' or '002')
   - `name`, `email`, `role` ('user', 'admin', or 'superadmin')
   - `active` (Boolean, defaults to `false`. Requires admin approval for login).
   - `zone_id` (Foreign Key to `zones`)
   
-  *Note: A Postgres database trigger (`on_auth_user_created`) automatically populates the `people` table securely when a new user registers via Supabase Auth, bypassing RLS limitations.*
+  *Note: A Postgres database trigger (`on_auth_user_created` executing `handle_new_user()`) automatically populates the `people` table securely with the user-submitted custom `user_id` when a new user registers via Supabase Auth.*
+
+- **`legacy_people`**: Backup table containing legacy user profiles and their historical sequential User IDs for reference.
 
 ### Core Business Entities
 - **`zones`**: Stores the ~14 geographical zones.

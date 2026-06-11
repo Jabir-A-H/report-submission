@@ -4,10 +4,10 @@
 This document outlines the User Experience (UX) and navigation paths for standard users (Zone Managers). The frontend focuses on an accessible, adaptive UI built with Next.js and Tailwind v4.
 
 ## 1. Authentication Flow
-1. **Registration**: User signs up with Email/Password, providing their Name and Zone. Supabase Auth handles the sign-up, and an automated Database Trigger (`on_auth_user_created`) securely intercepts the new user to create their profile in the `people` table with an automatically generated sequential `user_id`.
+1. **Registration**: User signs up with Email/Password, providing their Name, Zone, and a chosen custom **User ID / Username** (validated for uniqueness). Supabase Auth handles the sign-up, and an automated Database Trigger (`on_auth_user_created` running `handle_new_user()`) securely intercepts the user to create their profile in the `people` table with their submitted custom `user_id`.
 2. **Email Confirmation**: Supabase Auth strictly requires the user to click a confirmation link sent to their registered email. Until this is done, login is disabled.
 3. **Approval Gate**: Post-registration, the user is redirected to a `/pending-approval` screen which instructs them to confirm their email and wait for admin approval. Their account defaults to `active = false`.
-4. **Login**: When logging in, if the email is confirmed, the server action verifies if the user's `active` status is `true`. If they are not active (still pending approval), the system securely terminates the session and redirects them to `/pending-approval`. Once an Admin approves the account, they can successfully access the User Dashboard.
+4. **Login**: Users can log in using either their **Email** or their custom **User ID**. If logging in with a User ID, a server-side action securely resolves it to their registered email using a private database lookup before authentication. If the account is approved (`active = true`), they successfully access the User Dashboard; otherwise, they are redirected to `/pending-approval`.
 5. **Header Data & Logout**: The global header features a `UserDropdown` component that dynamically fetches the logged-in user's name, zone, and role from the `people` table. There is no standalone Profile page; all user details (name, email, role, zone) are read-only and managed by administrators. The logout flow calls an auth endpoint to clear Supabase cookies and redirects to `/login`.
 
 ## 2. Dashboard Flow

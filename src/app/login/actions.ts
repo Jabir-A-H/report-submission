@@ -30,9 +30,31 @@ export async function login(formData: FormData) {
     }
   )
 
-  // Support legacy user IDs by transforming them into emails (e.g., 001 -> 001@report.local)
+  // Support user IDs by resolving them to their registered email dynamically
   const rawIdOrEmail = formData.get('email') as string
-  const email = rawIdOrEmail.includes('@') ? rawIdOrEmail : `${rawIdOrEmail}@report.local`
+  let email = rawIdOrEmail
+
+  if (!rawIdOrEmail.includes('@')) {
+    const { createClient } = await import('@supabase/supabase-js')
+    const adminSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+    
+    const { data: profile, error: profileError } = await adminSupabase
+      .from('people')
+      .select('email')
+      .eq('user_id', rawIdOrEmail)
+      .maybeSingle()
+
+    if (!profileError && profile?.email) {
+      email = profile.email
+    } else {
+      // Fallback for custom or legacy local fallback accounts
+      email = `${rawIdOrEmail}@report.local`
+    }
+  }
+
   const password = formData.get('password') as string
 
   const { data: authData, error } = await supabase.auth.signInWithPassword({

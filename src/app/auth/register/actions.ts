@@ -32,13 +32,37 @@ export async function register(formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
   const zoneId = formData.get('zone_id') as string
+  const userId = (formData.get('user_id') as string)?.trim()
 
-  if (!name || !email || !password || !zoneId) {
+  if (!name || !email || !password || !zoneId || !userId) {
     return redirect('/register?message=সকল তথ্য পূরণ করুন')
+  }
+
+  // Enforce simple username rules (alphanumeric, underscores, hyphens, min 3 chars)
+  const userIdRegex = /^[a-zA-Z0-9_-]+$/
+  if (userId.length < 3 || !userIdRegex.test(userId)) {
+    return redirect('/register?message=ইউজার আইডি কমপক্ষে ৩ অক্ষরের হতে হবে এবং শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা, বা _ - ব্যবহার করা যাবে।')
   }
 
   if (password.length < 6) {
     return redirect('/register?message=পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে')
+  }
+
+  // Check if User ID is already taken
+  const { createClient } = await import('@supabase/supabase-js')
+  const adminSupabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+  
+  const { data: existingUser, error: queryError } = await adminSupabase
+    .from('people')
+    .select('id')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (existingUser) {
+    return redirect('/register?message=এই ইউজার আইডিটি ইতিমধ্যে ব্যবহার করা হয়েছে। অন্য একটি নির্বাচন করুন।')
   }
 
   // 1. Create Supabase Auth user
@@ -46,7 +70,11 @@ export async function register(formData: FormData) {
     email,
     password,
     options: {
-      data: { name, zone_id: parseInt(zoneId) }, // Store name and zone_id so the database trigger can insert into people
+      data: { 
+        name, 
+        zone_id: parseInt(zoneId),
+        user_id: userId,
+      },
     },
   })
 

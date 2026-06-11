@@ -66,6 +66,20 @@ export default async function RegisterPage({
                </div>
 
                <div>
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block" htmlFor="user_id">
+                     ইউজার আইডি (ইউনিক)
+                  </label>
+                  <input
+                    className="modern-input w-full h-12 text-lg bg-muted/40 focus:bg-background transition-colors px-4 rounded-xl border border-border"
+                    name="user_id"
+                    placeholder="যেমন: sumona, user002"
+                    pattern="^[a-zA-Z0-9_-]{3,20}$"
+                    title="ইউজার আইডি কমপক্ষে ৩ অক্ষরের হতে হবে এবং শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা বা _ - ব্যবহার করা যাবে।"
+                    required
+                  />
+               </div>
+
+               <div>
                   <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block" htmlFor="email">
                      ইমেইল এড্রেস
                   </label>
