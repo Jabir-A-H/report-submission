@@ -15,6 +15,8 @@ import {
   RefreshCw,
 } from "lucide-react";
 
+import { deleteUserAction } from "./actions";
+
 type Person = {
   id: number;
   user_id: string;
@@ -24,6 +26,7 @@ type Person = {
   active: boolean | null;
   zone_id: number;
   zone?: { name: string };
+  supabase_uid: string | null;
 };
 
 type Zone = { id: number; name: string };
@@ -83,11 +86,13 @@ export default function UserManagementPage() {
     setActionLoading(null);
   }
 
-  async function deleteUser(userId: number) {
-    setActionLoading(userId);
-    const { error } = await supabase.from("people").delete().eq("id", userId);
-    if (!error) {
-      setUsers((prev) => prev.filter((u) => u.id !== userId));
+  async function deleteUser(user: Person) {
+    setActionLoading(user.id);
+    const res = await deleteUserAction(user.supabase_uid, user.id);
+    if (res.success) {
+      setUsers((prev) => prev.filter((u) => u.id !== user.id));
+    } else {
+      alert("ইউজার মুছতে ব্যর্থ হয়েছে: " + res.error);
     }
     setActionLoading(null);
     setConfirmDelete(null);
@@ -252,7 +257,7 @@ export default function UserManagementPage() {
                 {confirmDelete === user.id ? (
                   <div className="flex gap-1.5">
                     <button
-                      onClick={() => deleteUser(user.id)}
+                      onClick={() => deleteUser(user)}
                       disabled={actionLoading === user.id}
                       className="px-2.5 py-1.5 rounded-xl bg-red-600 text-white text-xs font-bold active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
                     >

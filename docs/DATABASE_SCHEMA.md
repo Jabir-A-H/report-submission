@@ -9,7 +9,7 @@ This system runs on a **managed Supabase PostgreSQL** database. The schema is de
 Supabase handles core authentication via its internal `auth.users` table. Application-specific user data is stored in the public schema.
 - **`people`**: Stores user profiles.
   - `id` (Primary Key, Integer)
-  - `supabase_uid` (UUID, Foreign Key mapping to `auth.users.id`)
+  - `supabase_uid` (UUID, Foreign Key to `auth.users.id`, `ON DELETE CASCADE` — deleting the auth account automatically removes the profile row)
   - `user_id` (String, Unique constraint, custom ID chosen by the user during registration, e.g., 'sumona' or '002')
   - `name`, `email`, `role` ('user', 'admin', or 'superadmin')
   - `active` (Boolean, defaults to `false`. Requires admin approval for login).
