@@ -26,6 +26,8 @@ Supabase handles core authentication via its internal `auth.users` table. Applic
 Reports are broken down structurally similar to the legacy models.
 - **`reports`**: The root record for a submitted report.
   - `id`, `zone_id`, `month`, `year`, `report_type` (e.g., মাসিক, ত্রৈমাসিক)
+
+All 7 report sub-tables below have a `report_id` column with a **Foreign Key** to `report.id` (`ON DELETE CASCADE`) — deleting a report automatically removes all its associated section data:
 - **`report_headers`**: (মূল তথ্য) Basic info, muallima counts, units.
 - **`report_courses`**: (গ্রুপ / কোর্স রিপোর্ট) Course metrics, attendance.
 - **`report_organizational`**: (দাওয়াত ও সংগঠন) Organizational invites and metrics.
