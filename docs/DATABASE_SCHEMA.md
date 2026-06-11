@@ -11,7 +11,7 @@ Supabase handles core authentication via its internal `auth.users` table. Applic
   - `id` (Primary Key, Integer)
   - `supabase_uid` (UUID, Foreign Key mapping to `auth.users.id`)
   - `user_id` (String, 3-digit sequential ID, e.g., '021')
-  - `name`, `email`, `role` ('user' or 'admin')
+  - `name`, `email`, `role` ('user', 'admin', or 'superadmin')
   - `active` (Boolean, defaults to `false`. Requires admin approval for login).
   - `zone_id` (Foreign Key to `zones`)
   
@@ -49,4 +49,6 @@ The system relies on 6 explicit views corresponding to the report sections:
 
 ## Row Level Security (RLS)
 - **Users**: Can only `SELECT`, `INSERT`, and `UPDATE` reports tied to their `zone_id`.
-- **Admins**: Bypass RLS to read all reports and write to the override tables.
+- **Admins & Superadmins**: Bypass RLS to read all reports and write to the override tables.
+
+*Technical Note on `people` table RLS: To prevent PostgreSQL infinite recursion errors when evaluating policies on the `people` table itself, admin permissions are evaluated using a `SECURITY DEFINER` function (`is_admin()`) rather than querying the `people` table directly within the policy.*

@@ -16,7 +16,6 @@ import {
   PlusCircle, 
   Search,
   FileText,
-  User,
   LogOut
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -49,14 +48,7 @@ export function CommandBar({ children }: { children: React.ReactNode }) {
       perform: () => router.push("/"),
       icon: <FileText className="w-5 h-5 mr-3" />,
     },
-    {
-      id: "profile",
-      name: "My Profile",
-      shortcut: ["p"],
-      keywords: "user account settings profile",
-      perform: () => router.push("/profile"),
-      icon: <User className="w-5 h-5 mr-3" />,
-    },
+
     {
       id: "logout",
       name: "Logout",

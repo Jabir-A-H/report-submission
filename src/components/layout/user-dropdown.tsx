@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useLanguage } from "@/components/providers/language-provider";
-import { User, LogOut, Settings, ShieldCheck, Settings2 } from "lucide-react";
+import { User, LogOut, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
@@ -72,31 +72,27 @@ export function UserDropdown() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-3 w-64 rounded-2xl border bg-card shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-100">
+        <div className="absolute right-0 mt-3 w-72 rounded-2xl border bg-card shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-100">
           <div className="p-5 bg-linear-to-br from-primary/5 to-transparent border-b">
             <p className="text-sm font-black">{user?.name || "..."}</p>
             <p className="text-xs text-muted-foreground font-bold">{user?.zone || "..."}</p>
           </div>
           
-          <div className="p-3">
-            {/* Preferences Section */}
-            <div className="flex items-center justify-between px-3 py-2 mb-2 bg-muted/40 rounded-xl">
-               <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">সেটিংস</span>
-               <div className="flex gap-1 scale-90 origin-right">
-                  <LanguageToggle />
-                  <ThemeToggle />
-               </div>
+          <div className="p-3 space-y-2">
+            {/* Theme Section */}
+            <div className="px-3 py-2.5 bg-muted/40 rounded-xl">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">থিম</span>
+              </div>
+              <ThemeToggle />
             </div>
 
-            <Link
-              href="/profile"
-              className="group flex items-center gap-3 px-3 py-2.5 text-sm font-bold rounded-xl hover:bg-primary/5 transition-all text-muted-foreground hover:text-primary"
-              onClick={() => setIsOpen(false)}
-            >
-              <Settings className="w-4 h-4" />
-              <span>প্রোফাইল</span>
-            </Link>
-            
+            {/* Language Section */}
+            <div className="flex items-center justify-between px-3 py-2 bg-muted/40 rounded-xl">
+              <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">ভাষা</span>
+              <LanguageToggle />
+            </div>
+
             {user?.role === "admin" && (
               <Link
                 href="/admin/users"
