@@ -6,8 +6,8 @@ This document outlines the workflows specific to Administrators. Admins have ove
 ## 1. User Management & Approvals
 Because the system relies on strict permissions, new registrations are gated.
 - **Route**: `/admin/users`
-- **Action**: Admins view a list of users with `active = false`. They can review the user's details and toggle them to `active = true`, which allows the user to log in via Supabase Auth.
-- **Suspensions**: Admins can revoke access at any time by toggling `active = false`.
+- **Action / Approvals**: Admins view a list of users. If a user is pending approval (`active = false`), they display an **অপেক্ষমাণ** (Pending) badge. Admins can click the explicit green **অনুমোদন করুন** (Approve) action button to set `active = true` and grant access.
+- **Suspensions**: Active users display a green **সক্রিয়** (Active) badge. Admins can revoke access at any time by clicking the explicit amber **নিষ্ক্রিয় করুন** (Deactivate) action button, which toggles `active = false` and prevents them from logging in.
 
 ## 2. Zone Management
 - **Route**: `/admin/zones`

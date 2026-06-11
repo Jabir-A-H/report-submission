@@ -6,13 +6,12 @@ import {
   Users,
   UserPlus,
   UserCheck,
+  UserX,
   ShieldCheck,
   Trash2,
   Search,
   MapPin,
   Loader2,
-  CheckCircle2,
-  XCircle,
   RefreshCw,
 } from "lucide-react";
 
@@ -214,47 +213,54 @@ export default function UserManagementPage() {
             {/* Actions Footer */}
             <div className="mt-6 flex items-center justify-between pt-4 border-t border-muted/30">
               <span
-                className={`px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-widest ${
-                  user.active ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                  user.active
+                    ? "bg-green-500/10 text-green-600 border border-green-500/20"
+                    : "bg-amber-500/10 text-amber-600 border border-amber-500/20"
                 }`}
               >
                 {user.active ? "সক্রিয়" : "অপেক্ষমাণ"}
               </span>
 
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
                 {/* Approve / Deactivate */}
                 <button
                   onClick={() => toggleActive(user)}
                   disabled={actionLoading === user.id}
-                  className={`p-2 rounded-lg active:scale-90 transition-all shadow-sm disabled:opacity-50 ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all disabled:opacity-50 cursor-pointer ${
                     user.active
-                      ? "bg-amber-50 text-amber-600 hover:bg-amber-100"
-                      : "bg-green-50 text-green-600 hover:bg-green-100"
+                      ? "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20"
+                      : "bg-green-500/10 text-green-600 hover:bg-green-500/20"
                   }`}
-                  title={user.active ? "নিষ্ক্রিয় করুন" : "অনুমোদন করুন"}
                 >
                   {actionLoading === user.id ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   ) : user.active ? (
-                    <XCircle className="w-4 h-4" />
+                    <>
+                      <UserX className="w-3.5 h-3.5" />
+                      <span>নিষ্ক্রিয় করুন</span>
+                    </>
                   ) : (
-                    <CheckCircle2 className="w-4 h-4" />
+                    <>
+                      <UserCheck className="w-3.5 h-3.5" />
+                      <span>অনুমোদন করুন</span>
+                    </>
                   )}
                 </button>
 
                 {/* Delete */}
                 {confirmDelete === user.id ? (
-                  <div className="flex gap-1">
+                  <div className="flex gap-1.5">
                     <button
                       onClick={() => deleteUser(user.id)}
                       disabled={actionLoading === user.id}
-                      className="px-2 py-1 rounded-lg bg-red-600 text-white text-xs font-black active:scale-90 transition-all disabled:opacity-50"
+                      className="px-2.5 py-1.5 rounded-xl bg-red-600 text-white text-xs font-bold active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
                     >
                       {actionLoading === user.id ? <Loader2 className="w-3 h-3 animate-spin" /> : "হ্যাঁ"}
                     </button>
                     <button
                       onClick={() => setConfirmDelete(null)}
-                      className="px-2 py-1 rounded-lg bg-muted text-xs font-black active:scale-90 transition-all"
+                      className="px-2.5 py-1.5 rounded-xl bg-muted text-muted-foreground text-xs font-bold active:scale-95 transition-all cursor-pointer"
                     >
                       না
                     </button>
@@ -262,7 +268,7 @@ export default function UserManagementPage() {
                 ) : (
                   <button
                     onClick={() => setConfirmDelete(user.id)}
-                    className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 active:scale-90 transition-all shadow-sm"
+                    className="p-2 rounded-xl bg-red-500/10 text-red-600 hover:bg-red-500/20 active:scale-95 transition-all shadow-sm cursor-pointer"
                     title="মুছে ফেলুন"
                   >
                     <Trash2 className="w-4 h-4" />
