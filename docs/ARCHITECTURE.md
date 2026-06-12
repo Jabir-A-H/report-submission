@@ -42,14 +42,18 @@ The middleware (`middleware.ts`) is the **single source of truth** for auth enfo
 | `/home` | Public | Always accessible |
 | `/login` | Public | Redirects to `/` if already logged in |
 | `/register` | Public | Always accessible |
-| `/auth/*` | Public | Always accessible (callback handlers) |
+| `/auth/callback` | Public | Always accessible (PKCE exchange handler) |
+| `/forgot-password` | Public | Always accessible |
+| `/update-password` | Public | Bypasses middleware `active` check, but guarded by session check in page component |
 | `/pending-approval` | Public | Always accessible |
 | `/api/*` | Protected | Returns `401 JSON` if unauthenticated |
 | `/` | Protected | Requires auth + `active = true` |
 | `/admin/*` | Protected | Requires auth + `active = true` + role check in layout |
 | All other routes | Protected | Requires auth + `active = true` |
 
-**Unauthenticated visitors** hitting `/` are redirected to `/home`. All other protected routes send them to `/login`.
+**Unauthenticated visitors** hitting `/` are redirected to `/home` (the landing page). The root route `src/app/page.tsx` also contains a hardcoded fallback redirect to `/home` to ensure unauthenticated users during RSC transitions (bypassing middleware) safely reach the landing page instead of throwing errors or landing on `/login`. All other protected routes send unauthenticated users to `/login`.
+
+**Orphaned Auth Accounts**: Middleware explicitly treats authenticated users who are missing a corresponding row in the `people` table as `active = false`. This guarantees orphaned accounts cannot slip past the approval gate.
 
 ## Supabase Client Strategy
 Three different Supabase client patterns are used depending on context:

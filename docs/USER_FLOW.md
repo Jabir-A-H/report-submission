@@ -38,7 +38,15 @@ This document outlines the User Experience (UX) and navigation paths for standar
 - **Authenticated users on `/login`**: Redirected to `/` (dashboard).
 
 ### 1.4 Logout
-User clicks the logout button. A `POST /auth/logout` route handler calls `supabase.auth.signOut()` and redirects to `/login`.
+User clicks the logout button. A `POST /auth/logout` route handler calls `supabase.auth.signOut()` and redirects to `/login`. The client button uses a `try/catch` around the fetch request to prevent users from silently retaining active sessions on network errors.
+
+### 1.5 Password Reset Flow
+1. User navigates to `/forgot-password` (publicly accessible).
+2. The user submits their email. A server action (`/app/forgot-password/actions.ts`) calls `supabase.auth.resetPasswordForEmail()`.
+3. The `redirectTo` parameter points to `/auth/callback?next=/update-password` to strictly enforce the **PKCE (Proof Key for Code Exchange)** flow required for Server-Side Rendering.
+4. User clicks the link in their email and is directed to the callback route, which securely exchanges the code for a session and redirects to `/update-password`.
+5. The `/update-password` page is guarded by `supabase.auth.getUser()`, allowing only successfully authenticated users.
+6. User submits their new password, which is saved via `supabase.auth.updateUser()`. The session is then immediately signed out, and the user is redirected to `/login` to sign in freshly.
 
 ---
 

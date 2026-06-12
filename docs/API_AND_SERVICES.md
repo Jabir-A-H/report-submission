@@ -30,6 +30,15 @@ Auth logic lives in server actions, not API routes:
 ### `/app/login/actions.ts`
 - **`login(formData)`**: Resolves user_id → email (if input is not an email) via admin client lookup of `people.user_id`. Calls `supabase.auth.signInWithPassword()`. On success, redirects to `/`. Middleware enforces the `active` check.
 
+### `/app/forgot-password/actions.ts`
+- **`forgotPassword(formData)`**: Validates the email and calls `supabase.auth.resetPasswordForEmail()`. The `redirectTo` parameter strictly points to the PKCE callback route (`/auth/callback?next=/update-password`).
+
+### `/app/update-password/actions.ts`
+- **`updatePassword(formData)`**: Validates the new password, calls `supabase.auth.updateUser({ password })`, signs the user out, and redirects to `/login` with a success message.
+
+### `/app/auth/callback/route.ts`
+- **`GET /auth/callback`**: Next.js API route that handles the PKCE code exchange. Extracts the `code` from the URL, calls `supabase.auth.exchangeCodeForSession()`, and redirects the user to the destination provided in the `next` param (usually `/update-password`).
+
 ### `/auth/logout/route.ts`
 - **`POST /auth/logout`**: Calls `supabase.auth.signOut()` and redirects to `/login`.
 

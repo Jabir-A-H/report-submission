@@ -49,3 +49,18 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 - **Description**: The root URL `/` was in the `publicPaths` list, causing the middleware to skip the `people.active` check entirely. This meant inactive (unapproved) users who managed to log in could reach the dashboard without being redirected to `/pending-approval`.
 - **Impact**: High (security — allowed pending users to access the dashboard).
 - **Fix**: Removed `/` from `publicPaths`. The middleware now protects it and correctly enforces the `active` check.
+
+### Orphaned Auth Accounts Bypassing Middleware
+- **Date**: 2026-06-12
+- **Description**: Middleware's `person.active === false` check evaluated to `false` if `person` was `null` (meaning the user existed in `auth.users` but had no row in the `people` table). This allowed orphaned auth accounts to reach protected routes where they crashed the page.
+- **Fix**: Updated middleware check to `if (!person || person.active === false)`, treating missing rows the exact same as explicitly inactive users, safely routing them to `/pending-approval`.
+
+### UserDropdown Logout Race Condition
+- **Date**: 2026-06-12
+- **Description**: The client-side logout button executed `fetch('/auth/logout')` followed immediately by `router.push('/login')`. If the fetch failed due to a network error, the user was redirected to `/login` while still retaining a valid, active session.
+- **Fix**: Wrapped the `fetch` in a `try/catch` block. It now throws an error if `!res.ok` and surfaces an `alert()` to the user, halting the client-side redirect so the user doesn't end up on the login page with an active session.
+
+### Next.js RSC Transition Fallback Redirect Loop
+- **Date**: 2026-06-12
+- **Description**: The root `page.tsx` contained a defensive guard `if (!user) redirect('/login')`. If an unauthenticated user navigated to the root route via a client-side `<Link>`, bypassing the initial SSR middleware redirect, this guard would throw them to `/login` instead of the intended `/home` landing page.
+- **Fix**: Changed the guard to `if (!user) redirect('/home')` to align perfectly with the middleware's SSR logic.
