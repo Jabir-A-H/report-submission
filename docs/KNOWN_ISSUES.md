@@ -20,6 +20,14 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ---
 
+### Supabase Free Tier: 2 Password Reset Emails Per Hour
+- **Date**: 2026-06-13
+- **Description**: Supabase's free tier enforces a hard limit of 2 password reset emails per hour per email address. This cannot be changed via the Dashboard on the free plan.
+- **Impact**: Low (only affects testing; real users rarely reset passwords more than once).
+- **Workaround**: Use Gmail `+` aliases (e.g., `user+test1@gmail.com`) to get fresh rate limits per alias. All emails still arrive at the same inbox.
+
+---
+
 ## Resolved Historical Issues
 
 ### `Report.created_at` Sorting Crash
@@ -64,3 +72,13 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 - **Date**: 2026-06-12
 - **Description**: The root `page.tsx` contained a defensive guard `if (!user) redirect('/login')`. If an unauthenticated user navigated to the root route via a client-side `<Link>`, bypassing the initial SSR middleware redirect, this guard would throw them to `/login` instead of the intended `/home` landing page.
 - **Fix**: Changed the guard to `if (!user) redirect('/home')` to align perfectly with the middleware's SSR logic.
+
+### Password Reset `redirectTo` Resolved to `localhost` in Production
+- **Date**: 2026-06-13
+- **Description**: The `forgotPassword` server action hardcoded a fallback to `http://localhost:3000` for the `redirectTo` URL. Since `NEXT_PUBLIC_SITE_URL` was not set in Vercel's environment variables, the production Vercel deployment sent `localhost:3000` as the redirect. Supabase silently stripped this invalid redirect and fell back to the project's Site URL root (`/`), causing the user to be redirected to `/pending-approval` by middleware instead of the password update page.
+- **Fix**: Updated `getURL()` to check `NEXT_PUBLIC_VERCEL_URL` (automatically set by Vercel) before falling back to localhost. Also recommend setting `NEXT_PUBLIC_SITE_URL` explicitly in Vercel env vars.
+
+### Pending-Approval Page Redirect Trap
+- **Date**: 2026-06-13
+- **Description**: The "Return to Login" button on `/pending-approval` was a Next.js `<Link href="/login">`. This did not clear the user's session. When the user arrived at `/login`, middleware detected they were already authenticated and redirected them to `/` (dashboard), which then redirected them back to `/pending-approval` because they were inactive. This created an inescapable redirect loop — the only escape was manually clearing browser cookies.
+- **Fix**: Replaced the `<Link>` with a `<form method="post" action="/auth/logout">` that properly clears the session server-side before redirecting to `/login`.

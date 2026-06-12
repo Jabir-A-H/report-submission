@@ -43,10 +43,17 @@ User clicks the logout button. A `POST /auth/logout` route handler calls `supaba
 ### 1.5 Password Reset Flow
 1. User navigates to `/forgot-password` (publicly accessible).
 2. The user submits their email. A server action (`/app/forgot-password/actions.ts`) calls `supabase.auth.resetPasswordForEmail()`.
-3. The `redirectTo` parameter points to `/auth/callback?next=/update-password` to strictly enforce the **PKCE (Proof Key for Code Exchange)** flow required for Server-Side Rendering.
-4. User clicks the link in their email and is directed to the callback route, which securely exchanges the code for a session and redirects to `/update-password`.
-5. The `/update-password` page is guarded by `supabase.auth.getUser()`, allowing only successfully authenticated users.
-6. User submits their new password, which is saved via `supabase.auth.updateUser()`. The session is then immediately signed out, and the user is redirected to `/login` to sign in freshly.
+3. The `redirectTo` URL is dynamically resolved: `NEXT_PUBLIC_SITE_URL` → `NEXT_PUBLIC_VERCEL_URL` → `localhost:3000` fallback. This ensures the correct origin is used in both local dev and Vercel production.
+4. The `redirectTo` parameter points to `/auth/callback?next=/update-password` to strictly enforce the **PKCE (Proof Key for Code Exchange)** flow required for Server-Side Rendering. Supabase generates a one-time `?code=` parameter attached to this URL.
+5. User clicks the link in their email → Supabase verifies the token → redirects to `/auth/callback?code=XXXX&next=/update-password`.
+6. The callback route (`/app/auth/callback/route.ts`) calls `exchangeCodeForSession(code)` to securely create a server-side session cookie, then redirects to `/update-password`.
+7. The `/update-password` page is guarded by `supabase.auth.getUser()`, allowing only successfully authenticated users (those who completed the code exchange).
+8. User submits their new password (with confirmation field). The server action validates length ≥ 6 and match, calls `supabase.auth.updateUser({ password })`, signs the user out, and redirects to `/login` with a Bangla success message.
+
+**Supabase Dashboard Requirements:**
+- **Redirect URLs** (Authentication → URL Configuration): Must include `https://talimul-report.vercel.app/auth/callback` and `http://localhost:3000/auth/callback`.
+- **Email Template** (Authentication → Email Templates → Reset Password): The default `{{ .ConfirmationURL }}` works correctly with PKCE. No modification needed.
+- **Rate Limits**: Free tier allows 2 password reset emails per hour per email (fixed). Use Gmail `+` aliases for testing.
 
 ---
 

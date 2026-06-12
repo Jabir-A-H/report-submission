@@ -1,5 +1,4 @@
 import { CheckCircle2, LogOut, Clock } from 'lucide-react'
-import Link from 'next/link'
 
 export default function PendingApprovalPage() {
   return (
@@ -46,14 +45,16 @@ export default function PendingApprovalPage() {
           </div>
         </div>
 
-        {/* Back to Login */}
-        <Link
-          href="/login"
-          className="modern-btn border border-border bg-card px-6 py-4 font-black inline-flex items-center justify-center gap-2 w-full active:scale-95 transition-all hover:bg-muted"
-        >
-          <LogOut className="w-5 h-5" />
-          <span>লগইন পেজে ফিরে যান</span>
-        </Link>
+        {/* Back to Login (Actually logs out) */}
+        <form action="/auth/logout" method="post" className="w-full">
+          <button
+            type="submit"
+            className="modern-btn border border-border bg-card px-6 py-4 font-black inline-flex items-center justify-center gap-2 w-full active:scale-95 transition-all hover:bg-muted"
+          >
+            <LogOut className="w-5 h-5" />
+            <span>লগইন পেজে ফিরে যান</span>
+          </button>
+        </form>
       </div>
     </div>
   )

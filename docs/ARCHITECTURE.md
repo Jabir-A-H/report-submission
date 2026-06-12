@@ -55,6 +55,8 @@ The middleware (`middleware.ts`) is the **single source of truth** for auth enfo
 
 **Orphaned Auth Accounts**: Middleware explicitly treats authenticated users who are missing a corresponding row in the `people` table as `active = false`. This guarantees orphaned accounts cannot slip past the approval gate.
 
+**Pending-Approval Exit**: The `/pending-approval` page's "Return to Login" button uses a `<form POST>` to `/auth/logout` (not a `<Link>`). This is critical — a simple link to `/login` would create a redirect trap: middleware sees the active session, redirects `/login` → `/` → `/pending-approval` in a loop.
+
 ## Supabase Client Strategy
 Three different Supabase client patterns are used depending on context:
 
