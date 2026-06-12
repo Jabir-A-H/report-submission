@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createServerClient } from '@supabase/ssr'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 
 export async function login(formData: FormData) {
@@ -35,8 +36,7 @@ export async function login(formData: FormData) {
   let email = rawIdOrEmail
 
   if (!rawIdOrEmail.includes('@')) {
-    const { createClient } = await import('@supabase/supabase-js')
-    const adminSupabase = createClient(
+    const adminSupabase = createAdminClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
@@ -67,14 +67,7 @@ export async function login(formData: FormData) {
     return redirect(`/login?message=${encodeURIComponent(error.message)}`)
   }
 
-  // Middleware handles the 'active' check for protected routes,
-  // but if we want to ensure an inactive user is redirected to /pending-approval
-  // right away (since / is protected now and redirects to /home or login),
-  // we could rely entirely on middleware. But since login redirects to /,
-  // and middleware protects /, inactive users will be redirected to /pending-approval
-  // naturally by the middleware upon navigating to /.
-
+  // Middleware enforces the active check on the next request to /
   revalidatePath('/', 'layout')
-
   redirect('/')
 }

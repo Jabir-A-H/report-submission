@@ -65,6 +65,9 @@ export default async function LoginPage({
                     <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider" htmlFor="password">
                        পাসওয়ার্ড
                     </label>
+                    <Link href="/forgot-password" className="text-xs font-bold text-primary hover:underline underline-offset-2">
+                       পাসওয়ার্ড ভুলে গেছেন?
+                    </Link>
                  </div>
                  <input
                    className="modern-input w-full h-14 text-lg bg-muted/40 focus:bg-background transition-colors tracking-widest px-4 rounded-xl border border-border"

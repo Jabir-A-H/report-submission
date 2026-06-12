@@ -7,7 +7,10 @@ export default async function Home() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   
-  // User is guaranteed to exist and be active by middleware
+  // Middleware guarantees auth on this route, but guard defensively
+  // to prevent a runtime crash if user is somehow null.
+  if (!user) redirect('/home')
+
   // Fetch real role from people table
   const { data: profile } = await supabase
     .from("people")

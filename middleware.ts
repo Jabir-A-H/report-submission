@@ -33,7 +33,7 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // Public routes that don't require authentication
-  const publicPaths = ['/home', '/login', '/register', '/auth', '/pending-approval']
+  const publicPaths = ['/home', '/login', '/register', '/auth', '/pending-approval', '/forgot-password', '/update-password']
   const isPublicRoute = publicPaths.some(
     (path) => request.nextUrl.pathname === path || request.nextUrl.pathname.startsWith(`${path}/`)
   )
@@ -60,7 +60,9 @@ export async function middleware(request: NextRequest) {
       .eq('supabase_uid', user.id)
       .single()
 
-    if (person && person.active === false) {
+    // Treat both missing people rows (orphaned auth account) AND
+    // inactive=false the same way — send to pending-approval.
+    if (!person || person.active === false) {
       const url = request.nextUrl.clone()
       url.pathname = '/pending-approval'
       return NextResponse.redirect(url)

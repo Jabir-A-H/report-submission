@@ -109,10 +109,16 @@ export function UserDropdown() {
             <button
               className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold rounded-xl hover:bg-red-50 text-red-600 transition-all active:scale-95 text-left"
               onClick={async () => {
-                setIsOpen(false);
-                await fetch("/auth/logout", { method: "POST" });
-                router.push("/login");
-              }}
+                  setIsOpen(false);
+                  try {
+                    const res = await fetch("/auth/logout", { method: "POST" });
+                    if (!res.ok) throw new Error("Logout failed");
+                  } catch {
+                    alert("সাইন আউট করতে সমস্যা হয়েছে। পেজ রিফ্রেশ করুন।");
+                    return;
+                  }
+                  router.push("/login");
+                }}
             >
               <LogOut className="w-4 h-4" />
               <span>{t.logout}</span>
