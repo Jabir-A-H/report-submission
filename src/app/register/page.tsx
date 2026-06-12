@@ -1,7 +1,6 @@
-import { register } from '@/app/auth/register/actions'
-import { Building2, UserPlus } from 'lucide-react'
+import { Building2 } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
-import Link from 'next/link'
+import { RegisterFormClient } from '@/components/auth/register-form-client'
 
 export default async function RegisterPage({
   searchParams,
@@ -50,102 +49,7 @@ export default async function RegisterPage({
             <p className="text-muted-foreground font-medium">আপনার তথ্য প্রদান করুন</p>
           </div>
 
-          <form action={register} className="animate-in flex-1 flex flex-col w-full justify-center gap-6 text-foreground">
-            
-            <div className="space-y-4">
-               <div>
-                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block" htmlFor="name">
-                     পূর্ণ নাম
-                  </label>
-                  <input
-                    className="modern-input w-full h-12 text-lg bg-muted/40 focus:bg-background transition-colors px-4 rounded-xl border border-border"
-                    name="name"
-                    placeholder="আপনার পূর্ণ নাম"
-                    required
-                  />
-               </div>
-
-               <div>
-                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block" htmlFor="user_id">
-                     ইউজার আইডি (ইউনিক)
-                  </label>
-                  <input
-                    className="modern-input w-full h-12 text-lg bg-muted/40 focus:bg-background transition-colors px-4 rounded-xl border border-border"
-                    name="user_id"
-                    placeholder="যেমন: sumona, user002"
-                    pattern="^[a-zA-Z0-9_-]{3,20}$"
-                    title="ইউজার আইডি কমপক্ষে ৩ অক্ষরের হতে হবে এবং শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা বা _ - ব্যবহার করা যাবে।"
-                    required
-                  />
-               </div>
-
-               <div>
-                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block" htmlFor="email">
-                     ইমেইল এড্রেস
-                  </label>
-                  <input
-                    className="modern-input w-full h-12 text-lg bg-muted/40 focus:bg-background transition-colors px-4 rounded-xl border border-border"
-                    name="email"
-                    type="email"
-                    placeholder="name@example.com"
-                    required
-                  />
-               </div>
-
-               <div>
-                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block" htmlFor="password">
-                     পাসওয়ার্ড
-                  </label>
-                  <input
-                    className="modern-input w-full h-12 text-lg bg-muted/40 focus:bg-background transition-colors tracking-widest px-4 rounded-xl border border-border"
-                    type="password"
-                    name="password"
-                    placeholder="••••••••"
-                    minLength={6}
-                    required
-                  />
-               </div>
-
-               <div>
-                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block" htmlFor="zone_id">
-                     জোন নির্বাচন করুন
-                  </label>
-                  <select
-                    name="zone_id"
-                    required
-                    className="modern-input w-full h-12 text-lg bg-muted/40 focus:bg-background transition-colors px-4 rounded-xl border border-border cursor-pointer"
-                  >
-                    <option value="">-- জোন নির্বাচন করুন --</option>
-                    {zones?.map((zone) => (
-                      <option key={zone.id} value={zone.id}>
-                        {zone.name}
-                      </option>
-                    ))}
-                  </select>
-               </div>
-            </div>
-
-            <button type="submit" className="modern-btn btn-primary h-14 text-lg font-bold w-full flex items-center justify-center gap-3 group mt-2 shadow-xl shadow-primary/20 rounded-xl bg-primary text-primary-foreground">
-               নিবন্ধন করুন
-               <UserPlus className="w-5 h-5 group-hover:scale-110 transition-transform" />
-            </button>
-
-            <div className="flex flex-col sm:flex-row items-center justify-between pt-4 text-sm text-muted-foreground font-medium gap-4 border-t border-border/40 mt-4">
-              <Link href="/home" className="hover:text-primary transition-colors">
-                &larr; হোম পেজ
-              </Link>
-              <Link href="/login" className="hover:text-primary transition-colors">
-                অ্যাকাউন্ট আছে? <span className="text-primary font-bold underline underline-offset-2">লগ-ইন করুন</span>
-              </Link>
-            </div>
-
-            {resolvedParams?.message && (
-              <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-600 rounded-2xl text-center font-bold text-sm animate-in zoom-in duration-300">
-                {resolvedParams.message}
-              </div>
-            )}
-            
-          </form>
+          <RegisterFormClient zones={zones} errorMessage={resolvedParams?.message} />
 
         </div>
       </div>

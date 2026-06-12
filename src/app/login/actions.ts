@@ -67,40 +67,14 @@ export async function login(formData: FormData) {
     return redirect(`/login?message=${encodeURIComponent(error.message)}`)
   }
 
-  // Check if user is active using the user object returned from signInWithPassword
-  // We must create a new client using the explicit session token because the SSR client
-  // still reads from stale request cookies, causing RLS to block the query.
-  if (authData?.user && authData?.session) {
-    const { createClient } = await import('@supabase/supabase-js');
-    const userClient = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        global: {
-          headers: {
-            Authorization: `Bearer ${authData.session.access_token}`
-          }
-        }
-      }
-    );
-
-    const { data: profile, error: profileError } = await userClient
-      .from('people')
-      .select('active')
-      .eq('supabase_uid', authData.user.id)
-      .single()
-
-    if (profileError) {
-      await supabase.auth.signOut()
-      return redirect(`/login?message=${encodeURIComponent('প্রোফাইল চেক করতে সমস্যা হয়েছে: ' + profileError.message)}`)
-    }
-
-    if (!profile.active) {
-      await supabase.auth.signOut()
-      return redirect('/pending-approval')
-    }
-  }
+  // Middleware handles the 'active' check for protected routes,
+  // but if we want to ensure an inactive user is redirected to /pending-approval
+  // right away (since / is protected now and redirects to /home or login),
+  // we could rely entirely on middleware. But since login redirects to /,
+  // and middleware protects /, inactive users will be redirected to /pending-approval
+  // naturally by the middleware upon navigating to /.
 
   revalidatePath('/', 'layout')
+
   redirect('/')
 }

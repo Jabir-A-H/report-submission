@@ -33,9 +33,9 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // Public routes that don't require authentication
-  const publicPaths = ['/', '/login', '/auth', '/pending-approval']
+  const publicPaths = ['/home', '/login', '/register', '/auth', '/pending-approval']
   const isPublicRoute = publicPaths.some(
-    (path) => request.nextUrl.pathname === path || request.nextUrl.pathname.startsWith(path + '/')
+    (path) => request.nextUrl.pathname === path || request.nextUrl.pathname.startsWith(`${path}/`)
   )
 
   const isApiRoute = request.nextUrl.pathname.startsWith('/api/')
@@ -47,7 +47,8 @@ export async function middleware(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     const url = request.nextUrl.clone()
-    url.pathname = '/login'
+    // Redirect root to landing page, others to login
+    url.pathname = request.nextUrl.pathname === '/' ? '/home' : '/login'
     return NextResponse.redirect(url)
   }
 

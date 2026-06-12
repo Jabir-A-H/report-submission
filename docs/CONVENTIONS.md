@@ -13,12 +13,23 @@ This document enforces consistent code style, folder structure, and commit pract
 The Next.js `src` folder is strictly organized:
 ```text
 /src
-  /app           # Next.js App Router (pages, layouts, API routes)
+  /app           # Next.js App Router (pages, layouts, server actions, API routes)
+    /auth          # Auth-specific server actions (register, logout)
+    /admin         # Admin-only pages and layouts
+    /login         # Login page + server action
+    /register      # Registration page (server component wrapping client form)
+    /report        # User report section pages
+    /api           # API route handlers (e.g., PDF export)
   /components    # Reusable React components (UI elements, layout wrappers)
+    /auth          # Auth-specific client components (e.g., RegisterFormClient)
+    /dashboard     # Dashboard-specific components
+    /layout        # Shared layout components (Navbar, BottomNav, UserDropdown)
   /hooks         # Custom React hooks
-  /lib           # Third-party integrations (Supabase client init, etc.)
-  /utils         # Pure utility functions (formatting, math, constants)
+  /utils         # Supabase client factories (server.ts, client.ts)
+  /lib           # Shared utilities and constants (e.g., i18n translations)
 ```
+
+**Server Actions Pattern**: Server actions live alongside their page in `/app`, not in `/components`. Client components import server actions using `import { actionName } from '@/app/...'`.
 
 ## 3. Naming Conventions
 - **Files/Folders**: `kebab-case` for URLs (e.g., `/pending-approval`).

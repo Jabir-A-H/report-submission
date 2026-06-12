@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createServerClient } from '@supabase/ssr'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 
 export async function register(formData: FormData) {
@@ -49,8 +50,7 @@ export async function register(formData: FormData) {
   }
 
   // Check if User ID is already taken
-  const { createClient } = await import('@supabase/supabase-js')
-  const adminSupabase = createClient(
+  const adminSupabase = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
@@ -85,9 +85,78 @@ export async function register(formData: FormData) {
     return redirect(`/register?message=${encodeURIComponent(msg)}`)
   }
 
+  // Supabase silently succeeds (no error) when the email already exists in auth
+  // to prevent email enumeration. The giveaway is an empty identities array.
+  if (!authData?.user || (authData.user.identities?.length ?? 0) === 0) {
+    return redirect(`/register?message=${encodeURIComponent('এই ইমেইল দিয়ে আগেই নিবন্ধন করা হয়েছে।')}`)
+  }
+
   // Sign out immediately — user must wait for admin approval
   await supabase.auth.signOut()
 
   revalidatePath('/', 'layout')
   redirect('/pending-approval')
+}
+
+// ── Live field-validation helpers (called on blur from the form) ──────────────
+
+/**
+ * Check whether an email is already taken.
+ * Checks both the people table and auth.users directly (catches orphaned auth
+ * accounts that have no corresponding people row — the original reported bug).
+ */
+export async function checkEmailAvailability(
+  email: string
+): Promise<{ available: boolean; message?: string }> {
+  if (!email || !email.includes('@')) return { available: true }
+
+  const adminSupabase = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  // Check people table first (fast path)
+  const { data: existingPerson } = await adminSupabase
+    .from('people')
+    .select('id')
+    .eq('email', email)
+    .maybeSingle()
+
+  if (existingPerson) {
+    return { available: false, message: 'এই ইমেইল দিয়ে আগেই নিবন্ধন করা হয়েছে।' }
+  }
+
+  // Also scan auth.users — catches orphaned auth accounts without a people row
+  const { data: authUsers, error } = await adminSupabase.auth.admin.listUsers({ page: 1, perPage: 1000 })
+  if (!error && authUsers?.users?.some(u => u.email?.toLowerCase() === email.toLowerCase())) {
+    return { available: false, message: 'এই ইমেইল দিয়ে আগেই নিবন্ধন করা হয়েছে।' }
+  }
+
+  return { available: true }
+}
+
+/**
+ * Check whether a user_id (username) is already taken in the people table.
+ */
+export async function checkUserIdAvailability(
+  userId: string
+): Promise<{ available: boolean; message?: string }> {
+  if (!userId || userId.length < 3) return { available: true }
+
+  const adminSupabase = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  const { data: existingUser } = await adminSupabase
+    .from('people')
+    .select('id')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (existingUser) {
+    return { available: false, message: 'এই ইউজার আইডিটি ইতিমধ্যে ব্যবহার করা হয়েছে।' }
+  }
+
+  return { available: true }
 }

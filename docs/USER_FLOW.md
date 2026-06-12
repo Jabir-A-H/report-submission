@@ -4,14 +4,46 @@
 This document outlines the User Experience (UX) and navigation paths for standard users (Zone Managers). The frontend focuses on an accessible, adaptive UI built with Next.js and Tailwind v4.
 
 ## 1. Authentication Flow
-1. **Registration**: User signs up with Email/Password, providing their Name, Zone, and a chosen custom **User ID / Username** (validated for uniqueness). Supabase Auth handles the sign-up, and an automated Database Trigger (`on_auth_user_created` running `handle_new_user()`) securely intercepts the user to create their profile in the `people` table with their submitted custom `user_id`.
-2. **Email Confirmation**: Supabase Auth strictly requires the user to click a confirmation link sent to their registered email. Until this is done, login is disabled.
-3. **Approval Gate**: Post-registration, the user is redirected to a `/pending-approval` screen which instructs them to confirm their email and wait for admin approval. Their account defaults to `active = false`.
-4. **Login**: Users can log in using either their **Email** or their custom **User ID**. If logging in with a User ID, a server-side action securely resolves it to their registered email using a private database lookup before authentication. If the account is approved (`active = true`), they successfully access the User Dashboard; otherwise, they are redirected to `/pending-approval`.
-5. **Header Data & Logout**: The global header features a `UserDropdown` component that dynamically fetches the logged-in user's name, zone, and role from the `people` table. There is no standalone Profile page; all user details (name, email, role, zone) are read-only and managed by administrators. The logout flow calls an auth endpoint to clear Supabase cookies and redirects to `/login`.
+
+### 1.1 Registration
+1. User navigates to `/register` (publicly accessible, no login required).
+2. The registration form (`RegisterFormClient`) is a **client component** that provides live on-blur field validation:
+   - When the user tabs out of the **Email** field, it immediately calls `checkEmailAvailability()` — a server action that checks both the `people` table and `auth.users` for duplicates. The field border turns red/green and a badge appears.
+   - When the user tabs out of the **User ID** field, it calls `checkUserIdAvailability()` — a server action that checks the `people` table. Same red/green feedback.
+   - The Submit button is **disabled** while any check is in progress or if either field shows a conflict.
+3. On submit, the `register` server action (`/app/auth/register/actions.ts`) runs the following checks in order:
+   - All required fields are present.
+   - `user_id` passes the format rule: alphanumeric + `_` `-`, min 3 chars.
+   - `password` is at least 6 characters.
+   - `user_id` is not already taken in the `people` table (server-side guard, in addition to the live check).
+   - Calls `supabase.auth.signUp()`. If Supabase returns `identities.length === 0`, the email already exists in auth and the user is shown an error (Supabase uses this pattern to prevent email enumeration).
+4. On success, the session is immediately signed out (`supabase.auth.signOut()`) — the user must wait for admin approval before being allowed in.
+5. User is redirected to `/pending-approval`.
+
+### 1.2 Login
+1. User navigates to `/login`. Accepts either **Email address** or **User ID** in the identifier field.
+2. If the input does not contain `@`, the `login` server action resolves it to an email by querying `people.user_id` using the **admin client** (service role key), then falls back to a legacy `@report.local` suffix for older accounts.
+3. `supabase.auth.signInWithPassword()` is called with the resolved email.
+4. On success, `revalidatePath('/')` is called and the user is redirected to `/`.
+5. **Active status is enforced by middleware** (not the login action itself): On the first request to `/`, middleware calls `getUser()` and queries `people.active`. If `active = false`, the user is redirected to `/pending-approval`. If `active = true`, the dashboard loads.
+
+### 1.3 Middleware Route Protection
+`middleware.ts` runs on every request matching the Next.js matcher (excludes static files):
+- **Public routes** (no auth required): `/home`, `/login`, `/register`, `/auth/*`, `/pending-approval`
+- **Protected routes** (everything else, including `/`): Middleware calls `supabase.auth.getUser()`.
+  - If no session: unauthenticated users visiting `/` are redirected to `/home`; all others go to `/login`.
+  - If session exists but `people.active = false`: user is redirected to `/pending-approval`.
+  - If session exists and `people.active = true`: request proceeds normally.
+- **API routes**: Return a `401 JSON` response instead of redirecting.
+- **Authenticated users on `/login`**: Redirected to `/` (dashboard).
+
+### 1.4 Logout
+User clicks the logout button. A `POST /auth/logout` route handler calls `supabase.auth.signOut()` and redirects to `/login`.
+
+---
 
 ## 2. Dashboard Flow
-1. **Landing**: User lands on `/` (Dashboard).
+1. **Landing**: User lands on `/` (Dashboard). Middleware has already verified they are authenticated and active.
 2. **Context Toggle**: Users can toggle between Bangla (default) and English via the `UserDropdown` settings, which displays explicit language choice buttons ("বাংলা" and "EN") indicating the active state. The selection updates the interface via a global React Context without triggering URL changes or route reloads.
 3. **Period Selection**: User selects the Report Type (e.g., মাসিক) and Date.
 4. **Section Overview**: User views 7 distinct cards representing the 7 report sections.
@@ -21,7 +53,9 @@ This document outlines the User Experience (UX) and navigation paths for standar
    - 🟢 (Green): Fully completed.
    *(This encourages users to input '0' even for empty fields to achieve a green state).*
 
-*Note: The UI strictly follows the 4-theme system (Light, Dark, Solarized Light, Solarized Dark). Users can select their theme from an explicit visual grid selector with swatch previews inside the `UserDropdown` settings (replacing the previous roulette cycle toggle). While interactive power-user features like `kbar` and `framer-motion` were explored, they have been explicitly omitted to prioritize a minimalist, highly accessible experience tailored to non-tech-savvy field managers.*
+*Note: The UI strictly follows the 4-theme system (Light, Dark, Solarized Light, Solarized Dark). Users can select their theme from an explicit visual grid selector with swatch previews inside the `UserDropdown` settings. While interactive power-user features like `kbar` and `framer-motion` were explored, they have been explicitly omitted to prioritize a minimalist, highly accessible experience tailored to non-tech-savvy field managers.*
+
+---
 
 ## 3. Data Entry Flow (Adaptive Matrix)
 1. **Navigation**: User clicks a section card and routes to `/report/[section]`. A visible "Nav Stepper" component tracks progress across the 7 sections.
@@ -32,6 +66,8 @@ This document outlines the User Experience (UX) and navigation paths for standar
    - As the user types and moves off a field (`onBlur`), the data is instantly auto-saved to Supabase.
    - A visual indicator next to the field spins during the save and turns into a ✅ upon success.
 4. **No Final Submit**: Because of the real-time auto-save architecture, there is no master "Submit" button. Users simply fill out all sections until all 7 badges turn green.
+
+---
 
 ## 4. Exports
 From the dashboard, users can request an export (Excel or highly condensed PDF) of their submitted report. The Next.js app or Edge Function rapidly compiles the data and triggers a download.

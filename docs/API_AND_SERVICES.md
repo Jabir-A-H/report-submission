@@ -1,21 +1,46 @@
 # API and Services
 
 ## Overview
-Because the architecture relies heavily on Next.js and Supabase, traditional REST API endpoints are minimized. Instead, the system uses Supabase's client libraries and Edge Functions / Next.js API Routes for specific high-computation tasks.
+Because the architecture relies heavily on Next.js and Supabase, traditional REST API endpoints are minimized. Instead, the system uses Supabase's client libraries and Next.js Server Actions for most operations, with Edge Functions / API Routes reserved for high-computation tasks like exports.
 
 ## 1. Supabase Data Fetching
 - **Client-Side**: The Next.js frontend uses `@supabase/ssr` to fetch and mutate data directly from the PostgreSQL tables and views.
 - **Security**: Data access is governed by Row Level Security (RLS) policies defined in the database, ensuring users only see their own zone data.
 - **Realtime**: Auto-saving forms bypass traditional `POST /submit` endpoints. Instead, an `onBlur` event triggers a direct `supabase.from('table').upsert(...)` call.
 
-## 2. Aggregation via Views
+## 2. Supabase Client Patterns
+The codebase uses two Supabase client patterns:
+
+| Pattern | File | Key | Used For |
+|---|---|---|---|
+| SSR Server Client | `@/utils/supabase/server` | `ANON_KEY` | Server Components, middleware, reading user-owned data |
+| SSR Browser Client | `@/utils/supabase/client` | `ANON_KEY` | Client Components that need to read from the DB |
+| Admin Client (inline) | `createClient` from `@supabase/supabase-js` | `SERVICE_ROLE_KEY` | Server Actions that need to bypass RLS (e.g., checking uniqueness, resolving user IDs at login, admin operations) |
+
+> **Important**: The `SERVICE_ROLE_KEY` is **never** exposed to the client. It is only used inside `'use server'` actions and Next.js API route handlers.
+
+## 3. Server Actions (Auth)
+Auth logic lives in server actions, not API routes:
+
+### `/app/auth/register/actions.ts`
+- **`register(formData)`**: Validates fields, checks `user_id` uniqueness via admin client, calls `supabase.auth.signUp()`, detects silent email collisions via `identities.length === 0`, then signs the new session out and redirects to `/pending-approval`.
+- **`checkEmailAvailability(email)`**: Called on-blur during registration. Checks `people.email` (fast path) and then `auth.users` via `admin.listUsers()`. Returns `{ available, message }`.
+- **`checkUserIdAvailability(userId)`**: Called on-blur during registration. Checks `people.user_id`. Returns `{ available, message }`.
+
+### `/app/login/actions.ts`
+- **`login(formData)`**: Resolves user_id → email (if input is not an email) via admin client lookup of `people.user_id`. Calls `supabase.auth.signInWithPassword()`. On success, redirects to `/`. Middleware enforces the `active` check.
+
+### `/auth/logout/route.ts`
+- **`POST /auth/logout`**: Calls `supabase.auth.signOut()` and redirects to `/login`.
+
+## 4. Aggregation via Views
 Instead of computing aggregations on the server via an API route, the Next.js app queries PostgreSQL Views directly:
 ```typescript
 const { data } = await supabase.from('city_monthly_aggregates_view').select('*');
 ```
 This offloads the computational heavy-lifting to the database layer.
 
-## 3. Export Services (Excel & PDF)
+## 5. Export Services (Excel & PDF)
 Generating high-fidelity exports requires server-side processing to keep the client lightweight.
 - **Approach**: Whichever is faster/more reliable to implement between Next.js API Routes (`/api/export/*`) or Supabase Edge Functions.
 - **Excel Export**: Utilizes a library like `exceljs` to map JSON data into a formatted XLSX file.
@@ -26,6 +51,7 @@ Generating high-fidelity exports requires server-side processing to keep the cli
   3. The document is generated in-memory.
   4. The server responds with a `Blob` or presigned download URL.
 
-## 4. Authentication Service
-- Handled entirely by Supabase Auth.
-- Next.js Middleware (`middleware.ts`) protects routes, ensuring unauthenticated users or those with `active = false` are redirected away from protected dashboard pages.
+## 6. Authentication Service
+- Handled by Supabase Auth + Next.js Middleware + Server Actions.
+- `middleware.ts` protects all routes not in the `publicPaths` list. It enforces both authentication (valid session) and authorization (user is `active`).
+- See `USER_FLOW.md` for the complete authentication flow.

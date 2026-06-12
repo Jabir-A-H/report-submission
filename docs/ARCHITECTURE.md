@@ -5,7 +5,7 @@ The Report Submission System is built on a modern **Next.js** (Frontend) and **S
 
 ## Technology Stack
 - **Frontend Framework**: Next.js (App Router)
-- **Styling**: Tailwind CSS v4, Framer Motion
+- **Styling**: Tailwind CSS v4
 - **Database & Auth**: Supabase (managed cloud instance)
 - **Deployment & Hosting**: Vercel (Frontend), Supabase (Backend)
 - **Language**: TypeScript
@@ -14,22 +14,53 @@ The Report Submission System is built on a modern **Next.js** (Frontend) and **S
 ```text
 Browser / Client (Next.js)
        │
-       │ (REST / Realtime)
+       │  Every Request
+       ▼
+middleware.ts
+       │  Calls supabase.auth.getUser() + checks people.active
+       │  Routes public/protected, enforces approval gate
+       ▼
+Next.js App Router
+       │
+       ├─ Server Components  →  read data via SSR Supabase client (anon key)
+       ├─ Server Actions      →  mutate data; admin operations use service role key
+       ├─ Client Components   →  interactive UI (forms with on-blur validation, etc.)
+       │
        ▼
 Supabase Edge/API Layer
        │
-       ├─ Auth (Email/Password, Google One Tap)
-       │
-       ├─ Middleware (`middleware.ts` for route protection)
-       │
-       ├─ Edge Functions (Excel Export, custom PDF generator)
-       │
-       ▼
-PostgreSQL Database
-       │
-       ├─ Tables (User Data, Form Sections)
-       └─ Views (City-wide aggregations & calculations)
+       ├─ Auth (Email/Password via Server Actions)
+       ├─ PostgreSQL (Tables, Views, RLS Policies)
+       └─ Edge Functions (Excel Export, custom PDF generator)
 ```
+
+## Route Protection Model
+The middleware (`middleware.ts`) is the **single source of truth** for auth enforcement:
+
+| Route | Type | Rule |
+|---|---|---|
+| `/home` | Public | Always accessible |
+| `/login` | Public | Redirects to `/` if already logged in |
+| `/register` | Public | Always accessible |
+| `/auth/*` | Public | Always accessible (callback handlers) |
+| `/pending-approval` | Public | Always accessible |
+| `/api/*` | Protected | Returns `401 JSON` if unauthenticated |
+| `/` | Protected | Requires auth + `active = true` |
+| `/admin/*` | Protected | Requires auth + `active = true` + role check in layout |
+| All other routes | Protected | Requires auth + `active = true` |
+
+**Unauthenticated visitors** hitting `/` are redirected to `/home`. All other protected routes send them to `/login`.
+
+## Supabase Client Strategy
+Three different Supabase client patterns are used depending on context:
+
+| Pattern | Key Used | Context |
+|---|---|---|
+| `@/utils/supabase/server` | `ANON_KEY` | Server Components, middleware |
+| `@/utils/supabase/client` | `ANON_KEY` | Client Components |
+| `createClient()` from `@supabase/supabase-js` | `SERVICE_ROLE_KEY` | Server Actions needing to bypass RLS |
+
+The `SERVICE_ROLE_KEY` is **never** sent to the browser. It is only used inside `'use server'` actions.
 
 ## Zero-Cost Operations & Backups
 To ensure data safety while minimizing operational costs:
