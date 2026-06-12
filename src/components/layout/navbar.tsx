@@ -10,7 +10,7 @@ export function Navbar() {
   const pathname = usePathname();
 
   // Hide Navbar on Login, Register, Home or when simplified view is needed
-  const isAuthPage = ["/login", "/register", "/auth", "/home", "/pending-approval"].includes(pathname);
+  const isAuthPage = ["/login", "/register", "/auth", "/home", "/pending-approval", "/forgot-password", "/update-password"].includes(pathname);
   
   if (isAuthPage) return null;
 

@@ -119,7 +119,7 @@ export function RegisterFormClient({
               userIdStatus === 'taken' ? 'border-red-500' : userIdStatus === 'available' ? 'border-green-500' : 'border-border'
             }`}
             name="user_id"
-            placeholder="যেমন: sumona, user002"
+            placeholder="যেমন: user123"
             pattern="^[a-zA-Z0-9_-]{3,20}$"
             title="ইউজার আইডি কমপক্ষে ৩ অক্ষরের হতে হবে এবং শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা বা _ - ব্যবহার করা যাবে।"
             onBlur={handleUserIdBlur}
@@ -199,8 +199,9 @@ export function RegisterFormClient({
         <Link href="/home" className="hover:text-primary transition-colors">
           &larr; হোম পেজ
         </Link>
-        <Link href="/login" className="hover:text-primary transition-colors">
-          অ্যাকাউন্ট আছে? <span className="text-primary font-bold underline underline-offset-2">লগ-ইন করুন</span>
+        <Link href="/login" className="hover:text-primary transition-colors gap-1">
+          অ্যাকাউন্ট আছে?
+          <span className="text-primary font-bold underline underline-offset-2">লগ-ইন করুন</span>
         </Link>
       </div>
 

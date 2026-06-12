@@ -28,7 +28,7 @@ export function BottomNav() {
     })();
   }, []);
 
-  const isAuthPage = ["/login", "/register", "/auth", "/home", "/pending-approval"].includes(pathname);
+  const isAuthPage = ["/login", "/register", "/auth", "/home", "/pending-approval", "/forgot-password", "/update-password"].includes(pathname);
   if (isAuthPage) return null;
   const navItems = [
     { label: "হোম", href: "/", icon: Home },
