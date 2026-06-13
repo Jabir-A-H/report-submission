@@ -24,7 +24,7 @@ jobs:
           PGPASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           DATE=$(date +%Y-%m-%d)
-          pg_dump -h db.pxdkvewaglagnfcqeckn.supabase.co -U postgres -d postgres > backup-repo/backups/db_backup_$DATE.sql
+          pg_dump -h aws-1-ap-southeast-2.pooler.supabase.com -U postgres -d postgres > backup-repo/backups/db_backup_$DATE.sql
 
       - name: Commit and Push
         working-directory: backup-repo
