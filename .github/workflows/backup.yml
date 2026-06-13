@@ -22,9 +22,17 @@ jobs:
       - name: Perform pg_dump
         env:
           PGPASSWORD: ${{ secrets.DB_PASSWORD }}
+          PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
         run: |
           DATE=$(date +%Y-%m-%d)
-          pg_dump -h aws-1-ap-southeast-2.pooler.supabase.com -U postgres -d postgres > backup-repo/backups/db_backup_$DATE.sql
+          pg_dump \
+            --host aws-1-ap-southeast-2.pooler.supabase.com \
+            --port 5432 \
+            --username "postgres.${PROJECT_REF}" \
+            --dbname postgres \
+            --no-password \
+            --file "backup-repo/backups/db_backup_${DATE}.sql" \
+            --sslmode=require
 
       - name: Commit and Push
         working-directory: backup-repo
