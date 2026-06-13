@@ -73,10 +73,10 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 - **Description**: The root `page.tsx` contained a defensive guard `if (!user) redirect('/login')`. If an unauthenticated user navigated to the root route via a client-side `<Link>`, bypassing the initial SSR middleware redirect, this guard would throw them to `/login` instead of the intended `/home` landing page.
 - **Fix**: Changed the guard to `if (!user) redirect('/home')` to align perfectly with the middleware's SSR logic.
 
-### Password Reset `redirectTo` Resolved to `localhost` in Production
+### Password Reset redirect to /pending-approval
 - **Date**: 2026-06-13
-- **Description**: The `forgotPassword` server action hardcoded a fallback to `http://localhost:3000` for the `redirectTo` URL. Since `NEXT_PUBLIC_SITE_URL` was not set in Vercel's environment variables, the production Vercel deployment sent `localhost:3000` as the redirect. Supabase silently stripped this invalid redirect and fell back to the project's Site URL root (`/`), causing the user to be redirected to `/pending-approval` by middleware instead of the password update page.
-- **Fix**: Updated `getURL()` to check `NEXT_PUBLIC_VERCEL_URL` (automatically set by Vercel) before falling back to localhost. Also recommend setting `NEXT_PUBLIC_SITE_URL` explicitly in Vercel env vars.
+- **Description**: The `forgotPassword` server action was generating a `redirectTo` URL that fell back to `http://localhost:3000` because `NEXT_PUBLIC_SITE_URL` and `NEXT_PUBLIC_VERCEL_URL` (which is not automatically prefixed with `NEXT_PUBLIC_` by Vercel) were not resolved in production. When Supabase verified the token, it rejected the localhost URL and fell back to the root (`/`) or stripped the `next=/update-password` query parameter. Since the user was authenticated but inactive, the middleware redirected them to `/pending-approval` instead of `/update-password`.
+- **Fix**: 1. Updated `getURL()` to check the server-side automatic `VERCEL_URL` environment variable. 2. Updated the `/auth/callback` route handler to inspect the session access token JWT's `amr` (Authentication Methods Reference) claim after code exchange; if the user authenticated via recovery (password reset), it automatically overrides the fallback path and redirects them to `/update-password`, ensuring the flow is bulletproof even if query parameters are stripped by GoTrue or email clients.
 
 ### Pending-Approval Page Redirect Trap
 - **Date**: 2026-06-13
