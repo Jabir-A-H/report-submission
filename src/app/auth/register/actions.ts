@@ -36,17 +36,17 @@ export async function register(formData: FormData) {
   const userId = (formData.get('user_id') as string)?.trim()
 
   if (!name || !email || !password || !zoneId || !userId) {
-    return redirect('/register?message=সকল তথ্য পূরণ করুন')
+    return redirect(`/register?message=${encodeURIComponent('সকল তথ্য পূরণ করুন')}`)
   }
 
   // Enforce simple username rules (alphanumeric, underscores, hyphens, min 3 chars)
   const userIdRegex = /^[a-zA-Z0-9_-]+$/
   if (userId.length < 3 || !userIdRegex.test(userId)) {
-    return redirect('/register?message=ইউজার আইডি কমপক্ষে ৩ অক্ষরের হতে হবে এবং শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা, বা _ - ব্যবহার করা যাবে।')
+    return redirect(`/register?message=${encodeURIComponent('ইউজার আইডি কমপক্ষে ৩ অক্ষরের হতে হবে এবং শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা, বা _ - ব্যবহার করা যাবে।')}`)
   }
 
   if (password.length < 6) {
-    return redirect('/register?message=পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে')
+    return redirect(`/register?message=${encodeURIComponent('পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে')}`)
   }
 
   // Check if User ID is already taken
@@ -62,7 +62,7 @@ export async function register(formData: FormData) {
     .maybeSingle()
 
   if (existingUser) {
-    return redirect('/register?message=এই ইউজার আইডিটি ইতিমধ্যে ব্যবহার করা হয়েছে। অন্য একটি নির্বাচন করুন।')
+    return redirect(`/register?message=${encodeURIComponent('এই ইউজার আইডিটি ইতিমধ্যে ব্যবহার করা হয়েছে। অন্য একটি নির্বাচন করুন।')}`)
   }
 
   // 1. Create Supabase Auth user

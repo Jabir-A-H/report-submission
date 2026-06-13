@@ -7,7 +7,7 @@ export async function forgotPassword(formData: FormData) {
   const email = formData.get('email') as string
   
   if (!email || !email.includes('@')) {
-    return redirect('/forgot-password?message=সঠিক ইমেইল প্রদান করুন।')
+    return redirect(`/forgot-password?message=${encodeURIComponent('সঠিক ইমেইল প্রদান করুন।')}`)
   }
 
   const supabase = await createClient()
