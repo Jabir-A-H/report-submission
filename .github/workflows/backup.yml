@@ -15,23 +15,25 @@ jobs:
           repository: ${{ secrets.BACKUP_REPO }} # e.g. "Jabir-A-H/report-backups-private"
           token: ${{ secrets.BACKUP_TOKEN }}
           path: backup-repo
-
-      - name: Install Postgres Client
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client-17
-
-      - name: Perform pg_dump
+      
+      - name: Perform pg_dump (Postgres 17 container)
         env:
           PGPASSWORD: ${{ secrets.DB_PASSWORD }}
           PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
         run: |
           DATE=$(date +%Y-%m-%d)
-          pg_dump \
-            --host aws-1-ap-southeast-2.pooler.supabase.com \
-            --port 5432 \
-            --username "postgres.${PROJECT_REF}" \
-            --dbname postgres \
-            --no-password \
-            --file "backup-repo/backups/db_backup_${DATE}.sql"
+          docker run --rm \
+            -e PGPASSWORD="$PGPASSWORD" \
+            -v "$PWD/backup-repo/backups:/backups" \
+            postgres:17 \
+            pg_dump \
+              --host aws-1-ap-southeast-2.pooler.supabase.com \
+              --port 5432 \
+              --username "postgres.${PROJECT_REF}" \
+              --dbname postgres \
+              --no-password \
+              --sslmode=require \
+              --file "/backups/db_backup_${DATE}.sql"
 
       - name: Commit and Push
         working-directory: backup-repo
