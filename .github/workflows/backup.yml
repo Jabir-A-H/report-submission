@@ -31,8 +31,7 @@ jobs:
             --username "postgres.${PROJECT_REF}" \
             --dbname postgres \
             --no-password \
-            --file "backup-repo/backups/db_backup_${DATE}.sql" \
-            --sslmode=require
+            --file "backup-repo/backups/db_backup_${DATE}.sql"
 
       - name: Commit and Push
         working-directory: backup-repo
