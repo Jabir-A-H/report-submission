@@ -17,7 +17,7 @@ jobs:
           path: backup-repo
 
       - name: Install Postgres Client
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client-17
 
       - name: Perform pg_dump
         env:
