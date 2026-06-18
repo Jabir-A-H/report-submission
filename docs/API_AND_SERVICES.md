@@ -51,14 +51,19 @@ This offloads the computational heavy-lifting to the database layer.
 
 ## 5. Export Services (Excel & PDF)
 Generating high-fidelity exports requires server-side processing to keep the client lightweight.
-- **Approach**: Whichever is faster/more reliable to implement between Next.js API Routes (`/api/export/*`) or Supabase Edge Functions.
+- **Approach**: Next.js API Routes (`/api/export/*`) handle the export generation.
 - **Excel Export**: Utilizes a library like `exceljs` to map JSON data into a formatted XLSX file.
-- **PDF Export**: Utilizes `@react-pdf/renderer` or a headless browser to generate highly customized, condensed Bangla-supported PDFs.
+- **PDF Export**: 
+  - Utilizes `@react-pdf/renderer` in `/api/export/pdf/route.tsx` to generate highly customized, condensed Bangla-supported PDFs using the *Tiro Bangla* font.
+  - **Layout & Efficiency**: Specifically engineered to fit all comprehensive data onto a maximum of **two A4 pages**. This ensures the document is ready for physical printing and administrative evaluation.
+  - **Styling**: Mimics the legacy Excel-based PDF reports but with professionalized web-safe aesthetics (light blue headers, peach statistic blocks, yellow meeting headers) via flexbox.
+  - **Structural Adjustments**: Adjusts rigid database schemas into visually friendly tables. For instance, the *Personal* table inverts standard row/column mapping to align with the visual spec, and multi-field data points (e.g. `সহযোগী / সম্মতি দিয়েছেন`) are intelligently displayed without strictly merging strings.
+  - **Data Integrity**: The PDF strictly adheres to predefined database schema categories. Missing legacy categories (e.g., `রুকনদের অনুশীলনী ক্লাস`) found in old PDFs are intentionally excluded from the code unless they are explicitly added to the Supabase database Enum/Text fields.
 - **Flow**:
   1. Client sends a request with `report_id` or `period`.
-  2. The server/Edge Function queries Supabase for the required data.
-  3. The document is generated in-memory.
-  4. The server responds with a `Blob` or presigned download URL.
+  2. The API Route queries Supabase for the required data, resolving aggregations if needed.
+  3. The document layout is computed in-memory by `@react-pdf/renderer`.
+  4. The server responds with a raw PDF `Buffer` downloaded by the user's browser.
 
 ## 6. Authentication Service
 - Handled by Supabase Auth + Next.js Middleware + Server Actions.

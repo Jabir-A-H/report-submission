@@ -15,6 +15,7 @@ const COURSE_CATEGORIES = [
   "কর্মীদের",
   "ইউনিট সভানেত্রী",
   "অগ্রসরদের",
+  "রুকনদের অনুশীলনী ক্লাস",
   "শিশু- তা'লিমুল কুরআন",
   "নিরক্ষর- তা'লিমুস সলাত",
 ];
@@ -41,8 +42,7 @@ const PERSONAL_CATEGORIES = ["রুকন", "কর্মী", "সক্রি
 const MEETING_CATEGORIES = [
   "কমিটি বৈঠক হয়েছে",
   "মুয়াল্লিমাদের নিয়ে বৈঠক",
-  "Committee Orientation",
-  "Muallima Orientation",
+  "Orientation / Result Publish",
 ];
 
 const EXTRA_CATEGORIES = [

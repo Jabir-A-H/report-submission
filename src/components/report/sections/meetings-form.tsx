@@ -6,8 +6,7 @@ import { Users } from "lucide-react";
 export const MEETING_CATEGORIES = [
   "কমিটি বৈঠক হয়েছে",
   "মুয়াল্লিমাদের নিয়ে বৈঠক",
-  "Committee Orientation",
-  "Muallima Orientation",
+  "Orientation / Result Publish",
 ];
 
 export function MeetingsForm() {

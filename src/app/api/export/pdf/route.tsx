@@ -11,11 +11,14 @@ import {
   renderToBuffer,
 } from "@react-pdf/renderer";
 
+import path from "path";
+import fs from "fs";
+
 // ─── Font Registration ────────────────────────────────────────────────────────
 
 Font.register({
   family: "Tiro Bangla",
-  src: "https://fonts.gstatic.com/s/tirobangla/v6/IuaHaJaHVsk2rGGByzUFTJrmwLs.ttf",
+  src: path.join(process.cwd(), "public/fonts/TiroBangla-Regular.ttf").replace(/\\/g, "/"),
 });
 
 // ─── Constants & Styling ──────────────────────────────────────────────────────
@@ -27,7 +30,7 @@ const MONTHS_BN = [
 
 const COURSE_CATEGORIES = [
   "বিশিষ্টদের", "সাধারণদের", "কর্মীদের", "ইউনিট সভানেত্রী",
-  "অগ্রসরদের", "শিশু- তা'লিমুল কুরআন", "নিরক্ষর- তা'লিমুস সলাত"
+  "অগ্রসরদের", "রুকনদের অনুশীলনী ক্লাস", "শিশু- তা'লিমুল কুরআন", "নিরক্ষর- তা'লিমুস সলাত"
 ];
 
 const ORG_CATEGORIES = [
@@ -40,7 +43,7 @@ const ORG_CATEGORIES = [
 const PERSONAL_CATEGORIES = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"];
 
 const MEETING_CATEGORIES = [
-  "কমিটি বৈঠক হয়েছে", "মুয়াল্লিমাদের নিয়ে বৈঠক", "Committee Orientation", "Muallima Orientation"
+  "কমিটি বৈঠক হয়েছে", "মুয়াল্লিমাদের নিয়ে বৈঠক", "Orientation / Result Publish"
 ];
 
 const EXTRA_CATEGORIES = [
@@ -50,92 +53,132 @@ const EXTRA_CATEGORIES = [
 
 const styles = StyleSheet.create({
   page: {
-    padding: 30,
+    padding: 25,
     fontFamily: "Tiro Bangla",
     backgroundColor: "#ffffff",
-    fontSize: 9,
+    fontSize: 8.5,
     lineHeight: 1.3,
   },
   header: {
-    marginBottom: 15,
-    borderBottom: "1.5pt solid #0f172a",
-    paddingBottom: 8,
+    marginBottom: 10,
     textAlign: "center",
   },
   title: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
     color: "#0f172a",
   },
   subtitle: {
     fontSize: 10,
     color: "#475569",
-    marginTop: 3,
+    marginTop: 2,
   },
   section: {
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 11,
-    fontWeight: "bold",
-    backgroundColor: "#f1f5f9",
-    padding: 4,
-    marginBottom: 6,
-    borderRadius: 3,
-    color: "#1e3a8a",
-  },
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
     marginBottom: 8,
   },
-  gridItem: {
-    width: "25%",
+  sectionTitle: {
+    fontSize: 10,
+    fontWeight: "bold",
+    backgroundColor: "#dbeafe",
     padding: 4,
+    marginBottom: 4,
+    borderRadius: 2,
+    color: "#1e3a8a",
+  },
+  infoGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
     borderWidth: 0.5,
     borderColor: "#cbd5e1",
+    marginBottom: 6,
   },
-  gridLabel: {
+  infoItem: {
+    flexDirection: "row",
+    width: "25%",
+    borderWidth: 0.5,
+    borderColor: "#cbd5e1",
+    padding: 3,
+  },
+  infoLabel: {
+    width: "60%",
     fontSize: 8,
-    color: "#64748b",
+    color: "#475569",
   },
-  gridValue: {
-    fontSize: 9,
+  infoValue: {
+    width: "40%",
+    fontSize: 8,
     fontWeight: "bold",
-    marginTop: 2,
+    textAlign: "right",
     color: "#0f172a",
+  },
+  statBlockContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 6,
+  },
+  statBlock: {
+    width: "32%",
+    backgroundColor: "#ffedd5",
+    padding: 4,
+    borderWidth: 0.5,
+    borderColor: "#fdba74",
+    borderRadius: 2,
+  },
+  statRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 2,
+  },
+  statLabel: {
+    fontSize: 8,
+  },
+  statValue: {
+    fontSize: 8,
+    fontWeight: "bold",
   },
   table: {
     borderWidth: 0.5,
-    borderColor: "#cbd5e1",
-    marginBottom: 8,
+    borderColor: "#94a3b8",
+    marginBottom: 6,
   },
   tableRow: {
     flexDirection: "row",
     borderBottomWidth: 0.5,
-    borderBottomColor: "#cbd5e1",
+    borderBottomColor: "#94a3b8",
   },
-  tableHeader: {
-    backgroundColor: "#f8fafc",
+  tableHeaderPrimary: {
+    backgroundColor: "#dbeafe",
+    fontWeight: "bold",
+  },
+  tableHeaderSecondary: {
+    backgroundColor: "#fef08a",
     fontWeight: "bold",
   },
   tableCell: {
-    padding: 4,
+    padding: 3,
     textAlign: "center",
     justifyContent: "center",
     borderRightWidth: 0.5,
-    borderRightColor: "#cbd5e1",
+    borderRightColor: "#94a3b8",
   },
   textLeft: {
     textAlign: "left",
   },
-  commentBox: {
-    borderWidth: 0.5,
-    borderColor: "#cbd5e1",
-    padding: 6,
-    borderRadius: 4,
-    backgroundColor: "#f8fafc",
-    minHeight: 40,
+  signatureContainer: {
+    marginTop: 20,
+    alignItems: "flex-end",
+    paddingRight: 20,
+  },
+  signatureLine: {
+    width: 120,
+    borderBottomWidth: 1,
+    borderBottomColor: "#000",
+    marginBottom: 4,
+  },
+  signatureText: {
+    fontSize: 9,
+    textAlign: "center",
+    width: 120,
   },
 });
 
@@ -167,250 +210,330 @@ const ReportPDFDocument = ({
   extras,
   comment,
   isCityAgg = false,
-}: ReportPDFProps) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>
-          {isCityAgg ? "তা'লীমুল কুরআন মহানগরী রিপোর্ট (সমষ্টিগত)" : "তা'লীমুল কুরআন জোন রিপোর্ট"}
-        </Text>
-        <Text style={styles.subtitle}>
-          {isCityAgg ? "" : `জোন: ${zoneName} | `}সময়কাল: {periodLabel} ({reportType})
-        </Text>
-      </View>
+}: ReportPDFProps) => {
+  // Helpers to calculate totals for Course Table
+  const totalCourses = courses.reduce((acc, curr) => ({
+    number: acc.number + (curr.number || 0),
+    increase: acc.increase + (curr.increase || 0),
+    decrease: acc.decrease + (curr.decrease || 0),
+    sessions: acc.sessions + (curr.sessions || 0),
+    students: acc.students + (curr.students || 0),
+    attendance: acc.attendance + (curr.attendance || 0),
+    status_board: acc.status_board + (curr.status_board || 0),
+    status_qayda: acc.status_qayda + (curr.status_qayda || 0),
+    status_ampara: acc.status_ampara + (curr.status_ampara || 0),
+    status_quran: acc.status_quran + (curr.status_quran || 0),
+    completed: acc.completed + (curr.completed || 0),
+    correctly_learned: acc.correctly_learned + (curr.correctly_learned || 0),
+  }), {
+    number: 0, increase: 0, decrease: 0, sessions: 0, students: 0, attendance: 0,
+    status_board: 0, status_qayda: 0, status_ampara: 0, status_quran: 0, completed: 0, correctly_learned: 0
+  });
 
-      {/* 1. Header Info Grid */}
-      {header && (
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.title}>বিসমিল্লাহির রহমানীর রহীম</Text>
+          <Text style={styles.title}>তা'লীমুল কুরআন বিভাগ</Text>
+          <Text style={styles.subtitle}>
+            {isCityAgg ? "ডি সি এস" : `জোন: ${zoneName}`}
+          </Text>
+        </View>
+
+        {/* 1. Header Info & Stats Grid */}
+        {header && (
+          <View style={styles.section}>
+            <View style={styles.infoGrid}>
+              <View style={[styles.infoItem, { width: "25%" }]}><Text style={styles.infoLabel}>মাস / সময়কাল :</Text><Text style={styles.infoValue}>{periodLabel}</Text></View>
+              <View style={[styles.infoItem, { width: "25%" }]}><Text style={styles.infoLabel}>ধরণ :</Text><Text style={styles.infoValue}>{reportType}</Text></View>
+              {!isCityAgg ? (
+                <>
+                  <View style={[styles.infoItem, { width: "25%" }]}><Text style={styles.infoLabel}>থানা :</Text><Text style={styles.infoValue}>{header.thana || "—"}</Text></View>
+                  <View style={[styles.infoItem, { width: "25%" }]}><Text style={styles.infoLabel}>ওয়ার্ড :</Text><Text style={styles.infoValue}>{header.ward || "—"}</Text></View>
+                  <View style={[styles.infoItem, { width: "50%" }]}><Text style={styles.infoLabel}>দায়িত্বশীলের নাম :</Text><Text style={styles.infoValue}>{header.responsible_name || "—"}</Text></View>
+                </>
+              ) : (
+                <View style={[styles.infoItem, { width: "50%" }]}><Text style={styles.infoLabel}></Text><Text style={styles.infoValue}></Text></View>
+              )}
+              <View style={[styles.infoItem, { width: "25%" }]}><Text style={styles.infoLabel}>মোট মুয়াল্লিমা :</Text><Text style={styles.infoValue}>{header.total_muallima ?? 0}</Text></View>
+              <View style={[styles.infoItem, { width: "25%" }]}><Text style={styles.infoLabel}>বৃদ্ধি :</Text><Text style={styles.infoValue}>{header.muallima_increase ?? 0}</Text></View>
+            </View>
+
+            {/* Peach Blocks */}
+            <View style={styles.statBlockContainer}>
+              <View style={styles.statBlock}>
+                <View style={styles.statRow}><Text style={styles.statLabel}>সার্টিফিকেটপ্রাপ্ত মুয়াল্লিমা :</Text><Text style={styles.statValue}>{header.certified_muallima ?? 0} জন</Text></View>
+                <View style={styles.statRow}><Text style={styles.statLabel}>ক্লাস নিচ্ছেন :</Text><Text style={styles.statValue}>{header.certified_muallima_taking_classes ?? 0} জন</Text></View>
+              </View>
+              <View style={styles.statBlock}>
+                <View style={styles.statRow}><Text style={styles.statLabel}>প্রশিক্ষণপ্রাপ্ত মুয়াল্লিমা :</Text><Text style={styles.statValue}>{header.trained_muallima ?? 0} জন</Text></View>
+                <View style={styles.statRow}><Text style={styles.statLabel}>ক্লাস নিচ্ছেন :</Text><Text style={styles.statValue}>{header.trained_muallima_taking_classes ?? 0} জন</Text></View>
+              </View>
+              <View style={styles.statBlock}>
+                <View style={styles.statRow}><Text style={styles.statLabel}>ইউনিট সংখ্যা :</Text><Text style={styles.statValue}>{header.total_unit ?? 0} টি</Text></View>
+                <View style={styles.statRow}><Text style={styles.statLabel}>মুয়াল্লিমা আছে :</Text><Text style={styles.statValue}>{header.units_with_muallima ?? 0} টিতে</Text></View>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* 2. Courses Table */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>১. মূল তথ্য</Text>
-          <View style={styles.grid}>
-            {!isCityAgg && (
-              <>
-                <View style={[styles.gridItem, { width: "33%" }]}>
-                  <Text style={styles.gridLabel}>দায়িত্বশীলের নাম</Text>
-                  <Text style={styles.gridValue}>{header.responsible_name || "—"}</Text>
+          <View style={styles.table}>
+            {/* Header Level 1 */}
+            <View style={[styles.tableRow, styles.tableHeaderPrimary]}>
+              <Text style={[styles.tableCell, { width: "16%" }]}>বিভাগ/ধরন</Text>
+              <Text style={[styles.tableCell, { width: "14%" }]}>গ্রুপ / কোর্স</Text>
+              <Text style={[styles.tableCell, { width: "6%" }]}>অধিবেশন</Text>
+              <Text style={[styles.tableCell, { width: "8%" }]}>শিক্ষার্থী</Text>
+              <Text style={[styles.tableCell, { width: "10%" }]}>উপস্থিতি</Text>
+              <Text style={[styles.tableCell, { width: "24%" }]}>শিক্ষার্থী অবস্থান</Text>
+              <Text style={[styles.tableCell, { width: "11%" }]}>কতজন নিয়ে সমাপ্ত</Text>
+              <Text style={[styles.tableCell, { width: "11%", borderRightWidth: 0 }]}>সহীহ শিখেছেন কতজন</Text>
+            </View>
+            {/* Header Level 2 */}
+            <View style={[styles.tableRow, styles.tableHeaderPrimary]}>
+              <Text style={[styles.tableCell, { width: "16%" }]}></Text>
+              {/* গ্রুপ / কোর্স */}
+              <View style={[{ width: "14%", flexDirection: "row", padding: 0, borderRightWidth: 0.5, borderRightColor: "#94a3b8" }]}>
+                <Text style={[styles.tableCell, { width: "33%", borderRightWidth: 0.5 }]}>সংখ্যা</Text>
+                <Text style={[styles.tableCell, { width: "34%", borderRightWidth: 0.5 }]}>বৃদ্ধি</Text>
+                <Text style={[styles.tableCell, { width: "33%", borderRightWidth: 0 }]}>ঘাটতি</Text>
+              </View>
+              <Text style={[styles.tableCell, { width: "6%" }]}>সংখ্যা</Text>
+              <Text style={[styles.tableCell, { width: "8%" }]}>সংখ্যা</Text>
+              <Text style={[styles.tableCell, { width: "10%" }]}>সংখ্যা</Text>
+              {/* শিক্ষার্থী অবস্থান */}
+              <View style={[{ width: "24%", flexDirection: "row", padding: 0, borderRightWidth: 0.5, borderRightColor: "#94a3b8" }]}>
+                <Text style={[styles.tableCell, { width: "25%", borderRightWidth: 0.5 }]}>বোর্ডে</Text>
+                <Text style={[styles.tableCell, { width: "25%", borderRightWidth: 0.5 }]}>কায়দায়</Text>
+                <Text style={[styles.tableCell, { width: "25%", borderRightWidth: 0.5 }]}>আমপারা</Text>
+                <Text style={[styles.tableCell, { width: "25%", borderRightWidth: 0 }]}>কুরআন</Text>
+              </View>
+              <Text style={[styles.tableCell, { width: "11%" }]}></Text>
+              <Text style={[styles.tableCell, { width: "11%", borderRightWidth: 0 }]}></Text>
+            </View>
+            
+            {/* Rows */}
+            {COURSE_CATEGORIES.map((cat) => {
+              const item = courses.find((x) => x.category === cat) || {};
+              return (
+                <View key={cat} style={styles.tableRow}>
+                  <Text style={[styles.tableCell, styles.textLeft, { width: "16%", fontWeight: "bold" }]}>{cat}</Text>
+                  {/* Group/Course sub */}
+                  <View style={[{ width: "14%", flexDirection: "row", padding: 0, borderRightWidth: 0.5, borderRightColor: "#94a3b8" }]}>
+                    <Text style={[styles.tableCell, { width: "33%", borderRightWidth: 0.5 }]}>{item.number ?? ""}</Text>
+                    <Text style={[styles.tableCell, { width: "34%", borderRightWidth: 0.5 }]}>{item.increase ?? ""}</Text>
+                    <Text style={[styles.tableCell, { width: "33%", borderRightWidth: 0 }]}>{item.decrease ?? ""}</Text>
+                  </View>
+                  <Text style={[styles.tableCell, { width: "6%" }]}>{item.sessions ?? ""}</Text>
+                  <Text style={[styles.tableCell, { width: "8%" }]}>{item.students ?? ""}</Text>
+                  <Text style={[styles.tableCell, { width: "10%" }]}>{item.attendance ?? ""}</Text>
+                  {/* Status sub */}
+                  <View style={[{ width: "24%", flexDirection: "row", padding: 0, borderRightWidth: 0.5, borderRightColor: "#94a3b8" }]}>
+                    <Text style={[styles.tableCell, { width: "25%", borderRightWidth: 0.5 }]}>{item.status_board ?? ""}</Text>
+                    <Text style={[styles.tableCell, { width: "25%", borderRightWidth: 0.5 }]}>{item.status_qayda ?? ""}</Text>
+                    <Text style={[styles.tableCell, { width: "25%", borderRightWidth: 0.5 }]}>{item.status_ampara ?? ""}</Text>
+                    <Text style={[styles.tableCell, { width: "25%", borderRightWidth: 0 }]}>{item.status_quran ?? ""}</Text>
+                  </View>
+                  <Text style={[styles.tableCell, { width: "11%" }]}>{item.completed ?? ""}</Text>
+                  <Text style={[styles.tableCell, { width: "11%", borderRightWidth: 0 }]}>{item.correctly_learned ?? ""}</Text>
                 </View>
-                <View style={[styles.gridItem, { width: "33%" }]}>
-                  <Text style={styles.gridLabel}>থানা</Text>
-                  <Text style={styles.gridValue}>{header.thana || "—"}</Text>
+              );
+            })}
+            
+            {/* Total Row */}
+            <View style={[styles.tableRow, { backgroundColor: "#f8fafc", fontWeight: "bold" }]}>
+              <Text style={[styles.tableCell, styles.textLeft, { width: "16%" }]}>মোট সংখ্যা</Text>
+              <View style={[{ width: "14%", flexDirection: "row", padding: 0, borderRightWidth: 0.5, borderRightColor: "#94a3b8" }]}>
+                <Text style={[styles.tableCell, { width: "33%", borderRightWidth: 0.5 }]}>{totalCourses.number || ""}</Text>
+                <Text style={[styles.tableCell, { width: "34%", borderRightWidth: 0.5 }]}>{totalCourses.increase || ""}</Text>
+                <Text style={[styles.tableCell, { width: "33%", borderRightWidth: 0 }]}>{totalCourses.decrease || ""}</Text>
+              </View>
+              <Text style={[styles.tableCell, { width: "6%" }]}>{totalCourses.sessions || ""}</Text>
+              <Text style={[styles.tableCell, { width: "8%" }]}>{totalCourses.students || ""}</Text>
+              <Text style={[styles.tableCell, { width: "10%" }]}>{totalCourses.attendance || ""}</Text>
+              <View style={[{ width: "24%", flexDirection: "row", padding: 0, borderRightWidth: 0.5, borderRightColor: "#94a3b8" }]}>
+                <Text style={[styles.tableCell, { width: "25%", borderRightWidth: 0.5 }]}>{totalCourses.status_board || ""}</Text>
+                <Text style={[styles.tableCell, { width: "25%", borderRightWidth: 0.5 }]}>{totalCourses.status_qayda || ""}</Text>
+                <Text style={[styles.tableCell, { width: "25%", borderRightWidth: 0.5 }]}>{totalCourses.status_ampara || ""}</Text>
+                <Text style={[styles.tableCell, { width: "25%", borderRightWidth: 0 }]}>{totalCourses.status_quran || ""}</Text>
+              </View>
+              <Text style={[styles.tableCell, { width: "11%" }]}>{totalCourses.completed || ""}</Text>
+              <Text style={[styles.tableCell, { width: "11%", borderRightWidth: 0 }]}>{totalCourses.correctly_learned || ""}</Text>
+            </View>
+          </View>
+          
+          {/* Extras just below course table like in the image */}
+          <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 4, fontWeight: "bold" }}>
+            <View style={{ width: "48%", flexDirection: "row" }}>
+              <View style={{ width: "50%" }}><Text>মক্তব সংখ্যা : {extras.find(e => e.category === "মক্তব সংখ্যা")?.number ?? 0} টি</Text></View>
+              <View style={{ width: "50%" }}><Text>বৃদ্ধি : {extras.find(e => e.category === "মক্তব বৃদ্ধি")?.number ?? 0} টি</Text></View>
+            </View>
+            <View style={{ width: "48%", flexDirection: "row" }}>
+              <View style={{ width: "50%" }}><Text>স্থানীয়ভাবে পরিচালিত : {extras.find(e => e.category === "স্থানীয়ভাবে পরিচালিত")?.number ?? 0} টি</Text></View>
+              <View style={{ width: "50%" }}><Text>মহানগরী পরিচালিত : {extras.find(e => e.category === "মহানগরী পরিচালিত")?.number ?? 0} টি</Text></View>
+            </View>
+          </View>
+        </View>
+
+        {/* 3. Organizational Table */}
+        <View style={styles.section} break>
+          <View style={styles.table}>
+            {/* Header */}
+            <View style={[styles.tableRow, styles.tableHeaderPrimary]}>
+              <Text style={[styles.tableCell, styles.textLeft, { width: "40%" }]}>দাওয়াত ও সংগঠন</Text>
+              <Text style={[styles.tableCell, { width: "15%" }]}>সংখ্যা</Text>
+              <Text style={[styles.tableCell, { width: "15%" }]}>বৃদ্ধি</Text>
+              <Text style={[styles.tableCell, { width: "15%" }]}>পরিমাণ</Text>
+              <Text style={[styles.tableCell, styles.textLeft, { width: "15%", borderRightWidth: 0 }]}>মন্তব্য</Text>
+            </View>
+            {/* Rows */}
+            {ORG_CATEGORIES.map((cat) => {
+              const item = org.find((x) => x.category === cat) || {};
+              return (
+                <View key={cat} style={styles.tableRow}>
+                  <Text style={[styles.tableCell, styles.textLeft, { width: "40%", fontWeight: "bold" }]}>{cat}</Text>
+                  <Text style={[styles.tableCell, { width: "15%" }]}>{item.number ?? ""}</Text>
+                  <Text style={[styles.tableCell, { width: "15%" }]}>{item.increase ?? ""}</Text>
+                  <Text style={[styles.tableCell, { width: "15%" }]}>{item.amount ?? ""}</Text>
+                  <Text style={[styles.tableCell, styles.textLeft, { width: "15%", borderRightWidth: 0, fontSize: 7 }]}>
+                    {item.comments || ""}
+                  </Text>
                 </View>
-                <View style={[styles.gridItem, { width: "34%" }]}>
-                  <Text style={styles.gridLabel}>ওয়ার্ড</Text>
-                  <Text style={styles.gridValue}>{header.ward || "—"}</Text>
-                </View>
-              </>
-            )}
-            <View style={styles.gridItem}>
-              <Text style={styles.gridLabel}>মোট মুয়াল্লিমা</Text>
-              <Text style={styles.gridValue}>{header.total_muallima ?? 0}</Text>
-            </View>
-            <View style={styles.gridItem}>
-              <Text style={styles.gridLabel}>মুয়াল্লিমা বৃদ্ধি</Text>
-              <Text style={styles.gridValue}>{header.muallima_increase ?? 0}</Text>
-            </View>
-            <View style={styles.gridItem}>
-              <Text style={styles.gridLabel}>মুয়াল্লিমা হ্রাস</Text>
-              <Text style={styles.gridValue}>{header.muallima_decrease ?? 0}</Text>
-            </View>
-            <View style={styles.gridItem}>
-              <Text style={styles.gridLabel}>মোট ইউনিট</Text>
-              <Text style={styles.gridValue}>{header.total_unit ?? 0}</Text>
-            </View>
-            <View style={styles.gridItem}>
-              <Text style={styles.gridLabel}>মুয়াল্লিমা সহ ইউনিট</Text>
-              <Text style={styles.gridValue}>{header.units_with_muallima ?? 0}</Text>
-            </View>
-            <View style={styles.gridItem}>
-              <Text style={styles.gridLabel}>সনদপ্রাপ্তা ক্লাস নিচ্ছেন</Text>
-              <Text style={styles.gridValue}>{header.certified_muallima_taking_classes ?? 0}</Text>
-            </View>
-            <View style={styles.gridItem}>
-              <Text style={styles.gridLabel}>প্রশিক্ষণপ্রাপ্তা ক্লাস নিচ্ছেন</Text>
-              <Text style={styles.gridValue}>{header.trained_muallima_taking_classes ?? 0}</Text>
-            </View>
+              );
+            })}
           </View>
         </View>
-      )}
 
-      {/* 2. Courses Table */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>২. গ্রুপ / কোর্স রিপোর্ট</Text>
-        <View style={styles.table}>
-          {/* Header */}
-          <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={[styles.tableCell, styles.textLeft, { width: "22%" }]}>বিভাগ/ধরন</Text>
-            <Text style={[styles.tableCell, { width: "7%" }]}>সংখ্যা</Text>
-            <Text style={[styles.tableCell, { width: "7%" }]}>বৃদ্ধি</Text>
-            <Text style={[styles.tableCell, { width: "7%" }]}>ঘাটতি</Text>
-            <Text style={[styles.tableCell, { width: "7%" }]}>ক্লাস</Text>
-            <Text style={[styles.tableCell, { width: "8%" }]}>ছাত্রী</Text>
-            <Text style={[styles.tableCell, { width: "8%" }]}>উপস্থিতি</Text>
-            <Text style={[styles.tableCell, { width: "6%" }]}>বোর্ড</Text>
-            <Text style={[styles.tableCell, { width: "6%" }]}>কায়দা</Text>
-            <Text style={[styles.tableCell, { width: "6%" }]}>আমপারা</Text>
-            <Text style={[styles.tableCell, { width: "6%" }]}>কুরআন</Text>
-            <Text style={[styles.tableCell, { width: "5%" }]}>শেষ</Text>
-            <Text style={[styles.tableCell, { width: "5%", borderRightWidth: 0 }]}>সহীহ</Text>
-          </View>
-          {/* Rows */}
-          {COURSE_CATEGORIES.map((cat) => {
-            const item = courses.find((x) => x.category === cat) || {};
-            return (
-              <View key={cat} style={styles.tableRow}>
-                <Text style={[styles.tableCell, styles.textLeft, { width: "22%", fontWeight: "bold" }]}>{cat}</Text>
-                <Text style={[styles.tableCell, { width: "7%" }]}>{item.number ?? 0}</Text>
-                <Text style={[styles.tableCell, { width: "7%" }]}>{item.increase ?? 0}</Text>
-                <Text style={[styles.tableCell, { width: "7%" }]}>{item.decrease ?? 0}</Text>
-                <Text style={[styles.tableCell, { width: "7%" }]}>{item.sessions ?? 0}</Text>
-                <Text style={[styles.tableCell, { width: "8%" }]}>{item.students ?? 0}</Text>
-                <Text style={[styles.tableCell, { width: "8%" }]}>{item.attendance ?? 0}</Text>
-                <Text style={[styles.tableCell, { width: "6%" }]}>{item.status_board ?? 0}</Text>
-                <Text style={[styles.tableCell, { width: "6%" }]}>{item.status_qayda ?? 0}</Text>
-                <Text style={[styles.tableCell, { width: "6%" }]}>{item.status_ampara ?? 0}</Text>
-                <Text style={[styles.tableCell, { width: "6%" }]}>{item.status_quran ?? 0}</Text>
-                <Text style={[styles.tableCell, { width: "5%" }]}>{item.completed ?? 0}</Text>
-                <Text style={[styles.tableCell, { width: "5%", borderRightWidth: 0 }]}>{item.correctly_learned ?? 0}</Text>
-              </View>
-            );
-          })}
-        </View>
-      </View>
-
-      {/* 3. Organizational Table */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>৩. দাওয়াত ও সংগঠন</Text>
-        <View style={styles.table}>
-          {/* Header */}
-          <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={[styles.tableCell, styles.textLeft, { width: "40%" }]}>দাওয়াত ও সংগঠন</Text>
-            <Text style={[styles.tableCell, { width: "15%" }]}>সংখ্যা</Text>
-            <Text style={[styles.tableCell, { width: "15%" }]}>বৃদ্ধি</Text>
-            <Text style={[styles.tableCell, { width: "15%" }]}>পরিমাণ/টাকা</Text>
-            <Text style={[styles.tableCell, styles.textLeft, { width: "15%", borderRightWidth: 0 }]}>মন্তব্য</Text>
-          </View>
-          {/* Rows */}
-          {ORG_CATEGORIES.map((cat) => {
-            const item = org.find((x) => x.category === cat) || {};
-            return (
-              <View key={cat} style={styles.tableRow}>
-                <Text style={[styles.tableCell, styles.textLeft, { width: "40%", fontWeight: "bold" }]}>{cat}</Text>
-                <Text style={[styles.tableCell, { width: "15%" }]}>{item.number ?? 0}</Text>
-                <Text style={[styles.tableCell, { width: "15%" }]}>{item.increase ?? 0}</Text>
-                <Text style={[styles.tableCell, { width: "15%" }]}>{item.amount ?? 0}</Text>
-                <Text style={[styles.tableCell, styles.textLeft, { width: "15%", borderRightWidth: 0, fontSize: 7 }]}>
-                  {item.comments || "—"}
-                </Text>
-              </View>
-            );
-          })}
-        </View>
-      </View>
-
-      {/* 4. Personal Table */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>৪. ব্যক্তিগত উদ্যোগে তা'লীমুল কুরআন</Text>
-        <View style={styles.table}>
-          {/* Header */}
-          <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={[styles.tableCell, styles.textLeft, { width: "23%" }]}>বিভাগ</Text>
-            <Text style={[styles.tableCell, { width: "11%" }]}>শিখাচ্ছেন</Text>
-            <Text style={[styles.tableCell, { width: "11%" }]}>শিখছেন</Text>
-            <Text style={[styles.tableCell, { width: "11%" }]}>ওলামা দাওয়াত</Text>
-            <Text style={[styles.tableCell, { width: "11%" }]}>সহযোগী</Text>
-            <Text style={[styles.tableCell, { width: "11%" }]}>সক্রিয় সহযোগী</Text>
-            <Text style={[styles.tableCell, { width: "11%" }]}>কর্মী</Text>
-            <Text style={[styles.tableCell, { width: "11%", borderRightWidth: 0 }]}>রুকন</Text>
-          </View>
-          {/* Rows */}
-          {PERSONAL_CATEGORIES.map((cat) => {
-            const item = personal.find((x) => x.category === cat) || {};
-            return (
-              <View key={cat} style={styles.tableRow}>
-                <Text style={[styles.tableCell, styles.textLeft, { width: "23%", fontWeight: "bold" }]}>{cat}</Text>
-                <Text style={[styles.tableCell, { width: "11%" }]}>{item.teaching ?? 0}</Text>
-                <Text style={[styles.tableCell, { width: "11%" }]}>{item.learning ?? 0}</Text>
-                <Text style={[styles.tableCell, { width: "11%" }]}>{item.olama_invited ?? 0}</Text>
-                <Text style={[styles.tableCell, { width: "11%" }]}>{item.became_shohojogi ?? 0}</Text>
-                <Text style={[styles.tableCell, { width: "11%" }]}>{item.became_sokrio_shohojogi ?? 0}</Text>
-                <Text style={[styles.tableCell, { width: "11%" }]}>{item.became_kormi ?? 0}</Text>
-                <Text style={[styles.tableCell, { width: "11%", borderRightWidth: 0 }]}>{item.became_rukon ?? 0}</Text>
-              </View>
-            );
-          })}
-        </View>
-      </View>
-
-      {/* 5. Meetings Table */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>৫. বৈঠকসমূহ</Text>
-        <View style={styles.table}>
-          {/* Header */}
-          <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={[styles.tableCell, styles.textLeft, { width: "23%" }]}>বৈঠকসমূহ</Text>
-            <Text style={[styles.tableCell, { width: "11%" }]}>মহানগরী</Text>
-            <Text style={[styles.tableCell, { width: "11%" }]}>গড় উপ.</Text>
-            <Text style={[styles.tableCell, { width: "11%" }]}>থানা</Text>
-            <Text style={[styles.tableCell, { width: "11%" }]}>গড় উপ.</Text>
-            <Text style={[styles.tableCell, { width: "11%" }]}>ওয়ার্ড</Text>
-            <Text style={[styles.tableCell, { width: "11%" }]}>গড় উপ.</Text>
-            <Text style={[styles.tableCell, styles.textLeft, { width: "11%", borderRightWidth: 0 }]}>মন্তব্য</Text>
-          </View>
-          {/* Rows */}
-          {MEETING_CATEGORIES.map((cat) => {
-            const item = meetings.find((x) => x.category === cat) || {};
-            return (
-              <View key={cat} style={styles.tableRow}>
-                <Text style={[styles.tableCell, styles.textLeft, { width: "23%", fontWeight: "bold" }]}>{cat}</Text>
-                <Text style={[styles.tableCell, { width: "11%" }]}>{item.city_count ?? 0}</Text>
-                <Text style={[styles.tableCell, { width: "11%" }]}>{item.city_avg_attendance ?? 0}</Text>
-                <Text style={[styles.tableCell, { width: "11%" }]}>{item.thana_count ?? 0}</Text>
-                <Text style={[styles.tableCell, { width: "11%" }]}>{item.thana_avg_attendance ?? 0}</Text>
-                <Text style={[styles.tableCell, { width: "11%" }]}>{item.ward_count ?? 0}</Text>
-                <Text style={[styles.tableCell, { width: "11%" }]}>{item.ward_avg_attendance ?? 0}</Text>
-                <Text style={[styles.tableCell, styles.textLeft, { width: "11%", borderRightWidth: 0, fontSize: 7 }]}>
-                  {item.comments || "—"}
-                </Text>
-              </View>
-            );
-          })}
-        </View>
-      </View>
-
-      {/* 6. Extras Table */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>৬. মক্তব ও সফর রিপোর্ট</Text>
-        <View style={styles.table}>
-          {/* Header */}
-          <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={[styles.tableCell, styles.textLeft, { width: "70%" }]}>বিষয়</Text>
-            <Text style={[styles.tableCell, { width: "30%", borderRightWidth: 0 }]}>সংখ্যা</Text>
-          </View>
-          {/* Rows */}
-          {EXTRA_CATEGORIES.map((cat) => {
-            const item = extras.find((x) => x.category === cat) || {};
-            return (
-              <View key={cat} style={styles.tableRow}>
-                <Text style={[styles.tableCell, styles.textLeft, { width: "70%", fontWeight: "bold" }]}>{cat}</Text>
-                <Text style={[styles.tableCell, { width: "30%", borderRightWidth: 0 }]}>{item.number ?? 0}</Text>
-              </View>
-            );
-          })}
-        </View>
-      </View>
-
-      {/* 7. Comments Section */}
-      {comment && comment.comment && (
+        {/* 4. Personal Table - Inverted Rows/Cols to match Excel */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>৭. মন্তব্য</Text>
-          <View style={styles.commentBox}>
-            <Text>{comment.comment}</Text>
+          <View style={styles.table}>
+            {/* Header */}
+            <View style={[styles.tableRow, styles.tableHeaderPrimary]}>
+              <Text style={[styles.tableCell, styles.textLeft, { width: "30%" }]}>ব্যক্তিগত উদ্যোগে তা'লীমুল কুরআন</Text>
+              <Text style={[styles.tableCell, { width: "15%" }]}>রুকন</Text>
+              <Text style={[styles.tableCell, { width: "15%" }]}>কর্মী</Text>
+              <Text style={[styles.tableCell, { width: "20%" }]}>সক্রিয় সহযোগী</Text>
+              <Text style={[styles.tableCell, { width: "20%", borderRightWidth: 0 }]}>মোট</Text>
+            </View>
+            {/* Rows mapped from fields */}
+            {[
+              { label: "কতজন শিখাচ্ছেন", key: "teaching" },
+              { label: "কতজনকে শিখাচ্ছেন", key: "learning" },
+              { label: "কতজন ওলামাকে দাওয়াত দিয়েছেন/সহযোগী/সক্রিয় সহযোগী", key: "mixed" },
+              { label: "কর্মী/রুকন হয়েছেন কতজন", key: "mixed2" },
+            ].map(rowMeta => {
+              const rItem = personal.find(p => p.category === "রুকন") || {};
+              const kItem = personal.find(p => p.category === "কর্মী") || {};
+              const sItem = personal.find(p => p.category === "সক্রিয় সহযোগী") || {};
+              
+              let rVal = ""; let kVal = ""; let sVal = ""; let sumVal: any = "";
+              
+              if (rowMeta.key === "mixed") {
+                rVal = `${rItem.olama_invited || ""}/${rItem.became_shohojogi || ""}/${rItem.became_sokrio_shohojogi || ""}`;
+                kVal = `${kItem.olama_invited || ""}/${kItem.became_shohojogi || ""}/${kItem.became_sokrio_shohojogi || ""}`;
+                sVal = `${sItem.olama_invited || ""}/${sItem.became_shohojogi || ""}/${sItem.became_sokrio_shohojogi || ""}`;
+                const tOlama = (rItem.olama_invited || 0) + (kItem.olama_invited || 0) + (sItem.olama_invited || 0);
+                const tShoh = (rItem.became_shohojogi || 0) + (kItem.became_shohojogi || 0) + (sItem.became_shohojogi || 0);
+                const tSokrio = (rItem.became_sokrio_shohojogi || 0) + (kItem.became_sokrio_shohojogi || 0) + (sItem.became_sokrio_shohojogi || 0);
+                sumVal = `${tOlama || ""}/${tShoh || ""}/${tSokrio || ""}`;
+              } else if (rowMeta.key === "mixed2") {
+                rVal = `${rItem.became_kormi || ""}/${rItem.became_rukon || ""}`;
+                kVal = `${kItem.became_kormi || ""}/${kItem.became_rukon || ""}`;
+                sVal = `${sItem.became_kormi || ""}/${sItem.became_rukon || ""}`;
+                const tKormi = (rItem.became_kormi || 0) + (kItem.became_kormi || 0) + (sItem.became_kormi || 0);
+                const tRukon = (rItem.became_rukon || 0) + (kItem.became_rukon || 0) + (sItem.became_rukon || 0);
+                sumVal = `${tKormi || ""}/${tRukon || ""}`;
+              } else {
+                rVal = rItem[rowMeta.key] || "";
+                kVal = kItem[rowMeta.key] || "";
+                sVal = sItem[rowMeta.key] || "";
+                sumVal = (Number(rItem[rowMeta.key]) || 0) + (Number(kItem[rowMeta.key]) || 0) + (Number(sItem[rowMeta.key]) || 0);
+                sumVal = sumVal || "";
+              }
+              
+              return (
+                <View key={rowMeta.key} style={styles.tableRow}>
+                  <Text style={[styles.tableCell, styles.textLeft, { width: "30%", fontWeight: "bold" }]}>{rowMeta.label}</Text>
+                  <Text style={[styles.tableCell, { width: "15%" }]}>{rVal === "//" || rVal === "/" ? "" : rVal}</Text>
+                  <Text style={[styles.tableCell, { width: "15%" }]}>{kVal === "//" || kVal === "/" ? "" : kVal}</Text>
+                  <Text style={[styles.tableCell, { width: "20%" }]}>{sVal === "//" || sVal === "/" ? "" : sVal}</Text>
+                  <Text style={[styles.tableCell, { width: "20%", borderRightWidth: 0, fontWeight: "bold" }]}>{sumVal === "//" || sumVal === "/" ? "" : sumVal}</Text>
+                </View>
+              )
+            })}
           </View>
         </View>
-      )}
-    </Page>
-  </Document>
-);
+
+        {/* 5. Meetings Table */}
+        <View style={styles.section}>
+          <View style={styles.table}>
+            {/* Header */}
+            <View style={[styles.tableRow, styles.tableHeaderSecondary]}>
+              <Text style={[styles.tableCell, styles.textLeft, { width: "20%" }]}>বৈঠকসমূহ</Text>
+              <Text style={[styles.tableCell, { width: "12%" }]}>মহানগরীর কতটি</Text>
+              <Text style={[styles.tableCell, { width: "12%" }]}>গড় উপস্থিতি</Text>
+              <Text style={[styles.tableCell, { width: "12%" }]}>থানার কতটি</Text>
+              <Text style={[styles.tableCell, { width: "12%" }]}>গড় উপস্থিতি</Text>
+              <Text style={[styles.tableCell, { width: "12%" }]}>ওয়ার্ডের কতটি</Text>
+              <Text style={[styles.tableCell, { width: "12%" }]}>গড় উপস্থিতি</Text>
+              <Text style={[styles.tableCell, styles.textLeft, { width: "8%", borderRightWidth: 0 }]}>মন্তব্য</Text>
+            </View>
+            {/* Rows */}
+            {MEETING_CATEGORIES.map((cat) => {
+              const item = meetings.find((x) => x.category === cat) || {};
+              return (
+                <View key={cat} style={styles.tableRow}>
+                  <Text style={[styles.tableCell, styles.textLeft, { width: "20%", fontWeight: "bold" }]}>{cat}</Text>
+                  <Text style={[styles.tableCell, { width: "12%" }]}>{item.city_count ?? ""}</Text>
+                  <Text style={[styles.tableCell, { width: "12%" }]}>{item.city_avg_attendance ?? ""}</Text>
+                  <Text style={[styles.tableCell, { width: "12%" }]}>{item.thana_count ?? ""}</Text>
+                  <Text style={[styles.tableCell, { width: "12%" }]}>{item.thana_avg_attendance ?? ""}</Text>
+                  <Text style={[styles.tableCell, { width: "12%" }]}>{item.ward_count ?? ""}</Text>
+                  <Text style={[styles.tableCell, { width: "12%" }]}>{item.ward_avg_attendance ?? ""}</Text>
+                  <Text style={[styles.tableCell, styles.textLeft, { width: "8%", borderRightWidth: 0, fontSize: 7 }]}>
+                    {item.comments || ""}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+          
+          {/* Extras Below Meeting */}
+          <View style={{ flexDirection: "row", marginTop: 4, paddingHorizontal: 10, fontWeight: "bold" }}>
+            <View style={{ width: "10%" }}><Text>সফর :</Text></View>
+            <View style={{ width: "45%" }}>
+              <Text>মহানগরীর : {extras.find(e => e.category === "মহানগরীর সফর")?.number ?? 0} টি</Text>
+              <Text style={{ marginTop: 2 }}>থানা কমিটির : {extras.find(e => e.category === "থানা কমিটির সফর")?.number ?? 0} টি</Text>
+            </View>
+            <View style={{ width: "45%" }}>
+              <Text>থানা প্রতিনিধির : {extras.find(e => e.category === "থানা প্রতিনিধির সফর")?.number ?? 0} টি</Text>
+              <Text style={{ marginTop: 2 }}>ওয়ার্ড প্রতিনিধির : {extras.find(e => e.category === "ওয়ার্ড প্রতিনিধির সফর")?.number ?? 0} টি</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* 7. Comments & Signature Section */}
+        <View style={styles.section}>
+          {comment && comment.comment && (
+            <View style={{ flexDirection: "row", marginTop: 10 }}>
+              <Text style={{ width: "10%", fontWeight: "bold" }}>মন্তব্য :</Text>
+              <Text style={{ width: "90%" }}>{comment.comment}</Text>
+            </View>
+          )}
+
+          <View style={styles.signatureContainer}>
+            <View style={styles.signatureLine}></View>
+            <Text style={styles.signatureText}>{header?.responsible_name || "স্বাক্ষর"}</Text>
+          </View>
+        </View>
+      </Page>
+    </Document>
+  );
+};
 
 // ─── Helpers for City Aggregation ─────────────────────────────────────────────
 

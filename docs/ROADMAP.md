@@ -12,9 +12,10 @@
 - [x] Build real-time Auto-Save system.
 - [x] Build Admin Dashboard (Users, Zones, Overrides).
 - [x] Implement City Report Aggregation View.
-- [ ] Develop custom, condensed PDF/Excel Export logic.
+- [x] Develop custom, condensed PDF/Excel Export logic.
 
 ## Phase 2: Post-MVP & Improvements
+- [ ] **Signature Upload**: Add an option for users/admins to upload a handwritten signature image for PDF exports to replace the standard text signature.
 - [ ] **`checkEmailAvailability` RPC Fix**: Replace the `admin.listUsers()` call with a `supabase.rpc('check_email_exists', ...)` call backed by a Postgres function that queries `auth.users` directly. This removes the 1000-user cap and reduces latency on the registration form. (See `KNOWN_ISSUES.md`.)
 - [ ] **Custom JWT Claims (Performance)**: Store `role` and `active` as custom claims in the Supabase JWT via a database hook. This would allow middleware and layouts to read these values directly from the session token, eliminating ~2 extra `people` table queries on every page load.
 - [ ] **Realtime Pending Page Tracking**: Use Supabase Realtime to auto-refresh the `/pending-approval` page and seamlessly redirect the user once an admin approves the account.
