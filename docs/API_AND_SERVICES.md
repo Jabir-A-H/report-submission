@@ -54,11 +54,11 @@ Generating high-fidelity exports requires server-side processing to keep the cli
 - **Approach**: Next.js API Routes (`/api/export/*`) handle the export generation.
 - **Excel Export**: Utilizes a library like `exceljs` to map JSON data into a formatted XLSX file.
 - **PDF Export**: 
-  - Utilizes `@react-pdf/renderer` in `/api/export/pdf/route.tsx` to generate highly customized, condensed Bangla-supported PDFs using the *Tiro Bangla* font.
-  - **Layout & Efficiency**: Specifically engineered to fit all comprehensive data onto a maximum of **two A4 pages**. This ensures the document is ready for physical printing and administrative evaluation.
+  - Utilizes `@react-pdf/renderer` in `/api/export/pdf/route.tsx` to generate highly customized, condensed Bangla-supported PDFs using the universally compatible *Kalpurush* font to prevent parsing crashes.
+  - **Layout & Efficiency**: Specifically engineered in **Landscape** orientation to fit all comprehensive data cleanly onto a maximum of **two A4 pages**. Landscape mode ensures columns are not squished, making it perfectly clear and readable for non-tech-savvy users during physical printing and administrative evaluation.
   - **Styling**: Mimics the legacy Excel-based PDF reports but with professionalized web-safe aesthetics (light blue headers, peach statistic blocks, yellow meeting headers) via flexbox.
   - **Structural Adjustments**: Adjusts rigid database schemas into visually friendly tables. For instance, the *Personal* table inverts standard row/column mapping to align with the visual spec, and multi-field data points (e.g. `সহযোগী / সম্মতি দিয়েছেন`) are intelligently displayed without strictly merging strings.
-  - **Data Integrity**: The PDF strictly adheres to predefined database schema categories. Missing legacy categories (e.g., `রুকনদের অনুশীলনী ক্লাস`) found in old PDFs are intentionally excluded from the code unless they are explicitly added to the Supabase database Enum/Text fields.
+  - **Data Mapping Updates**: The system's category constants (`COURSE_CATEGORIES`, `MEETING_CATEGORIES`) have been updated directly in the codebase to perfectly map to the requested legacy PDF format (e.g. adding `রুকনদের অনুশীলনী ক্লাস`, consolidating `Orientation / Result Publish`), bypassing rigid database ENUMs since the tables use fluid text fields.
 - **Flow**:
   1. Client sends a request with `report_id` or `period`.
   2. The API Route queries Supabase for the required data, resolving aggregations if needed.

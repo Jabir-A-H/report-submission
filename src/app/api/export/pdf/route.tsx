@@ -17,8 +17,8 @@ import fs from "fs";
 // ─── Font Registration ────────────────────────────────────────────────────────
 
 Font.register({
-  family: "Tiro Bangla",
-  src: path.join(process.cwd(), "public/fonts/TiroBangla-Regular.ttf").replace(/\\/g, "/"),
+  family: "Kalpurush",
+  src: path.join(process.cwd(), "public/fonts/kalpurush.ttf").replace(/\\/g, "/"),
 });
 
 // ─── Constants & Styling ──────────────────────────────────────────────────────
@@ -54,7 +54,7 @@ const EXTRA_CATEGORIES = [
 const styles = StyleSheet.create({
   page: {
     padding: 25,
-    fontFamily: "Tiro Bangla",
+    fontFamily: "Kalpurush",
     backgroundColor: "#ffffff",
     fontSize: 8.5,
     lineHeight: 1.3,
@@ -232,7 +232,7 @@ const ReportPDFDocument = ({
 
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
+      <Page size="A4" orientation="landscape" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>বিসমিল্লাহির রহমানীর রহীম</Text>
