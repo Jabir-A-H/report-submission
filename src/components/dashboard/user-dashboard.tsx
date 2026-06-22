@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
 import { PeriodSelector } from "./period-selector";
 import { 
@@ -18,10 +20,104 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useReport } from "@/components/report/report-context";
+import { createClient } from "@/utils/supabase/client";
 
 export function UserDashboard() {
   const { t } = useLanguage();
-  const { data, reportId, isSaving } = useReport();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { data, reportId, setReportId, loadReport } = useReport();
+  const supabase = createClient();
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Extract selected period parameters
+  const typeParam = searchParams.get("type");
+  const monthParam = searchParams.get("month");
+  const yearParam = searchParams.get("year");
+
+  useEffect(() => {
+    // 1. Sync / Redirect logic to default values if parameters are missing
+    if (!typeParam || !monthParam || !yearParam) {
+      const params = new URLSearchParams();
+      params.set("type", "monthly");
+      params.set("month", String(new Date().getMonth() + 1));
+      params.set("year", String(new Date().getFullYear()));
+
+      router.replace(`${pathname}?${params.toString()}`);
+      return;
+    }
+
+    const selectedType = typeParam;
+    const selectedMonth = parseInt(monthParam);
+    const selectedYear = parseInt(yearParam);
+
+    const initReport = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      // Validate future months
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1;
+      const currentYear = now.getFullYear();
+      if (selectedYear > currentYear || (selectedYear === currentYear && selectedMonth > currentMonth)) {
+        setError("ভবিষ্যতের মাসের জন্য রিপোর্ট তৈরি বা পরিবর্তন করা সম্ভব নয়।");
+        setIsLoading(false);
+        return;
+      }
+
+      // Fetch user profile and zone
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setError("ব্যবহারকারী চিহ্নিত করা যায়নি।");
+        setIsLoading(false);
+        return;
+      }
+
+      const { data: person } = await supabase
+        .from("people")
+        .select("zone_id")
+        .eq("supabase_uid", user.id)
+        .single();
+
+      if (!person?.zone_id) {
+        setError("আপনার জোন এখনও নির্ধারণ করা হয়নি।");
+        setIsLoading(false);
+        return;
+      }
+
+      // Map dynamic URL types to Bangla report types
+      const REPORT_TYPE_MAP: Record<string, string> = {
+        monthly: "মাসিক",
+        quarterly: "ত্রৈমাসিক",
+        halfYearly: "ষান্মাসিক",
+        nineMonth: "নয়-মাসিক",
+        yearly: "বার্ষিক",
+      };
+      const dbReportType = REPORT_TYPE_MAP[selectedType] || "মাসিক";
+
+      // Call database RPC to get or create report
+      const { data: repId, error: rpcErr } = await supabase.rpc("get_or_create_report", {
+        p_zone_id: person.zone_id,
+        p_year: selectedYear,
+        p_month: selectedMonth,
+        p_report_type: dbReportType,
+      });
+
+      if (rpcErr || !repId) {
+        console.error("RPC Error:", rpcErr);
+        setError("রিপোর্ট লোড বা তৈরি করতে সমস্যা হয়েছে।");
+      } else {
+        setReportId(repId);
+        await loadReport(repId);
+      }
+      setIsLoading(false);
+    };
+
+    initReport();
+  }, [typeParam, monthParam, yearParam, pathname, router, supabase, setReportId, loadReport]);
 
   type SectionStatus = "complete" | "incomplete" | "empty";
 
@@ -69,7 +165,37 @@ export function UserDashboard() {
   ];
 
   const totalComplete = sections.filter(s => s.status === "complete").length;
-  const totalIncomplete = sections.filter(s => s.status === "incomplete").length;
+
+  if (isLoading || !typeParam || !monthParam || !yearParam) {
+    return (
+      <div className="container py-6 pb-24">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gradient mb-2">{t.dashboard}</h1>
+          <p className="text-muted-foreground">আপনার জোনের মাসিক রিপোর্ট ম্যানেজ করুন</p>
+        </div>
+        <PeriodSelector />
+        <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">রিপোর্ট লোড করা হচ্ছে...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container py-6 pb-24">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gradient mb-2">{t.dashboard}</h1>
+          <p className="text-muted-foreground">আপনার জোনের মাসিক রিপোর্ট ম্যানেজ করুন</p>
+        </div>
+        <PeriodSelector />
+        <div className="text-center py-20 text-destructive font-bold flex flex-col items-center gap-2">
+          <span>⚠️ {error}</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container py-6 pb-24">
@@ -128,7 +254,7 @@ export function UserDashboard() {
               <div>
                 <h3 className="text-lg font-bold mb-4">{section.name}</h3>
                 <Link 
-                  href={`/report/${section.id}`}
+                  href={`/report/${section.id}?type=${typeParam}&month=${monthParam}&year=${yearParam}`}
                   className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all ${
                     section.status === "complete" 
                     ? "bg-muted text-foreground hover:bg-muted/80" 
@@ -177,3 +303,4 @@ export function UserDashboard() {
     </div>
   );
 }
+

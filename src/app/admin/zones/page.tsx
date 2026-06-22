@@ -31,10 +31,6 @@ export default function ZoneManagementPage() {
   const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
 
-  useEffect(() => {
-    fetchZones();
-  }, []);
-
   async function fetchZones() {
     setLoading(true);
     // Fetch zones, then count users and reports per zone
@@ -58,6 +54,11 @@ export default function ZoneManagementPage() {
     }
     setLoading(false);
   }
+
+  useEffect(() => {
+    fetchZones();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function addZone() {
     const trimmed = newZoneName.trim();

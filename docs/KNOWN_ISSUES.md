@@ -30,6 +30,11 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ## Resolved Historical Issues
 
+### Massive Client-Side Fallback for Report Creation
+- **Date**: 2026-06-22
+- **Description**: The system originally used a massive ~200-line client-side fallback in `user-dashboard.tsx` and `page.tsx` to insert seed rows into 7 child tables simultaneously when a new report was created. This caused 8 separate network requests, duplicated code, and race conditions.
+- **Fix**: Replaced the client-side insertions with a single Postgres RPC function (`get_or_create_report`). The database now handles the entire creation and seeding process in a single atomic transaction. A `UNIQUE (zone_id, month, year, report_type)` constraint was also added to mathematically prevent duplicates.
+
 ### `Report.created_at` Sorting Crash
 - **Description**: The dashboard crashed after login because it attempted to sort reports by `created_at`, a field which did not exist in the legacy schema.
 - **Fix**: The query was refactored to sort by `Report.id` descending, accurately reflecting the creation sequence without needing a new schema column.

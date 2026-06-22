@@ -40,10 +40,6 @@ export default function UserManagementPage() {
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
   const supabase = createClient();
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   async function fetchData() {
     setLoading(true);
     const [{ data: usersData }, { data: zonesData }] = await Promise.all([
@@ -54,6 +50,11 @@ export default function UserManagementPage() {
     if (zonesData) setZones(zonesData);
     setLoading(false);
   }
+
+  useEffect(() => {
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function toggleActive(user: Person) {
     setActionLoading(user.id);

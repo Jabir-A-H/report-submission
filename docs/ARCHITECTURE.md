@@ -79,3 +79,9 @@ To ensure data safety while minimizing operational costs:
 
 ## Aggregation Strategy
 All aggregations, including cross-month aggregations (Quarterly, Yearly), are executed entirely via **PostgreSQL Views** at the database layer. The frontend simply queries the pre-calculated view, remaining lightweight and fast without performing client-side `SUM` operations.
+
+## Report Initialization Strategy
+When a user accesses a report period that doesn't exist yet, the system relies on a **Postgres RPC function (`get_or_create_report`)** rather than client-side fallback insertions. This ensures:
+1. **Atomicity**: The root report and all 7 child tables (header, courses, etc. across 50+ categories) are seeded in a single database transaction. If any part fails, it rolls back entirely.
+2. **Performance**: Reduces 8 separate HTTP network requests down to 1.
+3. **Resilience**: A `UNIQUE` database constraint handles parallel request race conditions securely via `ON CONFLICT DO NOTHING`, guaranteeing zero duplicate reports.

@@ -60,7 +60,10 @@ User clicks the logout button. A `POST /auth/logout` route handler calls `supaba
 ## 2. Dashboard Flow
 1. **Landing**: User lands on `/` (Dashboard). Middleware has already verified they are authenticated and active.
 2. **Context Toggle**: Users can toggle between Bangla (default) and English via the `UserDropdown` settings, which displays explicit language choice buttons ("বাংলা" and "EN") indicating the active state. The selection updates the interface via a global React Context without triggering URL changes or route reloads.
-3. **Period Selection**: User selects the Report Type (e.g., মাসিক) and Date.
+3. **Period Selection**: User selects the Report Type (e.g., মাসিক), Month, and Year from the dropdowns. 
+   - **URL State**: Selections update the URL query parameters (e.g., `?type=monthly&month=6&year=2026`) dynamically without page reloads, acting as the single source of truth across all sections (no `localStorage` syncing needed).
+   - **Future Month Protection**: The UI and data-fetching logic actively block the creation or viewing of reports for future dates, showing an appropriate warning.
+   - **Auto-Creation**: If a user navigates to a valid current or past month where a report doesn't exist, the system automatically initializes an empty report with all required child tables seamlessly.
 4. **Section Overview**: User views 7 distinct cards representing the 7 report sections.
 5. **Completion Indicators**: Each card displays a psychological completion badge:
    - ⚪ (White): Empty, no data entered.

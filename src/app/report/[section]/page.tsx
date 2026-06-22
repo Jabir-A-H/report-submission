@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
 import { useReport, ReportProvider } from "@/components/report/report-context";
 import { SectionLayout } from "@/components/report/section-layout";
@@ -17,19 +17,49 @@ import { Loader2 } from "lucide-react";
 
 function SectionSwitcher() {
   const { section } = useParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const { t } = useLanguage();
   const { reportId, setReportId, loadReport } = useReport();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Extract selected period from URL params
+  const typeParam = searchParams.get("type");
+  const monthParam = searchParams.get("month");
+  const yearParam = searchParams.get("year");
+
   useEffect(() => {
-    if (reportId) {
-      setIsLoading(false);
+    // 1. Sync / Redirect logic to default values if parameters are missing
+    if (!typeParam || !monthParam || !yearParam) {
+      const params = new URLSearchParams();
+      params.set("type", "monthly");
+      params.set("month", String(new Date().getMonth() + 1));
+      params.set("year", String(new Date().getFullYear()));
+
+      router.replace(`${pathname}?${params.toString()}`);
       return;
     }
 
+    const selectedType = typeParam;
+    const selectedMonth = parseInt(monthParam);
+    const selectedYear = parseInt(yearParam);
+
     const fetchActiveReport = async () => {
       setIsLoading(true);
+      setError(null);
+
+      // Validate future months
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1;
+      const currentYear = now.getFullYear();
+      if (selectedYear > currentYear || (selectedYear === currentYear && selectedMonth > currentMonth)) {
+        setError("ভবিষ্যতের মাসের জন্য রিপোর্ট তৈরি বা পরিবর্তন করা সম্ভব নয়।");
+        setIsLoading(false);
+        return;
+      }
+
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -51,31 +81,38 @@ function SectionSwitcher() {
         return;
       }
 
-      // Find the current period's report for this zone
-      const now = new Date();
-      const { data: report } = await supabase
-        .from("report")
-        .select("id")
-        .eq("zone_id", person.zone_id)
-        .eq("year", now.getFullYear())
-        .eq("month", now.getMonth() + 1)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
+      // Map dynamic URL types to Bangla report types
+      const REPORT_TYPE_MAP: Record<string, string> = {
+        monthly: "মাসিক",
+        quarterly: "ত্রৈমাসিক",
+        halfYearly: "ষান্মাসিক",
+        nineMonth: "নয়-মাসিক",
+        yearly: "বার্ষিক",
+      };
+      const dbReportType = REPORT_TYPE_MAP[selectedType] || "মাসিক";
 
-      if (report) {
-        setReportId(report.id);
-        await loadReport(report.id);
+      // Call database RPC to get or create report
+      const { data: repId, error: rpcErr } = await supabase.rpc("get_or_create_report", {
+        p_zone_id: person.zone_id,
+        p_year: selectedYear,
+        p_month: selectedMonth,
+        p_report_type: dbReportType,
+      });
+
+      if (rpcErr || !repId) {
+        console.error("RPC Error:", rpcErr);
+        setError("রিপোর্ট লোড বা তৈরি করতে সমস্যা হয়েছে।");
       } else {
-        setError("এই মাসের জন্য কোনো রিপোর্ট পাওয়া যায়নি। প্রথমে একটি নতুন রিপোর্ট তৈরি করুন।");
+        setReportId(repId);
+        await loadReport(repId);
       }
       setIsLoading(false);
     };
 
     fetchActiveReport();
-  }, [reportId, setReportId, loadReport]);
+  }, [typeParam, monthParam, yearParam, pathname, router, setReportId, loadReport]);
 
-  if (isLoading) {
+  if (isLoading || !typeParam || !monthParam || !yearParam) {
     return (
       <SectionLayout title="">
         <div className="flex items-center justify-center py-20">
@@ -88,7 +125,9 @@ function SectionSwitcher() {
   if (error) {
     return (
       <SectionLayout title="">
-        <div className="text-center py-20 text-muted-foreground">{error}</div>
+        <div className="text-center py-20 text-destructive font-bold flex flex-col items-center gap-2">
+          <span>⚠️ {error}</span>
+        </div>
       </SectionLayout>
     );
   }

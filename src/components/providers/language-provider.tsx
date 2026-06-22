@@ -18,6 +18,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const savedLang = localStorage.getItem("app-language") as Language;
     if (savedLang && (savedLang === "bn" || savedLang === "en")) {
+      /* eslint-disable-next-line react-hooks/set-state-in-effect */
       setLanguage(savedLang);
     }
   }, []);

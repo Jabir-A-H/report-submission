@@ -24,8 +24,9 @@ Supabase handles core authentication via its internal `auth.users` table. Applic
 
 ### Reports & Sections
 Reports are broken down structurally similar to the legacy models.
-- **`reports`**: The root record for a submitted report.
+- **`report`**: The root record for a submitted report.
   - `id`, `zone_id`, `month`, `year`, `report_type` (e.g., মাসিক, ত্রৈমাসিক)
+  - **Constraints**: Enforces a `UNIQUE (zone_id, month, year, report_type)` constraint to prevent race conditions and duplicate report generation.
 
 All 7 report sub-tables below have a `report_id` column with a **Foreign Key** to `report.id` (`ON DELETE CASCADE`) — deleting a report automatically removes all its associated section data:
 - **`report_headers`**: (মূল তথ্য) Basic info, muallima counts, units.
@@ -50,6 +51,10 @@ The system relies on 6 explicit views corresponding to the report sections:
 - `view_city_personal_agg`
 - `view_city_meeting_agg`
 - `view_city_extra_agg`
+
+## PostgreSQL Functions (RPC)
+To guarantee atomicity and eliminate frontend network overhead during report creation, the system uses a Postgres RPC function:
+- **`get_or_create_report`**: Accepts `(p_zone_id, p_year, p_month, p_report_type)`. It first checks if a matching report exists. If not, it executes a single transactional block to `INSERT` the root `report` row, and immediately `INSERT` zeroed-out seed rows into all 7 child tables (handling 50+ categories total). It safely handles race conditions using `ON CONFLICT DO NOTHING`.
 
 ## Row Level Security (RLS)
 - **Users**: Can only `SELECT`, `INSERT`, and `UPDATE` reports tied to their `zone_id`.

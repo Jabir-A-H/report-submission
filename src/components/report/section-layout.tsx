@@ -10,14 +10,17 @@ import {
   LayoutGrid
 } from "lucide-react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { AutoSaveIndicator } from "./auto-save-indicator";
 
 export function SectionLayout({ children, title }: { children: React.ReactNode; title: string }) {
   const { t } = useLanguage();
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const currentSection = params.section as string;
+
+  const queryString = searchParams.toString() ? `?${searchParams.toString()}` : "";
 
   const sectionsOrder = [
     "header", "courses", "organizational", "personal", "meeting", "extra", "comment"
@@ -33,7 +36,7 @@ export function SectionLayout({ children, title }: { children: React.ReactNode; 
       <div className="sticky top-16 md:top-0 z-40 w-full bg-background/80 backdrop-blur border-b">
         <div className="container py-3 flex items-center justify-between">
           <Link 
-            href="/" 
+            href={`/${queryString}`} 
             className="flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-primary transition-colors hover:translate-x-[-4px]"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -46,7 +49,7 @@ export function SectionLayout({ children, title }: { children: React.ReactNode; 
           </div>
 
           <div className="w-[80px] flex justify-end">
-             <Link href="/" className="p-2 rounded-lg bg-muted text-muted-foreground active:scale-95 transition-all">
+             <Link href={`/${queryString}`} className="p-2 rounded-lg bg-muted text-muted-foreground active:scale-95 transition-all">
                 <LayoutGrid className="w-5 h-5" />
              </Link>
           </div>
@@ -65,7 +68,7 @@ export function SectionLayout({ children, title }: { children: React.ReactNode; 
         <div className="container flex items-center justify-between gap-4">
           {prevSection ? (
             <button 
-              onClick={() => router.push(`/report/${prevSection}`)}
+              onClick={() => router.push(`/report/${prevSection}${queryString}`)}
               className="modern-btn border border-border bg-card flex items-center gap-2 px-6 py-3 text-sm font-bold active:scale-95 transition-all flex-1 md:flex-none justify-center"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -75,7 +78,7 @@ export function SectionLayout({ children, title }: { children: React.ReactNode; 
 
           {nextSection ? (
             <button 
-              onClick={() => router.push(`/report/${nextSection}`)}
+              onClick={() => router.push(`/report/${nextSection}${queryString}`)}
               className="modern-btn btn-primary flex items-center gap-2 px-8 py-3 text-sm font-bold shadow-xl shadow-primary/20 active:scale-95 transition-all flex-1 md:flex-none justify-center"
             >
               <span>পরবর্তী পাতা</span>
@@ -83,7 +86,7 @@ export function SectionLayout({ children, title }: { children: React.ReactNode; 
             </button>
           ) : (
             <button 
-              onClick={() => router.push("/")}
+              onClick={() => router.push(`/${queryString}`)}
               className="modern-btn btn-primary bg-linear-to-r from-green-600 to-emerald-600 flex items-center gap-2 px-8 py-3 text-sm font-bold shadow-xl shadow-green-500/20 active:scale-95 transition-all flex-1 md:flex-none justify-center"
             >
               <span>সম্পন্ন করুন</span>
