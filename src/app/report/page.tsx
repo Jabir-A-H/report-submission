@@ -96,6 +96,59 @@ function toBn(n: number | string | null | undefined): string {
   return String(n).replace(/\d/g, (d) => BENGALI_DIGITS[parseInt(d)]);
 }
 
+function sumHeaderRows(rows: any[]): any | null {
+  if (rows.length === 0) return null;
+  const base = { ...rows[0] };
+  const numericKeys = [
+    "total_muallima",
+    "muallima_increase",
+    "muallima_decrease",
+    "certified_muallima",
+    "certified_muallima_taking_classes",
+    "trained_muallima",
+    "trained_muallima_taking_classes",
+    "total_unit",
+    "units_with_muallima",
+  ];
+  for (let i = 1; i < rows.length; i++) {
+    for (const k of numericKeys) {
+      base[k] = (base[k] || 0) + (rows[i][k] || 0);
+    }
+  }
+  return base;
+}
+
+function sumRows(rows: any[], numericKeys: string[]): any[] {
+  const grouped = new Map<string, any>();
+  for (const row of rows) {
+    const cat = row.category || "__header__";
+    if (!grouped.has(cat)) {
+      grouped.set(cat, { ...row });
+    } else {
+      const existing = grouped.get(cat)!;
+      for (const k of numericKeys) {
+        existing[k] = (existing[k] || 0) + (row[k] || 0);
+      }
+    }
+  }
+  return Array.from(grouped.values());
+}
+
+function getMonthsForPeriod(reportType: string, selectedMonth: number): number[] {
+  switch (reportType) {
+    case "ত্রৈমাসিক":
+      return [1, 2, 3];
+    case "ষান্মাসিক":
+      return [1, 2, 3, 4, 5, 6];
+    case "নয়-মাসিক":
+      return [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    case "বার্ষিক":
+      return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    default: // মাসিক
+      return [selectedMonth];
+  }
+}
+
 // ─── Main Viewer Component ────────────────────────────────────────────────────
 
 function ReportViewer() {
@@ -204,6 +257,10 @@ function ReportViewer() {
       }
 
       let activeReport = null;
+      let isMultiMonth = false;
+      let targetYear = selectedYear;
+      let targetReportType = selectedReportType;
+      let targetMonth = selectedMonth;
 
       // A. If report_id is provided, load it directly
       if (targetReportId) {
@@ -217,72 +274,157 @@ function ReportViewer() {
           throw new Error("রিপোর্টটি পাওয়া যায়নি।");
         }
         activeReport = reportObj;
-      } 
-      // B. Otherwise, find by zone + period
-      else if (targetZoneId) {
-        let query = supabase
+        targetZoneId = reportObj.zone_id;
+        targetYear = reportObj.year;
+        targetReportType = reportObj.report_type;
+        targetMonth = reportObj.month;
+      }
+
+      if (targetReportType !== "মাসিক") {
+        isMultiMonth = true;
+      }
+
+      // If we are looking for a single monthly report (and not already loaded via reportId)
+      if (!targetReportId && !isMultiMonth && targetZoneId) {
+        const { data: reportObj } = await supabase
           .from("report")
           .select("*, zone(name)")
           .eq("zone_id", targetZoneId)
-          .eq("year", selectedYear)
-          .eq("report_type", selectedReportType);
-
-        if (selectedReportType === "মাসিক") {
-          query = query.eq("month", selectedMonth);
-        }
-
-        const { data: reportObj } = await query.maybeSingle();
+          .eq("year", targetYear)
+          .eq("report_type", "মাসিক")
+          .eq("month", targetMonth)
+          .maybeSingle();
         activeReport = reportObj;
       }
 
-      if (!activeReport) {
-        // No report submitted yet for this period
-        setReportId(null);
-        setReportInfo(null);
-        setHeaderData(null);
-        setCoursesData([]);
-        setOrgData([]);
-        setPersonalData([]);
-        setMeetingData([]);
-        setExtraData([]);
-        setCommentData(null);
-        setIsDataLoaded(true);
-        setIsLoading(false);
-        return;
+      // If it is multi-month, load and aggregate
+      if (isMultiMonth && targetZoneId) {
+        const monthsRange = getMonthsForPeriod(targetReportType, targetMonth);
+        const { data: monthlyReports } = await supabase
+          .from("report")
+          .select("*, zone(name)")
+          .eq("zone_id", targetZoneId)
+          .eq("year", targetYear)
+          .eq("report_type", "মাসিক")
+          .in("month", monthsRange);
+
+        if (monthlyReports && monthlyReports.length > 0) {
+          activeReport = {
+            id: -1,
+            zone_id: targetZoneId,
+            year: targetYear,
+            month: targetMonth,
+            report_type: targetReportType,
+            zone: monthlyReports[0].zone
+          };
+
+          const reportIds = monthlyReports.map(r => r.id);
+
+          const [
+            headerRes,
+            coursesRes,
+            orgRes,
+            personalRes,
+            meetingRes,
+            extraRes,
+            commentRes,
+          ] = await Promise.all([
+            supabase.from("report_header").select("*").in("report_id", reportIds),
+            supabase.from("report_course").select("*").in("report_id", reportIds),
+            supabase.from("report_organizational").select("*").in("report_id", reportIds),
+            supabase.from("report_personal").select("*").in("report_id", reportIds),
+            supabase.from("report_meeting").select("*").in("report_id", reportIds),
+            supabase.from("report_extra").select("*").in("report_id", reportIds),
+            supabase.from("report_comment").select("*").in("report_id", reportIds),
+          ]);
+
+          const rawHeader = headerRes.data || [];
+          const rawCourse = coursesRes.data || [];
+          const rawOrg = orgRes.data || [];
+          const rawPersonal = personalRes.data || [];
+          const rawMeeting = meetingRes.data || [];
+          const rawExtra = extraRes.data || [];
+          const rawComment = commentRes.data || [];
+
+          setHeaderData(sumHeaderRows(rawHeader));
+          setCoursesData(sumRows(rawCourse, [
+            "number", "increase", "decrease", "sessions", "students",
+            "attendance", "status_board", "status_qayda", "status_ampara",
+            "status_quran", "completed", "correctly_learned"
+          ]));
+          setOrgData(sumRows(rawOrg, ["number", "increase", "amount"]));
+          setPersonalData(sumRows(rawPersonal, [
+            "teaching", "learning", "olama_invited", "became_shohojogi",
+            "became_sokrio_shohojogi", "became_kormi", "became_rukon"
+          ]));
+          setMeetingData(sumRows(rawMeeting, [
+            "city_count", "city_avg_attendance", "thana_count",
+            "thana_avg_attendance", "ward_count", "ward_avg_attendance"
+          ]));
+          setExtraData(sumRows(rawExtra, ["number"]));
+
+          const combinedComments = rawComment
+            .map(c => c.comment)
+            .filter(c => c && c.trim() !== "")
+            .join("\n");
+          setCommentData({ comment: combinedComments });
+
+          setReportId(-1);
+          setReportInfo(activeReport);
+          setIsDataLoaded(true);
+        } else {
+          activeReport = null;
+        }
       }
 
-      // We have a report, fetch all sections in parallel
-      const repId = activeReport.id;
-      setReportId(repId);
-      setReportInfo(activeReport);
+      if (!isMultiMonth) {
+        if (!activeReport) {
+          // No report submitted yet for this period
+          setReportId(null);
+          setReportInfo(null);
+          setHeaderData(null);
+          setCoursesData([]);
+          setOrgData([]);
+          setPersonalData([]);
+          setMeetingData([]);
+          setExtraData([]);
+          setCommentData(null);
+          setIsDataLoaded(true);
+          setIsLoading(false);
+          return;
+        }
 
-      const [
-        headerRes,
-        coursesRes,
-        orgRes,
-        personalRes,
-        meetingRes,
-        extraRes,
-        commentRes,
-      ] = await Promise.all([
-        supabase.from("report_header").select("*").eq("report_id", repId).maybeSingle(),
-        supabase.from("report_course").select("*").eq("report_id", repId),
-        supabase.from("report_organizational").select("*").eq("report_id", repId),
-        supabase.from("report_personal").select("*").eq("report_id", repId),
-        supabase.from("report_meeting").select("*").eq("report_id", repId),
-        supabase.from("report_extra").select("*").eq("report_id", repId),
-        supabase.from("report_comment").select("*").eq("report_id", repId).maybeSingle(),
-      ]);
+        const repId = activeReport.id;
+        setReportId(repId);
+        setReportInfo(activeReport);
 
-      setHeaderData(headerRes.data);
-      setCoursesData(coursesRes.data || []);
-      setOrgData(orgRes.data || []);
-      setPersonalData(personalRes.data || []);
-      setMeetingData(meetingRes.data || []);
-      setExtraData(extraRes.data || []);
-      setCommentData(commentRes.data);
+        const [
+          headerRes,
+          coursesRes,
+          orgRes,
+          personalRes,
+          meetingRes,
+          extraRes,
+          commentRes,
+        ] = await Promise.all([
+          supabase.from("report_header").select("*").eq("report_id", repId).maybeSingle(),
+          supabase.from("report_course").select("*").eq("report_id", repId),
+          supabase.from("report_organizational").select("*").eq("report_id", repId),
+          supabase.from("report_personal").select("*").eq("report_id", repId),
+          supabase.from("report_meeting").select("*").eq("report_id", repId),
+          supabase.from("report_extra").select("*").eq("report_id", repId),
+          supabase.from("report_comment").select("*").eq("report_id", repId).maybeSingle(),
+        ]);
 
-      setIsDataLoaded(true);
+        setHeaderData(headerRes.data);
+        setCoursesData(coursesRes.data || []);
+        setOrgData(orgRes.data || []);
+        setPersonalData(personalRes.data || []);
+        setMeetingData(meetingRes.data || []);
+        setExtraData(extraRes.data || []);
+        setCommentData(commentRes.data);
+        setIsDataLoaded(true);
+      }
     } catch (err: any) {
       console.error(err);
       setError(err.message || "রিপোর্ট লোড করতে সমস্যা হয়েছে।");
@@ -319,13 +461,31 @@ function ReportViewer() {
 
   // Download Handlers
   const handleDownloadExcel = () => {
-    if (!reportId) return;
-    window.open(`/api/export/excel?report_id=${reportId}`, "_blank");
+    const type = reportInfo?.report_type || selectedReportType;
+    if (type !== "মাসিক") {
+      const targetZoneId = reportInfo?.zone_id || selectedZone || userZoneId;
+      const targetYear = reportInfo?.year || selectedYear;
+      const targetMonth = reportInfo?.month || selectedMonth;
+      window.open(`/api/export/excel?zone_id=${targetZoneId}&year=${targetYear}&month=${targetMonth}&report_type=${encodeURIComponent(type)}`, "_blank");
+    } else {
+      const targetReportId = reportIdParam ? Number(reportIdParam) : reportId;
+      if (!targetReportId || targetReportId === -1) return;
+      window.open(`/api/export/excel?report_id=${targetReportId}`, "_blank");
+    }
   };
 
   const handleDownloadPDF = () => {
-    if (!reportId) return;
-    window.open(`/api/export/pdf?report_id=${reportId}`, "_blank");
+    const type = reportInfo?.report_type || selectedReportType;
+    if (type !== "মাসিক") {
+      const targetZoneId = reportInfo?.zone_id || selectedZone || userZoneId;
+      const targetYear = reportInfo?.year || selectedYear;
+      const targetMonth = reportInfo?.month || selectedMonth;
+      window.open(`/api/export/pdf?zone_id=${targetZoneId}&year=${targetYear}&month=${targetMonth}&report_type=${encodeURIComponent(type)}`, "_blank");
+    } else {
+      const targetReportId = reportIdParam ? Number(reportIdParam) : reportId;
+      if (!targetReportId || targetReportId === -1) return;
+      window.open(`/api/export/pdf?report_id=${targetReportId}`, "_blank");
+    }
   };
 
   // ─── Render Helper Constants ────────────────────────────────────────────────

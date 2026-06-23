@@ -53,9 +53,12 @@ The middleware (`middleware.ts`) is the **single source of truth** for auth enfo
 
 **Unauthenticated visitors** hitting `/` are redirected to `/home` (the landing page). The root route `src/app/page.tsx` also contains a hardcoded fallback redirect to `/home` to ensure unauthenticated users during RSC transitions (bypassing middleware) safely reach the landing page instead of throwing errors or landing on `/login`. All other protected routes send unauthenticated users to `/login`.
 
+**Search Parameter Clearing**: Middleware clears all URL search/query parameters (`url.search = ""`) before redirecting users to ensure security, prevent session state pollution, and maintain a clean landing experience.
+
 **Orphaned Auth Accounts**: Middleware explicitly treats authenticated users who are missing a corresponding row in the `people` table as `active = false`. This guarantees orphaned accounts cannot slip past the approval gate.
 
 **Pending-Approval Exit**: The `/pending-approval` page's "Return to Login" button uses a `<form POST>` to `/auth/logout` (not a `<Link>`). This is critical — a simple link to `/login` would create a redirect trap: middleware sees the active session, redirects `/login` → `/` → `/pending-approval` in a loop.
+
 
 ## Supabase Client Strategy
 Three different Supabase client patterns are used depending on context:
@@ -68,6 +71,8 @@ Three different Supabase client patterns are used depending on context:
 
 The `SERVICE_ROLE_KEY` is **never** sent to the browser. It is only used inside `'use server'` actions.
 
+> **Note**: The application strictly relies on the official Supabase HTTP clients (`@supabase/supabase-js` and `@supabase/ssr`). Direct database connection drivers (like `pg` / `node-postgres`) have been explicitly omitted to eliminate connection-pooling overhead and keep serverless Edge/API functions as lightweight as possible.
+
 ## Zero-Cost Operations & Backups
 To ensure data safety while minimizing operational costs:
 - The system utilizes managed Supabase which handles daily internal backups.
@@ -78,10 +83,19 @@ To ensure data safety while minimizing operational costs:
 - PDF exports will be customized to heavily condense the output for easier printing and review.
 
 ## Aggregation Strategy
-All aggregations, including cross-month aggregations (Quarterly, Yearly), are executed entirely via **PostgreSQL Views** at the database layer. The frontend simply queries the pre-calculated view, remaining lightweight and fast without performing client-side `SUM` operations.
+- **City-wide Aggregations**: All city-wide aggregations (across all zones) are executed via **PostgreSQL Views** at the database layer. The admin dashboard queries these pre-calculated views.
+- **Zone Non-Monthly Aggregations (Read-Only Viewer)**: For individual zone reports of non-monthly types (quarterly, yearly, etc.), the frontend retrieves monthly reports within the target period's months range (e.g. Jan-Mar for Q1) and aggregates them on the client side. The numeric fields are grouped and summed, and comments are concatenated.
+- **Export API Aggregations**: The export route handlers (`/api/export/excel` and `/api/export/pdf`) dynamically run database queries and aggregate monthly report data for the target zone/period when queried with `zone_id`, `year`, `month`, and `report_type` parameters, generating reports matching the monthly format.
 
 ## Report Initialization Strategy
 When a user accesses a report period that doesn't exist yet, the system relies on a **Postgres RPC function (`get_or_create_report`)** rather than client-side fallback insertions. This ensures:
 1. **Atomicity**: The root report and all 7 child tables (header, courses, etc. across 50+ categories) are seeded in a single database transaction. If any part fails, it rolls back entirely.
-2. **Performance**: Reduces 8 separate HTTP network requests down to 1.
-3. **Resilience**: A `UNIQUE` database constraint handles parallel request race conditions securely via `ON CONFLICT DO NOTHING`, guaranteeing zero duplicate reports.
+2. **Month Forcing for Non-Monthly Reports**: If `p_report_type` is not monthly (`'মাসিক'`), the month parameter `p_month` is forced to `1` at the SQL function level. This structures database records consistently by storing all quarterly/yearly reports at month `1` for that year.
+3. **Performance**: Reduces 8 separate HTTP network requests down to 1.
+4. **Resilience**: A `UNIQUE` database constraint handles parallel request race conditions securely via `ON CONFLICT DO NOTHING`, guaranteeing zero duplicate reports.
+
+## Progressive Disclosure UX
+The user dashboard employs a progressive disclosure design to simplify interaction:
+1. **Initial State**: If the URL does not contain period search parameters (first landing), only the full-sized `PeriodSelector` is displayed. The section cards, loader, error messages, and footer are hidden.
+2. **Loaded State**: Selecting a period and clicking "Go" loads the report. Once loaded, the selector shrinks into a compact horizontal summary bar with a "Change Period" button.
+3. **Staggered Entry**: The 7 section cards slide in using a CSS fade-in-up transition staggered by 100ms per card to create a fluid, premium visual experience.

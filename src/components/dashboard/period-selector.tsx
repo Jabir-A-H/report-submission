@@ -10,7 +10,7 @@ import {
   FileCheck
 } from "lucide-react";
 
-export function PeriodSelector() {
+export function PeriodSelector({ monthlyOnly = false }: { monthlyOnly?: boolean }) {
   const { t } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -24,7 +24,7 @@ export function PeriodSelector() {
   const [validationError, setValidationError] = useState<string | null>(null);
 
   // Set mounted to true on client-side mount
-  /* eslint-disable react-hooks/set-state-in-effect */
+  // Set mounted to true on client-side mount
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -32,11 +32,31 @@ export function PeriodSelector() {
   // Sync state with URL search parameters changes only after mounted is true
   useEffect(() => {
     if (!mounted) return;
-    setType(searchParams.get("type") || "monthly");
+    const urlType = searchParams.get("type");
+    setType(monthlyOnly ? "monthly" : (urlType || "monthly"));
     setMonth(searchParams.get("month") || String(new Date().getMonth() + 1));
     setYear(searchParams.get("year") || String(new Date().getFullYear()));
-  }, [searchParams, mounted]);
-  /* eslint-enable react-hooks/set-state-in-effect */
+  }, [searchParams, mounted, monthlyOnly]);
+
+
+  const getEndingMonthForPeriod = (reportType: string): number => {
+    switch (reportType) {
+      case "quarterly":
+      case "ত্রৈমাসিক":
+        return 3;
+      case "halfYearly":
+      case "ষান্মাসিক":
+        return 6;
+      case "nineMonth":
+      case "নয়-মাসিক":
+        return 9;
+      case "yearly":
+      case "বার্ষিক":
+        return 12;
+      default:
+        return 1;
+    }
+  };
 
   const handleGo = () => {
     const selMonth = parseInt(month);
@@ -45,16 +65,19 @@ export function PeriodSelector() {
     const currentMonth = now.getMonth() + 1;
     const currentYear = now.getFullYear();
 
+    const isMonthly = type === "monthly" || type === "মাসিক";
+    const endingMonth = isMonthly ? selMonth : getEndingMonthForPeriod(type);
+
     // Check if the selected date is in the future
-    if (selYear > currentYear || (selYear === currentYear && selMonth > currentMonth)) {
-      setValidationError("ভবিষ্যতের মাসের জন্য রিপোর্ট তৈরি বা পরিবর্তন করা সম্ভব নয়।");
+    if (selYear > currentYear || (selYear === currentYear && endingMonth > currentMonth)) {
+      setValidationError("ভবিষ্যতের সময়ের জন্য রিপোর্ট তৈরি বা পরিবর্তন করা সম্ভব নয়।");
       return;
     }
 
     setValidationError(null);
     const params = new URLSearchParams(searchParams.toString());
     params.set("type", type);
-    params.set("month", month);
+    params.set("month", type !== "monthly" ? "1" : month);
     params.set("year", year);
     router.push(`${pathname}?${params.toString()}`);
   };
@@ -62,23 +85,25 @@ export function PeriodSelector() {
   return (
     <div className="modern-card p-6 mb-8 bg-card shadow-lg border-primary/10">
       <div className="flex flex-col md:flex-row gap-4 items-end">
-        <div className="flex-1 space-y-2 w-full">
-          <label className="text-sm font-bold text-muted-foreground flex items-center gap-2">
-            <LayoutDashboard className="w-4 h-4" />
-            {t.periodSelector.type}
-          </label>
-          <select 
-            value={type}
-            onChange={(e) => setType(e.target.value)}
-            className="modern-input w-full bg-muted/50 focus:bg-background transition-colors"
-          >
-            <option value="monthly">{t.reportTypes.monthly}</option>
-            <option value="quarterly">{t.reportTypes.quarterly}</option>
-            <option value="halfYearly">{t.reportTypes.halfYearly}</option>
-            <option value="nineMonth">{t.reportTypes.nineMonth}</option>
-            <option value="yearly">{t.reportTypes.yearly}</option>
-          </select>
-        </div>
+        {!monthlyOnly && (
+          <div className="flex-1 space-y-2 w-full">
+            <label className="text-sm font-bold text-muted-foreground flex items-center gap-2">
+              <LayoutDashboard className="w-4 h-4" />
+              {t.periodSelector.type}
+            </label>
+            <select 
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              className="modern-input w-full bg-muted/50 focus:bg-background transition-colors"
+            >
+              <option value="monthly">{t.reportTypes.monthly}</option>
+              <option value="quarterly">{t.reportTypes.quarterly}</option>
+              <option value="halfYearly">{t.reportTypes.halfYearly}</option>
+              <option value="nineMonth">{t.reportTypes.nineMonth}</option>
+              <option value="yearly">{t.reportTypes.yearly}</option>
+            </select>
+          </div>
+        )}
 
         <div className="flex-1 space-y-2 w-full">
           <label className="text-sm font-bold text-muted-foreground flex items-center gap-2">
@@ -88,7 +113,8 @@ export function PeriodSelector() {
           <select 
             value={month}
             onChange={(e) => setMonth(e.target.value)}
-            className="modern-input w-full bg-muted/50 focus:bg-background transition-colors"
+            disabled={type !== "monthly"}
+            className="modern-input w-full bg-muted/50 focus:bg-background transition-colors disabled:opacity-50"
           >
             <option value="1">জানুয়ারি</option>
             <option value="2">ফেব্রুয়ারি</option>

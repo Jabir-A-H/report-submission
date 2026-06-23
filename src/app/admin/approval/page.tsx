@@ -26,11 +26,6 @@ export default function AdminApproval() {
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
-  useEffect(() => {
-    fetchUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   async function fetchUsers() {
     setLoading(true);
     const { data, error } = await supabase
@@ -41,6 +36,11 @@ export default function AdminApproval() {
     if (!error) setUsers(data || []);
     setLoading(false);
   }
+
+  useEffect(() => {
+    fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function toggleActive(id: number, currentStatus: boolean | null) {
     const { error } = await supabase

@@ -7,6 +7,7 @@ This document enforces consistent code style, folder structure, and commit pract
 - **Framework**: Next.js App Router. Use Server Components by default. Use `"use client"` only when interactivity (hooks, state) is strictly required.
 - **Styling**: Tailwind CSS v4. Avoid inline styles.
 - **Language**: TypeScript is mandatory. Use strict typing for Supabase responses.
+- **Linting**: ESLint 9+ Flat Config (`eslint.config.mjs`). Do not use legacy `.eslintrc.json`. We only enforce standard Next.js rules, `eqeqeq`, and `no-console`. Code formatting (quotes, indent) is deferred to Prettier/IDE.
 - **Components**: Functional components only.
 
 ## 2. Folder Structure

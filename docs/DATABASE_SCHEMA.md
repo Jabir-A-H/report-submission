@@ -54,7 +54,9 @@ The system relies on 6 explicit views corresponding to the report sections:
 
 ## PostgreSQL Functions (RPC)
 To guarantee atomicity and eliminate frontend network overhead during report creation, the system uses a Postgres RPC function:
-- **`get_or_create_report`**: Accepts `(p_zone_id, p_year, p_month, p_report_type)`. It first checks if a matching report exists. If not, it executes a single transactional block to `INSERT` the root `report` row, and immediately `INSERT` zeroed-out seed rows into all 7 child tables (handling 50+ categories total). It safely handles race conditions using `ON CONFLICT DO NOTHING`.
+- **`get_or_create_report`**: Accepts `(p_zone_id, p_year, p_month, p_report_type)`. 
+  - **Month Forcing**: If `p_report_type` is not `'মাসিক'`, the function forces `p_month := 1`. This aligns database records consistently by storing all quarterly/yearly reports at month `1` for that year.
+  - **Atomicity**: It checks if a matching report exists. If not, it executes a single transactional block to `INSERT` the root `report` row, and immediately `INSERT` zeroed-out seed rows into all 7 child tables (handling 50+ categories total). It safely handles race conditions using `ON CONFLICT DO NOTHING`.
 
 ## Row Level Security (RLS)
 - **Users**: Can only `SELECT`, `INSERT`, and `UPDATE` reports tied to their `zone_id`.

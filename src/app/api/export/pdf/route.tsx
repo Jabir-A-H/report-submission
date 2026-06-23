@@ -589,6 +589,8 @@ export async function GET(request: Request) {
     const monthParam = searchParams.get("month");
     const reportTypeParam = searchParams.get("report_type");
 
+    const zoneIdParam = searchParams.get("zone_id");
+
     const supabase = await createClient();
 
     // Verify session
@@ -611,55 +613,138 @@ export async function GET(request: Request) {
     let filename = "Report.pdf";
 
     // ─────────────────────────────────────────────────────────────────────────
-    // CASE A: Export Single Zone Report PDF
+    // CASE A: Export Single Zone Report PDF (Or Zone Aggregated Report)
     // ─────────────────────────────────────────────────────────────────────────
-    if (reportIdParam) {
-      const repId = Number(reportIdParam);
+    if (reportIdParam || zoneIdParam) {
+      if (reportIdParam) {
+        const repId = Number(reportIdParam);
 
-      // Fetch main report record with zone name
-      const { data: report, error: repError } = await supabase
-        .from("report")
-        .select("*, zone(name)")
-        .eq("id", repId)
-        .single();
+        // Fetch main report record with zone name
+        const { data: report, error: repError } = await supabase
+          .from("report")
+          .select("*, zone(name)")
+          .eq("id", repId)
+          .single();
 
-      if (repError || !report) {
-        return new NextResponse("Report not found", { status: 404 });
+        if (repError || !report) {
+          return new NextResponse("Report not found", { status: 404 });
+        }
+
+        zoneName = report.zone?.name || "—";
+        reportType = report.report_type;
+        periodLabel = report.report_type === "মাসিক" 
+          ? `${MONTHS_BN[report.month - 1]} ${report.year}`
+          : `${report.report_type} (${report.year})`;
+        filename = `${zoneName}_Report_${report.month}_${report.year}.pdf`;
+
+        // Fetch sections
+        const [
+          headerRes,
+          coursesRes,
+          orgRes,
+          personalRes,
+          meetingRes,
+          extraRes,
+          commentRes,
+        ] = await Promise.all([
+          supabase.from("report_header").select("*").eq("report_id", repId).maybeSingle(),
+          supabase.from("report_course").select("*").eq("report_id", repId),
+          supabase.from("report_organizational").select("*").eq("report_id", repId),
+          supabase.from("report_personal").select("*").eq("report_id", repId),
+          supabase.from("report_meeting").select("*").eq("report_id", repId),
+          supabase.from("report_extra").select("*").eq("report_id", repId),
+          supabase.from("report_comment").select("*").eq("report_id", repId).maybeSingle(),
+        ]);
+
+        header = headerRes.data;
+        courses = coursesRes.data || [];
+        org = orgRes.data || [];
+        personal = personalRes.data || [];
+        meetings = meetingRes.data || [];
+        extras = extraRes.data || [];
+        comment = commentRes.data;
+      } else {
+        const targetZoneId = Number(zoneIdParam);
+        const targetYear = Number(yearParam);
+        const targetMonth = Number(monthParam || 1);
+        const targetReportType = reportTypeParam || "মাসিক";
+
+        // Fetch zone name
+        const { data: zoneObj } = await supabase
+          .from("zone")
+          .select("name")
+          .eq("id", targetZoneId)
+          .single();
+        
+        zoneName = zoneObj?.name || "—";
+        reportType = targetReportType;
+
+        periodLabel = targetReportType === "মাসিক" 
+          ? `${MONTHS_BN[targetMonth - 1]} ${targetYear}`
+          : `${targetReportType} (${targetYear})`;
+        filename = `${zoneName}_Report_${targetMonth}_${targetYear}.pdf`;
+
+        const monthsRange = getMonthsForPeriod(targetReportType, targetMonth);
+        
+        // Query monthly reports for the target zone, year, and months range
+        const { data: monthlyReports } = await supabase
+          .from("report")
+          .select("id")
+          .eq("zone_id", targetZoneId)
+          .eq("year", targetYear)
+          .eq("report_type", "মাসিক")
+          .in("month", monthsRange);
+
+        if (monthlyReports && monthlyReports.length > 0) {
+          const reportIds = monthlyReports.map(r => r.id);
+
+          const [
+            headerRes,
+            coursesRes,
+            orgRes,
+            personalRes,
+            meetingRes,
+            extraRes,
+            commentRes,
+          ] = await Promise.all([
+            supabase.from("report_header").select("*").in("report_id", reportIds),
+            supabase.from("report_course").select("*").in("report_id", reportIds),
+            supabase.from("report_organizational").select("*").in("report_id", reportIds),
+            supabase.from("report_personal").select("*").in("report_id", reportIds),
+            supabase.from("report_meeting").select("*").in("report_id", reportIds),
+            supabase.from("report_extra").select("*").in("report_id", reportIds),
+            supabase.from("report_comment").select("*").in("report_id", reportIds),
+          ]);
+
+          const rawHeader = headerRes.data || [];
+          const rawCourse = coursesRes.data || [];
+          const rawOrg = orgRes.data || [];
+          const rawPersonal = personalRes.data || [];
+          const rawMeeting = meetingRes.data || [];
+          const rawExtra = extraRes.data || [];
+          const rawComment = commentRes.data || [];
+
+          header = sumHeaderRows(rawHeader) || {};
+          courses = sumRows(rawCourse, [
+            "number", "increase", "decrease", "sessions", "students",
+            "attendance", "status_board", "status_qayda", "status_ampara",
+            "status_quran", "completed", "correctly_learned"
+          ]);
+          org = sumRows(rawOrg, ["number", "increase", "amount"]);
+          personal = sumRows(rawPersonal, [
+            "teaching", "learning", "olama_invited", "became_shohojogi",
+            "became_sokrio_shohojogi", "became_kormi", "became_rukon"
+          ]);
+          meetings = sumRows(rawMeeting, [
+            "city_count", "city_avg_attendance", "thana_count",
+            "thana_avg_attendance", "ward_count", "ward_avg_attendance"
+          ]);
+          extras = sumRows(rawExtra, ["number"]);
+          comment = {
+            comment: rawComment.map(c => c.comment).filter(c => c && c.trim() !== "").join("\n")
+          };
+        }
       }
-
-      zoneName = report.zone?.name || "—";
-      reportType = report.report_type;
-      periodLabel = report.report_type === "মাসিক" 
-        ? `${MONTHS_BN[report.month - 1]} ${report.year}`
-        : `${report.report_type} (${report.year})`;
-      filename = `${zoneName}_Report_${report.month}_${report.year}.pdf`;
-
-      // Fetch sections
-      const [
-        headerRes,
-        coursesRes,
-        orgRes,
-        personalRes,
-        meetingRes,
-        extraRes,
-        commentRes,
-      ] = await Promise.all([
-        supabase.from("report_header").select("*").eq("report_id", repId).maybeSingle(),
-        supabase.from("report_course").select("*").eq("report_id", repId),
-        supabase.from("report_organizational").select("*").eq("report_id", repId),
-        supabase.from("report_personal").select("*").eq("report_id", repId),
-        supabase.from("report_meeting").select("*").eq("report_id", repId),
-        supabase.from("report_extra").select("*").eq("report_id", repId),
-        supabase.from("report_comment").select("*").eq("report_id", repId).maybeSingle(),
-      ]);
-
-      header = headerRes.data;
-      courses = coursesRes.data || [];
-      org = orgRes.data || [];
-      personal = personalRes.data || [];
-      meetings = meetingRes.data || [];
-      extras = extraRes.data || [];
-      comment = commentRes.data;
     } 
     // ─────────────────────────────────────────────────────────────────────────
     // CASE B: Export City Aggregated Report PDF

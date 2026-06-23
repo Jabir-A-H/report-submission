@@ -50,12 +50,35 @@ function SectionSwitcher() {
       setIsLoading(true);
       setError(null);
 
-      // Validate future months
+      // Validate future periods
       const now = new Date();
       const currentMonth = now.getMonth() + 1;
       const currentYear = now.getFullYear();
-      if (selectedYear > currentYear || (selectedYear === currentYear && selectedMonth > currentMonth)) {
-        setError("ভবিষ্যতের মাসের জন্য রিপোর্ট তৈরি বা পরিবর্তন করা সম্ভব নয়।");
+
+      const getEndingMonthForPeriod = (reportType: string): number => {
+        switch (reportType) {
+          case "quarterly":
+          case "ত্রৈমাসিক":
+            return 3;
+          case "halfYearly":
+          case "ষান্মাসিক":
+            return 6;
+          case "nineMonth":
+          case "নয়-মাসিক":
+            return 9;
+          case "yearly":
+          case "বার্ষিক":
+            return 12;
+          default:
+            return 1;
+        }
+      };
+
+      const isMonthly = selectedType === "monthly" || selectedType === "মাসিক";
+      const endingMonth = isMonthly ? selectedMonth : getEndingMonthForPeriod(selectedType);
+
+      if (selectedYear > currentYear || (selectedYear === currentYear && endingMonth > currentMonth)) {
+        setError("ভবিষ্যতের সময়ের জন্য রিপোর্ট তৈরি বা পরিবর্তন করা সম্ভব নয়।");
         setIsLoading(false);
         return;
       }
@@ -95,7 +118,7 @@ function SectionSwitcher() {
       const { data: repId, error: rpcErr } = await supabase.rpc("get_or_create_report", {
         p_zone_id: person.zone_id,
         p_year: selectedYear,
-        p_month: selectedMonth,
+        p_month: dbReportType !== "মাসিক" ? 1 : selectedMonth,
         p_report_type: dbReportType,
       });
 

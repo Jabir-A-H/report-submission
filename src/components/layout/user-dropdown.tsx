@@ -117,7 +117,7 @@ export function UserDropdown() {
                     alert("সাইন আউট করতে সমস্যা হয়েছে। পেজ রিফ্রেশ করুন।");
                     return;
                   }
-                  router.push("/login");
+                  window.location.href = "/login";
                 }}
             >
               <LogOut className="w-4 h-4" />

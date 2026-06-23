@@ -36,9 +36,10 @@ This document outlines the User Experience (UX) and navigation paths for standar
   - If session exists and `people.active = true`: request proceeds normally.
 - **API routes**: Return a `401 JSON` response instead of redirecting.
 - **Authenticated users on `/login`**: Redirected to `/` (dashboard).
+- **Search Parameter Clearing**: To ensure a clean state and avoid security leaks, middleware clears all URL search/query parameters (`url.search = ""`) before executing any redirect to login, home, or pending approval.
 
 ### 1.4 Logout
-User clicks the logout button. A `POST /auth/logout` route handler calls `supabase.auth.signOut()` and redirects to `/login`. The client button uses a `try/catch` around the fetch request to prevent users from silently retaining active sessions on network errors.
+User clicks the logout button. A `POST /auth/logout` route handler calls `supabase.auth.signOut()` and redirects to `/login`. The client button uses a `try/catch` around the fetch request to prevent users from silently retaining active sessions on network errors. Upon successful sign-out, the client redirects using `window.location.href = "/login"` to cleanly clear all client-side states, React Contexts, and URL search parameters.
 
 ### 1.5 Password Reset Flow
 1. User navigates to `/forgot-password` (publicly accessible).
@@ -59,33 +60,33 @@ User clicks the logout button. A `POST /auth/logout` route handler calls `supaba
 
 ## 2. Dashboard Flow
 1. **Landing**: User lands on `/` (Dashboard). Middleware has already verified they are authenticated and active.
-2. **Context Toggle**: Users can toggle between Bangla (default) and English via the `UserDropdown` settings, which displays explicit language choice buttons ("বাংলা" and "EN") indicating the active state. The selection updates the interface via a global React Context without triggering URL changes or route reloads.
-3. **Period Selection**: User selects the Report Type (e.g., মাসিক), Month, and Year from the dropdowns. 
-   - **URL State**: Selections update the URL query parameters (e.g., `?type=monthly&month=6&year=2026`) dynamically without page reloads, acting as the single source of truth across all sections (no `localStorage` syncing needed).
-   - **Future Month Protection**: The UI and data-fetching logic actively block the creation or viewing of reports for future dates, showing an appropriate warning.
-   - **Auto-Creation**: If a user navigates to a valid current or past month where a report doesn't exist, the system automatically initializes an empty report with all required child tables seamlessly.
-4. **Section Overview**: User views 7 distinct cards representing the 7 report sections.
-5. **Completion Indicators**: Each card displays a psychological completion badge:
-   - ⚪ (White): Empty, no data entered.
-   - 🟠 (Orange): Partially filled.
-   - 🟢 (Green): Fully completed.
-   *(This encourages users to input '0' even for empty fields to achieve a green state).*
-
+2. **Progressive Disclosure UX**:
+   - **First Landing**: When URL query parameters are missing, the page displays ONLY the full-sized `PeriodSelector`. The 7 section cards, loader, error messages, and footer are hidden.
+   - **Loaded State**: Once the user selects a period and clicks "Go", query parameters are injected. The PeriodSelector then shrinks to a compact horizontal summary bar displaying the selected month/year and a "Change Period" button. Clicking this button expands it back to the full PeriodSelector.
+   - **Staggered Animations**: When the 7 report cards appear, they are rendered with a staggered animation delay (100ms per card) and slide up smoothly using the `.animate-fade-in-up` class.
+3. **Context Toggle**: Users can toggle between Bangla (default) and English via the `UserDropdown` settings. The selection updates the interface via a global React Context without triggering URL changes or route reloads.
+4. **Period Selection**: Restricted to **monthly reports only** on the user dashboard. Non-monthly options (quarterly, yearly, etc.) are excluded from the type selector dropdown to prevent users from editing aggregated data directly.
+   - **URL State**: Selections update the URL query parameters (e.g., `?type=monthly&month=6&year=2026`) dynamically.
+   - **Future Period Protection**: The system evaluates future dates. For monthly reports, it blocks future months. For non-monthly reports (in the read-only viewer), it evaluates the period's ending month (e.g. month 9 for nine-monthly) against the current month to block future periods.
+   - **Auto-Creation**: Navigating to a past month automatically seeds an empty report in the database with the month forced to 1 if it is a non-monthly type (handled at the database level).
+5. **Section Overview**: User views 7 distinct cards representing the 7 report sections.
 *Note: The UI strictly follows the 4-theme system (Light, Dark, Solarized Light, Solarized Dark). Users can select their theme from an explicit visual grid selector with swatch previews inside the `UserDropdown` settings. While interactive power-user features like `kbar` and `framer-motion` were explored, they have been explicitly omitted to prioritize a minimalist, highly accessible experience tailored to non-tech-savvy field managers.*
 
 ---
 
 ## 3. Data Entry Flow (Adaptive Matrix)
-1. **Navigation**: User clicks a section card and routes to `/report/[section]`. A visible "Nav Stepper" component tracks progress across the 7 sections.
+1. **Navigation**: User clicks a section card and routes to `/report/[section]`. A visible "Nav Stepper" component tracks progress across the 7 sections. 
+   - *Note: Early prototypes explored a monolithic single-page form (`/report/new`), but this was explicitly rejected and removed in favor of a modular route-per-section approach to prevent overwhelming users and to ensure optimal auto-save performance.*
 2. **Layout**:
    - **Desktop**: A sticky, tabular adaptive grid.
    - **Mobile**: Grouped cards with a Fixed Bottom Navigation Bar (no hamburger menu).
 3. **Auto-Save Mechanism**:
    - As the user types and moves off a field (`onBlur`), the data is instantly auto-saved to Supabase.
    - A visual indicator next to the field spins during the save and turns into a ✅ upon success.
-4. **No Final Submit**: Because of the real-time auto-save architecture, there is no master "Submit" button. Users simply fill out all sections until all 7 badges turn green.
+4. **No Final Submit**: Because of the real-time auto-save architecture, there is no master "Submit" button. Users simply fill out all sections. Once data is entered, it is securely stored.
 
 ---
 
-## 4. Exports
-From the dashboard, users can request an export (Excel or highly condensed PDF) of their submitted report. The Next.js app or Edge Function rapidly compiles the data and triggers a download.
+## 4. Exports & Non-Monthly Viewer
+1. **Non-Monthly Aggregations**: Non-monthly report types (quarterly, half-yearly, nine-monthly, yearly) are presented as **read-only client-side aggregations** on `/report`. Instead of fetching a single report row, the system queries all monthly reports within that period's months range (e.g., [1, 2, 3] for quarterly) and dynamically groups, sums, and concatenates comments on the client side.
+2. **Export APIs**: Export APIs (`/api/export/excel` and `/api/export/pdf`) support exporting these aggregated non-monthly reports. Download URLs pass `zone_id`, `year`, `month`, and `report_type` instead of `report_id`. The APIs aggregate the monthly data for the zone/period and generate files matching the standard monthly format.
