@@ -59,10 +59,10 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
   }, [getInitialValue]);
 
   const handleBlur = useCallback(() => {
-    if (localValue !== data[name]) {
+    if (localValue !== getInitialValue()) {
       updateField(name, localValue, section, table, category);
     }
-  }, [localValue, data, name, section, table, category, updateField]);
+  }, [localValue, getInitialValue, name, section, table, category, updateField]);
 
   return (
     <div className="flex flex-col gap-2 w-full group">

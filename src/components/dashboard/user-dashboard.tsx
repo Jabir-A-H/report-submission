@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
 import { PeriodSelector } from "./period-selector";
@@ -26,7 +26,7 @@ export function UserDashboard() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { data, reportId, setReportId, loadReport } = useReport();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +47,8 @@ export function UserDashboard() {
     if (!hasParams) {
       return;
     }
+
+    let ignore = false;
 
     const selectedType = typeParam;
     const selectedMonth = parseInt(monthParam);
@@ -84,13 +86,16 @@ export function UserDashboard() {
       const endingMonth = isMonthly ? selectedMonth : getEndingMonthForPeriod(selectedType);
 
       if (selectedYear > currentYear || (selectedYear === currentYear && endingMonth > currentMonth)) {
-        setError("ভবিষ্যতের সময়ের জন্য রিপোর্ট তৈরি বা পরিবর্তন করা সম্ভব নয়।");
-        setIsLoading(false);
+        if (!ignore) {
+          setError("ভবিষ্যতের সময়ের জন্য রিপোর্ট তৈরি বা পরিবর্তন করা সম্ভব নয়।");
+          setIsLoading(false);
+        }
         return;
       }
 
       // Fetch user profile and zone
       const { data: { user } } = await supabase.auth.getUser();
+      if (ignore) return;
       if (!user) {
         setError("ব্যবহারকারী চিহ্নিত করা যায়নি।");
         setIsLoading(false);
@@ -103,6 +108,7 @@ export function UserDashboard() {
         .eq("supabase_uid", user.id)
         .single();
 
+      if (ignore) return;
       if (!person?.zone_id) {
         setError("আপনার জোন এখনও নির্ধারণ করা হয়নি।");
         setIsLoading(false);
@@ -127,6 +133,7 @@ export function UserDashboard() {
         p_report_type: dbReportType,
       });
 
+      if (ignore) return;
       if (rpcErr || !repId) {
         console.error("RPC Error:", rpcErr);
         setError("রিপোর্ট লোড বা তৈরি করতে সমস্যা হয়েছে।");
@@ -134,10 +141,16 @@ export function UserDashboard() {
         setReportId(repId);
         await loadReport(repId);
       }
-      setIsLoading(false);
+      if (!ignore) {
+        setIsLoading(false);
+      }
     };
 
     initReport();
+
+    return () => {
+      ignore = true;
+    };
   }, [typeParam, monthParam, yearParam, pathname, router, supabase, setReportId, loadReport, hasParams]);
 
   const sections = [

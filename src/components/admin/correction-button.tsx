@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { Edit2, X, Check, AlertTriangle } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 
@@ -18,7 +18,7 @@ export function CorrectionButton({ year, month, reportType = 'monthly', section,
   const [isOpen, setIsOpen] = useState(false)
   const [newValue, setNewValue] = useState(currentValue.toString())
   const [isSaving, setIsSaving] = useState(false)
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   const handleSave = async () => {
     setIsSaving(true)
@@ -50,10 +50,10 @@ export function CorrectionButton({ year, month, reportType = 'monthly', section,
     return (
       <button 
         onClick={() => setIsOpen(true)}
-        className="opacity-0 group-hover:opacity-100 ml-2 p-1 hover:bg-cyan-50 rounded text-cyan-500 transition-all"
+        className="opacity-0 group-hover:opacity-100 ml-1 min-h-[44px] min-w-[44px] inline-flex items-center justify-center hover:bg-cyan-50 rounded-lg text-cyan-500 transition-all active:scale-95"
         title="Apply Correction"
       >
-        <Edit2 size={12} />
+        <Edit2 size={14} />
       </button>
     )
   }

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
 import { createClient } from '@/utils/supabase/client'
 
 interface ReportContextType {
@@ -21,7 +21,7 @@ export function ReportProvider({ children }: { children: React.ReactNode }) {
   const [isSaving, setIsSaving] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
   
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   const loadReport = useCallback(async (id: number) => {
     setIsSaving(true)
@@ -47,7 +47,7 @@ export function ReportProvider({ children }: { children: React.ReactNode }) {
     setIsSaving(false)
   }, [supabase])
 
-  const updateField = async (name: string, value: any, section: string, table: string = 'report', category?: string) => {
+  const updateField = useCallback(async (name: string, value: any, section: string, table: string = 'report', category?: string) => {
     if (!reportId) return
 
     setIsSaving(true)
@@ -98,18 +98,20 @@ export function ReportProvider({ children }: { children: React.ReactNode }) {
       console.error(`Failed to save to ${table}:`, error)
     }
     setIsSaving(false)
-  }
+  }, [reportId, supabase])
+
+  const contextValue = useMemo(() => ({
+    reportId, 
+    setReportId, 
+    data, 
+    isSaving, 
+    lastSaved, 
+    updateField,
+    loadReport 
+  }), [reportId, data, isSaving, lastSaved, updateField, loadReport])
 
   return (
-    <ReportContext.Provider value={{ 
-      reportId, 
-      setReportId, 
-      data, 
-      isSaving, 
-      lastSaved, 
-      updateField,
-      loadReport 
-    }}>
+    <ReportContext.Provider value={contextValue}>
       {children}
     </ReportContext.Provider>
   )

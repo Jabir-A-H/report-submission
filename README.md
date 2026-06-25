@@ -89,13 +89,11 @@ Open [http://localhost:3000](http://localhost:3000) to access the landing page.
 
 ---
 
-## 📚 Detailed Specifications
+## 📚 Documentation Suite & Specifications
 
-For in-depth explanations, code structures, and system configurations, check out the specialized documents in the [docs/](file:///f:/WebDev/report-submission/docs) directory:
+The documentation architecture adheres to the **Master Manual + Living Trackers** pattern (ADR 001). Check out the authoritative references in the `docs/` directory:
 
-- 🏛️ **[System Architecture](file:///f:/WebDev/report-submission/docs/ARCHITECTURE.md)** — Architectural design, client factories, and route protection rules.
-- 🗄️ **[Database Schema](file:///f:/WebDev/report-submission/docs/DATABASE_SCHEMA.md)** — Core tables, triggers, and PostgreSQL Views.
-- 👤 **[User Flow](file:///f:/WebDev/report-submission/docs/USER_FLOW.md)** — Detail on auth flows, password resets, and PKCE callback handles.
-- 🔑 **[Admin Flow](file:///f:/WebDev/report-submission/docs/ADMIN_FLOW.md)** — Approval procedures, zone management, and city overrides.
-- 🔗 **[API & Services](file:///f:/WebDev/report-submission/docs/API_AND_SERVICES.md)** — Excel & PDF export endpoints and external triggers.
-- 🎨 **[Developer Conventions](file:///f:/WebDev/report-submission/docs/CONVENTIONS.md)** — Code conventions, styling rules, and git commit guidelines.
+- 📖 **[Master Technical Manual](file:///f:/WebDev/report-submission/docs/TECHNICAL_MANUAL.md)** — Comprehensive authoritative specification synthesizing system architecture, domain vocabulary, database schema, route governance, export services, developer conventions, and mobile design system tokens.
+- 🗺️ **[Project Roadmap](file:///f:/WebDev/report-submission/docs/ROADMAP.md)** — Active engineering tracking and sprint sequencing (enforcing Core Reliability & Stabilization First).
+- 🐛 **[Known Issues Tracker](file:///f:/WebDev/report-submission/docs/KNOWN_ISSUES.md)** — Living technical debt and bug repository.
+- 🏛️ **[Architecture Decision Records](file:///f:/WebDev/report-submission/docs/ADR)** — Formal immutable records of structural engineering trade-offs.

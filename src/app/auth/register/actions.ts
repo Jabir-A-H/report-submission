@@ -101,9 +101,7 @@ export async function register(formData: FormData) {
 // ── Live field-validation helpers (called on blur from the form) ──────────────
 
 /**
- * Check whether an email is already taken.
- * Checks both the people table and auth.users directly (catches orphaned auth
- * accounts that have no corresponding people row — the original reported bug).
+ * Check whether an email is already taken in the synchronized people table.
  */
 export async function checkEmailAvailability(
   email: string
@@ -115,7 +113,6 @@ export async function checkEmailAvailability(
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  // Check people table first (fast path)
   const { data: existingPerson } = await adminSupabase
     .from('people')
     .select('id')
@@ -123,12 +120,6 @@ export async function checkEmailAvailability(
     .maybeSingle()
 
   if (existingPerson) {
-    return { available: false, message: 'এই ইমেইল দিয়ে আগেই নিবন্ধন করা হয়েছে।' }
-  }
-
-  // Also scan auth.users — catches orphaned auth accounts without a people row
-  const { data: authUsers, error } = await adminSupabase.auth.admin.listUsers({ page: 1, perPage: 1000 })
-  if (!error && authUsers?.users?.some(u => u.email?.toLowerCase() === email.toLowerCase())) {
     return { available: false, message: 'এই ইমেইল দিয়ে আগেই নিবন্ধন করা হয়েছে।' }
   }
 

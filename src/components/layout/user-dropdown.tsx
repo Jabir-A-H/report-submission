@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useLanguage } from "@/components/providers/language-provider";
 import { User, LogOut, ShieldCheck } from "lucide-react";
 import Link from "next/link";
@@ -14,7 +14,7 @@ export function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [user, setUser] = useState<{name: string, role: string, zone: string} | null>(null);
 
   useEffect(() => {

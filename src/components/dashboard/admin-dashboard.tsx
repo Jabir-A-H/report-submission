@@ -16,7 +16,7 @@ import {
   Loader2
 } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@/utils/supabase/client";
 
 // Bengali month names
@@ -28,7 +28,7 @@ const BN_MONTHS: Record<number, string> = {
 
 export function AdminDashboard() {
   const { t } = useLanguage();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   const [stats, setStats] = useState({ users: 0, zones: 0, reports: 0 });
   const [recentReports, setRecentReports] = useState<any[]>([]);
