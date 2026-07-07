@@ -32,3 +32,13 @@
 - [ ] **Google One Tap & Magic Links**: Implement passwordless auth options.
 - [ ] **Enhanced Admin Charts & Audit Logs**: Add visual trend charts and audit tracking.
 - [ ] **Mobile App Native Wrapper**: Capacitor or React Native wrapper for mobile deployment.
+
+## Phase 5: Long-Term Enterprise Scale & Hierarchical Aggregation (1,000+ Grassroots Users)
+- [ ] **4-Tier Organizational Schema Expansion**: Evolve database from 2-tier (City ➔ Zone) to 4-tier (City ➔ Zone ➔ Thana ➔ Ward/Unit) to support ~1,000 grassroots users.
+- [ ] **Bottom-Up Postgres Rollup Views**: Implement automated SQL aggregation views (`view_thana_agg`, `view_zone_agg`, `view_city_agg`) so lower-level ward/thana reports automatically calculate upward without manual data entry.
+- [ ] **Hierarchical Row Level Security (RLS)**: Enforce granular data isolation (Ward managers see only their Ward, Thana managers see Wards under their Thana, Zone managers see Thanas under their Zone).
+- [ ] **Excel/CSV Bulk User Onboarding**: Build an admin upload tool in `/admin/users` to import and provision grassroots user accounts in bulk via spreadsheet.
+- [ ] **Production Infrastructure & Domain Setup**:
+  - [ ] Connect custom production domain name (e.g., `.org` / `.bd`).
+  - [ ] Integrate Resend SMTP for reliable password recovery & transactional notifications (3,000 free emails/mo).
+  - [ ] Configure automated GitHub Actions ping or evaluate Supabase Pro ($25/mo) for guaranteed 99.9% SLA uptime and daily automated cloud backups with 7-day Point-in-Time Recovery (PITR).
