@@ -79,7 +79,7 @@ Reports are submitted periodically across 5 supported temporal categories:
 - `'নয়-মাসিক'` (Nine-Month - M9: Jan-Sep)
 - `'বার্ষিক'` (Yearly - Annual: Jan-Dec)
 
-### 2.3 The 7 Adaptive Report Sections
+### 2.3 The 7 Report Sections
 Every report corpus contains ~250+ individual metrics divided into 7 structural domains:
 1. **মূল তথ্য (Header / Basic Info - `report_headers`)**: General unit numbers, responsible manager identities, and muallima (teacher) counts.
 2. **গ্রুপ / কোর্স রিপোর্ট (Courses - `report_courses`)**: Educational group statistics, enrolled student counts, and attendance averages.

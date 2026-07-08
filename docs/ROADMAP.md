@@ -8,7 +8,7 @@
   - [x] Supabase silent email collision detection (`identities.length === 0`).
   - [x] Login via Email or User ID (server-side resolution).
   - [x] Middleware-enforced route protection and active status check.
-- [x] Build User Dashboard & 7 Section Adaptive Matrix.
+- [x] Build User Dashboard & 7 Report Sections.
 - [x] Build real-time Auto-Save system.
 - [x] Build Admin Dashboard (Users, Zones, Overrides).
 - [x] Implement City Report Aggregation View.

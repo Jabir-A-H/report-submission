@@ -53,21 +53,11 @@ export const translations = {
       extra: "মক্তব ও সফর রিপোর্ট",
       comment: "মন্তব্য রিপোর্ট",
     },
-    status: {
-      complete: "সম্পন্ন",
-      incomplete: "অসম্পূর্ণ",
-      empty: "ফাঁকা",
-    },
     actions: {
       start: "শুরু করুন",
       edit: "সম্পাদনা করুন",
       view: "দেখুন",
       finalSubmit: "চূড়ান্ত জমা দিন",
-    },
-    stats: {
-      total: "মোট",
-      completed: "সম্পন্ন",
-      pending: "অপেক্ষমাণ",
     },
 
     // Admin
@@ -140,21 +130,11 @@ export const translations = {
       extra: "Extra",
       comment: "Comment",
     },
-    status: {
-      complete: "Complete",
-      incomplete: "Incomplete",
-      empty: "Empty",
-    },
     actions: {
       start: "Start",
       edit: "Edit",
       view: "View",
       finalSubmit: "Final Submit",
-    },
-    stats: {
-      total: "Total",
-      completed: "Completed",
-      pending: "Pending",
     },
 
     // Admin
