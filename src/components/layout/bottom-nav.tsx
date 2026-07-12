@@ -71,7 +71,7 @@ export function BottomNav() {
       {isProfileOpen && (
         <div
           ref={panelRef}
-          className="fixed bottom-16 left-0 right-0 z-50 bg-card border-t border-b border-border shadow-2xl rounded-t-3xl max-h-[80vh] overflow-y-auto md:hidden animate-in slide-in-from-bottom duration-250"
+          className="fixed bottom-16 left-0 right-0 z-50 bg-card border-t border-b border-border shadow-2xl rounded-t-3xl max-h-[80vh] overflow-y-auto md:hidden animate-in slide-in-from-bottom duration-250 opacity-100"
         >
           <div className="p-5 bg-gradient-to-br from-primary/10 to-transparent border-b">
             <p className="text-base font-black text-foreground">{userInfo?.name || "..."}</p>
@@ -155,7 +155,7 @@ export function BottomNav() {
       )}
 
       {/* Main Bottom Nav Bar (Opaque 3 Tabs) */}
-      <nav className="fixed bottom-0 left-0 z-50 w-full h-16 bg-background border-t shadow-[0_-2px_10px_rgba(0,0,0,0.08)] md:hidden">
+      <nav className="fixed bottom-0 left-0 z-50 w-full h-16 bg-card border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.15)] md:hidden opacity-100">
         <div className="grid h-full max-w-lg grid-cols-3 mx-auto font-medium">
           {/* Tab 1: Home */}
           <Link
