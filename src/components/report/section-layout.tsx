@@ -33,7 +33,7 @@ export function SectionLayout({ children, title }: { children: React.ReactNode; 
   return (
     <div className="flex flex-col min-h-[calc(100vh-64px-64px)] md:min-h-screen pb-24 md:pb-12 h-full">
       {/* Secondary Top Nav for Section */}
-      <div className="sticky top-16 md:top-0 z-40 w-full bg-background/80 backdrop-blur border-b">
+      <div className="sticky top-0 md:top-16 z-40 w-full bg-background border-b md:bg-background/80 md:backdrop-blur">
         <div className="container py-3 flex items-center justify-between">
           <Link 
             href={`/${queryString}`} 
@@ -64,7 +64,8 @@ export function SectionLayout({ children, title }: { children: React.ReactNode; 
       </div>
 
       {/* Persistence Bar / Footer Navigation */}
-      <div className="fixed bottom-0 md:bottom-8 left-0 right-0 z-40 bg-background/95 backdrop-blur md:bg-transparent border-t md:border-t-0 p-4 md:p-0">
+      <div className="fixed bottom-16 md:bottom-8 left-0 right-0 z-40 bg-background border-t md:bg-transparent md:border-t-0 p-4 md:p-0">
+
         <div className="container flex items-center justify-between gap-4">
           {prevSection ? (
             <button 

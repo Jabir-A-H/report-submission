@@ -176,6 +176,7 @@ function ReportViewer() {
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [selectedReportType, setSelectedReportType] = useState<string>("মাসিক");
+  const [isFilterExpanded, setIsFilterExpanded] = useState<boolean>(false);
 
   // Loaded Report data
   const [reportId, setReportId] = useState<number | null>(null);
@@ -451,6 +452,7 @@ function ReportViewer() {
 
   // Handle Apply Filter Click
   const handleApplyFilter = () => {
+    setIsFilterExpanded(false);
     const params = new URLSearchParams();
     if (selectedZone) params.set("zone_id", selectedZone);
     params.set("month", String(selectedMonth));
@@ -504,17 +506,19 @@ function ReportViewer() {
     <div className="container py-8 max-w-7xl animate-in fade-in duration-500">
       {/* ── Page Header ── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 p-6 bg-card border border-border/50 rounded-[2rem] shadow-sm">
-        <div className="flex items-center gap-4">
-          <div className="p-4 bg-primary/10 text-primary rounded-2xl">
+        <div className="flex items-start gap-4">
+          <div className="p-4 bg-primary/10 text-primary rounded-2xl shrink-0">
             <Table2 className="w-8 h-8" />
           </div>
           <div>
+            <p className="text-sm md:text-base font-bold text-primary mb-0.5">বিসমিল্লাহির রহমানীর রহীম</p>
+            <p className="text-base md:text-lg font-black text-foreground mb-1.5">তা'লীমুল কুরআন বিভাগ</p>
             <h1 className="text-2xl md:text-3xl font-black text-foreground">
               রিপোর্ট (এক নজরে)
             </h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-muted-foreground font-medium mt-1 text-sm md:text-base">
               {reportInfo
-                ? `${reportInfo.zone?.name || ""} - এর সম্পূর্ণ রিপোর্ট সারাংশ`
+                ? `${reportInfo.zone?.name || ""} জোন — ${reportInfo.report_type || "মাসিক"} রিপোর্ট — ${displayPeriodLabel}`
                 : "জমাকৃত রিপোর্ট দেখার প্যানেল"}
             </p>
           </div>
@@ -522,7 +526,7 @@ function ReportViewer() {
 
         {/* Download Buttons */}
         {isDataLoaded && reportId && (
-          <div className="flex gap-2 w-full sm:w-auto">
+          <div className="flex gap-2 w-full sm:w-auto shrink-0">
             <button
               onClick={handleDownloadPDF}
               className="modern-btn border border-border bg-card flex-1 sm:flex-none justify-center gap-2 px-4 py-2.5 hover:bg-muted text-sm font-bold text-foreground transition-all active:scale-95"
@@ -543,8 +547,31 @@ function ReportViewer() {
 
       {/* ── Filter Form ── */}
       {!reportIdParam && (
-        <div className="modern-card p-6 mb-8 bg-card shadow-lg border-primary/10">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 items-end">
+        <div className="modern-card p-4 md:p-6 mb-8 bg-card shadow-lg border-primary/10">
+          {/* Mobile Collapsed Summary Bar */}
+          <div className="flex md:hidden items-center justify-between gap-3">
+            <div className="flex items-center gap-2 overflow-hidden">
+              <Filter className="w-4 h-4 text-primary shrink-0" />
+              <div className="truncate text-xs font-bold text-foreground">
+                {reportInfo
+                  ? `${reportInfo.zone?.name || "জোন"} — ${reportInfo.report_type || selectedReportType} — ${displayPeriodLabel}`
+                  : "ফিল্টার করুন (জোন, মাস, সাল)"}
+              </div>
+            </div>
+            <button
+              onClick={() => setIsFilterExpanded(!isFilterExpanded)}
+              className="px-3 py-1.5 text-xs font-bold rounded-lg bg-primary/10 text-primary active:scale-95 transition-all shrink-0 outline-none"
+            >
+              {isFilterExpanded ? "বন্ধ করুন" : "ফিল্টার পরিবর্তন"}
+            </button>
+          </div>
+
+          {/* Filter Grid */}
+          <div
+            className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 items-end mt-4 md:mt-0 ${
+              isFilterExpanded ? "block" : "hidden md:grid"
+            }`}
+          >
             {/* Zone Selector */}
             <div className="space-y-2 w-full md:col-span-1">
               <label className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
@@ -679,108 +706,104 @@ function ReportViewer() {
         </div>
       )}
 
-      {/* ── Report Content Area ── */}
+      {/* ── Report Content Area (Continuous Document Layout) ── */}
       {!isLoading && isDataLoaded && reportId && (
-        <div className="space-y-8">
+        <div className="modern-card bg-card border border-border/80 shadow-2xl rounded-[2.5rem] p-6 md:p-12 space-y-10">
           
-          {/* ────── 1. Header Section ────── */}
+          {/* ────── Summary Information Grid ────── */}
           {headerData && (
-            <section className="bg-card border-l-4 border-l-cyan-500 border-y border-r border-border rounded-2xl p-6 shadow-sm overflow-hidden relative">
-              <div className="absolute top-0 right-0 p-12 bg-cyan-500/5 rounded-full blur-3xl -mr-10 -mt-10" />
-              <h2 className="text-xl font-black text-cyan-600 mb-6 relative z-10 flex items-center gap-2">
-                📋 মূল তথ্য
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm relative z-10">
+            <div className="space-y-6 pb-8 border-b border-border/70">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 text-sm bg-muted/30 p-5 rounded-2xl border border-border/60">
                 <div>
-                  <span className="text-muted-foreground block mb-1">দায়িত্বশীলের নাম:</span>
-                  <span className="font-bold text-foreground text-base">
+                  <span className="text-muted-foreground block mb-1 text-xs font-semibold">দায়িত্বশীলের নাম:</span>
+                  <span className="font-extrabold text-foreground text-base">
                     {headerData.responsible_name || "—"}
                   </span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground block mb-1">থানা:</span>
-                  <span className="font-bold text-foreground text-base">
+                  <span className="text-muted-foreground block mb-1 text-xs font-semibold">থানা:</span>
+                  <span className="font-extrabold text-foreground text-base">
                     {headerData.thana || "—"}
                   </span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground block mb-1">ওয়ার্ড:</span>
-                  <span className="font-bold text-foreground text-base">
+                  <span className="text-muted-foreground block mb-1 text-xs font-semibold">ওয়ার্ড:</span>
+                  <span className="font-extrabold text-foreground text-base">
                     {headerData.ward || "—"}
                   </span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground block mb-1">রিপোর্ট সময়কাল:</span>
-                  <span className="font-bold text-primary text-base">
+                  <span className="text-muted-foreground block mb-1 text-xs font-semibold">রিপোর্ট সময়কাল:</span>
+                  <span className="font-extrabold text-primary text-base">
                     {displayPeriodLabel}
                   </span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6 pt-6 border-t border-border/60 relative z-10">
-                <div className="p-4 bg-muted/40 rounded-xl border border-border/30">
-                  <span className="text-muted-foreground block mb-1 text-xs">মোট মুয়াল্লিমা:</span>
-                  <span className="font-extrabold text-xl text-foreground">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="p-4 bg-muted/40 rounded-xl border border-border/40">
+                  <span className="text-muted-foreground block mb-1 text-xs font-bold">মোট মুয়াল্লিমা:</span>
+                  <span className="font-black text-xl text-foreground">
                     {toBn(headerData.total_muallima)}
                   </span>
                 </div>
-                <div className="p-4 bg-muted/40 rounded-xl border border-border/30">
-                  <span className="text-muted-foreground block mb-1 text-xs">বৃদ্ধি / ঘাটতি:</span>
-                  <span className="font-extrabold text-xl text-foreground inline-flex gap-2">
+                <div className="p-4 bg-muted/40 rounded-xl border border-border/40">
+                  <span className="text-muted-foreground block mb-1 text-xs font-bold">বৃদ্ধি / ঘাটতি:</span>
+                  <span className="font-black text-xl text-foreground inline-flex gap-1.5">
                     <span className="text-green-600">+{toBn(headerData.muallima_increase)}</span>
-                    <span className="text-muted-foreground">/</span>
+                    <span className="text-muted-foreground/60">/</span>
                     <span className="text-red-500">-{toBn(headerData.muallima_decrease)}</span>
                   </span>
                 </div>
-                <div className="p-4 bg-muted/40 rounded-xl border border-border/30">
-                  <span className="text-muted-foreground block mb-1 text-xs">মোট ইউনিট:</span>
-                  <span className="font-extrabold text-xl text-foreground">
+                <div className="p-4 bg-muted/40 rounded-xl border border-border/40">
+                  <span className="text-muted-foreground block mb-1 text-xs font-bold">মোট ইউনিট:</span>
+                  <span className="font-black text-xl text-foreground">
                     {toBn(headerData.total_unit)}
                   </span>
                 </div>
-                <div className="p-4 bg-muted/40 rounded-xl border border-border/30">
-                  <span className="text-muted-foreground block mb-1 text-xs">মুয়াল্লিমা সহ ইউনিট:</span>
-                  <span className="font-extrabold text-xl text-foreground">
+                <div className="p-4 bg-muted/40 rounded-xl border border-border/40">
+                  <span className="text-muted-foreground block mb-1 text-xs font-bold">মুয়াল্লিমা সহ ইউনিট:</span>
+                  <span className="font-black text-xl text-foreground">
                     {toBn(headerData.units_with_muallima)}
                   </span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-4 relative z-10">
-                <div className="p-4 bg-muted/20 rounded-xl border border-border/20">
-                  <span className="text-muted-foreground block mb-1 text-xs">সনদপ্রাপ্তা মুয়াল্লিমা:</span>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="p-4 bg-muted/20 rounded-xl border border-border/30">
+                  <span className="text-muted-foreground block mb-1 text-xs font-semibold">সনদপ্রাপ্তা মুয়াল্লিমা:</span>
                   <span className="font-bold text-base text-foreground">
                     {toBn(headerData.certified_muallima)}
                   </span>
                 </div>
-                <div className="p-4 bg-muted/20 rounded-xl border border-border/20">
-                  <span className="text-muted-foreground block mb-1 text-xs">সনদপ্রাপ্তা ক্লাস নিচ্ছেন:</span>
+                <div className="p-4 bg-muted/20 rounded-xl border border-border/30">
+                  <span className="text-muted-foreground block mb-1 text-xs font-semibold">সনদপ্রাপ্তা ক্লাস নিচ্ছেন:</span>
                   <span className="font-bold text-base text-foreground">
                     {toBn(headerData.certified_muallima_taking_classes)}
                   </span>
                 </div>
-                <div className="p-4 bg-muted/20 rounded-xl border border-border/20">
-                  <span className="text-muted-foreground block mb-1 text-xs">প্রশিক্ষণপ্রাপ্তা মুয়াল্লিমা:</span>
+                <div className="p-4 bg-muted/20 rounded-xl border border-border/30">
+                  <span className="text-muted-foreground block mb-1 text-xs font-semibold">প্রশিক্ষণপ্রাপ্তা মুয়াল্লিমা:</span>
                   <span className="font-bold text-base text-foreground">
                     {toBn(headerData.trained_muallima)}
                   </span>
                 </div>
-                <div className="p-4 bg-muted/20 rounded-xl border border-border/20">
-                  <span className="text-muted-foreground block mb-1 text-xs">প্রশিক্ষণপ্রাপ্তা ক্লাস নিচ্ছেন:</span>
+                <div className="p-4 bg-muted/20 rounded-xl border border-border/30">
+                  <span className="text-muted-foreground block mb-1 text-xs font-semibold">প্রশিক্ষণপ্রাপ্তা ক্লাস নিচ্ছেন:</span>
                   <span className="font-bold text-base text-foreground">
                     {toBn(headerData.trained_muallima_taking_classes)}
                   </span>
                 </div>
               </div>
-            </section>
+            </div>
           )}
 
-          {/* ────── 2. Courses Section ────── */}
-          <section className="bg-card border-l-4 border-l-purple-500 border-y border-r border-border rounded-2xl p-6 shadow-sm">
-            <h2 className="text-xl font-black text-purple-600 mb-4 flex items-center gap-2">
-              📚 গ্রুপ / কোর্স রিপোর্ট
-            </h2>
-            <div className="overflow-x-auto rounded-xl border border-border">
+          {/* ────── ১. গ্রুপ / কোর্স রিপোর্ট ────── */}
+          <div className="space-y-4">
+            <h3 className="text-lg md:text-xl font-black text-foreground border-l-4 border-purple-500 pl-3.5 py-0.5 flex items-center justify-between">
+              <span>১. গ্রুপ / কোর্স রিপোর্ট</span>
+            </h3>
+            <div className="overflow-x-auto rounded-xl border border-border bg-background">
               <table className="w-full text-sm text-center border-collapse">
                 <thead className="bg-purple-500/5 text-purple-800 font-bold border-b border-border">
                   <tr>
@@ -840,14 +863,34 @@ function ReportViewer() {
                 </tbody>
               </table>
             </div>
-          </section>
 
-          {/* ────── 3. Organizational Section ────── */}
-          <section className="bg-card border-l-4 border-l-blue-500 border-y border-r border-border rounded-2xl p-6 shadow-sm">
-            <h2 className="text-xl font-black text-blue-600 mb-4 flex items-center gap-2">
-              🏢 দাওয়াত ও সংগঠন
-            </h2>
-            <div className="overflow-x-auto rounded-xl border border-border">
+            {/* Inline Maktab Stats */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-purple-500/5 rounded-xl border border-purple-500/20 text-xs sm:text-sm">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-muted-foreground font-semibold">মক্তব সংখ্যা:</span>
+                <span className="font-black text-foreground text-sm sm:text-base">{toBn(extraData.find(e => e.category === "মক্তব সংখ্যা")?.number || 0)} টি</span>
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-muted-foreground font-semibold">মক্তব বৃদ্ধি:</span>
+                <span className="font-black text-green-600 text-sm sm:text-base">+{toBn(extraData.find(e => e.category === "মক্তব বৃদ্ধি")?.number || 0)} টি</span>
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-muted-foreground font-semibold">মহানগরী পরিচালিত:</span>
+                <span className="font-black text-foreground text-sm sm:text-base">{toBn(extraData.find(e => e.category === "মহানগরী পরিচালিত")?.number || 0)} টি</span>
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-muted-foreground font-semibold">স্থানীয়ভাবে পরিচালিত:</span>
+                <span className="font-black text-foreground text-sm sm:text-base">{toBn(extraData.find(e => e.category === "স্থানীয়ভাবে পরিচালিত")?.number || 0)} টি</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ────── ২. দাওয়াত ও সংগঠন ────── */}
+          <div className="space-y-4 pt-4">
+            <h3 className="text-lg md:text-xl font-black text-foreground border-l-4 border-blue-500 pl-3.5 py-0.5">
+              ২. দাওয়াত ও সংগঠন
+            </h3>
+            <div className="overflow-x-auto rounded-xl border border-border bg-background">
               <table className="w-full text-sm text-center border-collapse">
                 <thead className="bg-blue-500/5 text-blue-800 font-bold border-b border-border">
                   <tr>
@@ -881,14 +924,14 @@ function ReportViewer() {
                 </tbody>
               </table>
             </div>
-          </section>
+          </div>
 
-          {/* ────── 4. Personal Section ────── */}
-          <section className="bg-card border-l-4 border-l-pink-500 border-y border-r border-border rounded-2xl p-6 shadow-sm">
-            <h2 className="text-xl font-black text-pink-600 mb-4 flex items-center gap-2">
-              👤 ব্যক্তিগত উদ্যোগে তা'লীমুল কুরআন
-            </h2>
-            <div className="overflow-x-auto rounded-xl border border-border">
+          {/* ────── ৩. ব্যক্তিগত উদ্যোগে তা'লীমুল কুরআন ────── */}
+          <div className="space-y-4 pt-4">
+            <h3 className="text-lg md:text-xl font-black text-foreground border-l-4 border-pink-500 pl-3.5 py-0.5">
+              ৩. ব্যক্তিগত উদ্যোগে তা'লীমুল কুরআন
+            </h3>
+            <div className="overflow-x-auto rounded-xl border border-border bg-background">
               <table className="w-full text-sm text-center border-collapse">
                 <thead className="bg-pink-500/5 text-pink-800 font-bold border-b border-border">
                   <tr>
@@ -929,14 +972,14 @@ function ReportViewer() {
                 </tbody>
               </table>
             </div>
-          </section>
+          </div>
 
-          {/* ────── 5. Meetings Section ────── */}
-          <section className="bg-card border-l-4 border-l-cyan-600 border-y border-r border-border rounded-2xl p-6 shadow-sm">
-            <h2 className="text-xl font-black text-cyan-700 mb-4 flex items-center gap-2">
-              🤝 বৈঠকসমূহ
-            </h2>
-            <div className="overflow-x-auto rounded-xl border border-border">
+          {/* ────── ৪. বৈঠকসমূহ ────── */}
+          <div className="space-y-4 pt-4">
+            <h3 className="text-lg md:text-xl font-black text-foreground border-l-4 border-cyan-600 pl-3.5 py-0.5">
+              ৪. বৈঠকসমূহ
+            </h3>
+            <div className="overflow-x-auto rounded-xl border border-border bg-background">
               <table className="w-full text-sm text-center border-collapse">
                 <thead className="bg-cyan-500/5 text-cyan-800 font-bold border-b border-border">
                   <tr>
@@ -984,49 +1027,44 @@ function ReportViewer() {
                 </tbody>
               </table>
             </div>
-          </section>
 
-          {/* ────── 6. Extras Section ────── */}
-          <section className="bg-card border-l-4 border-l-orange-500 border-y border-r border-border rounded-2xl p-6 shadow-sm">
-            <h2 className="text-xl font-black text-orange-600 mb-4 flex items-center gap-2">
-              📊 মক্তব ও সফর রিপোর্ট
-            </h2>
-            <div className="overflow-x-auto rounded-xl border border-border">
-              <table className="w-full text-sm text-center border-collapse">
-                <thead className="bg-orange-500/5 text-orange-800 font-bold border-b border-border">
-                  <tr>
-                    <th className="px-4 py-3 text-left border-r border-border">বিষয়</th>
-                    <th className="px-4 py-3">সংখ্যা</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {EXTRA_CATEGORIES.map((cat) => {
-                    const row = extraData.find((r) => r.category === cat) || {
-                      number: 0,
-                    };
-                    return (
-                      <tr key={cat} className="hover:bg-muted/40 transition-colors">
-                        <td className="px-4 py-3 border-r border-border text-left font-bold text-foreground">{cat}</td>
-                        <td className="px-4 py-3 font-semibold">{toBn(row.number)}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          {/* ────── 7. Comments Section ────── */}
-          {commentData && commentData.comment && (
-            <section className="bg-card border-l-4 border-l-amber-500 border-y border-r border-border rounded-2xl p-6 shadow-sm">
-              <h2 className="text-xl font-black text-amber-600 mb-4 flex items-center gap-2">
-                💬 মন্তব্য
-              </h2>
-              <div className="bg-muted/30 border border-border/80 rounded-xl p-5 min-h-[80px] text-foreground text-sm whitespace-pre-wrap leading-relaxed">
-                {commentData.comment}
+            {/* Inline Safar Stats */}
+            <div className="p-4 bg-cyan-500/5 rounded-xl border border-cyan-500/20 space-y-2 text-xs sm:text-sm">
+              <span className="font-black text-cyan-800 dark:text-cyan-400 block text-xs tracking-wider uppercase">সফর রিপোর্ট সারাংশ:</span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-muted-foreground font-semibold">মহানগরীর সফর:</span>
+                  <span className="font-black text-foreground text-sm sm:text-base">{toBn(extraData.find(e => e.category === "মহানগরীর সফর")?.number || 0)} টি</span>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-muted-foreground font-semibold">থানা কমিটির সফর:</span>
+                  <span className="font-black text-foreground text-sm sm:text-base">{toBn(extraData.find(e => e.category === "থানা কমিটির সফর")?.number || 0)} টি</span>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-muted-foreground font-semibold">থানা প্রতিনিধির সফর:</span>
+                  <span className="font-black text-foreground text-sm sm:text-base">{toBn(extraData.find(e => e.category === "থানা প্রতিনিধির সফর")?.number || 0)} টি</span>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-muted-foreground font-semibold">ওয়ার্ড প্রতিনিধির সফর:</span>
+                  <span className="font-black text-foreground text-sm sm:text-base">{toBn(extraData.find(e => e.category === "ওয়ার্ড প্রতিনিধির সফর")?.number || 0)} টি</span>
+                </div>
               </div>
-            </section>
-          )}
+            </div>
+          </div>
+
+          {/* ────── ৫. মন্তব্য ────── */}
+          <div className="space-y-4 pt-4">
+            <h3 className="text-lg md:text-xl font-black text-foreground border-l-4 border-amber-500 pl-3.5 py-0.5">
+              ৫. মন্তব্য
+            </h3>
+            <div className="bg-muted/30 border border-border/80 rounded-xl p-5 min-h-[90px] text-foreground text-sm whitespace-pre-wrap leading-relaxed">
+              {commentData?.comment?.trim() ? (
+                commentData.comment
+              ) : (
+                <span className="text-muted-foreground italic font-medium">কোনো মন্তব্য যোগ করা হয়নি।</span>
+              )}
+            </div>
+          </div>
 
         </div>
       )}

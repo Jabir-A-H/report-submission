@@ -29,6 +29,7 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
+import { Suspense } from "react";
 import { Navbar } from "@/components/layout/navbar";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { ReportProvider } from "@/components/report/report-context";
@@ -50,11 +51,15 @@ export default function RootLayout({
         >
           <LanguageProvider>
             <ReportProvider>
-              <Navbar />
+              <Suspense fallback={<div className="h-16 w-full hidden md:block bg-background border-b shrink-0" />}>
+                <Navbar />
+              </Suspense>
               <main className="flex-1 flex flex-col relative z-0 pb-20 md:pb-0">
                 {children}
               </main>
-              <BottomNav />
+              <Suspense fallback={<div className="h-16 w-full md:hidden fixed bottom-0 left-0 bg-background border-t z-50" />}>
+                <BottomNav />
+              </Suspense>
             </ReportProvider>
           </LanguageProvider>
         </ThemeProvider>
