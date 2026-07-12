@@ -67,3 +67,12 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 - **Date**: 2026-06-22
 - **Description**: The system originally used a massive ~200-line client-side fallback in `user-dashboard.tsx` and `page.tsx` to insert seed rows into 7 child tables simultaneously when a new report was created.
 - **Fix**: Replaced with atomic Postgres RPC function (`get_or_create_report`).
+
+---
+
+### Mobile Table Overflow & Inline Stats Visual Clutter (`page.tsx`)
+- **Date**: 2026-07-12
+- **Resolution Date**: 2026-07-12
+- **Description**: Report tables originally forced unconstrained horizontal scrolling or squished multi-column cells across small mobile screens (`< 360px`), while inline Maktab and Safar stats blocks utilized prominent background colors (`bg-purple-500/5` / `bg-cyan-500/5`) that created double-box visual clutter below data tables.
+- **Fix**: Implemented situation-based minimum-width thresholds (`table-fixed w-full min-w-[500px]` / `min-w-[520px]`) and proportional percentage column widths (`34% : 17% : 17% : 16% : 16%`, etc.) so the first 3 columns remain visible without scrolling on standard mobile portrait viewports (ADR 004). Replaced inline stats colored container backgrounds with clean, transparent border framing (`p-4 rounded-xl border border-border` & `px-3 py-2 rounded-lg border border-border/70`) while restoring normal `font-black text-sm sm:text-base` metric counts and a responsive `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5` mobile layout.
+

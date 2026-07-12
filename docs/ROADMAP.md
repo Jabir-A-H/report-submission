@@ -22,8 +22,11 @@
 4. [x] **Eliminate Registration API Scaling Cap (`src/app/auth/register/actions.ts`)**: Migrated registration email validation from `admin.listUsers()` (1000-user cap) to query synchronized `public.people` (ADR 003).
 
 ## Phase 3: Secondary Polish & Mobile Usability Hardening (Active Focus)
-1. [ ] **Secondary Component Memoization**: Wrap render-loop `createClient()` calls inside `admin-dashboard.tsx`, `bottom-nav.tsx`, `user-dropdown.tsx`, and `correction-button.tsx` with `useMemo`.
-2. [ ] **Mobile Touch Ergonomics (WCAG Lints)**: Expand touch target padding on nested table rows in `auto-save-field.tsx` (`min-h-[44px] min-w-[44px]`).
+1. [x] **Report Page UI/UX Refactor & Responsive Table Hardening (`src/app/report/page.tsx`)**: Implemented situation-based minimum-width overflow thresholds (`table-fixed w-full min-w-[500px]` / `min-w-[520px]`) with proportional column allocations across Sections 2, 3, and 4 so small mobile screens display critical first 3 columns clearly without horizontal scrolling disruptions while wider viewports expand across all columns (ADR 004).
+2. [x] **Transparent, Border-Framed Inline Stats (`মক্তব রিপোর্ট:` & `সফর রিপোর্ট:`)**: Replaced tinted background boxes with clean, border-framed (`p-4 rounded-xl border border-border text-xs sm:text-sm` & `px-3 py-2 rounded-lg border border-border/70`) transparent cards, preserving normal font sizes (`font-black text-sm sm:text-base` for counts) and a responsive `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5` layout (ADR 004).
+3. [x] **Mobile Navigation & Filter Accessibility (`RootLayout`, `BottomNav`, `Navbar`, `UserDropdown`)**: Wrapped top and bottom navigation in `<Suspense>` to preserve URL search query parameters across period/zone filters. Implemented a 3-tab thumb-friendly mobile bottom navigation (`হোম`, `রিপোর্ট`, `প্রোফাইল`) with slide-up profile menu, consolidated download dropdown with click-outside accessibility, and moved `সাহায্য` (`/help`) inside `UserDropdown` to declutter the navbar.
+4. [ ] **Secondary Component Memoization**: Wrap render-loop `createClient()` calls inside `admin-dashboard.tsx`, `bottom-nav.tsx`, `user-dropdown.tsx`, and `correction-button.tsx` with `useMemo`.
+5. [ ] **Mobile Touch Ergonomics (WCAG Lints)**: Expand touch target padding on nested table rows in `auto-save-field.tsx` (`min-h-[44px] min-w-[44px]`).
 
 ## Phase 4: Post-Stabilization Feature Expansion
 - [ ] **Signature Upload**: Add an option for users/admins to upload a handwritten signature image for PDF exports.

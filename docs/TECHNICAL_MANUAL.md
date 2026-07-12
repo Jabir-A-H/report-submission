@@ -79,15 +79,15 @@ Reports are submitted periodically across 5 supported temporal categories:
 - `'নয়-মাসিক'` (Nine-Month - M9: Jan-Sep)
 - `'বার্ষিক'` (Yearly - Annual: Jan-Dec)
 
-### 2.3 The 7 Report Sections
-Every report corpus contains ~250+ individual metrics divided into 7 structural domains:
-1. **মূল তথ্য (Header / Basic Info - `report_headers`)**: General unit numbers, responsible manager identities, and muallima (teacher) counts.
-2. **গ্রুপ / কোর্স রিপোর্ট (Courses - `report_courses`)**: Educational group statistics, enrolled student counts, and attendance averages.
-3. **দাওয়াত ও সংগঠন (Organizational - `report_organizational`)**: Dawah outreach metrics, organizational distribution, and monetary funding collections.
-4. **ব্যক্তিগত উদ্যোগে তালিমুল কুরআন (Personal - `report_personal`)**: Personal Quranic instruction initiatives.
-5. **বৈঠকসমূহ (Meetings - `report_meetings`)**: Meeting frequencies and average attendance across city, thana, and ward echelons.
-6. **মক্তব ও সফর রিপোর্ট (Maktab & Travel - `report_extras`)**: Maktab educational metrics and travel/tour audits.
-7. **মন্তব্য রিপোর্ট (Comments - `report_comments`)**: Free-text textual feedback and qualitative observations.
+### 2.3 The 7 Report Sections & Layout Architecture (`src/app/report/page.tsx`)
+Every report corpus contains ~250+ individual metrics divided into 7 structural domains, structured for zero mobile squishing and crystal-clear visual hierarchy (ADR 004):
+1. **মূল তথ্য (Header / Basic Info - `report_headers`)**: General unit numbers, responsible manager identities, and muallima (teacher) counts rendered inside a responsive summary grid with collapsible sub-sections (`grid-cols-2 max-[320px]:grid-cols-1 lg:grid-cols-4`).
+2. **গ্রুপ / কোর্স রিপোর্ট (Courses - `report_courses`)**: 13-column educational group statistics, enrolled student counts, and attendance averages (`overflow-x-auto`).
+3. **দাওয়াত ও সংগঠন (Organizational - `report_organizational`)**: Dawah outreach metrics, organizational distribution, and monetary collections (`min-w-[500px]` with `34% : 17% : 17% : 16% : 16%` proportional allocations ensuring the first 3 columns occupy 100% of phone viewports cleanly).
+4. **ব্যক্তিগত উদ্যোগে তা'লীমুল কুরআন (Personal - `report_personal`)**: Transposed row-based metrics (`PERSONAL_METRICS_ROWS`) with equal `16%` column allocations (`min-w-[500px]`).
+5. **বৈঠকসমূহ (Meetings - `report_meetings`)**: Meeting frequencies and attendance across city, thana, and ward echelons (`min-w-[520px]` with `10%` equal attendance columns).
+6. **মক্তব ও সফর রিপোর্ট (Maktab & Travel - `report_extras`)**: Maktab educational metrics (`মক্তব রিপোর্ট:`) positioned below Section 1 and travel/tour audits (`সফর রিপোর্ট:`) below Section 4. Rendered as transparent, border-framed cards (`p-4 rounded-xl border border-border` with inner tiles `px-3 py-2 rounded-lg border border-border/70`) without background tints (`bg-transparent`) or double boxiness.
+7. **মন্তব্য রিপোর্ট (Comments - `report_comments`)**: Free-text textual feedback and qualitative observations inside a clean `rounded-xl border border-border` container (`মন্তব্য:`).
 
 ---
 
@@ -155,6 +155,12 @@ The suite supports 4 curated visual themes: **Light**, **Dark**, **Solarized Lig
 ### 5.3 Zero-Refresh Dual-Language Engine
 Users toggle seamlessly between Bengali (বাংলা - default) and English via `UserDropdown`. Language switching updates global UI string dictionaries dynamically via React Context without route pushes or page refreshes.
 
+### 5.4 Dynamic Table Sizing & Inline Statistics Architecture (ADR 004)
+To ensure optimal readability across both compact mobile phone screens (`< 360px–390px`) and widescreen displays without horizontal squishing, all report sections implement a dual-behavior overflow and card design (`src/app/report/page.tsx`):
+- **Dynamic Minimum Width Thresholds (`min-w-[px]`)**: Tables inside `overflow-x-auto` wrappers enforce exact minimum widths (`min-w-[500px]` for Section 2 and Section 3; `min-w-[520px]` for Section 4) with strict proportional column allocations (`w-[34%] : w-[17%] : w-[17%] : w-[16%] : w-[16%]`). On compact mobile viewports (`< 500px`), the critical first 3 columns occupy exactly 100% of the screen width (`340px`), allowing users to inspect categories, numeric counts (`সংখ্যা`), and growth (`বৃদ্ধি`) without scrolling, while secondary financial/comment columns sit cleanly in the horizontal scroll. On wider screens (`> 500px`), `w-full` expands smoothly across all columns without horizontal scrollbars.
+- **Transparent Border-Framed Inline Statistics**: Inline Maktab (`মক্তব রিপোর্ট:`) and Safar (`সফর রিপোর্ট:`) summaries eliminate background tints (`bg-transparent`), matching the exact curvature and border of primary data tables (`p-4 rounded-xl border border-border text-xs sm:text-sm`). Inner metric items render in individual border boxes (`px-3 py-2 rounded-lg border border-border/70`) with normal bold font sizing (`font-black text-sm sm:text-base` for counts and `font-semibold text-muted-foreground` for labels). On mobile (`grid-cols-1`), each item sits on its own row (`flex items-center justify-between py-0.5`), preventing multi-line wrapping.
+- **Opaque Navigation & Filter Persistence**: Top (`Navbar`) and bottom (`BottomNav`) navigation bars use solid opaque backgrounds (`bg-card border-border opacity-100`) and are wrapped in `<Suspense>` (`RootLayout`) so `useSearchParams()` preserves active reporting filters (`zone_id`, `month`, `year`, `report_type`) across tab switching. Mobile users navigate via a 3-tab layout (`হোম`, `রিপোর্ট`, `প্রোফাইল`), while `সাহায্য` (`/help`) resides inside `UserDropdown`.
+
 ---
 
 ## Chapter 6: Developer Conventions & Governance
@@ -178,8 +184,9 @@ Historical documentation describing the migration from the legacy Python/Flask s
 ### 7.2 File Path Index
 - `src/middleware.ts` — Route governance & auth approval gate.
 - `src/app/auth/register/actions.ts` — Registration server actions & uniqueness checks.
+- `src/app/report/page.tsx` — Report document layout, dynamic responsive table overflow thresholds (`min-w-[500px]`), and transparent border-framed inline statistics (ADR 004).
 - `src/components/dashboard/user-dashboard.tsx` — User report matrix dashboard & RPC trigger.
 - `src/components/report/report-context.tsx` — Optimistic auto-save state provider.
 - `docs/ROADMAP.md` — Active engineering tracking & sprint sequencing.
 - `docs/KNOWN_ISSUES.md` — Living technical debt & bug repository.
-- `docs/ADR/` — Formal Architecture Decision Records.
+- `docs/ADR/` — Formal Architecture Decision Records (`001` through `004`).
