@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import {
@@ -14,6 +14,7 @@ import {
   Calendar,
   Building,
   ClipboardList,
+  ChevronDown,
 } from "lucide-react";
 
 // ─── Constants & Categories ──────────────────────────────────────────────────
@@ -71,6 +72,16 @@ const ORG_CATEGORIES = [
 ];
 
 const PERSONAL_CATEGORIES = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"];
+
+const PERSONAL_METRICS_ROWS = [
+  { key: "teaching", label: "কতজন শিখাচ্ছেন" },
+  { key: "learning", label: "কতজনকে শিখাচ্ছেন" },
+  { key: "olama_invited", label: "দাওয়াতপ্রাপ্ত ওলামা" },
+  { key: "became_shohojogi", label: "সহযোগী হয়েছেন" },
+  { key: "became_sokrio_shohojogi", label: "সক্রিয় সহযোগী হয়েছেন" },
+  { key: "became_kormi", label: "কর্মী হয়েছেন" },
+  { key: "became_rukon", label: "রুকন হয়েছেন" },
+];
 
 const MEETING_CATEGORIES = [
   "কমিটি বৈঠক হয়েছে",
@@ -177,6 +188,18 @@ function ReportViewer() {
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [selectedReportType, setSelectedReportType] = useState<string>("মাসিক");
   const [isFilterExpanded, setIsFilterExpanded] = useState<boolean>(false);
+  const [isDownloadOpen, setIsDownloadOpen] = useState<boolean>(false);
+  const downloadRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (downloadRef.current && !downloadRef.current.contains(event.target as Node)) {
+        setIsDownloadOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Loaded Report data
   const [reportId, setReportId] = useState<number | null>(null);
@@ -505,42 +528,60 @@ function ReportViewer() {
   return (
     <div className="container py-8 max-w-7xl animate-in fade-in duration-500">
       {/* ── Page Header ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 p-6 bg-card border border-border/50 rounded-[2rem] shadow-sm">
-        <div className="flex items-start gap-4">
-          <div className="p-4 bg-primary/10 text-primary rounded-2xl shrink-0">
-            <Table2 className="w-8 h-8" />
-          </div>
-          <div>
-            <p className="text-sm md:text-base font-bold text-primary mb-0.5">বিসমিল্লাহির রহমানীর রহীম</p>
-            <p className="text-base md:text-lg font-black text-foreground mb-1.5">তা'লীমুল কুরআন বিভাগ</p>
-            <h1 className="text-2xl md:text-3xl font-black text-foreground">
-              রিপোর্ট (এক নজরে)
-            </h1>
-            <p className="text-muted-foreground font-medium mt-1 text-sm md:text-base">
-              {reportInfo
-                ? `${reportInfo.zone?.name || ""} জোন — ${reportInfo.report_type || "মাসিক"} রিপোর্ট — ${displayPeriodLabel}`
-                : "জমাকৃত রিপোর্ট দেখার প্যানেল"}
-            </p>
-          </div>
+      <div className="flex flex-col items-center justify-center text-center p-6 bg-card border border-border/50 rounded-[2rem] shadow-sm relative mb-8">
+        <div className="w-full max-w-3xl py-2">
+          <p className="text-base md:text-lg font-bold text-foreground mb-1.5">
+            বিসমিল্লাহির রহমানীর রহীম
+          </p>
+          <p className="text-2xl md:text-3xl font-black text-foreground mb-1.5">
+            তা'লীমুল কুরআন বিভাগ
+          </p>
+          <p className="text-lg md:text-xl font-bold text-foreground mb-0">
+            {reportInfo
+              ? `${reportInfo.zone?.name || ""} জোন - ${reportInfo.report_type || "মাসিক"} রিপোর্ট - ${displayPeriodLabel}`
+              : "জমাকৃত রিপোর্ট দেখার প্যানেল"}
+          </p>
         </div>
 
-        {/* Download Buttons */}
+        {/* Download Buttons Dropdown */}
         {isDataLoaded && reportId && (
-          <div className="flex gap-2 w-full sm:w-auto shrink-0">
+          <div
+            ref={downloadRef}
+            className="relative mt-4 md:mt-0 md:absolute md:right-6 md:top-6 flex justify-center w-full md:w-auto"
+          >
             <button
-              onClick={handleDownloadPDF}
-              className="modern-btn border border-border bg-card flex-1 sm:flex-none justify-center gap-2 px-4 py-2.5 hover:bg-muted text-sm font-bold text-foreground transition-all active:scale-95"
+              onClick={() => setIsDownloadOpen(!isDownloadOpen)}
+              className="modern-btn border border-border bg-card flex items-center justify-center gap-2 px-5 py-2.5 hover:bg-muted text-sm font-bold text-foreground transition-all active:scale-95 shadow-sm"
             >
-              <FileText className="w-4 h-4 text-purple-600" />
-              <span>PDF ডাউনলোড</span>
+              <Download className="w-4 h-4 text-primary" />
+              <span>ডাউনলোড</span>
+              <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isDownloadOpen ? "rotate-180" : ""}`} />
             </button>
-            <button
-              onClick={handleDownloadExcel}
-              className="modern-btn border border-border bg-card flex-1 sm:flex-none justify-center gap-2 px-4 py-2.5 hover:bg-muted text-sm font-bold text-foreground transition-all active:scale-95"
-            >
-              <Download className="w-4 h-4 text-green-600" />
-              <span>Excel ডাউনলোড</span>
-            </button>
+
+            {isDownloadOpen && (
+              <div className="absolute top-full right-0 mt-2 w-48 rounded-2xl border bg-card shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50 py-1.5 text-left">
+                <button
+                  onClick={() => {
+                    setIsDownloadOpen(false);
+                    handleDownloadPDF();
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold hover:bg-muted/60 transition-all text-foreground"
+                >
+                  <FileText className="w-4 h-4 text-purple-600 shrink-0" />
+                  <span>PDF ডাউনলোড</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setIsDownloadOpen(false);
+                    handleDownloadExcel();
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold hover:bg-muted/60 transition-all text-foreground"
+                >
+                  <Download className="w-4 h-4 text-green-600 shrink-0" />
+                  <span>Excel ডাউনলোড</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -712,8 +753,8 @@ function ReportViewer() {
           
           {/* ────── Summary Information Grid ────── */}
           {headerData && (
-            <div className="space-y-6 pb-8 border-b border-border/70">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 text-sm bg-muted/30 p-5 rounded-2xl border border-border/60">
+            <div className="space-y-6">
+              <div className="grid grid-cols-3 max-[320px]:grid-cols-1 gap-3 md:gap-6 text-sm bg-muted/30 p-5 rounded-2xl border border-border/60">
                 <div>
                   <span className="text-muted-foreground block mb-1 text-xs font-semibold">দায়িত্বশীলের নাম:</span>
                   <span className="font-extrabold text-foreground text-base">
@@ -732,67 +773,73 @@ function ReportViewer() {
                     {headerData.ward || "—"}
                   </span>
                 </div>
-                <div>
-                  <span className="text-muted-foreground block mb-1 text-xs font-semibold">রিপোর্ট সময়কাল:</span>
-                  <span className="font-extrabold text-primary text-base">
-                    {displayPeriodLabel}
-                  </span>
-                </div>
               </div>
 
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="p-4 bg-muted/40 rounded-xl border border-border/40">
-                  <span className="text-muted-foreground block mb-1 text-xs font-bold">মোট মুয়াল্লিমা:</span>
-                  <span className="font-black text-xl text-foreground">
-                    {toBn(headerData.total_muallima)}
-                  </span>
+              <div className="grid grid-cols-2 max-[320px]:grid-cols-1 lg:grid-cols-4 gap-3 sm:gap-4">
+                {/* Col 1: Total Muallima + Increase/Decrease */}
+                <div className="p-4 bg-muted/40 rounded-xl border border-border/40 flex flex-col justify-between">
+                  <div>
+                    <span className="text-muted-foreground block mb-1 text-xs font-bold">মোট মুয়াল্লিমা:</span>
+                    <span className="font-black text-xl text-foreground">
+                      {toBn(headerData.total_muallima)}
+                    </span>
+                  </div>
+                  <div className="border-t border-border/40 pt-3 mt-3">
+                    <span className="text-muted-foreground block mb-1 text-xs font-bold">বৃদ্ধি / ঘাটতি:</span>
+                    <span className="font-black text-lg text-foreground inline-flex gap-1.5">
+                      <span className="text-green-600">+{toBn(headerData.muallima_increase)}</span>
+                      <span className="text-muted-foreground/60">/</span>
+                      <span className="text-red-500">-{toBn(headerData.muallima_decrease)}</span>
+                    </span>
+                  </div>
                 </div>
-                <div className="p-4 bg-muted/40 rounded-xl border border-border/40">
-                  <span className="text-muted-foreground block mb-1 text-xs font-bold">বৃদ্ধি / ঘাটতি:</span>
-                  <span className="font-black text-xl text-foreground inline-flex gap-1.5">
-                    <span className="text-green-600">+{toBn(headerData.muallima_increase)}</span>
-                    <span className="text-muted-foreground/60">/</span>
-                    <span className="text-red-500">-{toBn(headerData.muallima_decrease)}</span>
-                  </span>
-                </div>
-                <div className="p-4 bg-muted/40 rounded-xl border border-border/40">
-                  <span className="text-muted-foreground block mb-1 text-xs font-bold">মোট ইউনিট:</span>
-                  <span className="font-black text-xl text-foreground">
-                    {toBn(headerData.total_unit)}
-                  </span>
-                </div>
-                <div className="p-4 bg-muted/40 rounded-xl border border-border/40">
-                  <span className="text-muted-foreground block mb-1 text-xs font-bold">মুয়াল্লিমা সহ ইউনিট:</span>
-                  <span className="font-black text-xl text-foreground">
-                    {toBn(headerData.units_with_muallima)}
-                  </span>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="p-4 bg-muted/20 rounded-xl border border-border/30">
-                  <span className="text-muted-foreground block mb-1 text-xs font-semibold">সনদপ্রাপ্তা মুয়াল্লিমা:</span>
-                  <span className="font-bold text-base text-foreground">
-                    {toBn(headerData.certified_muallima)}
-                  </span>
+                {/* Col 2: Certified Muallima + Certified Taking Classes */}
+                <div className="p-4 bg-muted/40 rounded-xl border border-border/40 flex flex-col justify-between">
+                  <div>
+                    <span className="text-muted-foreground block mb-1 text-xs font-bold">সার্টিফিকেটপ্রাপ্ত মুয়াল্লিমা:</span>
+                    <span className="font-black text-xl text-foreground">
+                      {toBn(headerData.certified_muallima)}
+                    </span>
+                  </div>
+                  <div className="border-t border-border/40 pt-3 mt-3">
+                    <span className="text-muted-foreground block mb-1 text-xs font-bold">সার্টিফিকেটপ্রাপ্ত ক্লাস নিচ্ছেন:</span>
+                    <span className="font-bold text-lg text-foreground">
+                      {toBn(headerData.certified_muallima_taking_classes)}
+                    </span>
+                  </div>
                 </div>
-                <div className="p-4 bg-muted/20 rounded-xl border border-border/30">
-                  <span className="text-muted-foreground block mb-1 text-xs font-semibold">সনদপ্রাপ্তা ক্লাস নিচ্ছেন:</span>
-                  <span className="font-bold text-base text-foreground">
-                    {toBn(headerData.certified_muallima_taking_classes)}
-                  </span>
+
+                {/* Col 3: Trained Muallima + Trained Taking Classes */}
+                <div className="p-4 bg-muted/40 rounded-xl border border-border/40 flex flex-col justify-between">
+                  <div>
+                    <span className="text-muted-foreground block mb-1 text-xs font-bold">প্রশিক্ষণপ্রাপ্ত মুয়াল্লিমা:</span>
+                    <span className="font-black text-xl text-foreground">
+                      {toBn(headerData.trained_muallima)}
+                    </span>
+                  </div>
+                  <div className="border-t border-border/40 pt-3 mt-3">
+                    <span className="text-muted-foreground block mb-1 text-xs font-bold">প্রশিক্ষণপ্রাপ্ত ক্লাস নিচ্ছেন:</span>
+                    <span className="font-bold text-lg text-foreground">
+                      {toBn(headerData.trained_muallima_taking_classes)}
+                    </span>
+                  </div>
                 </div>
-                <div className="p-4 bg-muted/20 rounded-xl border border-border/30">
-                  <span className="text-muted-foreground block mb-1 text-xs font-semibold">প্রশিক্ষণপ্রাপ্তা মুয়াল্লিমা:</span>
-                  <span className="font-bold text-base text-foreground">
-                    {toBn(headerData.trained_muallima)}
-                  </span>
-                </div>
-                <div className="p-4 bg-muted/20 rounded-xl border border-border/30">
-                  <span className="text-muted-foreground block mb-1 text-xs font-semibold">প্রশিক্ষণপ্রাপ্তা ক্লাস নিচ্ছেন:</span>
-                  <span className="font-bold text-base text-foreground">
-                    {toBn(headerData.trained_muallima_taking_classes)}
-                  </span>
+
+                {/* Col 4: Total Unit + Unit With Muallima */}
+                <div className="p-4 bg-muted/40 rounded-xl border border-border/40 flex flex-col justify-between">
+                  <div>
+                    <span className="text-muted-foreground block mb-1 text-xs font-bold">মোট ইউনিট:</span>
+                    <span className="font-black text-xl text-foreground">
+                      {toBn(headerData.total_unit)}
+                    </span>
+                  </div>
+                  <div className="border-t border-border/40 pt-3 mt-3">
+                    <span className="text-muted-foreground block mb-1 text-xs font-bold">মুয়াল্লিমা সহ ইউনিট:</span>
+                    <span className="font-bold text-lg text-foreground">
+                      {toBn(headerData.units_with_muallima)}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -800,9 +847,6 @@ function ReportViewer() {
 
           {/* ────── ১. গ্রুপ / কোর্স রিপোর্ট ────── */}
           <div className="space-y-4">
-            <h3 className="text-lg md:text-xl font-black text-foreground border-l-4 border-purple-500 pl-3.5 py-0.5 flex items-center justify-between">
-              <span>১. গ্রুপ / কোর্স রিপোর্ট</span>
-            </h3>
             <div className="overflow-x-auto rounded-xl border border-border bg-background">
               <table className="w-full text-sm text-center border-collapse">
                 <thead className="bg-purple-500/5 text-purple-800 font-bold border-b border-border">
@@ -865,40 +909,40 @@ function ReportViewer() {
             </div>
 
             {/* Inline Maktab Stats */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-purple-500/5 rounded-xl border border-purple-500/20 text-xs sm:text-sm">
-              <div className="flex flex-col gap-0.5">
-                <span className="text-muted-foreground font-semibold">মক্তব সংখ্যা:</span>
-                <span className="font-black text-foreground text-sm sm:text-base">{toBn(extraData.find(e => e.category === "মক্তব সংখ্যা")?.number || 0)} টি</span>
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <span className="text-muted-foreground font-semibold">মক্তব বৃদ্ধি:</span>
-                <span className="font-black text-green-600 text-sm sm:text-base">+{toBn(extraData.find(e => e.category === "মক্তব বৃদ্ধি")?.number || 0)} টি</span>
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <span className="text-muted-foreground font-semibold">মহানগরী পরিচালিত:</span>
-                <span className="font-black text-foreground text-sm sm:text-base">{toBn(extraData.find(e => e.category === "মহানগরী পরিচালিত")?.number || 0)} টি</span>
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <span className="text-muted-foreground font-semibold">স্থানীয়ভাবে পরিচালিত:</span>
-                <span className="font-black text-foreground text-sm sm:text-base">{toBn(extraData.find(e => e.category === "স্থানীয়ভাবে পরিচালিত")?.number || 0)} টি</span>
+            <div className="p-4 rounded-xl border border-border text-xs sm:text-sm">
+              <span className="font-black text-muted-foreground block text-xs tracking-wider uppercase mb-2">মক্তব রিপোর্ট:</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                <div className="flex items-center justify-between sm:flex-col sm:items-start sm:justify-center px-3 py-2 rounded-lg border border-border/70 gap-0.5">
+                  <span className="text-muted-foreground font-semibold">মক্তব সংখ্যা:</span>
+                  <span className="font-black text-foreground text-sm sm:text-base">{toBn(extraData.find(e => e.category === "মক্তব সংখ্যা")?.number || 0)} টি</span>
+                </div>
+                <div className="flex items-center justify-between sm:flex-col sm:items-start sm:justify-center px-3 py-2 rounded-lg border border-border/70 gap-0.5">
+                  <span className="text-muted-foreground font-semibold">মক্তব বৃদ্ধি:</span>
+                  <span className="font-black text-green-600 text-sm sm:text-base">+{toBn(extraData.find(e => e.category === "মক্তব বৃদ্ধি")?.number || 0)} টি</span>
+                </div>
+                <div className="flex items-center justify-between sm:flex-col sm:items-start sm:justify-center px-3 py-2 rounded-lg border border-border/70 gap-0.5">
+                  <span className="text-muted-foreground font-semibold">মহানগরী পরিচালিত:</span>
+                  <span className="font-black text-foreground text-sm sm:text-base">{toBn(extraData.find(e => e.category === "মহানগরী পরিচালিত")?.number || 0)} টি</span>
+                </div>
+                <div className="flex items-center justify-between sm:flex-col sm:items-start sm:justify-center px-3 py-2 rounded-lg border border-border/70 gap-0.5">
+                  <span className="text-muted-foreground font-semibold">স্থানীয়ভাবে পরিচালিত:</span>
+                  <span className="font-black text-foreground text-sm sm:text-base">{toBn(extraData.find(e => e.category === "স্থানীয়ভাবে পরিচালিত")?.number || 0)} টি</span>
+                </div>
               </div>
             </div>
           </div>
 
           {/* ────── ২. দাওয়াত ও সংগঠন ────── */}
           <div className="space-y-4 pt-4">
-            <h3 className="text-lg md:text-xl font-black text-foreground border-l-4 border-blue-500 pl-3.5 py-0.5">
-              ২. দাওয়াত ও সংগঠন
-            </h3>
             <div className="overflow-x-auto rounded-xl border border-border bg-background">
-              <table className="w-full text-sm text-center border-collapse">
+              <table className="w-full text-sm text-center border-collapse table-fixed min-w-[500px]">
                 <thead className="bg-blue-500/5 text-blue-800 font-bold border-b border-border">
                   <tr>
-                    <th className="px-4 py-3 text-left border-r border-border">বিষয়</th>
-                    <th className="px-4 py-3 border-r border-border">সংখ্যা</th>
-                    <th className="px-4 py-3 border-r border-border">বৃদ্ধি</th>
-                    <th className="px-4 py-3 border-r border-border">পরিমাণ / টাকা</th>
-                    <th className="px-4 py-3 text-left">মন্তব্য</th>
+                    <th className="w-[34%] px-3 py-3 text-left border-r border-border font-black">দাওয়াত ও সংগঠন</th>
+                    <th className="w-[17%] px-2 py-3 border-r border-border">সংখ্যা</th>
+                    <th className="w-[17%] px-2 py-3 border-r border-border">বৃদ্ধি</th>
+                    <th className="w-[16%] px-2 py-3 border-r border-border">পরিমাণ / টাকা</th>
+                    <th className="w-[16%] px-2 py-3 text-left">মন্তব্য</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -911,11 +955,11 @@ function ReportViewer() {
                     };
                     return (
                       <tr key={cat} className="hover:bg-muted/40 transition-colors">
-                        <td className="px-4 py-3 border-r border-border text-left font-bold text-foreground">{cat}</td>
-                        <td className="px-4 py-3 border-r border-border">{toBn(row.number)}</td>
-                        <td className="px-4 py-3 border-r border-border text-green-600">+{toBn(row.increase)}</td>
-                        <td className="px-4 py-3 border-r border-border">{toBn(row.amount)}</td>
-                        <td className="px-4 py-3 text-left text-muted-foreground text-xs truncate max-w-[200px]" title={row.comments || ""}>
+                        <td className="w-[34%] px-3 py-3 border-r border-border text-left font-bold text-foreground break-words">{cat}</td>
+                        <td className="w-[17%] px-2 py-3 border-r border-border">{toBn(row.number)}</td>
+                        <td className="w-[17%] px-2 py-3 border-r border-border text-green-600">+{toBn(row.increase)}</td>
+                        <td className="w-[16%] px-2 py-3 border-r border-border">{toBn(row.amount)}</td>
+                        <td className="w-[16%] px-2 py-3 text-left text-muted-foreground text-xs truncate" title={row.comments || ""}>
                           {row.comments || "—"}
                         </td>
                       </tr>
@@ -928,47 +972,43 @@ function ReportViewer() {
 
           {/* ────── ৩. ব্যক্তিগত উদ্যোগে তা'লীমুল কুরআন ────── */}
           <div className="space-y-4 pt-4">
-            <h3 className="text-lg md:text-xl font-black text-foreground border-l-4 border-pink-500 pl-3.5 py-0.5">
-              ৩. ব্যক্তিগত উদ্যোগে তা'লীমুল কুরআন
-            </h3>
             <div className="overflow-x-auto rounded-xl border border-border bg-background">
-              <table className="w-full text-sm text-center border-collapse">
+              <table className="w-full text-sm text-center border-collapse table-fixed min-w-[500px]">
                 <thead className="bg-pink-500/5 text-pink-800 font-bold border-b border-border">
                   <tr>
-                    <th className="px-4 py-3 text-left border-r border-border">বিভাগ</th>
-                    <th className="px-4 py-3 border-r border-border">কতজন শিখাচ্ছেন</th>
-                    <th className="px-4 py-3 border-r border-border">কতজনকে শিখাচ্ছেন</th>
-                    <th className="px-4 py-3 border-r border-border">ওলামা আমন্ত্রণ</th>
-                    <th className="px-4 py-3 border-r border-border">সহযোগী হয়েছেন</th>
-                    <th className="px-4 py-3 border-r border-border">সক্রিয় সহযোগী</th>
-                    <th className="px-4 py-3 border-r border-border">কর্মী হয়েছেন</th>
-                    <th className="px-4 py-3">রুকন হয়েছেন</th>
+                    <th className="w-[36%] px-3 py-3 text-left border-r border-border font-black break-words">ব্যক্তিগত উদ্যোগে তা'লীমুল কুরআন</th>
+                    {PERSONAL_CATEGORIES.map((cat) => (
+                      <th key={cat} className="w-[16%] px-2 py-3 border-r border-border font-bold break-words">
+                        {cat === "সক্রিয় সহযোগী" ? "সক্রিয় সহযোগী হয়েছেন" : cat}
+                      </th>
+                    ))}
+                    <th className="w-[16%] px-2 py-3 font-bold">মোট</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {PERSONAL_CATEGORIES.map((cat) => {
-                    const row = personalData.find((r) => r.category === cat) || {
-                      teaching: 0,
-                      learning: 0,
-                      olama_invited: 0,
-                      became_shohojogi: 0,
-                      became_sokrio_shohojogi: 0,
-                      became_kormi: 0,
-                      became_rukon: 0,
-                    };
-                    return (
-                      <tr key={cat} className="hover:bg-muted/40 transition-colors">
-                        <td className="px-4 py-3 border-r border-border text-left font-bold text-foreground">{cat}</td>
-                        <td className="px-4 py-3 border-r border-border">{toBn(row.teaching)}</td>
-                        <td className="px-4 py-3 border-r border-border">{toBn(row.learning)}</td>
-                        <td className="px-4 py-3 border-r border-border">{toBn(row.olama_invited)}</td>
-                        <td className="px-4 py-3 border-r border-border">{toBn(row.became_shohojogi)}</td>
-                        <td className="px-4 py-3 border-r border-border">{toBn(row.became_sokrio_shohojogi)}</td>
-                        <td className="px-4 py-3 border-r border-border">{toBn(row.became_kormi)}</td>
-                        <td className="px-4 py-3">{toBn(row.became_rukon)}</td>
-                      </tr>
-                    );
-                  })}
+                  {PERSONAL_METRICS_ROWS.map((metric) => (
+                    <tr key={metric.key} className="hover:bg-muted/40 transition-colors">
+                      <td className="w-[36%] px-3 py-3 border-r border-border text-left font-bold text-foreground break-words">
+                        {metric.label}
+                      </td>
+                      {PERSONAL_CATEGORIES.map((cat) => {
+                        const val = ((personalData.find((r) => r.category === cat) || {}) as any)[metric.key] || 0;
+                        return (
+                          <td key={cat} className="w-[16%] px-2 py-3 border-r border-border">
+                            {toBn(val)}
+                          </td>
+                        );
+                      })}
+                      <td className="w-[16%] px-2 py-3 font-black text-foreground">
+                        {toBn(
+                          PERSONAL_CATEGORIES.reduce(
+                            (sum, cat) => sum + (((personalData.find((r) => r.category === cat) || {}) as any)[metric.key] || 0),
+                            0
+                          )
+                        )}
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -976,26 +1016,23 @@ function ReportViewer() {
 
           {/* ────── ৪. বৈঠকসমূহ ────── */}
           <div className="space-y-4 pt-4">
-            <h3 className="text-lg md:text-xl font-black text-foreground border-l-4 border-cyan-600 pl-3.5 py-0.5">
-              ৪. বৈঠকসমূহ
-            </h3>
             <div className="overflow-x-auto rounded-xl border border-border bg-background">
-              <table className="w-full text-sm text-center border-collapse">
+              <table className="w-full text-sm text-center border-collapse table-fixed min-w-[520px]">
                 <thead className="bg-cyan-500/5 text-cyan-800 font-bold border-b border-border">
                   <tr>
-                    <th rowSpan={2} className="px-4 py-3 text-left border-r border-border">বৈঠকসমূহ</th>
-                    <th colSpan={2} className="px-4 py-2 border-r border-b border-border">মহানগরী</th>
-                    <th colSpan={2} className="px-4 py-2 border-r border-b border-border">থানা</th>
-                    <th colSpan={2} className="px-4 py-2 border-r border-b border-border">ওয়ার্ড</th>
-                    <th rowSpan={2} className="px-4 py-3 text-left">মন্তব্য</th>
+                    <th rowSpan={2} className="w-[28%] px-3 py-3 text-left border-r border-border break-words">বৈঠকসমূহ</th>
+                    <th colSpan={2} className="w-[20%] px-2 py-2 border-r border-b border-border">মহানগরী</th>
+                    <th colSpan={2} className="w-[20%] px-2 py-2 border-r border-b border-border">থানা</th>
+                    <th colSpan={2} className="w-[20%] px-2 py-2 border-r border-b border-border">ওয়ার্ড</th>
+                    <th rowSpan={2} className="w-[12%] px-2 py-3 text-left">মন্তব্য</th>
                   </tr>
                   <tr className="bg-cyan-500/10 text-cyan-900 border-b border-border text-[11px]">
-                    <th className="px-2 py-2 border-r border-border font-bold">সংখ্যা</th>
-                    <th className="px-2 py-2 border-r border-border font-bold">গড় উপস্থিতি</th>
-                    <th className="px-2 py-2 border-r border-border font-bold">সংখ্যা</th>
-                    <th className="px-2 py-2 border-r border-border font-bold">গড় উপস্থিতি</th>
-                    <th className="px-2 py-2 border-r border-border font-bold">সংখ্যা</th>
-                    <th className="px-2 py-2 border-r border-border font-bold">গড় উপস্থিতি</th>
+                    <th className="w-[10%] px-1 py-2 border-r border-border font-bold">সংখ্যা</th>
+                    <th className="w-[10%] px-1 py-2 border-r border-border font-bold">গড় উপস্থিতি</th>
+                    <th className="w-[10%] px-1 py-2 border-r border-border font-bold">সংখ্যা</th>
+                    <th className="w-[10%] px-1 py-2 border-r border-border font-bold">গড় উপস্থিতি</th>
+                    <th className="w-[10%] px-1 py-2 border-r border-border font-bold">সংখ্যা</th>
+                    <th className="w-[10%] px-1 py-2 border-r border-border font-bold">গড় উপস্থিতি</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -1011,14 +1048,14 @@ function ReportViewer() {
                     };
                     return (
                       <tr key={cat} className="hover:bg-muted/40 transition-colors">
-                        <td className="px-4 py-3 border-r border-border text-left font-bold text-foreground">{cat}</td>
-                        <td className="px-2 py-3 border-r border-border">{toBn(row.city_count)}</td>
-                        <td className="px-2 py-3 border-r border-border">{toBn(row.city_avg_attendance)}</td>
-                        <td className="px-2 py-3 border-r border-border">{toBn(row.thana_count)}</td>
-                        <td className="px-2 py-3 border-r border-border">{toBn(row.thana_avg_attendance)}</td>
-                        <td className="px-2 py-3 border-r border-border">{toBn(row.ward_count)}</td>
-                        <td className="px-2 py-3 border-r border-border">{toBn(row.ward_avg_attendance)}</td>
-                        <td className="px-4 py-3 text-left text-muted-foreground text-xs truncate max-w-[150px]" title={row.comments || ""}>
+                        <td className="w-[28%] px-3 py-3 border-r border-border text-left font-bold text-foreground break-words">{cat}</td>
+                        <td className="w-[10%] px-1 py-3 border-r border-border">{toBn(row.city_count)}</td>
+                        <td className="w-[10%] px-1 py-3 border-r border-border">{toBn(row.city_avg_attendance)}</td>
+                        <td className="w-[10%] px-1 py-3 border-r border-border">{toBn(row.thana_count)}</td>
+                        <td className="w-[10%] px-1 py-3 border-r border-border">{toBn(row.thana_avg_attendance)}</td>
+                        <td className="w-[10%] px-1 py-3 border-r border-border">{toBn(row.ward_count)}</td>
+                        <td className="w-[10%] px-1 py-3 border-r border-border">{toBn(row.ward_avg_attendance)}</td>
+                        <td className="w-[12%] px-2 py-3 text-left text-muted-foreground text-xs truncate" title={row.comments || ""}>
                           {row.comments || "—"}
                         </td>
                       </tr>
@@ -1029,22 +1066,22 @@ function ReportViewer() {
             </div>
 
             {/* Inline Safar Stats */}
-            <div className="p-4 bg-cyan-500/5 rounded-xl border border-cyan-500/20 space-y-2 text-xs sm:text-sm">
-              <span className="font-black text-cyan-800 dark:text-cyan-400 block text-xs tracking-wider uppercase">সফর রিপোর্ট সারাংশ:</span>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
-                <div className="flex flex-col gap-0.5">
+            <div className="p-4 rounded-xl border border-border text-xs sm:text-sm">
+              <span className="font-black text-muted-foreground block text-xs tracking-wider uppercase mb-2">সফর রিপোর্ট:</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                <div className="flex items-center justify-between sm:flex-col sm:items-start sm:justify-center px-3 py-2 rounded-lg border border-border/70 gap-0.5">
                   <span className="text-muted-foreground font-semibold">মহানগরীর সফর:</span>
                   <span className="font-black text-foreground text-sm sm:text-base">{toBn(extraData.find(e => e.category === "মহানগরীর সফর")?.number || 0)} টি</span>
                 </div>
-                <div className="flex flex-col gap-0.5">
+                <div className="flex items-center justify-between sm:flex-col sm:items-start sm:justify-center px-3 py-2 rounded-lg border border-border/70 gap-0.5">
                   <span className="text-muted-foreground font-semibold">থানা কমিটির সফর:</span>
                   <span className="font-black text-foreground text-sm sm:text-base">{toBn(extraData.find(e => e.category === "থানা কমিটির সফর")?.number || 0)} টি</span>
                 </div>
-                <div className="flex flex-col gap-0.5">
+                <div className="flex items-center justify-between sm:flex-col sm:items-start sm:justify-center px-3 py-2 rounded-lg border border-border/70 gap-0.5">
                   <span className="text-muted-foreground font-semibold">থানা প্রতিনিধির সফর:</span>
                   <span className="font-black text-foreground text-sm sm:text-base">{toBn(extraData.find(e => e.category === "থানা প্রতিনিধির সফর")?.number || 0)} টি</span>
                 </div>
-                <div className="flex flex-col gap-0.5">
+                <div className="flex items-center justify-between sm:flex-col sm:items-start sm:justify-center px-3 py-2 rounded-lg border border-border/70 gap-0.5">
                   <span className="text-muted-foreground font-semibold">ওয়ার্ড প্রতিনিধির সফর:</span>
                   <span className="font-black text-foreground text-sm sm:text-base">{toBn(extraData.find(e => e.category === "ওয়ার্ড প্রতিনিধির সফর")?.number || 0)} টি</span>
                 </div>
@@ -1053,10 +1090,8 @@ function ReportViewer() {
           </div>
 
           {/* ────── ৫. মন্তব্য ────── */}
-          <div className="space-y-4 pt-4">
-            <h3 className="text-lg md:text-xl font-black text-foreground border-l-4 border-amber-500 pl-3.5 py-0.5">
-              ৫. মন্তব্য
-            </h3>
+          <div className="space-y-3 pt-4">
+            <div className="font-black text-foreground text-base">মন্তব্য:</div>
             <div className="bg-muted/30 border border-border/80 rounded-xl p-5 min-h-[90px] text-foreground text-sm whitespace-pre-wrap leading-relaxed">
               {commentData?.comment?.trim() ? (
                 commentData.comment
