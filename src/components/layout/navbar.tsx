@@ -19,7 +19,7 @@ export function Navbar() {
   const homeHref = paramsStr ? `/?${paramsStr}` : "/";
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 hidden md:block">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-card opacity-100 hidden md:block">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-8">
           <Link href={homeHref} className="flex items-center space-x-2">
@@ -43,14 +43,6 @@ export function Navbar() {
               }`}
             >
               {t.report}
-            </Link>
-            <Link
-              href="/help"
-              className={`transition-all hover:text-primary ${
-                pathname.startsWith("/help") ? "text-primary px-2 py-1 bg-primary/5 rounded-lg" : "text-muted-foreground"
-              }`}
-            >
-              {t.help || "সাহায্য"}
             </Link>
           </nav>
         </div>

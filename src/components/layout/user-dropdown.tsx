@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useLanguage } from "@/components/providers/language-provider";
-import { User, LogOut, ShieldCheck } from "lucide-react";
+import { User, LogOut, ShieldCheck, HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
@@ -92,6 +92,16 @@ export function UserDropdown() {
               <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">ভাষা</span>
               <LanguageToggle />
             </div>
+
+            {/* Help Link */}
+            <Link
+              href="/help"
+              onClick={() => setIsOpen(false)}
+              className="group flex items-center gap-3 px-3 py-2.5 text-sm font-bold rounded-xl hover:bg-muted/60 transition-all text-muted-foreground hover:text-foreground"
+            >
+              <HelpCircle className="w-4 h-4" />
+              <span>সাহায্য</span>
+            </Link>
 
             {user?.role === "admin" && (
               <Link
