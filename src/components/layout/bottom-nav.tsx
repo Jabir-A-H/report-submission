@@ -136,6 +136,7 @@ export function BottomNav() {
             <button
               onClick={async () => {
                 setIsProfileOpen(false);
+                sessionStorage.removeItem("dashboard-period-params");
                 try {
                   const res = await fetch("/auth/logout", { method: "POST" });
                   if (!res.ok) throw new Error("Logout failed");

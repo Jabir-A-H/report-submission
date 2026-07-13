@@ -12,9 +12,12 @@ interface AutoSaveFieldProps {
   section: string;
   table?: string;
   category?: string;
+  inline?: boolean;
+  inputWidth?: string;
+  tableMode?: boolean;
 }
 
-export function AutoSaveField({ label, name, type = "text", placeholder, section, table, category }: AutoSaveFieldProps) {
+export function AutoSaveField({ label, name, type = "text", placeholder, section, table, category, inline = false, inputWidth, tableMode = false }: AutoSaveFieldProps) {
   const { data, updateField } = useReport();
   const { language } = useLanguage();
 
@@ -64,8 +67,39 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
     }
   }, [localValue, getInitialValue, name, section, table, category, updateField]);
 
+  if (tableMode) {
+    return (
+      <input
+        type={type}
+        value={localValue}
+        onChange={(e) => setLocalValue(e.target.value)}
+        onBlur={handleBlur}
+        placeholder={placeholder || "0"}
+        className="w-full h-9 text-center bg-transparent hover:bg-muted/40 focus:bg-background border border-transparent focus:border-primary rounded-lg px-1 font-bold text-xs sm:text-sm outline-none transition-all"
+      />
+    );
+  }
+
+  if (inline) {
+    return (
+      <div className="flex items-center justify-between gap-3 bg-muted/20 border border-border/60 px-3.5 py-2 rounded-xl group hover:border-primary/40 focus-within:border-primary transition-all">
+        <label className="text-sm font-bold text-foreground group-focus-within:text-primary transition-colors shrink-0 truncate">
+          {label}
+        </label>
+        <input
+          type={type}
+          value={localValue}
+          onChange={(e) => setLocalValue(e.target.value)}
+          onBlur={handleBlur}
+          placeholder={placeholder}
+          className={`modern-input h-10 ${inputWidth || "w-24"} px-2.5 py-1 text-center font-bold bg-background focus:bg-background shadow-xs transition-all shrink-0`}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col gap-2 w-full group">
+    <div className="flex flex-col gap-1.5 w-full group">
       <label className="text-sm font-bold text-muted-foreground group-focus-within:text-primary transition-colors">
         {label}
       </label>
@@ -76,7 +110,7 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
           onChange={(e) => setLocalValue(e.target.value)}
           onBlur={handleBlur}
           placeholder={placeholder}
-          className="modern-input min-h-[120px] resize-none bg-muted/30 focus:bg-background transition-all"
+          className="modern-input min-h-[110px] resize-none bg-muted/30 focus:bg-background transition-all"
         />
       ) : (
         <input
@@ -85,7 +119,7 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
           onChange={(e) => setLocalValue(e.target.value)}
           onBlur={handleBlur}
           placeholder={placeholder}
-          className="modern-input h-[52px] bg-muted/30 focus:bg-background transition-all"
+          className="modern-input h-[46px] bg-muted/30 focus:bg-background transition-all font-semibold"
         />
       )}
     </div>

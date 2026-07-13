@@ -14,7 +14,8 @@ import {
   MessageSquare,
   ArrowRight,
   Loader2,
-  Calendar
+  Calendar,
+  Pencil
 } from "lucide-react";
 import Link from "next/link";
 import { useReport } from "@/components/report/report-context";
@@ -31,6 +32,7 @@ export function UserDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isPeriodSelectorExpanded, setIsPeriodSelectorExpanded] = useState(false);
+  const [zoneName, setZoneName] = useState<string>("");
 
   // Extract selected period parameters
   const typeParam = searchParams.get("type");
@@ -43,16 +45,35 @@ export function UserDashboard() {
     "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"
   ];
 
+  const BENGALI_DIGITS = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
+  const toBn = (n: number | string | null | undefined): string => {
+    if (n === null || n === undefined) return "০";
+    return String(n).replace(/\d/g, (d) => BENGALI_DIGITS[parseInt(d)]);
+  };
+
+  // Restore query params from sessionStorage if none present
   useEffect(() => {
     if (!hasParams) {
+      const savedParams = sessionStorage.getItem("dashboard-period-params");
+      if (savedParams) {
+        router.replace(`${pathname}?${savedParams}`);
+      }
+    } else {
+      sessionStorage.setItem("dashboard-period-params", searchParams.toString());
+    }
+  }, [hasParams, searchParams, pathname, router]);
+
+  useEffect(() => {
+    if (!hasParams) {
+      setIsLoading(false);
       return;
     }
 
     let ignore = false;
 
     const selectedType = typeParam;
-    const selectedMonth = parseInt(monthParam);
-    const selectedYear = parseInt(yearParam);
+    const selectedMonth = parseInt(monthParam!);
+    const selectedYear = parseInt(yearParam!);
 
     const initReport = async () => {
       setIsLoading(true);
@@ -104,7 +125,7 @@ export function UserDashboard() {
 
       const { data: person } = await supabase
         .from("people")
-        .select("zone_id")
+        .select("zone_id, zone(name)")
         .eq("supabase_uid", user.id)
         .single();
 
@@ -113,6 +134,11 @@ export function UserDashboard() {
         setError("আপনার জোন এখনও নির্ধারণ করা হয়নি।");
         setIsLoading(false);
         return;
+      }
+
+      const zoneObj = person.zone as any;
+      if (zoneObj?.name) {
+        setZoneName(zoneObj.name);
       }
 
       // Map dynamic URL types to Bangla report types
@@ -163,99 +189,121 @@ export function UserDashboard() {
     { id: "comment", name: t.sections.comment, icon: MessageSquare },
   ];
 
-  if (!hasParams) {
-    return (
-      <div className="container py-6 pb-24">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gradient mb-2">{t.dashboard}</h1>
-          <p className="text-muted-foreground">আপনার জোনের মাসিক রিপোর্ট ম্যানেজ করুন</p>
-        </div>
-        <PeriodSelector monthlyOnly={true} />
-      </div>
-    );
-  }
+  const REPORT_TYPE_MAP: Record<string, string> = {
+    monthly: "মাসিক",
+    quarterly: "ত্রৈমাসিক",
+    halfYearly: "ষান্মাসিক",
+    nineMonth: "নয়-মাসিক",
+    yearly: "বার্ষিক",
+  };
+
+  const displayReportType = typeParam ? (REPORT_TYPE_MAP[typeParam] || typeParam) : "মাসিক";
+  const displayPeriodLabel = useMemo(() => {
+    if (!monthParam || !yearParam) return "";
+    if (displayReportType === "মাসিক") {
+      return `${BENGALI_MONTHS[parseInt(monthParam) - 1]} ${toBn(yearParam)}`;
+    }
+    return `${displayReportType} (${toBn(yearParam)})`;
+  }, [monthParam, yearParam, displayReportType]);
 
   return (
-    <div className="container py-6 pb-24">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gradient mb-2">{t.dashboard}</h1>
-        <p className="text-muted-foreground">আপনার জোনের মাসিক রিপোর্ট ম্যানেজ করুন</p>
+    <div className="container py-6 pb-24 max-w-7xl animate-in fade-in duration-500">
+      {/* ── Dashboard Header with Bismillah & Talimul Heading ── */}
+      <div className="flex flex-col items-center justify-center text-center p-6 bg-card border border-border/50 rounded-3xl shadow-xs relative mb-6">
+        <div className="w-full max-w-3xl py-2">
+          <p className="text-base md:text-lg font-bold text-foreground mb-1.5">
+            বিসমিল্লাহির রহমানীর রহীম
+          </p>
+          <p className="text-2xl md:text-3xl font-black text-foreground mb-1.5">
+            তা'লীমুল কুরআন বিভাগ
+          </p>
+          {hasParams && zoneName ? (
+            <p className="text-lg md:text-xl font-bold text-primary mb-0 animate-in fade-in duration-300">
+              {zoneName} জোন - {displayReportType} রিপোর্ট - {displayPeriodLabel}
+            </p>
+          ) : (
+            <p className="text-sm md:text-base font-medium text-muted-foreground mb-0">
+              আপনার জোনের রিপোর্ট ও সাংগঠনিক ডেটা প্রদান করুন
+            </p>
+          )}
+        </div>
+
+        {/* Compact Period Selector Pill (Top-Right on Desktop, Compact below heading on Mobile) */}
+        {hasParams && (
+          <div className="mt-4 md:mt-0 md:absolute md:right-6 md:top-6 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setIsPeriodSelectorExpanded(!isPeriodSelectorExpanded)}
+              className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-muted/60 hover:bg-muted border border-border/80 text-xs sm:text-sm font-bold text-foreground transition-all active:scale-95 shadow-2xs cursor-pointer"
+            >
+              <Calendar className="w-3.5 h-3.5 text-primary shrink-0" />
+              <span className="truncate max-w-[150px] sm:max-w-none">
+                {BENGALI_MONTHS[parseInt(monthParam!) - 1]} {toBn(yearParam!)}
+              </span>
+              <Pencil className="w-3.5 h-3.5 text-muted-foreground ml-1 shrink-0" />
+            </button>
+          </div>
+        )}
       </div>
 
-      {!isPeriodSelectorExpanded ? (
-        <div className="modern-card p-5 mb-8 bg-card shadow-md border-primary/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Calendar className="w-5 h-5 text-primary" />
-            <div>
-              <span className="font-bold text-foreground">
-                মাসিক রিপোর্ট - {BENGALI_MONTHS[parseInt(monthParam!) - 1]} {yearParam}
-              </span>
-            </div>
-          </div>
-          <button
-            onClick={() => setIsPeriodSelectorExpanded(true)}
-            className="modern-btn btn-secondary py-2 px-4 text-sm"
-          >
-            পিরিয়ড পরিবর্তন করুন
-          </button>
-        </div>
-      ) : (
-        <div className="relative">
+      {/* Expanded Period Selector Dropdown Box */}
+      {(!hasParams || isPeriodSelectorExpanded) && (
+        <div className="relative mb-8 animate-in fade-in slide-in-from-top-2 duration-200">
           <PeriodSelector monthlyOnly={true} />
-          <button
-            onClick={() => setIsPeriodSelectorExpanded(false)}
-            className="absolute top-4 right-4 text-muted-foreground hover:text-foreground text-sm font-semibold z-10"
-          >
-            বন্ধ করুন
-          </button>
+          {hasParams && (
+            <button
+              onClick={() => setIsPeriodSelectorExpanded(false)}
+              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground text-xs sm:text-sm font-bold z-10 bg-card/80 px-3 py-1.5 rounded-xl border border-border/50 shadow-2xs cursor-pointer"
+            >
+              বন্ধ করুন
+            </button>
+          )}
         </div>
       )}
 
+      {/* Loading & Error States */}
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">রিপোর্ট লোড করা হচ্ছে...</p>
+          <p className="text-sm text-muted-foreground font-bold">রিপোর্ট লোড করা হচ্ছে...</p>
         </div>
       ) : error ? (
         <div className="text-center py-20 text-destructive font-bold flex flex-col items-center gap-2">
           <span>⚠️ {error}</span>
         </div>
       ) : (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {sections.map((section, index) => {
-              const Icon = section.icon;
-              
-              return (
-                <div 
-                  key={section.id} 
-                  style={{ animationDelay: `${index * 100}ms` }}
-                  className="premium-card p-5 flex flex-col justify-between group h-full animate-fade-in-up border-border bg-card"
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="p-3 rounded-xl bg-muted text-muted-foreground">
-                      <Icon className="w-6 h-6" />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-lg font-bold mb-4">{section.name}</h3>
-                    <Link 
-                      href={`/report/${section.id}?type=${typeParam}&month=${monthParam}&year=${yearParam}`}
-                      className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all bg-primary text-primary-foreground hover:shadow-lg hover:shadow-primary/20 bg-linear-to-r from-primary to-primary/80"
-                    >
-                      <span>{t.actions.edit}</span>
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </Link>
+        /* Report Sections Grid */
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {sections.map((section, index) => {
+            const Icon = section.icon;
+            
+            return (
+              <div 
+                key={section.id} 
+                style={{ animationDelay: `${index * 60}ms` }}
+                className="bg-card border border-border/60 rounded-2xl p-5 flex flex-col justify-between group h-full animate-in fade-in slide-in-from-bottom-2 shadow-2xs transition-all"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="p-3 rounded-xl bg-primary/10 text-primary">
+                    <Icon className="w-5 h-5" />
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </>
+                
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold mb-4 text-foreground">{section.name}</h3>
+                  <Link 
+                    href={`/report/${section.id}?type=${typeParam}&month=${monthParam}&year=${yearParam}`}
+                    className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all bg-primary text-primary-foreground hover:shadow-lg hover:shadow-primary/20 bg-linear-to-r from-primary to-primary/80"
+                  >
+                    <span>{t.actions.edit}</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );
 }
-
-

@@ -1,6 +1,7 @@
 import { login } from "./actions";
 import { Building2, LogIn } from "lucide-react";
 import Link from "next/link";
+import { SessionCleaner } from "@/components/auth/session-cleaner";
 
 export default async function LoginPage({
   searchParams,
@@ -11,6 +12,7 @@ export default async function LoginPage({
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2 relative overflow-hidden bg-background">
+      <SessionCleaner />
       {/* Decorative Background Elements */}
       <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/5 rounded-full blur-3xl -z-10 translate-x-1/2 -translate-y-1/2" />
       <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-3xl -z-10 -translate-x-1/2 translate-y-1/2" />
