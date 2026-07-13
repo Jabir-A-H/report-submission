@@ -58,8 +58,22 @@ const EXTRA_CATEGORIES = [
 
 // ─── Helpers for City Aggregation ─────────────────────────────────────────────
 
+const DB_TYPE_MAP: Record<string, string> = {
+  monthly: "মাসিক",
+  quarterly: "ত্রৈমাসিক",
+  halfYearly: "ষান্মাসিক",
+  nineMonth: "নয়-মাসিক",
+  yearly: "বার্ষিক",
+  "মাসিক": "মাসিক",
+  "ত্রৈমাসিক": "ত্রৈমাসিক",
+  "ষান্মাসিক": "ষান্মাসিক",
+  "নয়-মাসিক": "নয়-মাসিক",
+  "বার্ষিক": "বার্ষিক",
+};
+
 function getMonthsForPeriod(reportType: string, selectedMonth: number): number[] {
-  switch (reportType) {
+  const dbType = DB_TYPE_MAP[reportType] || reportType;
+  switch (dbType) {
     case "ত্রৈমাসিক": return [1, 2, 3];
     case "ষান্মাসিক": return [1, 2, 3, 4, 5, 6];
     case "নয়-মাসিক": return [1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -115,7 +129,7 @@ export async function GET(request: Request) {
     const zoneIdParam = searchParams.get("zone_id");
     const yearParam = searchParams.get("year");
     const monthParam = searchParams.get("month");
-    const reportTypeParam = searchParams.get("report_type");
+    const reportTypeParam = searchParams.get("type") || searchParams.get("report_type");
 
     const supabase = await createClient();
 
@@ -124,6 +138,18 @@ export async function GET(request: Request) {
     if (!user) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
+
+    const { data: requesterProfile, error: requesterProfileError } = await supabase
+      .from("people")
+      .select("role, zone_id, active")
+      .eq("supabase_uid", user.id)
+      .maybeSingle();
+
+    if (requesterProfileError || !requesterProfile || requesterProfile.active === false) {
+      return new NextResponse("Forbidden", { status: 403 });
+    }
+
+    const isAdmin = requesterProfile.role === "admin" || requesterProfile.role === "superadmin";
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Report");
@@ -170,6 +196,9 @@ export async function GET(request: Request) {
     if (reportIdParam || zoneIdParam) {
       if (reportIdParam) {
         const repId = Number(reportIdParam);
+        if (!Number.isInteger(repId) || repId <= 0) {
+          return new NextResponse("Invalid report_id", { status: 400 });
+        }
 
         // Fetch main report record with zone name
         const { data: report, error: repError } = await supabase
@@ -180,6 +209,10 @@ export async function GET(request: Request) {
 
         if (repError || !report) {
           return new NextResponse("Report not found", { status: 404 });
+        }
+
+        if (!isAdmin && report.zone_id !== requesterProfile.zone_id) {
+          return new NextResponse("Forbidden", { status: 403 });
         }
 
         zoneName = report.zone?.name || "—";
@@ -219,7 +252,20 @@ export async function GET(request: Request) {
         const targetZoneId = Number(zoneIdParam);
         const targetYear = Number(yearParam);
         const targetMonth = Number(monthParam || 1);
-        const targetReportType = reportTypeParam || "মাসিক";
+        const targetReportType = DB_TYPE_MAP[reportTypeParam || "monthly"] || "মাসিক";
+
+        if (!Number.isInteger(targetZoneId) || targetZoneId <= 0) {
+          return new NextResponse("Invalid zone_id", { status: 400 });
+        }
+        if (!Number.isInteger(targetYear) || targetYear < 2000) {
+          return new NextResponse("Invalid year", { status: 400 });
+        }
+        if (!Number.isInteger(targetMonth) || targetMonth < 1 || targetMonth > 12) {
+          return new NextResponse("Invalid month", { status: 400 });
+        }
+        if (!isAdmin && targetZoneId !== requesterProfile.zone_id) {
+          return new NextResponse("Forbidden", { status: 403 });
+        }
 
         // Fetch zone name
         const { data: zoneObj } = await supabase
@@ -527,6 +573,10 @@ export async function GET(request: Request) {
     // CASE B: Export City Aggregated Report
     // ─────────────────────────────────────────────────────────────────────────
     else {
+      if (!isAdmin) {
+        return new NextResponse("Forbidden", { status: 403 });
+      }
+
       const year = yearParam ? Number(yearParam) : new Date().getFullYear();
       const month = monthParam ? Number(monthParam) : new Date().getMonth() + 1;
       const reportType = reportTypeParam || "মাসিক";
@@ -849,6 +899,6 @@ export async function GET(request: Request) {
     });
   } catch (err: any) {
     console.error("Excel generation error:", err);
-    return new NextResponse(err.message || "Internal Server Error", { status: 500 });
+    return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

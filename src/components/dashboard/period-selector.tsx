@@ -32,8 +32,16 @@ export function PeriodSelector({ monthlyOnly = false }: { monthlyOnly?: boolean 
   // Sync state with URL search parameters changes only after mounted is true
   useEffect(() => {
     if (!mounted) return;
-    const urlType = searchParams.get("type");
-    setType(monthlyOnly ? "monthly" : (urlType || "monthly"));
+    const rawType = searchParams.get("type") || searchParams.get("report_type");
+    const URL_TO_ENGLISH: Record<string, string> = {
+      "মাসিক": "monthly",
+      "ত্রৈমাসিক": "quarterly",
+      "ষান্মাসিক": "halfYearly",
+      "নয়-মাসিক": "nineMonth",
+      "বার্ষিক": "yearly",
+    };
+    const cleanType = URL_TO_ENGLISH[rawType || ""] || rawType || "monthly";
+    setType(monthlyOnly ? "monthly" : cleanType);
     setMonth(searchParams.get("month") || String(new Date().getMonth() + 1));
     setYear(searchParams.get("year") || String(new Date().getFullYear()));
   }, [searchParams, mounted, monthlyOnly]);

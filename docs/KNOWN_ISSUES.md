@@ -5,14 +5,6 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ## Active / Deferred Issues
 
-### Report Pages Supabase Client Memoization Consistency Gap
-- **Date**: 2026-07-13
-- **Description**: `src/app/report/page.tsx` still initializes the browser client directly (`const supabase = createClient()`), and `src/app/report/[section]/page.tsx` creates the client inside effect flow. This is inconsistent with the memoized pattern already used in dashboard/layout/admin components.
-- **Impact**: Medium (consistency risk and avoidable client re-instantiation patterns)
-- **Planned Fix**: Standardize browser client creation to memoized, component-level stable references across report pages.
-
----
-
 ### Mobile Touch Target Ergonomics Violations (<44px)
 - **Date**: 2026-06-26
 - **Description**: Nested category table action and delete buttons in `AutoSaveField` rows maintain small hit areas (~24px x 24px), violating WCAG 2.2 AA mobile touch target guidelines (minimum 44px x 44px).
@@ -31,7 +23,28 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ## Resolved Historical Issues
 
+### Section Links Visible Before Period Selection + RPC 400 Null Year Error (ADR 006)
+- **Date**: 2026-07-13
+- **Resolution Date**: 2026-07-13
+- **Description**: Four interrelated bugs caused by the ADR 005 Hybrid State Persistence system:
+  1. Section grid rendered with `type=null&month=null&year=null` links before period was selected.
+  2. `parseInt("null") = NaN` bypassed null-guard and reached the RPC → DB NOT NULL constraint violation (400 error).
+  3. `sessionStorage` restoration loop had no escape — clearing URL params immediately redirected back to last stored period.
+  4. `bottom-nav.tsx`/`navbar.tsx` Report link went to `/report` (no page exists there).
+- **Fix**: Removed sessionStorage restoration loop. URL params are sole source of truth (ADR 006). Added `isValidParam()` guard rejecting string `"null"`. Section grid only renders when `hasParams && !isLoading && !error`. All nav links carry period params forward. Report tab now links to `/${periodQuery}` (home dashboard). Help links carry `periodQuery` string for round-trip preservation.
+
+---
+
+### Report Pages Supabase Client Memoization Gap
+- **Date**: 2026-07-13
+- **Resolution Date**: 2026-07-13
+- **Description**: `src/app/report/[section]/page.tsx` created the browser client inside the effect flow without memoization.
+- **Fix**: `SectionSwitcher` now uses `useMemo(() => createClient(), [])` at component level, matching the established pattern.
+
+---
+
 ### Unstable Client-Side Supabase Instantiation (`ReportProvider`)
+
 - **Date**: 2026-06-25
 - **Resolution Date**: 2026-06-25
 - **Description**: `ReportProvider` instantiated `createClient()` directly inside the render body without `useMemo()`.

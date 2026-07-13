@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useReport } from "./report-context";
+
+
 import { useLanguage } from "@/components/providers/language-provider";
 import { 
   ChevronLeft, 
   ChevronRight, 
-  ArrowLeft,
-  LayoutGrid
+  ArrowLeft
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -23,12 +22,8 @@ export function SectionLayout({ children, title }: { children: React.ReactNode; 
 
   const queryString = searchParams.toString() ? `?${searchParams.toString()}` : "";
 
-  // Save period params to sessionStorage to ensure they persist when navigating back to Home
-  useEffect(() => {
-    if (searchParams.get("type") && searchParams.get("month") && searchParams.get("year")) {
-      sessionStorage.setItem("dashboard-period-params", searchParams.toString());
-    }
-  }, [searchParams]);
+  // URL query params are the single source of truth for period state.
+  // No sessionStorage backup needed — all navigation links carry params via queryString.
 
   const sectionsOrder = [
     "header", "courses", "organizational", "personal", "meeting", "extra", "comment"

@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useLanguage } from "@/components/providers/language-provider";
 import { User, LogOut, ShieldCheck, HelpCircle } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { LanguageToggle } from "./language-toggle";
 import { ThemeToggle } from "./theme-toggle";
@@ -13,9 +13,14 @@ export function UserDropdown() {
   const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
+
+  const searchParams = useSearchParams();
   const supabase = useMemo(() => createClient(), []);
   const [user, setUser] = useState<{name: string, role: string, zone: string} | null>(null);
+
+  // Build period query string — carries period context to Help page so back-navigation preserves it
+  const paramsStr = searchParams.toString();
+  const periodQuery = paramsStr ? `?${paramsStr}` : "";
 
   useEffect(() => {
     async function loadUser() {
@@ -93,9 +98,9 @@ export function UserDropdown() {
               <LanguageToggle />
             </div>
 
-            {/* Help Link */}
+            {/* Help Link — carries period params so Navbar on Help page can link back with context */}
             <Link
-              href="/help"
+              href={`/help${periodQuery}`}
               onClick={() => setIsOpen(false)}
               className="group flex items-center gap-3 px-3 py-2.5 text-sm font-bold rounded-xl hover:bg-muted/60 transition-all text-muted-foreground hover:text-foreground"
             >
@@ -120,7 +125,6 @@ export function UserDropdown() {
               className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold rounded-xl hover:bg-red-50 text-red-600 transition-all active:scale-95 text-left"
               onClick={async () => {
                   setIsOpen(false);
-                  sessionStorage.removeItem("dashboard-period-params");
                   try {
                     const res = await fetch("/auth/logout", { method: "POST" });
                     if (!res.ok) throw new Error("Logout failed");

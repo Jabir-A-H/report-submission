@@ -41,10 +41,7 @@ When implementation and docs are updated/decided, instruct Antigravity to run th
 Run this systemically for docs sync, ADR alignment, roadmap updates, and known-issues cleanup.
 
 Global skills location for this workflow:
-`F:\WebDev\.agents\skills`
-
-Also check environment context under:
-`C:\Users\jabir\.gemini`
+`C:\Users\jabir\.gemini\config\skills`
 
 ---
 

@@ -51,10 +51,16 @@ export function BottomNav() {
   const isAuthPage = ["/login", "/register", "/auth", "/home", "/pending-approval", "/forgot-password", "/update-password"].includes(pathname);
   if (isAuthPage) return null;
 
+  // Build period param string from current URL params — carries period context across navigation
   const paramsStr = searchParams.toString();
-  const homeHref = paramsStr ? `/?${paramsStr}` : "/";
+  const periodQuery = paramsStr ? `?${paramsStr}` : "";
 
-  const isHomeActive = pathname === "/";
+  // Home always carries the current period params forward
+  const homeHref = `/${periodQuery}`;
+  // Report tab links to /report overview page with params
+  const reportHref = `/report${periodQuery}`;
+
+  const isHomeActive = pathname === "/" && !pathname.startsWith("/report");
   const isReportActive = pathname.startsWith("/report");
 
   return (
@@ -98,9 +104,9 @@ export function BottomNav() {
               <LanguageToggle />
             </div>
 
-            {/* Help Link */}
+            {/* Help Link — carries period params so navigating back to home preserves context */}
             <Link
-              href="/help"
+              href={`/help${periodQuery}`}
               onClick={() => setIsProfileOpen(false)}
               className="flex items-center gap-3 px-3 py-2.5 text-sm font-bold rounded-xl hover:bg-muted/60 transition-all text-foreground"
             >
@@ -136,7 +142,6 @@ export function BottomNav() {
             <button
               onClick={async () => {
                 setIsProfileOpen(false);
-                sessionStorage.removeItem("dashboard-period-params");
                 try {
                   const res = await fetch("/auth/logout", { method: "POST" });
                   if (!res.ok) throw new Error("Logout failed");
@@ -172,9 +177,9 @@ export function BottomNav() {
             </span>
           </Link>
 
-          {/* Tab 2: Report */}
+          {/* Tab 2: Report — navigates to home dashboard with params to pick section */}
           <Link
-            href="/report"
+            href={reportHref}
             onClick={() => setIsProfileOpen(false)}
             className={`inline-flex flex-col items-center justify-center px-5 hover:bg-muted/50 group ${
               isReportActive && !isProfileOpen ? "text-primary" : "text-muted-foreground"
@@ -203,4 +208,3 @@ export function BottomNav() {
     </>
   );
 }
-

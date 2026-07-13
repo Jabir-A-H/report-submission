@@ -21,6 +21,18 @@ import Link from "next/link";
 import { useReport } from "@/components/report/report-context";
 import { createClient } from "@/utils/supabase/client";
 
+const BENGALI_MONTHS = [
+  "জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন",
+  "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"
+];
+
+const BENGALI_DIGITS = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
+
+function toBn(n: number | string | null | undefined): string {
+  if (n === null || n === undefined) return "০";
+  return String(n).replace(/\d/g, (d) => BENGALI_DIGITS[parseInt(d)]);
+}
+
 export function UserDashboard() {
   const { t } = useLanguage();
   const router = useRouter();
@@ -29,7 +41,8 @@ export function UserDashboard() {
   const { data, reportId, setReportId, loadReport } = useReport();
   const supabase = useMemo(() => createClient(), []);
 
-  const [isLoading, setIsLoading] = useState(true);
+  // isLoading only starts true when we have params to fetch with
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPeriodSelectorExpanded, setIsPeriodSelectorExpanded] = useState(false);
   const [zoneName, setZoneName] = useState<string>("");
@@ -38,40 +51,23 @@ export function UserDashboard() {
   const typeParam = searchParams.get("type");
   const monthParam = searchParams.get("month");
   const yearParam = searchParams.get("year");
-  const hasParams = !!(typeParam && monthParam && yearParam);
 
-  const BENGALI_MONTHS = [
-    "জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন",
-    "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"
-  ];
-
-  const BENGALI_DIGITS = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
-  const toBn = (n: number | string | null | undefined): string => {
-    if (n === null || n === undefined) return "০";
-    return String(n).replace(/\d/g, (d) => BENGALI_DIGITS[parseInt(d)]);
-  };
-
-  // Restore query params from sessionStorage if none present
-  useEffect(() => {
-    if (!hasParams) {
-      const savedParams = sessionStorage.getItem("dashboard-period-params");
-      if (savedParams) {
-        router.replace(`${pathname}?${savedParams}`);
-      }
-    } else {
-      sessionStorage.setItem("dashboard-period-params", searchParams.toString());
-    }
-  }, [hasParams, searchParams, pathname, router]);
+  // Params are valid only when all three are present AND not the string "null"
+  const isValidParam = (val: string | null) =>
+    !!val && val !== "null" && val !== "undefined";
+  const hasParams = isValidParam(typeParam) && isValidParam(monthParam) && isValidParam(yearParam);
 
   useEffect(() => {
     if (!hasParams) {
+      // No valid params — show the PeriodSelector, reset any previous state
       setIsLoading(false);
+      setError(null);
       return;
     }
 
     let ignore = false;
 
-    const selectedType = typeParam;
+    const selectedType = typeParam!;
     const selectedMonth = parseInt(monthParam!);
     const selectedYear = parseInt(yearParam!);
 
@@ -108,7 +104,7 @@ export function UserDashboard() {
 
       if (selectedYear > currentYear || (selectedYear === currentYear && endingMonth > currentMonth)) {
         if (!ignore) {
-          setError("ভবিষ্যতের সময়ের জন্য রিপোর্ট তৈরি বা পরিবর্তন করা সম্ভব নয়।");
+          setError("ভবিষ্যতের সময়ের জন্য রিপোর্ট তৈরি বা পরিবর্তন করা সম্ভব নয়।");
           setIsLoading(false);
         }
         return;
@@ -148,6 +144,11 @@ export function UserDashboard() {
         halfYearly: "ষান্মাসিক",
         nineMonth: "নয়-মাসিক",
         yearly: "বার্ষিক",
+        "মাসিক": "মাসিক",
+        "ত্রৈমাসিক": "ত্রৈমাসিক",
+        "ষান্মাসিক": "ষান্মাসিক",
+        "নয়-মাসিক": "নয়-মাসিক",
+        "বার্ষিক": "বার্ষিক",
       };
       const dbReportType = REPORT_TYPE_MAP[selectedType] || "মাসিক";
 
@@ -162,7 +163,7 @@ export function UserDashboard() {
       if (ignore) return;
       if (rpcErr || !repId) {
         console.error("RPC Error:", rpcErr);
-        setError("রিপোর্ট লোড বা তৈরি করতে সমস্যা হয়েছে।");
+        setError("রিপোর্ট লোড বা তৈরি করতে সমস্যা হয়েছে।");
       } else {
         setReportId(repId);
         await loadReport(repId);
@@ -177,7 +178,7 @@ export function UserDashboard() {
     return () => {
       ignore = true;
     };
-  }, [typeParam, monthParam, yearParam, pathname, router, supabase, setReportId, loadReport, hasParams]);
+  }, [typeParam, monthParam, yearParam, supabase, setReportId, loadReport, hasParams]);
 
   const sections = [
     { id: "header", name: t.sections.header, icon: FileText },
@@ -195,6 +196,11 @@ export function UserDashboard() {
     halfYearly: "ষান্মাসিক",
     nineMonth: "নয়-মাসিক",
     yearly: "বার্ষিক",
+    "মাসিক": "মাসিক",
+    "ত্রৈমাসিক": "ত্রৈমাসিক",
+    "ষান্মাসিক": "ষান্মাসিক",
+    "নয়-মাসিক": "নয়-মাসিক",
+    "বার্ষিক": "বার্ষিক",
   };
 
   const displayReportType = typeParam ? (REPORT_TYPE_MAP[typeParam] || typeParam) : "মাসিক";
@@ -215,7 +221,7 @@ export function UserDashboard() {
             বিসমিল্লাহির রহমানীর রহীম
           </p>
           <p className="text-2xl md:text-3xl font-black text-foreground mb-1.5">
-            তা'লীমুল কুরআন বিভাগ
+            তা&apos;লীমুল কুরআন বিভাগ
           </p>
           {hasParams && zoneName ? (
             <p className="text-lg md:text-xl font-bold text-primary mb-0 animate-in fade-in duration-300">
@@ -246,7 +252,7 @@ export function UserDashboard() {
         )}
       </div>
 
-      {/* Expanded Period Selector Dropdown Box */}
+      {/* Period Selector — always shown when !hasParams, or when pill is expanded */}
       {(!hasParams || isPeriodSelectorExpanded) && (
         <div className="relative mb-8 animate-in fade-in slide-in-from-top-2 duration-200">
           <PeriodSelector monthlyOnly={true} />
@@ -261,18 +267,18 @@ export function UserDashboard() {
         </div>
       )}
 
-      {/* Loading & Error States */}
-      {isLoading ? (
+      {/* Loading State — only when we have params and are actively fetching */}
+      {hasParams && isLoading ? (
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
           <p className="text-sm text-muted-foreground font-bold">রিপোর্ট লোড করা হচ্ছে...</p>
         </div>
-      ) : error ? (
+      ) : hasParams && error ? (
         <div className="text-center py-20 text-destructive font-bold flex flex-col items-center gap-2">
           <span>⚠️ {error}</span>
         </div>
-      ) : (
-        /* Report Sections Grid */
+      ) : hasParams && !isLoading && !error ? (
+        /* Report Sections Grid — only shown when period is selected and loaded */
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {sections.map((section, index) => {
             const Icon = section.icon;
@@ -303,7 +309,7 @@ export function UserDashboard() {
             );
           })}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

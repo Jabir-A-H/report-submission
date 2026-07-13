@@ -15,8 +15,14 @@ export function Navbar() {
   
   if (isAuthPage) return null;
 
+  // Build period query string — carries period context across all navigation links
   const paramsStr = searchParams.toString();
-  const homeHref = paramsStr ? `/?${paramsStr}` : "/";
+  const periodQuery = paramsStr ? `?${paramsStr}` : "";
+
+  // Home link carries period params so the dashboard shows the correct period on return
+  const homeHref = `/${periodQuery}`;
+  // Report link: goes to the /report overview page with period params
+  const reportHref = `/report${periodQuery}`;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-card opacity-100 hidden md:block">
@@ -37,7 +43,7 @@ export function Navbar() {
               {t.home || "হোম"}
             </Link>
             <Link
-              href="/report"
+              href={reportHref}
               className={`transition-all hover:text-primary ${
                 pathname.startsWith("/report") ? "text-primary px-2 py-1 bg-primary/5 rounded-lg" : "text-muted-foreground"
               }`}
@@ -53,4 +59,3 @@ export function Navbar() {
     </header>
   );
 }
-

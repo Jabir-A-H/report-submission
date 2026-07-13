@@ -35,12 +35,38 @@ const MONTHS_BN = [
   "ডিসেম্বর",
 ];
 
+const DB_TYPE_MAP: Record<string, string> = {
+  monthly: "মাসিক",
+  quarterly: "ত্রৈমাসিক",
+  halfYearly: "ষান্মাসিক",
+  nineMonth: "নয়-মাসিক",
+  yearly: "বার্ষিক",
+  "মাসিক": "মাসিক",
+  "ত্রৈমাসিক": "ত্রৈমাসিক",
+  "ষান্মাসিক": "ষান্মাসিক",
+  "নয়-মাসিক": "নয়-মাসিক",
+  "বার্ষিক": "বার্ষিক",
+};
+
+const URL_TO_ENGLISH_MAP: Record<string, string> = {
+  "মাসিক": "monthly",
+  "ত্রৈমাসিক": "quarterly",
+  "ষান্মাসিক": "halfYearly",
+  "নয়-মাসিক": "nineMonth",
+  "বার্ষিক": "yearly",
+  monthly: "monthly",
+  quarterly: "quarterly",
+  halfYearly: "halfYearly",
+  nineMonth: "nineMonth",
+  yearly: "yearly",
+};
+
 const REPORT_TYPES = [
-  { value: "মাসিক", label: "মাসিক" },
-  { value: "ত্রৈমাসিক", label: "ত্রৈমাসিক" },
-  { value: "ষান্মাসিক", label: "ষান্মাসিক" },
-  { value: "নয়-মাসিক", label: "নয়-মাসিক" },
-  { value: "বার্ষিক", label: "বার্ষিক" },
+  { value: "monthly", label: "মাসিক" },
+  { value: "quarterly", label: "ত্রৈমাসিক" },
+  { value: "halfYearly", label: "ষান্মাসিক" },
+  { value: "nineMonth", label: "নয়-মাসিক" },
+  { value: "yearly", label: "বার্ষিক" },
 ];
 
 const COURSE_CATEGORIES = [
@@ -146,7 +172,8 @@ function sumRows(rows: any[], numericKeys: string[]): any[] {
 }
 
 function getMonthsForPeriod(reportType: string, selectedMonth: number): number[] {
-  switch (reportType) {
+  const dbType = DB_TYPE_MAP[reportType] || reportType;
+  switch (dbType) {
     case "ত্রৈমাসিক":
       return [1, 2, 3];
     case "ষান্মাসিক":
@@ -172,7 +199,7 @@ function ReportViewer() {
   const zoneIdParam = searchParams.get("zone_id");
   const monthParam = searchParams.get("month");
   const yearParam = searchParams.get("year");
-  const reportTypeParam = searchParams.get("report_type");
+  const reportTypeParam = searchParams.get("report_type") || searchParams.get("type");
 
   // User details
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -186,7 +213,7 @@ function ReportViewer() {
   const [selectedZone, setSelectedZone] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
-  const [selectedReportType, setSelectedReportType] = useState<string>("মাসিক");
+  const [selectedReportType, setSelectedReportType] = useState<string>("monthly");
   const [isFilterExpanded, setIsFilterExpanded] = useState<boolean>(false);
   const [isDownloadOpen, setIsDownloadOpen] = useState<boolean>(false);
   const downloadRef = useRef<HTMLDivElement>(null);
@@ -262,8 +289,18 @@ function ReportViewer() {
 
     if (monthParam) setSelectedMonth(Number(monthParam));
     if (yearParam) setSelectedYear(Number(yearParam));
-    if (reportTypeParam) setSelectedReportType(reportTypeParam);
-  }, [zoneIdParam, monthParam, yearParam, reportTypeParam, userZoneId]);
+    const rawType = searchParams.get("type") || searchParams.get("report_type");
+    if (rawType) {
+      setSelectedReportType(URL_TO_ENGLISH_MAP[rawType] || rawType);
+    }
+  }, [zoneIdParam, monthParam, yearParam, searchParams, userZoneId]);
+
+  // Active/Applied filter parameters derived directly from URL searchParams (sole source of truth for database querying)
+  const appliedZoneId = zoneIdParam ? Number(zoneIdParam) : (userZoneId ? Number(userZoneId) : (selectedZone ? Number(selectedZone) : null));
+  const appliedMonth = monthParam ? Number(monthParam) : (new Date().getMonth() + 1);
+  const appliedYear = yearParam ? Number(yearParam) : (new Date().getFullYear());
+  const rawTypeParam = searchParams.get("type") || searchParams.get("report_type");
+  const appliedReportType = rawTypeParam ? (URL_TO_ENGLISH_MAP[rawTypeParam] || rawTypeParam) : "monthly";
 
   // 3. Fetch Report Data based on parameters
   const loadReport = useCallback(async () => {
@@ -273,7 +310,7 @@ function ReportViewer() {
 
     try {
       let targetReportId = reportIdParam ? Number(reportIdParam) : null;
-      let targetZoneId = selectedZone ? Number(selectedZone) : null;
+      let targetZoneId = appliedZoneId;
 
       // For non-admin, force their own zone
       if (userRole && userRole !== "admin" && userRole !== "superadmin" && userZoneId) {
@@ -281,10 +318,11 @@ function ReportViewer() {
       }
 
       let activeReport = null;
-      let isMultiMonth = false;
-      let targetYear = selectedYear;
-      let targetReportType = selectedReportType;
-      let targetMonth = selectedMonth;
+      let isMultiMonth = appliedReportType !== "monthly";
+      let targetYear = appliedYear;
+      let targetReportType = appliedReportType;
+      let targetMonth = appliedMonth;
+      let dbReportType = DB_TYPE_MAP[targetReportType] || targetReportType || "মাসিক";
 
       // A. If report_id is provided, load it directly
       if (targetReportId) {
@@ -300,12 +338,9 @@ function ReportViewer() {
         activeReport = reportObj;
         targetZoneId = reportObj.zone_id;
         targetYear = reportObj.year;
-        targetReportType = reportObj.report_type;
+        targetReportType = URL_TO_ENGLISH_MAP[reportObj.report_type] || reportObj.report_type;
+        dbReportType = reportObj.report_type;
         targetMonth = reportObj.month;
-      }
-
-      if (targetReportType !== "মাসিক") {
-        isMultiMonth = true;
       }
 
       // If we are looking for a single monthly report (and not already loaded via reportId)
@@ -318,11 +353,15 @@ function ReportViewer() {
           .eq("report_type", "মাসিক")
           .eq("month", targetMonth)
           .maybeSingle();
-        activeReport = reportObj;
+
+        if (reportObj) {
+          activeReport = reportObj;
+          targetReportId = reportObj.id;
+        }
       }
 
       // If it is multi-month, load and aggregate
-      if (isMultiMonth && targetZoneId) {
+      if (!targetReportId && isMultiMonth && targetZoneId) {
         const monthsRange = getMonthsForPeriod(targetReportType, targetMonth);
         const { data: monthlyReports } = await supabase
           .from("report")
@@ -338,7 +377,7 @@ function ReportViewer() {
             zone_id: targetZoneId,
             year: targetYear,
             month: targetMonth,
-            report_type: targetReportType,
+            report_type: dbReportType,
             zone: monthlyReports[0].zone
           };
 
@@ -396,14 +435,9 @@ function ReportViewer() {
           setReportId(-1);
           setReportInfo(activeReport);
           setIsDataLoaded(true);
+          setIsLoading(false);
+          return;
         } else {
-          activeReport = null;
-        }
-      }
-
-      if (!isMultiMonth) {
-        if (!activeReport) {
-          // No report submitted yet for this period
           setReportId(null);
           setReportInfo(null);
           setHeaderData(null);
@@ -417,7 +451,9 @@ function ReportViewer() {
           setIsLoading(false);
           return;
         }
+      }
 
+      if (activeReport && targetReportId && targetReportId !== -1) {
         const repId = activeReport.id;
         setReportId(repId);
         setReportInfo(activeReport);
@@ -458,20 +494,20 @@ function ReportViewer() {
   }, [
     supabase,
     reportIdParam,
-    selectedZone,
-    selectedMonth,
-    selectedYear,
-    selectedReportType,
+    appliedZoneId,
+    appliedMonth,
+    appliedYear,
+    appliedReportType,
     userRole,
     userZoneId,
   ]);
 
-  // Load report on state/filter resolution
+  // Load report when URL searchParams or currentUser/profile resolve
   useEffect(() => {
-    if (currentUser && (selectedZone || reportIdParam)) {
+    if (currentUser && (appliedZoneId || reportIdParam || userZoneId)) {
       loadReport();
     }
-  }, [currentUser, selectedZone, reportIdParam, loadReport]);
+  }, [currentUser, appliedZoneId, reportIdParam, userZoneId, loadReport]);
 
   // Handle Apply Filter Click
   const handleApplyFilter = () => {
@@ -480,18 +516,22 @@ function ReportViewer() {
     if (selectedZone) params.set("zone_id", selectedZone);
     params.set("month", String(selectedMonth));
     params.set("year", String(selectedYear));
-    params.set("report_type", selectedReportType);
+    const englishType = URL_TO_ENGLISH_MAP[selectedReportType] || selectedReportType || "monthly";
+    params.set("type", englishType);
+    params.set("report_type", englishType);
     router.push(`/report?${params.toString()}`);
   };
 
   // Download Handlers
   const handleDownloadExcel = () => {
     const type = reportInfo?.report_type || selectedReportType;
-    if (type !== "মাসিক") {
+    const dbType = DB_TYPE_MAP[type] || type;
+    if (dbType !== "মাসিক") {
       const targetZoneId = reportInfo?.zone_id || selectedZone || userZoneId;
       const targetYear = reportInfo?.year || selectedYear;
       const targetMonth = reportInfo?.month || selectedMonth;
-      window.open(`/api/export/excel?zone_id=${targetZoneId}&year=${targetYear}&month=${targetMonth}&report_type=${encodeURIComponent(type)}`, "_blank");
+      const urlType = URL_TO_ENGLISH_MAP[type] || "monthly";
+      window.open(`/api/export/excel?zone_id=${targetZoneId}&year=${targetYear}&month=${targetMonth}&type=${urlType}&report_type=${urlType}`, "_blank");
     } else {
       const targetReportId = reportIdParam ? Number(reportIdParam) : reportId;
       if (!targetReportId || targetReportId === -1) return;
@@ -501,11 +541,13 @@ function ReportViewer() {
 
   const handleDownloadPDF = () => {
     const type = reportInfo?.report_type || selectedReportType;
-    if (type !== "মাসিক") {
+    const dbType = DB_TYPE_MAP[type] || type;
+    if (dbType !== "মাসিক") {
       const targetZoneId = reportInfo?.zone_id || selectedZone || userZoneId;
       const targetYear = reportInfo?.year || selectedYear;
       const targetMonth = reportInfo?.month || selectedMonth;
-      window.open(`/api/export/pdf?zone_id=${targetZoneId}&year=${targetYear}&month=${targetMonth}&report_type=${encodeURIComponent(type)}`, "_blank");
+      const urlType = URL_TO_ENGLISH_MAP[type] || "monthly";
+      window.open(`/api/export/pdf?zone_id=${targetZoneId}&year=${targetYear}&month=${targetMonth}&type=${urlType}&report_type=${urlType}`, "_blank");
     } else {
       const targetReportId = reportIdParam ? Number(reportIdParam) : reportId;
       if (!targetReportId || targetReportId === -1) return;
@@ -517,10 +559,11 @@ function ReportViewer() {
 
   const displayPeriodLabel = useMemo(() => {
     if (!reportInfo) return "";
-    if (reportInfo.report_type === "মাসিক") {
+    const dbType = DB_TYPE_MAP[reportInfo.report_type] || reportInfo.report_type;
+    if (dbType === "মাসিক") {
       return `${MONTHS_BN[reportInfo.month - 1]} ${toBn(reportInfo.year)}`;
     }
-    return `${reportInfo.report_type} (${toBn(reportInfo.year)})`;
+    return `${dbType} (${toBn(reportInfo.year)})`;
   }, [reportInfo]);
 
   // ─── Render View ───────────────────────────────────────────────────────────
@@ -662,12 +705,12 @@ function ReportViewer() {
             <div className="space-y-2 w-full">
               <label className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5" />
-                মাস {selectedReportType !== "মাসিক" && <span className="text-[10px] text-muted-foreground/60">(প্রযোজ্য নয়)</span>}
+                মাস {selectedReportType !== "monthly" && selectedReportType !== "মাসিক" && <span className="text-[10px] text-muted-foreground/60">(প্রযোজ্য নয়)</span>}
               </label>
               <select
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                disabled={selectedReportType !== "মাসিক"}
+                disabled={selectedReportType !== "monthly" && selectedReportType !== "মাসিক"}
                 className="modern-input w-full bg-muted/40 focus:bg-background text-sm disabled:opacity-50"
               >
                 {MONTHS_BN.map((m, i) => (

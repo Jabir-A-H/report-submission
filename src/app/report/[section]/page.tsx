@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useEffect, useState, useMemo } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
 import { useReport, ReportProvider } from "@/components/report/report-context";
 import { SectionLayout } from "@/components/report/section-layout";
@@ -15,13 +15,18 @@ import { CommentsForm } from "@/components/report/sections/comments-form";
 import { createClient } from "@/utils/supabase/client";
 import { Loader2 } from "lucide-react";
 
+/** Returns true only when the param is a real value (not null, "null", undefined, "undefined") */
+function isValidParam(val: string | null): val is string {
+  return !!val && val !== "null" && val !== "undefined";
+}
+
 function SectionSwitcher() {
   const { section } = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const pathname = usePathname();
   const { t } = useLanguage();
   const { reportId, setReportId, loadReport } = useReport();
+  const supabase = useMemo(() => createClient(), []);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,21 +35,28 @@ function SectionSwitcher() {
   const monthParam = searchParams.get("month");
   const yearParam = searchParams.get("year");
 
-  useEffect(() => {
-    // 1. Sync / Redirect logic to default values if parameters are missing
-    if (!typeParam || !monthParam || !yearParam) {
-      const params = new URLSearchParams();
-      params.set("type", "monthly");
-      params.set("month", String(new Date().getMonth() + 1));
-      params.set("year", String(new Date().getFullYear()));
+  const hasValidParams =
+    isValidParam(typeParam) && isValidParam(monthParam) && isValidParam(yearParam);
 
-      router.replace(`${pathname}?${params.toString()}`);
+  useEffect(() => {
+    // 1. Redirect to dashboard if params are missing or invalid (e.g. "null" strings)
+    if (!hasValidParams) {
+      // Preserve any valid params that did come through
+      router.replace("/");
       return;
     }
 
-    const selectedType = typeParam;
-    const selectedMonth = parseInt(monthParam);
-    const selectedYear = parseInt(yearParam);
+    const selectedType = typeParam!;
+    const selectedMonth = parseInt(monthParam!);
+    const selectedYear = parseInt(yearParam!);
+
+    // Extra safety guard: if parseInt returns NaN, redirect
+    if (isNaN(selectedMonth) || isNaN(selectedYear)) {
+      router.replace("/");
+      return;
+    }
+
+    let ignore = false;
 
     const fetchActiveReport = async () => {
       setIsLoading(true);
@@ -78,13 +90,15 @@ function SectionSwitcher() {
       const endingMonth = isMonthly ? selectedMonth : getEndingMonthForPeriod(selectedType);
 
       if (selectedYear > currentYear || (selectedYear === currentYear && endingMonth > currentMonth)) {
-        setError("ভবিষ্যতের সময়ের জন্য রিপোর্ট তৈরি বা পরিবর্তন করা সম্ভব নয়।");
-        setIsLoading(false);
+        if (!ignore) {
+          setError("ভবিষ্যতের সময়ের জন্য রিপোর্ট তৈরি বা পরিবর্তন করা সম্ভব নয়।");
+          setIsLoading(false);
+        }
         return;
       }
 
-      const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
+      if (ignore) return;
       if (!user) {
         setError("ব্যবহারকারী চিহ্নিত করা যায়নি।");
         setIsLoading(false);
@@ -98,6 +112,7 @@ function SectionSwitcher() {
         .eq("supabase_uid", user.id)
         .single();
 
+      if (ignore) return;
       if (!person?.zone_id) {
         setError("আপনার জোন এখনও নির্ধারণ করা হয়নি।");
         setIsLoading(false);
@@ -111,6 +126,11 @@ function SectionSwitcher() {
         halfYearly: "ষান্মাসিক",
         nineMonth: "নয়-মাসিক",
         yearly: "বার্ষিক",
+        "মাসিক": "মাসিক",
+        "ত্রৈমাসিক": "ত্রৈমাসিক",
+        "ষান্মাসিক": "ষান্মাসিক",
+        "নয়-মাসিক": "নয়-মাসিক",
+        "বার্ষিক": "বার্ষিক",
       };
       const dbReportType = REPORT_TYPE_MAP[selectedType] || "মাসিক";
 
@@ -122,20 +142,27 @@ function SectionSwitcher() {
         p_report_type: dbReportType,
       });
 
+      if (ignore) return;
       if (rpcErr || !repId) {
         console.error("RPC Error:", rpcErr);
-        setError("রিপোর্ট লোড বা তৈরি করতে সমস্যা হয়েছে।");
+        setError("রিপোর্ট লোড বা তৈরি করতে সমস্যা হয়েছে।");
       } else {
         setReportId(repId);
         await loadReport(repId);
       }
-      setIsLoading(false);
+      if (!ignore) {
+        setIsLoading(false);
+      }
     };
 
     fetchActiveReport();
-  }, [typeParam, monthParam, yearParam, pathname, router, setReportId, loadReport]);
 
-  if (isLoading || !typeParam || !monthParam || !yearParam) {
+    return () => {
+      ignore = true;
+    };
+  }, [typeParam, monthParam, yearParam, hasValidParams, supabase, router, setReportId, loadReport]);
+
+  if (!hasValidParams || isLoading) {
     return (
       <SectionLayout title="">
         <div className="flex items-center justify-center py-20">
@@ -214,4 +241,3 @@ export default function ReportSectionPage() {
     </ReportProvider>
   );
 }
-
