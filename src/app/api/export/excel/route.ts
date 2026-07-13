@@ -30,9 +30,9 @@ const ORG_CATEGORIES = [
   "রুকন",
   "দাওয়াতী ইউনিট",
   "ইউনিট",
-  "সূধী",
   "এককালীন",
-  "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
+  "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতটি",
+  "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতজন",
   "বই বিলি",
   "বই বিক্রি",
 ];
@@ -42,7 +42,9 @@ const PERSONAL_CATEGORIES = ["রুকন", "কর্মী", "সক্রি
 const MEETING_CATEGORIES = [
   "কমিটি বৈঠক হয়েছে",
   "মুয়াল্লিমাদের নিয়ে বৈঠক",
-  "Orientation / Result Publish",
+  "Committee Orientation",
+  "Muallima Orientation",
+  "অন্যান্য",
 ];
 
 const EXTRA_CATEGORIES = [
@@ -445,7 +447,7 @@ export async function GET(request: Request) {
       });
 
       ORG_CATEGORIES.forEach((cat) => {
-        const item = org.find((x) => x.category === cat) || {};
+        const item = org.find((x) => x.category === cat || (cat === "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতটি" && x.category === "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)")) || {};
         const r = worksheet.addRow([
           cat,
           item.number || 0,
@@ -502,21 +504,32 @@ export async function GET(request: Request) {
       mRow.getCell(1).font = { name: "Arial", size: 11, bold: true, color: { argb: "FFFFFFFF" } };
 
       worksheet.addRow([
-        "বৈঠকসমূহ", "মহানগরী সংখ্যা", "মহানগরী গড় উপস্থিতি", "থানা সংখ্যা", 
-        "থানা গড় উপস্থিতি", "ওয়ার্ড সংখ্যা", "ওয়ার্ড গড় উপস্থিতি", "মন্তব্য"
+        "বৈঠকসমূহ", "মহানগরী", "", "থানা", "", "ওয়ার্ড", "", "মন্তব্য"
+      ]);
+      worksheet.addRow([
+        "", "কতটি", "গড় উপস্থিতি", "কতটি", "গড় উপস্থিতি", "কতটি", "গড় উপস্থিতি", ""
       ]);
       const lastMIndex = worksheet.lastRow!.number;
-      worksheet.getRow(lastMIndex).font = { name: "Arial", size: 10, bold: true, color: { argb: "FFFFFFFF" } };
-      worksheet.getRow(lastMIndex).eachCell((cell) => {
-        cell.fill = headerFill;
-        cell.alignment = textCenter;
-        cell.border = borderStyle;
+      worksheet.mergeCells(`A${lastMIndex - 1}:A${lastMIndex}`);
+      worksheet.mergeCells(`B${lastMIndex - 1}:C${lastMIndex - 1}`);
+      worksheet.mergeCells(`D${lastMIndex - 1}:E${lastMIndex - 1}`);
+      worksheet.mergeCells(`F${lastMIndex - 1}:G${lastMIndex - 1}`);
+      worksheet.mergeCells(`H${lastMIndex - 1}:H${lastMIndex}`);
+      [lastMIndex - 1, lastMIndex].forEach((rNum) => {
+        worksheet.getRow(rNum).font = { name: "Arial", size: 10, bold: true, color: { argb: "FFFFFFFF" } };
+        worksheet.getRow(rNum).eachCell((cell) => {
+          cell.fill = headerFill;
+          cell.alignment = textCenter;
+          cell.border = borderStyle;
+        });
       });
 
       MEETING_CATEGORIES.forEach((cat) => {
-        const item = meetings.find((x) => x.category === cat) || {};
+        const item = meetings.find((x) => x.category === cat || (cat === "Committee Orientation" && (x.category === "Committee Orientation / Muallima Orientation" || x.category === "Orientation / Result Publish")) || (cat === "Muallima Orientation" && (x.category === "Committee Orientation / Muallima Orientation" || x.category === "Orientation / Result Publish"))) || {};
+        const customTitle = (item as any).meeting_name?.trim() || (item.comments?.trim() && item.comments?.trim() !== "—" ? item.comments?.trim() : "");
+        const displayLabel = cat === "অন্যান্য" && customTitle ? customTitle : cat;
         const r = worksheet.addRow([
-          cat,
+          displayLabel,
           item.city_count || 0,
           item.city_avg_attendance || 0,
           item.thana_count || 0,
@@ -751,7 +764,7 @@ export async function GET(request: Request) {
       });
 
       ORG_CATEGORIES.forEach((cat) => {
-        const item = orgData.find((x) => x.category === cat) || {};
+        const item = orgData.find((x) => x.category === cat || (cat === "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতটি" && x.category === "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)")) || {};
         const r = worksheet.addRow([
           cat,
           getVal("organizational", "number", item.number, cat),
@@ -808,21 +821,32 @@ export async function GET(request: Request) {
       mRow.getCell(1).font = { name: "Arial", size: 11, bold: true, color: { argb: "FFFFFFFF" } };
 
       worksheet.addRow([
-        "বৈঠকসমূহ", "মহানগরী সংখ্যা", "মহানগরী গড় উপস্থিতি", "থানা সংখ্যা", 
-        "থানা গড় উপস্থিতি", "ওয়ার্ড সংখ্যা", "ওয়ার্ড গড় উপস্থিতি", "মন্তব্য"
+        "বৈঠকসমূহ", "মহানগরী", "", "থানা", "", "ওয়ার্ড", "", "মন্তব্য"
+      ]);
+      worksheet.addRow([
+        "", "কতটি", "গড় উপস্থিতি", "কতটি", "গড় উপস্থিতি", "কতটি", "গড় উপস্থিতি", ""
       ]);
       const lastMIndex = worksheet.lastRow!.number;
-      worksheet.getRow(lastMIndex).font = { name: "Arial", size: 10, bold: true, color: { argb: "FFFFFFFF" } };
-      worksheet.getRow(lastMIndex).eachCell((cell) => {
-        cell.fill = headerFill;
-        cell.alignment = textCenter;
-        cell.border = borderStyle;
+      worksheet.mergeCells(`A${lastMIndex - 1}:A${lastMIndex}`);
+      worksheet.mergeCells(`B${lastMIndex - 1}:C${lastMIndex - 1}`);
+      worksheet.mergeCells(`D${lastMIndex - 1}:E${lastMIndex - 1}`);
+      worksheet.mergeCells(`F${lastMIndex - 1}:G${lastMIndex - 1}`);
+      worksheet.mergeCells(`H${lastMIndex - 1}:H${lastMIndex}`);
+      [lastMIndex - 1, lastMIndex].forEach((rNum) => {
+        worksheet.getRow(rNum).font = { name: "Arial", size: 10, bold: true, color: { argb: "FFFFFFFF" } };
+        worksheet.getRow(rNum).eachCell((cell) => {
+          cell.fill = headerFill;
+          cell.alignment = textCenter;
+          cell.border = borderStyle;
+        });
       });
 
       MEETING_CATEGORIES.forEach((cat) => {
-        const item = meetingData.find((x) => x.category === cat) || {};
+        const item = meetingData.find((x) => x.category === cat || (cat === "Committee Orientation" && (x.category === "Committee Orientation / Muallima Orientation" || x.category === "Orientation / Result Publish")) || (cat === "Muallima Orientation" && (x.category === "Committee Orientation / Muallima Orientation" || x.category === "Orientation / Result Publish"))) || {};
+        const customTitle = (item as any).meeting_name?.trim() || (item.comments?.trim() && item.comments?.trim() !== "—" ? item.comments?.trim() : "");
+        const displayLabel = cat === "অন্যান্য" && customTitle ? customTitle : cat;
         const r = worksheet.addRow([
-          cat,
+          displayLabel,
           getVal("meetings", "city_count", item.city_count, cat),
           getVal("meetings", "city_avg_attendance", item.city_avg_attendance, cat),
           getVal("meetings", "thana_count", item.thana_count, cat),

@@ -83,7 +83,7 @@ const COURSE_CATEGORIES = [
 const ORG_CATEGORIES = [
   "দাওয়াত দান",
   "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
-  "সহযোগী হয়েছে",
+  "সহযোগী হয়েছেন",
   "সম্মতি দিয়েছেন",
   "সক্রিয় সহযোগী",
   "কর্মী",
@@ -92,7 +92,8 @@ const ORG_CATEGORIES = [
   "ইউনিট",
   "সূধী",
   "এককালীন",
-  "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
+  "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতটি",
+  "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতজন",
   "বই বিলি",
   "বই বিক্রি",
 ];
@@ -112,7 +113,9 @@ const PERSONAL_METRICS_ROWS = [
 const MEETING_CATEGORIES = [
   "কমিটি বৈঠক হয়েছে",
   "মুয়াল্লিমাদের নিয়ে বৈঠক",
-  "Orientation / Result Publish",
+  "Committee Orientation",
+  "Muallima Orientation",
+  "অন্যান্য",
 ];
 
 const EXTRA_CATEGORIES = [
@@ -165,6 +168,16 @@ function sumRows(rows: any[], numericKeys: string[]): any[] {
       const existing = grouped.get(cat)!;
       for (const k of numericKeys) {
         existing[k] = (existing[k] || 0) + (row[k] || 0);
+      }
+      if (row.meeting_name && row.meeting_name.trim() !== "") {
+        if (!(existing.meeting_name || "").includes(row.meeting_name.trim())) {
+          existing.meeting_name = [existing.meeting_name, row.meeting_name.trim()].filter(Boolean).join(", ");
+        }
+      }
+      if (row.comments && row.comments.trim() !== "" && row.comments.trim() !== "—") {
+        if (!(existing.comments || "").includes(row.comments.trim())) {
+          existing.comments = [existing.comments, row.comments.trim()].filter(Boolean).join(", ");
+        }
       }
     }
   }
@@ -894,7 +907,7 @@ function ReportViewer() {
                 {/* Col 4: Total Unit + Unit With Muallima */}
                 <div className="p-4 bg-muted/40 rounded-xl border border-border/40 flex flex-col justify-between">
                   <div>
-                    <span className="text-muted-foreground block mb-1 text-xs font-bold">মোট ইউনিট:</span>
+                    <span className="text-muted-foreground block mb-1 text-xs font-bold">ইউনিট সংখ্যা:</span>
                     <span className="font-black text-xl text-foreground">
                       {toBn(headerData.total_unit)}
                     </span>
@@ -922,8 +935,8 @@ function ReportViewer() {
                     <th rowSpan={2} className="px-4 py-3 font-black border-r border-border">শিক্ষার্থী</th>
                     <th rowSpan={2} className="px-4 py-3 font-black border-r border-border">উপস্থিতি</th>
                     <th colSpan={4} className="px-4 py-2 font-black border-r border-b border-border">শিক্ষার্থী অবস্থান</th>
-                    <th rowSpan={2} className="px-4 py-3 font-black border-r border-border">সমাপ্ত</th>
-                    <th rowSpan={2} className="px-4 py-3 font-black">সহীহ শিখেছে</th>
+                    <th rowSpan={2} className="px-4 py-3 font-black border-r border-border">কতজন নিয়ে সমাপ্ত</th>
+                    <th rowSpan={2} className="px-4 py-3 font-black">সহীহ শিখেছেন কতজন</th>
                   </tr>
                   <tr className="bg-purple-500/10 text-purple-900 border-b border-border text-[11px]">
                     <th className="px-2 py-2 border-r border-border font-bold">সংখ্যা</th>
@@ -1012,7 +1025,7 @@ function ReportViewer() {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {ORG_CATEGORIES.map((cat) => {
-                    const row = orgData.find((r) => r.category === cat) || {
+                    const row = orgData.find((r) => r.category === cat || (cat === "সহযোগী হয়েছেন" && r.category === "সহযোগী হয়েছে") || (cat === "সহযোগী হয়েছে" && r.category === "সহযোগী হয়েছেন") || (cat === "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতটি" && r.category === "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)")) || {
                       number: 0,
                       increase: 0,
                       amount: 0,
@@ -1085,24 +1098,24 @@ function ReportViewer() {
               <table className="w-full text-sm text-center border-collapse table-fixed min-w-[520px]">
                 <thead className="bg-cyan-500/5 text-cyan-800 font-bold border-b border-border">
                   <tr>
-                    <th rowSpan={2} className="w-[28%] px-3 py-3 text-left border-r border-border break-words">বৈঠকসমূহ</th>
-                    <th colSpan={2} className="w-[20%] px-2 py-2 border-r border-b border-border">মহানগরী</th>
-                    <th colSpan={2} className="w-[20%] px-2 py-2 border-r border-b border-border">থানা</th>
-                    <th colSpan={2} className="w-[20%] px-2 py-2 border-r border-b border-border">ওয়ার্ড</th>
-                    <th rowSpan={2} className="w-[12%] px-2 py-3 text-left">মন্তব্য</th>
+                    <th rowSpan={2} className="w-[28%] px-3 py-3 text-left border-r border-b border-border font-black break-words">বৈঠকসমূহ</th>
+                    <th colSpan={2} className="w-[20%] px-2 py-2 text-center border-r border-b border-border font-black">মহানগরী</th>
+                    <th colSpan={2} className="w-[20%] px-2 py-2 text-center border-r border-b border-border font-black">থানা</th>
+                    <th colSpan={2} className="w-[20%] px-2 py-2 text-center border-r border-b border-border font-black">ওয়ার্ড</th>
+                    <th rowSpan={2} className="w-[12%] px-2 py-3 text-left border-b border-border font-black">মন্তব্য</th>
                   </tr>
                   <tr className="bg-cyan-500/10 text-cyan-900 border-b border-border text-[11px]">
-                    <th className="w-[10%] px-1 py-2 border-r border-border font-bold">সংখ্যা</th>
+                    <th className="w-[10%] px-1 py-2 border-r border-border font-bold">কতটি</th>
                     <th className="w-[10%] px-1 py-2 border-r border-border font-bold">গড় উপস্থিতি</th>
-                    <th className="w-[10%] px-1 py-2 border-r border-border font-bold">সংখ্যা</th>
+                    <th className="w-[10%] px-1 py-2 border-r border-border font-bold">কতটি</th>
                     <th className="w-[10%] px-1 py-2 border-r border-border font-bold">গড় উপস্থিতি</th>
-                    <th className="w-[10%] px-1 py-2 border-r border-border font-bold">সংখ্যা</th>
+                    <th className="w-[10%] px-1 py-2 border-r border-border font-bold">কতটি</th>
                     <th className="w-[10%] px-1 py-2 border-r border-border font-bold">গড় উপস্থিতি</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {MEETING_CATEGORIES.map((cat) => {
-                    const row = meetingData.find((r) => r.category === cat) || {
+                    const row = meetingData.find((r) => r.category === cat || (cat === "Committee Orientation" && (r.category === "Committee Orientation / Muallima Orientation" || r.category === "Orientation / Result Publish")) || (cat === "Muallima Orientation" && (r.category === "Committee Orientation / Muallima Orientation" || r.category === "Orientation / Result Publish"))) || {
                       city_count: 0,
                       city_avg_attendance: 0,
                       thana_count: 0,
@@ -1111,9 +1124,11 @@ function ReportViewer() {
                       ward_avg_attendance: 0,
                       comments: "",
                     };
+                    const customTitle = (row as any).meeting_name?.trim() || (row.comments?.trim() && row.comments?.trim() !== "—" ? row.comments?.trim() : "");
+                    const displayLabel = cat === "অন্যান্য" && customTitle ? customTitle : cat;
                     return (
                       <tr key={cat} className="hover:bg-muted/40 transition-colors">
-                        <td className="w-[28%] px-3 py-3 border-r border-border text-left font-bold text-foreground break-words">{cat}</td>
+                        <td className="w-[28%] px-3 py-3 border-r border-border text-left font-bold text-foreground break-words">{displayLabel}</td>
                         <td className="w-[10%] px-1 py-3 border-r border-border">{toBn(row.city_count)}</td>
                         <td className="w-[10%] px-1 py-3 border-r border-border">{toBn(row.city_avg_attendance)}</td>
                         <td className="w-[10%] px-1 py-3 border-r border-border">{toBn(row.thana_count)}</td>

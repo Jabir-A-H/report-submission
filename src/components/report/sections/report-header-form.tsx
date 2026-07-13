@@ -17,7 +17,7 @@ export function ReportHeaderForm() {
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <AutoSaveField 
-            label="দায়িত্বশীল বোনের নাম" 
+            label="দায়িত্বশীলার নাম" 
             name="responsible_name" 
             section="header" 
             table="report_header"
@@ -79,9 +79,9 @@ export function ReportHeaderForm() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t border-border/40">
           <div className="space-y-3">
-             <h4 className="text-xs font-bold text-purple-600 uppercase tracking-wide border-b border-border/30 pb-2">সনদপ্রাপ্ত মুয়াল্লিমা</h4>
+             <h4 className="text-xs font-bold text-purple-600 uppercase tracking-wide border-b border-border/30 pb-2">সার্টিফিকেটপ্রাপ্ত মুয়াল্লিমা</h4>
              <AutoSaveField 
-               label="মোট সংখ্যা" 
+               label="সার্টিফিকেটপ্রাপ্ত মুয়াল্লিমা" 
                name="certified_muallima" 
                type="number"
                section="header" 
@@ -89,7 +89,7 @@ export function ReportHeaderForm() {
                inline
              />
              <AutoSaveField 
-               label="যাঁরা ক্লাস নিচ্ছেন" 
+               label="সার্টিফিকেটপ্রাপ্ত ক্লাস নিচ্ছেন" 
                name="certified_muallima_taking_classes" 
                type="number"
                section="header" 
@@ -101,7 +101,7 @@ export function ReportHeaderForm() {
           <div className="space-y-3">
              <h4 className="text-xs font-bold text-purple-600 uppercase tracking-wide border-b border-border/30 pb-2">প্রশিক্ষণপ্রাপ্ত মুয়াল্লিমা</h4>
              <AutoSaveField 
-               label="মোট সংখ্যা" 
+               label="প্রশিক্ষণপ্রাপ্ত মুয়াল্লিমা" 
                name="trained_muallima" 
                type="number"
                section="header" 
@@ -109,7 +109,7 @@ export function ReportHeaderForm() {
                inline
              />
              <AutoSaveField 
-               label="যাঁরা ক্লাস নিচ্ছেন" 
+               label="প্রশিক্ষণপ্রাপ্ত ক্লাস নিচ্ছেন" 
                name="trained_muallima_taking_classes" 
                type="number"
                section="header" 
@@ -131,7 +131,7 @@ export function ReportHeaderForm() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <AutoSaveField 
-            label="মোট ইউনিট সংখ্যা" 
+            label="ইউনিট সংখ্যা" 
             name="total_unit" 
             type="number"
             section="header" 
@@ -139,7 +139,7 @@ export function ReportHeaderForm() {
             inline
           />
           <AutoSaveField 
-            label="মুয়াল্লিমাসম্পন্ন ইউনিট" 
+            label="মুয়াল্লিমা সহ ইউনিট" 
             name="units_with_muallima" 
             type="number"
             section="header" 

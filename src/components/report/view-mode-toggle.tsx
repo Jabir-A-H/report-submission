@@ -37,7 +37,13 @@ export function ViewModeProvider({
   children: React.ReactNode;
   defaultMode?: ViewMode;
 }) {
+  const existing = useContext(ViewModeContext);
   const { viewMode, changeMode } = useViewMode(defaultMode);
+
+  if (existing) {
+    return <>{children}</>;
+  }
+
   return (
     <ViewModeContext.Provider value={{ viewMode, changeMode }}>
       {children}

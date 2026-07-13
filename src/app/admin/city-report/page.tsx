@@ -12,6 +12,7 @@ import {
   SearchX,
   ChevronRight,
 } from "lucide-react";
+import { ORG_CATEGORIES } from "@/components/report/sections/organizational-form";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -84,6 +85,8 @@ interface MeetingRow {
   thana_avg_attendance: number;
   ward_count: number;
   ward_avg_attendance: number;
+  meeting_name?: string;
+  comments?: string;
 }
 
 interface ExtraRow {
@@ -247,6 +250,16 @@ function sumRows<T>(
       for (const k of numericKeys) {
         (existing as any)[k] =
           ((existing as any)[k] || 0) + ((row as any)[k] || 0);
+      }
+      if ((row as any).meeting_name && (row as any).meeting_name.trim() !== "") {
+        if (!((existing as any).meeting_name || "").includes((row as any).meeting_name.trim())) {
+          (existing as any).meeting_name = [(existing as any).meeting_name, (row as any).meeting_name.trim()].filter(Boolean).join(", ");
+        }
+      }
+      if ((row as any).comments && (row as any).comments.trim() !== "") {
+        if (!((existing as any).comments || "").includes((row as any).comments.trim())) {
+          (existing as any).comments = [(existing as any).comments, (row as any).comments.trim()].filter(Boolean).join(", ");
+        }
       }
     }
   }
@@ -890,28 +903,37 @@ export default function CityReportPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {orgData.map((row) => (
-                      <tr
-                        key={row.category}
-                        className="hover:bg-muted/50 transition-colors"
-                      >
-                        <td className="px-4 py-3 font-semibold text-foreground">
-                          {row.category}
-                        </td>
-                        {ORG_COLUMNS.filter((c) => c.key !== "category").map(
-                          (col) => (
-                            <td key={col.key} className="px-4 py-3 text-center">
-                              <NumericCell
-                                section="organizational"
-                                field={col.key}
-                                computedValue={row[col.key] as number}
-                                category={row.category}
-                              />
-                            </td>
-                          )
-                        )}
-                      </tr>
-                    ))}
+                    {ORG_CATEGORIES.map((cat) => {
+                      const row = orgData.find((r) => r.category === cat || (cat === "সহযোগী হয়েছেন" && r.category === "সহযোগী হয়েছে") || (cat === "সহযোগী হয়েছে" && r.category === "সহযোগী হয়েছেন") || (cat === "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতটি" && r.category === "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)")) || {
+                        category: cat,
+                        number: 0,
+                        increase: 0,
+                        amount: 0,
+                        comments: "",
+                      };
+                      return (
+                        <tr
+                          key={cat}
+                          className="hover:bg-muted/50 transition-colors"
+                        >
+                          <td className="px-4 py-3 font-semibold text-foreground">
+                            {cat}
+                          </td>
+                          {ORG_COLUMNS.filter((c) => c.key !== "category").map(
+                            (col) => (
+                              <td key={col.key} className="px-4 py-3 text-center">
+                                <NumericCell
+                                  section="organizational"
+                                  field={col.key}
+                                  computedValue={(row as any)[col.key] as number}
+                                  category={cat}
+                                />
+                              </td>
+                            )
+                          )}
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -1045,8 +1067,11 @@ export default function CityReportPage() {
                         key={row.category}
                         className="hover:bg-muted/50 transition-colors"
                       >
-                        <td className="px-4 py-3 font-semibold text-foreground">
-                          {row.category}
+                        <td className="px-4 py-3 font-semibold text-foreground break-words">
+                          {(() => {
+                            const customTitle = row.meeting_name?.trim() || (row.comments?.trim() && row.comments?.trim() !== "—" ? row.comments?.trim() : "");
+                            return row.category === "অন্যান্য" && customTitle ? customTitle : row.category;
+                          })()}
                         </td>
                         {(
                           [

@@ -7,7 +7,7 @@ import { ViewModeProvider, useViewModeContext } from "../view-mode-toggle";
 export const ORG_CATEGORIES = [
   "দাওয়াত দান",
   "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
-  "সহযোগী হয়েছে",
+  "সহযোগী হয়েছেন",
   "সম্মতি দিয়েছেন",
   "সক্রিয় সহযোগী",
   "কর্মী",
@@ -16,7 +16,8 @@ export const ORG_CATEGORIES = [
   "ইউনিট",
   "সূধী",
   "এককালীন",
-  "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)",
+  "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতটি",
+  "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতজন",
   "বই বিলি",
   "বই বিক্রি",
 ];
@@ -30,7 +31,7 @@ function OrganizationalFormContent() {
         <table className="w-full text-left border-collapse min-w-[650px]">
           <thead>
             <tr className="border-b border-border bg-muted/50 text-muted-foreground text-xs font-black">
-              <th className="p-3 w-64 sticky left-0 bg-muted/90 backdrop-blur z-10">ক্যাটাগরি</th>
+              <th className="p-3 w-48 sticky left-0 bg-muted/90 backdrop-blur z-10 border-r border-border/50 text-left">দাওয়াত ও সংগঠন</th>
               <th className="p-2 text-center w-24">সংখ্যা</th>
               <th className="p-2 text-center w-24">বৃদ্ধি</th>
               <th className="p-2 text-center w-24">পরিমাণ</th>
@@ -40,7 +41,7 @@ function OrganizationalFormContent() {
           <tbody className="divide-y divide-border/60 text-sm">
             {ORG_CATEGORIES.map((category) => (
               <tr key={category} className="hover:bg-muted/30 transition-colors">
-                <td className="p-3 font-bold text-foreground sticky left-0 bg-card z-10 border-r border-border/50 text-xs sm:text-sm">
+                <td className="p-3 w-48 font-bold text-foreground sticky left-0 bg-card z-10 border-r border-border/50 text-xs sm:text-sm">
                   {category}
                 </td>
                 <td className="p-1"><AutoSaveField label="" name="number" type="number" section="organizational" table="report_organizational" category={category} tableMode /></td>

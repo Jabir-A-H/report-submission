@@ -33,27 +33,31 @@ function CoursesFormContent() {
     return (
       <div className="bg-card border border-border/80 rounded-2xl p-4 shadow-xs overflow-x-auto animate-in fade-in duration-300">
         <table className="w-full text-left border-collapse min-w-[900px]">
-          <thead>
-            <tr className="border-b border-border bg-muted/50 text-muted-foreground text-xs font-black">
-              <th className="p-3 w-48 sticky left-0 bg-muted/90 backdrop-blur z-10">ক্যাটাগরি</th>
-              <th className="p-2 text-center w-20">সংখ্যা</th>
-              <th className="p-2 text-center w-20">বৃদ্ধি</th>
-              <th className="p-2 text-center w-20">ঘাটতি</th>
-              <th className="p-2 text-center w-20">অধিবেশন</th>
-              <th className="p-2 text-center w-20">শিক্ষার্থী</th>
-              <th className="p-2 text-center w-20">উপস্থিতি</th>
-              <th className="p-2 text-center w-20">বোর্ডে</th>
-              <th className="p-2 text-center w-20">কায়দায়</th>
-              <th className="p-2 text-center w-20">আমপারা</th>
-              <th className="p-2 text-center w-20">কুরআন</th>
-              <th className="p-2 text-center w-20">সমাপ্ত</th>
-              <th className="p-2 text-center w-24">সহীহ শিখেছেন</th>
+          <thead className="bg-muted/50 text-muted-foreground text-xs font-black">
+            <tr className="border-b border-border">
+              <th rowSpan={2} className="p-3 w-48 sticky left-0 bg-muted/90 backdrop-blur z-10 border-r border-border/50 text-left">বিভাগ/ধরন</th>
+              <th colSpan={3} className="p-2 text-center border-r border-b border-border font-black text-foreground">গ্রুপ / কোর্স</th>
+              <th rowSpan={2} className="p-2 text-center w-20 border-r border-border">অধিবেশন</th>
+              <th rowSpan={2} className="p-2 text-center w-20 border-r border-border">শিক্ষার্থী</th>
+              <th rowSpan={2} className="p-2 text-center w-20 border-r border-border">উপস্থিতি</th>
+              <th colSpan={4} className="p-2 text-center border-r border-b border-border font-black text-foreground">শিক্ষার্থী অবস্থান</th>
+              <th rowSpan={2} className="p-2 text-center w-24 border-r border-border">কতজন নিয়ে সমাপ্ত</th>
+              <th rowSpan={2} className="p-2 text-center w-28">সহীহ শিখেছেন কতজন</th>
+            </tr>
+            <tr className="border-b border-border bg-muted/70 text-[11px]">
+              <th className="p-1.5 text-center w-20 border-r border-border font-bold">সংখ্যা</th>
+              <th className="p-1.5 text-center w-20 border-r border-border font-bold">বৃদ্ধি</th>
+              <th className="p-1.5 text-center w-20 border-r border-border font-bold">ঘাটতি</th>
+              <th className="p-1.5 text-center w-20 border-r border-border font-bold">বোর্ড</th>
+              <th className="p-1.5 text-center w-20 border-r border-border font-bold">কায়দা</th>
+              <th className="p-1.5 text-center w-20 border-r border-border font-bold">আমপারা</th>
+              <th className="p-1.5 text-center w-20 border-r border-border font-bold">কুরআন</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/60 text-sm">
             {COURSE_CATEGORIES.map((category) => (
               <tr key={category} className="hover:bg-muted/30 transition-colors">
-                <td className="p-3 font-bold text-foreground sticky left-0 bg-card z-10 border-r border-border/50 text-xs sm:text-sm">
+                <td className="p-3 w-48 font-bold text-foreground sticky left-0 bg-card z-10 border-r border-border/50 text-xs sm:text-sm">
                   {category}
                 </td>
                 <td className="p-1"><AutoSaveField label="" name="number" type="number" section="courses" table="report_course" category={category} tableMode /></td>
@@ -140,8 +144,8 @@ function CoursesFormContent() {
                     শিক্ষার্থী অবস্থান
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-                    <AutoSaveField label="বোর্ডে" name="status_board" type="number" section="courses" table="report_course" category={category} inline />
-                    <AutoSaveField label="কায়দায়" name="status_qayda" type="number" section="courses" table="report_course" category={category} inline />
+                    <AutoSaveField label="বোর্ড" name="status_board" type="number" section="courses" table="report_course" category={category} inline />
+                    <AutoSaveField label="কায়দা" name="status_qayda" type="number" section="courses" table="report_course" category={category} inline />
                     <AutoSaveField label="আমপারা" name="status_ampara" type="number" section="courses" table="report_course" category={category} inline />
                     <AutoSaveField label="কুরআন" name="status_quran" type="number" section="courses" table="report_course" category={category} inline />
                   </div>

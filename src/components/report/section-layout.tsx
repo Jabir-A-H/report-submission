@@ -11,7 +11,7 @@ import {
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { AutoSaveIndicator } from "./auto-save-indicator";
-import { CompactViewToggle } from "./view-mode-toggle";
+import { CompactViewToggle, ViewModeProvider } from "./view-mode-toggle";
 
 export function SectionLayout({ children, title }: { children: React.ReactNode; title: string }) {
   const { t } = useLanguage();
@@ -22,8 +22,8 @@ export function SectionLayout({ children, title }: { children: React.ReactNode; 
 
   const queryString = searchParams.toString() ? `?${searchParams.toString()}` : "";
 
-  // URL query params are the single source of truth for period state.
-  // No sessionStorage backup needed — all navigation links carry params via queryString.
+  const toggleableSections = ["courses", "organizational", "personal", "meeting"];
+  const supportsViewToggle = toggleableSections.includes(currentSection);
 
   const sectionsOrder = [
     "header", "courses", "organizational", "personal", "meeting", "extra", "comment"
@@ -35,7 +35,7 @@ export function SectionLayout({ children, title }: { children: React.ReactNode; 
   const prevTitle = prevSection ? (t.sections as Record<string, string>)[prevSection] : "";
   const nextTitle = nextSection ? (t.sections as Record<string, string>)[nextSection] : "";
 
-  return (
+  const layoutContent = (
     <div className="flex flex-col min-h-[calc(100vh-64px-64px)] md:min-h-screen pb-24 md:pb-12 h-full">
       {/* Secondary Top Nav for Section */}
       <div className="sticky top-0 md:top-16 z-40 w-full bg-card border-b border-border md:bg-background/80 md:backdrop-blur opacity-100">
@@ -54,7 +54,7 @@ export function SectionLayout({ children, title }: { children: React.ReactNode; 
           </div>
 
           <div className="flex justify-end min-w-[80px] md:min-w-[110px]">
-            <CompactViewToggle />
+            {supportsViewToggle && <CompactViewToggle />}
           </div>
         </div>
       </div>
@@ -97,4 +97,10 @@ export function SectionLayout({ children, title }: { children: React.ReactNode; 
       </div>
     </div>
   );
+
+  return supportsViewToggle ? (
+    <ViewModeProvider defaultMode="card">
+      {layoutContent}
+    </ViewModeProvider>
+  ) : layoutContent;
 }
