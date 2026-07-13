@@ -205,6 +205,7 @@ function ReportViewer() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userZoneId, setUserZoneId] = useState<number | null>(null);
+  const [userZoneName, setUserZoneName] = useState<string>("");
 
   // Lists for dropdowns
   const [zones, setZones] = useState<any[]>([]);
@@ -258,13 +259,14 @@ function ReportViewer() {
         // Fetch profile
         const { data: profile } = await supabase
           .from("people")
-          .select("role, zone_id")
+          .select("role, zone_id, zone(name)")
           .eq("supabase_uid", user.id)
           .single();
 
         if (profile) {
           setUserRole(profile.role);
           setUserZoneId(profile.zone_id);
+          if ((profile as any).zone?.name) setUserZoneName((profile as any).zone.name);
         }
 
         // If admin/superadmin, load all zones for selection
@@ -557,14 +559,35 @@ function ReportViewer() {
 
   // ─── Render Helper Constants ────────────────────────────────────────────────
 
-  const displayPeriodLabel = useMemo(() => {
-    if (!reportInfo) return "";
-    const dbType = DB_TYPE_MAP[reportInfo.report_type] || reportInfo.report_type;
-    if (dbType === "মাসিক") {
-      return `${MONTHS_BN[reportInfo.month - 1]} ${toBn(reportInfo.year)}`;
+  const activeZoneName = useMemo(() => {
+    if (reportInfo?.zone?.name) return reportInfo.zone.name;
+    if (appliedZoneId) {
+      const found = zones.find((z) => z.id === appliedZoneId);
+      if (found?.name) return found.name;
     }
-    return `${dbType} (${toBn(reportInfo.year)})`;
-  }, [reportInfo]);
+    if (selectedZone) {
+      const found = zones.find((z) => String(z.id) === String(selectedZone));
+      if (found?.name) return found.name;
+    }
+    return userZoneName || "";
+  }, [reportInfo, appliedZoneId, selectedZone, zones, userZoneName]);
+
+  const activeReportTypeBn = useMemo(() => {
+    if (reportInfo?.report_type) {
+      return DB_TYPE_MAP[reportInfo.report_type] || reportInfo.report_type;
+    }
+    return DB_TYPE_MAP[appliedReportType] || appliedReportType || "মাসিক";
+  }, [reportInfo, appliedReportType]);
+
+  const displayPeriodLabel = useMemo(() => {
+    const month = reportInfo?.month || appliedMonth || selectedMonth;
+    const year = reportInfo?.year || appliedYear || selectedYear;
+    const dbType = activeReportTypeBn;
+    if (dbType === "মাসিক") {
+      return `${MONTHS_BN[month - 1]} ${toBn(year)}`;
+    }
+    return `${dbType} ${toBn(year)}`;
+  }, [reportInfo, appliedMonth, selectedMonth, appliedYear, selectedYear, activeReportTypeBn]);
 
   // ─── Render View ───────────────────────────────────────────────────────────
 
@@ -580,9 +603,8 @@ function ReportViewer() {
             তা'লীমুল কুরআন বিভাগ
           </p>
           <p className="text-lg md:text-xl font-bold text-foreground mb-0">
-            {reportInfo
-              ? `${reportInfo.zone?.name || ""} জোন - ${reportInfo.report_type || "মাসিক"} রিপোর্ট - ${displayPeriodLabel}`
-              : "জমাকৃত রিপোর্ট দেখার প্যানেল"}
+            {activeZoneName ? `${activeZoneName} জোন - ` : ""}
+            {activeReportTypeBn} রিপোর্ট - {displayPeriodLabel}
           </p>
         </div>
 
@@ -638,7 +660,7 @@ function ReportViewer() {
               <Filter className="w-4 h-4 text-primary shrink-0" />
               <div className="truncate text-xs font-bold text-foreground">
                 {reportInfo
-                  ? `${reportInfo.zone?.name || "জোন"} — ${reportInfo.report_type || selectedReportType} — ${displayPeriodLabel}`
+                  ? `${reportInfo.zone?.name || "জোন"} - ${reportInfo.report_type || selectedReportType} - ${displayPeriodLabel}`
                   : "ফিল্টার করুন (জোন, মাস, সাল)"}
               </div>
             </div>

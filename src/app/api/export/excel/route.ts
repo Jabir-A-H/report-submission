@@ -648,7 +648,7 @@ export async function GET(request: Request) {
       };
 
       const periodLabel = isMultiMonth
-        ? `${MONTHS_BN[months[0] - 1]} — ${MONTHS_BN[months[months.length - 1] - 1]} ${year}`
+        ? `${MONTHS_BN[months[0] - 1]} - ${MONTHS_BN[months[months.length - 1] - 1]} ${year}`
         : `${MONTHS_BN[month - 1]} ${year}`;
 
       // ── Build Document ──

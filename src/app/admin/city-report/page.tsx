@@ -564,7 +564,7 @@ export default function CityReportPage() {
     if (monthsRange.length === 1) {
       return `${MONTHS_BN[month - 1]} ${toBn(year)}`;
     }
-    return `${MONTHS_BN[monthsRange[0] - 1]} — ${MONTHS_BN[monthsRange[monthsRange.length - 1] - 1]} ${toBn(year)}`;
+    return `${MONTHS_BN[monthsRange[0] - 1]} - ${MONTHS_BN[monthsRange[monthsRange.length - 1] - 1]} ${toBn(year)}`;
   }, [reportType, month, year]);
 
   // ─── Render ─────────────────────────────────────────────────────────────────

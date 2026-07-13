@@ -23,6 +23,14 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ## Resolved Historical Issues
 
+### Overview Report (`/report`) Header Placeholder Flicker (`জমাকৃত রিপোর্ট দেখার প্যানেল`)
+- **Date**: 2026-07-13
+- **Resolution Date**: 2026-07-13
+- **Description**: `src/app/report/page.tsx` previously used a static ternary fallback (`: "জমাকৃত রিপোর্ট দেখার প্যানেল"`) whenever `reportInfo` evaluated to `null`. This caused the header to briefly flash "Submitted Report Viewing Panel" during initial page mount while `loadReport()` queried the database, or persistently whenever viewing an empty (`!reportInfo`) period.
+- **Fix**: Replaced static fallback with instant dynamic header resolution (`activeZoneName — activeReportTypeBn রিপোর্ট — displayPeriodLabel`). The page now resolves the active zone (`userZoneName` / `zones` lookup) and period label (`searchParams`) immediately upon mount, ensuring accurate title context across loading and empty states without placeholder text.
+
+---
+
 ### Section Links Visible Before Period Selection + RPC 400 Null Year Error (ADR 006)
 - **Date**: 2026-07-13
 - **Resolution Date**: 2026-07-13

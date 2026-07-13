@@ -872,7 +872,7 @@ export async function GET(request: Request) {
       };
 
       periodLabel = isMultiMonth
-        ? `${MONTHS_BN[months[0] - 1]} — ${MONTHS_BN[months[months.length - 1] - 1]} ${year}`
+        ? `${MONTHS_BN[months[0] - 1]} - ${MONTHS_BN[months[months.length - 1] - 1]} ${year}`
         : `${MONTHS_BN[month - 1]} ${year}`;
 
       // Set aggregated data incorporating overrides

@@ -209,7 +209,7 @@ export function UserDashboard() {
     if (displayReportType === "মাসিক") {
       return `${BENGALI_MONTHS[parseInt(monthParam) - 1]} ${toBn(yearParam)}`;
     }
-    return `${displayReportType} (${toBn(yearParam)})`;
+    return `${displayReportType} ${toBn(yearParam)}`;
   }, [monthParam, yearParam, displayReportType]);
 
   return (
