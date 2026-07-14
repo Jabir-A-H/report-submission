@@ -29,5 +29,5 @@ export async function updatePassword(formData: FormData) {
   // First sign them out so they have to log back in with the new password
   await supabase.auth.signOut()
   
-  return redirect(`/login?message=${encodeURIComponent('পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে। নতুন পাসওয়ার্ড দিয়ে লগ-ইন করুন।')}`)
+  return redirect(`/home?mode=login&message=${encodeURIComponent('পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে। নতুন পাসওয়ার্ড দিয়ে লগ-ইন করুন।')}`)
 }

@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { register, checkEmailAvailability, checkUserIdAvailability } from '@/app/auth/register/actions'
-import { UserPlus, Loader2, CheckCircle2, XCircle } from 'lucide-react'
+import { register, checkEmailAvailability, checkUserIdAvailability } from '@/app/home/actions'
+import { UserPlus, Loader2, CheckCircle2, XCircle, User, Tag, Mail, Lock, MapPin } from 'lucide-react'
 import Link from 'next/link'
 
 type FieldStatus = 'idle' | 'checking' | 'available' | 'taken'
@@ -38,10 +38,12 @@ function FieldBadge({ status, message }: { status: FieldStatus; message?: string
 
 export function RegisterFormClient({ 
   zones, 
-  errorMessage 
+  errorMessage,
+  onSwitchToLogin,
 }: { 
   zones: { id: number; name: string }[] | null,
-  errorMessage?: string 
+  errorMessage?: string,
+  onSwitchToLogin?: () => void
 }) {
   const [loading, setLoading] = useState(false)
 
@@ -102,30 +104,36 @@ export function RegisterFormClient({
           <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block" htmlFor="name">
               পূর্ণ নাম
           </label>
-          <input
-            className="modern-input w-full h-12 text-lg bg-muted/40 focus:bg-background transition-colors px-4 rounded-xl border border-border"
-            name="name"
-            placeholder="আপনার পূর্ণ নাম"
-            required
-          />
+          <div className="relative">
+            <User className="w-5 h-5 text-muted-foreground/60 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              className="modern-input !pl-12 !pr-4 w-full h-12 text-base bg-muted/40 focus:bg-background transition-colors rounded-xl border border-border"
+              name="name"
+              placeholder="আপনার পূর্ণ নাম"
+              required
+            />
+          </div>
         </div>
 
         <div>
           <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block" htmlFor="user_id">
               ইউজার আইডি (ইউনিক)
           </label>
-          <input
-            className={`modern-input w-full h-12 text-lg bg-muted/40 focus:bg-background transition-colors px-4 rounded-xl border ${
-              userIdStatus === 'taken' ? 'border-red-500' : userIdStatus === 'available' ? 'border-green-500' : 'border-border'
-            }`}
-            name="user_id"
-            placeholder="যেমন: user123"
-            pattern="^[a-zA-Z0-9_-]{3,20}$"
-            title="ইউজার আইডি কমপক্ষে ৩ অক্ষরের হতে হবে এবং শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা বা _ - ব্যবহার করা যাবে।"
-            onBlur={handleUserIdBlur}
-            onChange={() => setUserIdStatus('idle')}
-            required
-          />
+          <div className="relative">
+            <Tag className="w-5 h-5 text-muted-foreground/60 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              className={`modern-input !pl-12 !pr-4 w-full h-12 text-base bg-muted/40 focus:bg-background transition-colors rounded-xl border ${
+                userIdStatus === 'taken' ? 'border-red-500' : userIdStatus === 'available' ? 'border-green-500' : 'border-border'
+              }`}
+              name="user_id"
+              placeholder="যেমন: user123"
+              pattern="^[a-zA-Z0-9_-]{3,20}$"
+              title="ইউজার আইডি কমপক্ষে ৩ অক্ষরের হতে হবে এবং শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা বা _ - ব্যবহার করা যাবে।"
+              onBlur={handleUserIdBlur}
+              onChange={() => setUserIdStatus('idle')}
+              required
+            />
+          </div>
           <FieldBadge status={userIdStatus} message={userIdMessage} />
         </div>
 
@@ -133,17 +141,20 @@ export function RegisterFormClient({
           <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block" htmlFor="email">
               ইমেইল এড্রেস
           </label>
-          <input
-            className={`modern-input w-full h-12 text-lg bg-muted/40 focus:bg-background transition-colors px-4 rounded-xl border ${
-              emailStatus === 'taken' ? 'border-red-500' : emailStatus === 'available' ? 'border-green-500' : 'border-border'
-            }`}
-            name="email"
-            type="email"
-            placeholder="name@example.com"
-            onBlur={handleEmailBlur}
-            onChange={() => setEmailStatus('idle')}
-            required
-          />
+          <div className="relative">
+            <Mail className="w-5 h-5 text-muted-foreground/60 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              className={`modern-input !pl-12 !pr-4 w-full h-12 text-base bg-muted/40 focus:bg-background transition-colors rounded-xl border ${
+                emailStatus === 'taken' ? 'border-red-500' : emailStatus === 'available' ? 'border-green-500' : 'border-border'
+              }`}
+              name="email"
+              type="email"
+              placeholder="name@example.com"
+              onBlur={handleEmailBlur}
+              onChange={() => setEmailStatus('idle')}
+              required
+            />
+          </div>
           <FieldBadge status={emailStatus} message={emailMessage} />
         </div>
 
@@ -151,32 +162,38 @@ export function RegisterFormClient({
           <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block" htmlFor="password">
               পাসওয়ার্ড
           </label>
-          <input
-            className="modern-input w-full h-12 text-lg bg-muted/40 focus:bg-background transition-colors tracking-widest px-4 rounded-xl border border-border"
-            type="password"
-            name="password"
-            placeholder="••••••••"
-            minLength={6}
-            required
-          />
+          <div className="relative">
+            <Lock className="w-5 h-5 text-muted-foreground/60 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              className="modern-input !pl-12 !pr-4 w-full h-12 text-base bg-muted/40 focus:bg-background transition-colors tracking-widest rounded-xl border border-border"
+              type="password"
+              name="password"
+              placeholder="••••••••"
+              minLength={6}
+              required
+            />
+          </div>
         </div>
 
         <div>
           <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block" htmlFor="zone_id">
               জোন নির্বাচন করুন
           </label>
-          <select
-            name="zone_id"
-            required
-            className="modern-input w-full h-12 text-lg bg-muted/40 focus:bg-background transition-colors px-4 rounded-xl border border-border cursor-pointer"
-          >
-            <option value="">-- জোন নির্বাচন করুন --</option>
-            {zones?.map((zone) => (
-              <option key={zone.id} value={zone.id}>
-                {zone.name}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <MapPin className="w-5 h-5 text-muted-foreground/60 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <select
+              name="zone_id"
+              required
+              className="modern-input !pl-12 !pr-8 w-full h-12 text-base bg-muted/40 focus:bg-background transition-colors rounded-xl border border-border cursor-pointer"
+            >
+              <option value="">-- জোন নির্বাচন করুন --</option>
+              {zones?.map((zone) => (
+                <option key={zone.id} value={zone.id}>
+                  {zone.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -196,13 +213,26 @@ export function RegisterFormClient({
       </button>
 
       <div className="flex flex-col sm:flex-row items-center justify-between pt-4 text-sm text-muted-foreground font-medium gap-4 border-t border-border/40 mt-4">
-        <Link href="/home" className="hover:text-primary transition-colors">
-          &larr; হোম পেজ
-        </Link>
-        <Link href="/login" className="hover:text-primary transition-colors gap-1">
-          অ্যাকাউন্ট আছে?
-          <span className="text-primary font-bold underline underline-offset-2">লগ-ইন করুন</span>
-        </Link>
+        {!onSwitchToLogin && (
+          <Link href="/home" className="hover:text-primary transition-colors">
+            &larr; হোম পেজ
+          </Link>
+        )}
+        {onSwitchToLogin ? (
+          <button
+            type="button"
+            onClick={onSwitchToLogin}
+            className="hover:text-primary transition-colors gap-1 mx-auto sm:ml-auto flex items-center"
+          >
+            অ্যাকাউন্ট আছে?
+            <span className="text-primary font-bold underline underline-offset-2 ml-1">লগ-ইন করুন</span>
+          </button>
+        ) : (
+          <Link href="/login" className="hover:text-primary transition-colors gap-1">
+            অ্যাকাউন্ট আছে?
+            <span className="text-primary font-bold underline underline-offset-2 ml-1">লগ-ইন করুন</span>
+          </Link>
+        )}
       </div>
 
       {errorMessage && (

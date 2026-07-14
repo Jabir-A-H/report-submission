@@ -49,7 +49,7 @@ export default async function ForgotPasswordPage({
                   <h2 className="text-3xl font-black text-foreground mb-2">ইমেইল পাঠানো হয়েছে!</h2>
                   <p className="text-muted-foreground font-medium">আপনার ইমেইলের ইনবক্স চেক করুন এবং পাসওয়ার্ড রিসেট লিঙ্কে ক্লিক করুন।</p>
                 </div>
-                <Link href="/login" className="modern-btn btn-primary h-14 text-lg font-bold w-full flex items-center justify-center bg-primary text-primary-foreground rounded-xl shadow-xl shadow-primary/20 mt-8 hover:opacity-90">
+                <Link href="/home" className="modern-btn btn-primary h-14 text-lg font-bold w-full flex items-center justify-center bg-primary text-primary-foreground rounded-xl shadow-xl shadow-primary/20 mt-8 hover:opacity-90">
                   লগ-ইন পেজে ফিরে যান
                 </Link>
              </div>
@@ -83,7 +83,7 @@ export default async function ForgotPasswordPage({
                   </button>
 
                   <div className="flex flex-col sm:flex-row items-center justify-center pt-4 text-sm text-muted-foreground font-medium border-t border-border/40 mt-4">
-                    <Link href="/login" className="hover:text-primary transition-colors flex items-center gap-2">
+                    <Link href="/home" className="hover:text-primary transition-colors flex items-center gap-2">
                       &larr; লগ-ইন পেজে ফিরে যান
                     </Link>
                   </div>

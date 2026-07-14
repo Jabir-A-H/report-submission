@@ -11,7 +11,7 @@ export function Navbar() {
   const searchParams = useSearchParams();
 
   // Hide Navbar on Login, Register, Home or when simplified view is needed
-  const isAuthPage = ["/login", "/register", "/auth", "/home", "/pending-approval", "/forgot-password", "/update-password"].includes(pathname);
+  const isAuthPage = ["/home", "/auth", "/pending-approval", "/forgot-password", "/update-password"].includes(pathname);
   
   if (isAuthPage) return null;
 

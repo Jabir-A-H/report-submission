@@ -32,23 +32,36 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  // Handle legacy/removed /login and /register paths explicitly by redirecting to unified /home portal
+  if (request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/register')) {
+    const url = request.nextUrl.clone()
+    if (user && request.nextUrl.pathname.startsWith('/login')) {
+      url.pathname = '/'
+    } else {
+      url.pathname = '/home'
+      if (request.nextUrl.pathname.startsWith('/register')) {
+        url.searchParams.set('mode', 'register')
+      }
+    }
+    return NextResponse.redirect(url)
+  }
+
   // Public routes that don't require authentication
-  const publicPaths = ['/home', '/login', '/register', '/auth', '/pending-approval', '/forgot-password', '/update-password']
+  const publicPaths = ['/home', '/auth', '/pending-approval', '/forgot-password', '/update-password']
   const isPublicRoute = publicPaths.some(
     (path) => request.nextUrl.pathname === path || request.nextUrl.pathname.startsWith(`${path}/`)
   )
 
   const isApiRoute = request.nextUrl.pathname.startsWith('/api/')
 
-  // Redirect unauthenticated users away from protected routes
+  // Redirect unauthenticated users away from protected routes uniformly to /home
   if (!user && !isPublicRoute) {
     // For API routes, return 401 JSON instead of redirect
     if (isApiRoute) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     const url = request.nextUrl.clone()
-    // Redirect root to landing page, others to login
-    url.pathname = request.nextUrl.pathname === '/' ? '/home' : '/login'
+    url.pathname = '/home'
     url.search = ""
     return NextResponse.redirect(url)
   }
@@ -71,8 +84,8 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // If user is authenticated and hitting /login, redirect to home (dashboard)
-  if (user && request.nextUrl.pathname.startsWith('/login')) {
+  // If user is authenticated and hitting /home, redirect to main dashboard (/)
+  if (user && request.nextUrl.pathname === '/home') {
     const url = request.nextUrl.clone()
     url.pathname = '/'
     url.search = ""

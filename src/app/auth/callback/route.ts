@@ -55,5 +55,5 @@ export async function GET(request: Request) {
   }
 
   // return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}/login?message=লিঙ্কটি মেয়াদোত্তীর্ণ বা অবৈধ। আবার চেষ্টা করুন।`)
+  return NextResponse.redirect(`${origin}/home?mode=login&message=লিঙ্কটি মেয়াদোত্তীর্ণ বা অবৈধ। আবার চেষ্টা করুন।`)
 }

@@ -84,19 +84,26 @@ export function UserDropdown() {
           </div>
           
           <div className="p-3 space-y-2">
-            {/* Theme Section */}
-            <div className="px-3 py-2.5 bg-muted/40 rounded-xl">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">থিম</span>
+            {/* Collapsible Settings Accordion */}
+            <details className="group rounded-xl border border-border/60 bg-muted/20 overflow-hidden">
+              <summary className="flex items-center justify-between px-3.5 py-2.5 text-xs font-bold text-muted-foreground hover:text-foreground cursor-pointer select-none transition-colors">
+                <span className="flex items-center gap-2.5">
+                  <span className="text-base">⚙️</span>
+                  <span>থিম ও ভাষা (Appearance)</span>
+                </span>
+                <span className="text-[10px] group-open:rotate-180 transition-transform duration-200">▼</span>
+              </summary>
+              <div className="p-3 space-y-2.5 border-t border-border/40 bg-muted/30 animate-in fade-in duration-200">
+                <div className="px-2 py-1.5 bg-background/60 rounded-lg">
+                  <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest block mb-1.5">থিম</span>
+                  <ThemeToggle />
+                </div>
+                <div className="flex items-center justify-between px-2.5 py-2 bg-background/60 rounded-lg">
+                  <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">ভাষা</span>
+                  <LanguageToggle />
+                </div>
               </div>
-              <ThemeToggle />
-            </div>
-
-            {/* Language Section */}
-            <div className="flex items-center justify-between px-3 py-2 bg-muted/40 rounded-xl">
-              <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">ভাষা</span>
-              <LanguageToggle />
-            </div>
+            </details>
 
             {/* Help Link — carries period params so Navbar on Help page can link back with context */}
             <Link
@@ -132,7 +139,7 @@ export function UserDropdown() {
                     alert("সাইন আউট করতে সমস্যা হয়েছে। পেজ রিফ্রেশ করুন।");
                     return;
                   }
-                  window.location.href = "/login";
+                  window.location.href = "/home";
                 }}
             >
               <LogOut className="w-4 h-4" />

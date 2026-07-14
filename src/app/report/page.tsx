@@ -264,7 +264,7 @@ function ReportViewer() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
-          router.push("/login");
+          router.replace("/home");
           return;
         }
         setCurrentUser(user);

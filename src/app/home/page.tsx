@@ -1,119 +1,142 @@
-"use client";
-
+import { FileText, Download, MapPin, ShieldCheck, Zap, Smartphone, CheckCircle2, HelpCircle } from "lucide-react";
 import Link from "next/link";
-import { Building2, ArrowRight, FileText, Download, MapPin } from "lucide-react";
-import { useLanguage } from "@/components/providers/language-provider";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { LanguageToggle } from "@/components/layout/language-toggle";
+import { createClient } from "@/utils/supabase/server";
+import { AuthPortalClient } from "@/components/auth/auth-portal-client";
+import { SessionCleaner } from "@/components/auth/session-cleaner";
+import { AppearanceFooterToggle } from "@/components/layout/appearance-footer-toggle";
 
-export default function LandingPage() {
-  const { t, language } = useLanguage();
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ mode?: string; message?: string }>;
+}) {
+  const resolvedParams = await searchParams;
+  const supabase = await createClient();
+
+  // Fetch zones for the registration tab
+  const { data: zones } = await supabase.from("zone").select("id, name").order("name");
+
+  const initialMode = resolvedParams?.mode === "register" ? "register" : "login";
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 relative overflow-hidden bg-background text-foreground">
-      {/* Decorative Background Elements */}
-      <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/5 rounded-full blur-3xl -z-10 translate-x-1/2 -translate-y-1/2" />
-      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-3xl -z-10 -translate-x-1/2 translate-y-1/2" />
+    <div className="min-h-screen flex flex-col justify-between bg-background text-foreground relative overflow-x-hidden selection:bg-primary/20">
+      <SessionCleaner />
 
-      {/* Left Panel: Branding / Messaging */}
-      <div className="hidden lg:flex flex-col justify-center p-12 relative overflow-hidden bg-linear-to-br from-primary/10 to-primary/5 border-r border-border/50">
-        <div className="max-w-md mx-auto relative z-10">
-          <div className="w-20 h-20 bg-primary text-primary-foreground rounded-[2rem] flex items-center justify-center mb-8 shadow-2xl shadow-primary/30 transform -rotate-6">
-            <Building2 className="w-10 h-10" />
-          </div>
-          <h1 className="text-5xl font-black text-foreground mb-6 leading-tight tracking-tight font-bengali">
-            {t.siteTitle}
+      {/* Subtle Ambient Background Gradients */}
+      <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[140px] -z-10 pointer-events-none" />
+      <div className="absolute top-[600px] left-1/4 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[140px] -z-10 pointer-events-none" />
+
+      {/* Main Content Area (Scrolling Layout without Topbar) */}
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+        {/* Hero Headings Area */}
+        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10 animate-in fade-in slide-in-from-top-6 duration-700">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-foreground tracking-tight leading-tight sm:leading-none font-bengali">
+            তা&apos;লীমুল কুরআন বিভাগ
           </h1>
-          <p className="text-lg text-muted-foreground leading-relaxed">
-            {language === "bn"
-              ? "আপনার সকল রিপোর্ট এবং সাংগঠনিক ডেটা সাবমিট করার জন্য সবচেয়ে নিরাপদ ও আধুনিক প্ল্যাটফর্ম। অনুগ্রহ করে প্রবেশ করুন বা নতুন নিবন্ধন করুন।"
-              : "The most secure and modern platform to submit all your organizational reports and data. Please enter or register to get started."}
-          </p>
-        </div>
-      </div>
-
-      {/* Right Panel: Content & Toggles */}
-      <div className="flex flex-col justify-between p-6 sm:p-12 lg:p-16 min-h-screen relative">
-        {/* Top Controls Bar */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-between items-center w-full max-w-lg mx-auto lg:mx-0 lg:max-w-none mb-8 animate-in fade-in duration-500">
-          {/* Logo on Mobile */}
-          <div className="flex items-center gap-3 lg:hidden">
-            <div className="w-10 h-10 bg-primary text-primary-foreground rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-              <Building2 className="w-5 h-5" />
-            </div>
-            <span className="text-lg font-black text-primary uppercase tracking-tighter">
-              {t.siteTitle}
-            </span>
-          </div>
-
-          {/* Controls Container */}
-          <div className="flex flex-wrap items-center gap-4 bg-card/60 backdrop-blur-md p-2 rounded-2xl border border-border/60 shadow-sm ml-auto">
-            <LanguageToggle />
-            <div className="w-px h-6 bg-border/80 hidden sm:block" />
-            <ThemeToggle />
-          </div>
         </div>
 
-        {/* Main Card */}
-        <div className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
-          <div>
-            <h2 className="text-4xl font-black text-foreground mb-2">
-              {t.welcome}!
+        {/* Auth Portal Box (Right below heading) */}
+        <div className="mb-16 sm:mb-24">
+          <AuthPortalClient
+            zones={zones}
+            initialMode={initialMode}
+            errorMessage={resolvedParams?.message}
+          />
+        </div>
+
+        {/* Other Basic Info / Features Showcase Section Below */}
+        <div className="border-t border-border/60 pt-16 space-y-16 animate-in fade-in duration-1000">
+          <div className="text-center max-w-2xl mx-auto space-y-3">
+            <h2 className="text-2xl sm:text-3xl font-black text-foreground">
+              প্ল্যাটফর্মের মূল বৈশিষ্ট্যসমূহ
             </h2>
-            <p className="text-muted-foreground font-medium">
-              {t.welcomeSub}
+            <p className="text-sm sm:text-base text-muted-foreground font-medium">
+              রিপোর্ট তৈরির জটিলতা কমিয়ে দ্রুততম সময়ে সাংগঠনিক সিদ্ধান্ত গ্রহণের সর্বাধুনিক সুবিধা
             </p>
           </div>
 
-          <div className="space-y-4">
-            {/* Login Button */}
-            <Link
-              href="/login"
-              className="w-full bg-primary text-primary-foreground py-4 px-6 rounded-xl font-bold text-lg flex items-center justify-center transition-all hover:bg-primary/90 hover:-translate-y-0.5 shadow-xl shadow-primary/10 group tap-target"
-            >
-              <ArrowRight className="w-5 h-5 mr-2 group-hover:translate-x-1 transition-transform" />
-              {t.enterApp}
-            </Link>
+          {/* 3-Column Feature Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+            <div className="bg-card/70 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-border/80 shadow-md hover:shadow-xl hover:border-primary/40 transition-all duration-300 group">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center mb-5 border border-emerald-500/20 group-hover:scale-110 transition-transform">
+                <FileText className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-black text-foreground mb-2.5 leading-snug">
+                মাসিক, ত্রৈমাসিক, ষান্মাসিক ও বার্ষিক রিপোর্ট
+              </h3>
+              <p className="text-sm text-muted-foreground font-medium leading-relaxed">
+                সকল বিভাগের ডেটা স্বয়ংক্রিয়ভাবে হিসাব হয়। নির্ভুল যোগফল ও সময়োপযোগী এগ্রিগেশন নিশ্চিত করা হয়েছে।
+              </p>
+            </div>
 
-            {/* Register Button */}
-            <Link
-              href="/register"
-              className="w-full bg-card hover:bg-muted/30 border-2 border-border text-foreground py-4 px-6 rounded-xl font-bold text-lg flex items-center justify-center transition-all hover:-translate-y-0.5 shadow-md tap-target"
-            >
-              {t.createAccount}
-            </Link>
+            <div className="bg-card/70 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-border/80 shadow-md hover:shadow-xl hover:border-primary/40 transition-all duration-300 group">
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-5 border border-primary/20 group-hover:scale-110 transition-transform">
+                <Download className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-black text-foreground mb-2.5 leading-snug">
+                ২-পৃষ্ঠা পিডিএফ ও এক্সেল ডাউনলোড
+              </h3>
+              <p className="text-sm text-muted-foreground font-medium leading-relaxed">
+                ল্যান্ডস্কেপ ফরম্যাটে প্রিন্ট-বান্ধব ২-পৃষ্ঠার পিডিএফ এবং সম্পূর্ণ ডেটাসহ এক্সেল ফাইল একক ক্লিকে ডাউনলোড করুন।
+              </p>
+            </div>
+
+            <div className="bg-card/70 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-border/80 shadow-md hover:shadow-xl hover:border-primary/40 transition-all duration-300 group">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center mb-5 border border-amber-500/20 group-hover:scale-110 transition-transform">
+                <MapPin className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-black text-foreground mb-2.5 leading-snug">
+                মহানগরী ও জোন ভিত্তিক রিয়েল-টাইম এগ্রিগেশন
+              </h3>
+              <p className="text-sm text-muted-foreground font-medium leading-relaxed">
+                জোন থেকে মহানগরী পর্যন্ত সকল স্তরের রিপোর্ট রিয়েল-টাইমে একত্রিত হয়ে ড্যাশবোর্ডে প্রদর্শিত হয়।
+              </p>
+            </div>
           </div>
 
-          {/* Features */}
-          <div className="pt-6 border-t border-border/60">
-            <div className="grid grid-cols-1 gap-4 text-sm font-semibold text-muted-foreground">
-              <div className="flex items-center">
-                <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center mr-3 text-emerald-500 border border-emerald-500/20">
-                  <FileText className="w-4 h-4" />
-                </div>
-                {t.features.monthlyAnnual}
+          {/* Quick Highlight Banner */}
+          <div className="bg-linear-to-r from-primary/10 via-emerald-500/10 to-primary/5 rounded-3xl p-6 sm:p-8 border border-primary/20 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
+            <div className="space-y-1">
+              <h3 className="text-lg sm:text-xl font-black text-foreground flex items-center justify-center sm:justify-start gap-2">
+                <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
+                সহজ ও মোবাইল-বান্ধব ইন্টারফেস
+              </h3>
+              <p className="text-xs sm:text-sm text-muted-foreground font-medium">
+                যেকোনো স্মার্টফোন, ট্যাবলেট বা কম্পিউটার থেকে ঝামেলাবিহীনভাবে রিপোর্ট পূরণ ও সংরক্ষণ করুন।
+              </p>
+            </div>
+            <div className="flex items-center gap-4 shrink-0">
+              <div className="w-10 h-10 rounded-full bg-background flex items-center justify-center shadow-sm text-primary border border-border">
+                <Smartphone className="w-5 h-5" />
               </div>
-              <div className="flex items-center">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-3 text-primary border border-primary/20">
-                  <Download className="w-4 h-4" />
-                </div>
-                {t.features.download}
+              <div className="w-10 h-10 rounded-full bg-background flex items-center justify-center shadow-sm text-emerald-500 border border-border">
+                <ShieldCheck className="w-5 h-5" />
               </div>
-              <div className="flex items-center">
-                <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center mr-3 text-amber-500 border border-amber-500/20">
-                  <MapPin className="w-4 h-4" />
-                </div>
-                {t.features.cityManagement}
+              <div className="w-10 h-10 rounded-full bg-background flex items-center justify-center shadow-sm text-amber-500 border border-border">
+                <Zap className="w-5 h-5" />
               </div>
             </div>
           </div>
         </div>
+      </main>
 
-        {/* Footer */}
-        <div className="text-center mt-8 text-muted-foreground/60 text-xs font-semibold">
-          <p>© {new Date().getFullYear()} {t.siteTitle}. {language === "bn" ? "সকল অধিকার সংরক্ষিত।" : "All rights reserved."}</p>
+      {/* Discrete Footer with Help Link and Inline Expanded Appearance Settings */}
+      <footer className="w-full border-t border-border/40 bg-background/80 py-6 mt-12">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6 text-xs font-medium text-muted-foreground">
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4">
+            <p>© {new Date().getFullYear()} রিপোর্ট সাবমিশন সিস্টেম। সকল অধিকার সংরক্ষিত।</p>
+            <span className="hidden sm:inline text-border">|</span>
+            <Link
+              href="/help"
+              className="inline-flex items-center gap-1.5 font-bold text-foreground/80 hover:text-primary transition-colors underline underline-offset-2"
+            >
+              <HelpCircle className="w-3.5 h-3.5 text-primary" />
+              <span>সাহায্য (Help)</span>
+            </Link>
+          </div>
+          <AppearanceFooterToggle />
         </div>
-      </div>
+      </footer>
     </div>
   );
 }

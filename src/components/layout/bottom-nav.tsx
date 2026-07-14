@@ -48,7 +48,7 @@ export function BottomNav() {
     })();
   }, [supabase]);
 
-  const isAuthPage = ["/login", "/register", "/auth", "/home", "/pending-approval", "/forgot-password", "/update-password"].includes(pathname);
+  const isAuthPage = ["/home", "/auth", "/pending-approval", "/forgot-password", "/update-password"].includes(pathname);
   if (isAuthPage) return null;
 
   // Build period param string from current URL params — carries period context across navigation
@@ -90,19 +90,26 @@ export function BottomNav() {
           </div>
 
           <div className="p-4 space-y-3">
-            {/* Theme Section */}
-            <div className="px-3 py-2.5 bg-muted/40 rounded-xl">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">থিম</span>
+            {/* Collapsible Settings Accordion */}
+            <details className="group rounded-xl border border-border/60 bg-muted/20 overflow-hidden">
+              <summary className="flex items-center justify-between px-3.5 py-2.5 text-xs font-bold text-muted-foreground hover:text-foreground cursor-pointer select-none transition-colors">
+                <span className="flex items-center gap-2.5">
+                  <span className="text-base">⚙️</span>
+                  <span>থিম ও ভাষা (Appearance)</span>
+                </span>
+                <span className="text-[10px] group-open:rotate-180 transition-transform duration-200">▼</span>
+              </summary>
+              <div className="p-3 space-y-2.5 border-t border-border/40 bg-muted/30 animate-in fade-in duration-200">
+                <div className="px-2 py-1.5 bg-background/60 rounded-lg">
+                  <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest block mb-1.5">থিম</span>
+                  <ThemeToggle />
+                </div>
+                <div className="flex items-center justify-between px-2.5 py-2 bg-background/60 rounded-lg">
+                  <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">ভাষা</span>
+                  <LanguageToggle />
+                </div>
               </div>
-              <ThemeToggle />
-            </div>
-
-            {/* Language Section */}
-            <div className="flex items-center justify-between px-3 py-2.5 bg-muted/40 rounded-xl">
-              <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">ভাষা</span>
-              <LanguageToggle />
-            </div>
+            </details>
 
             {/* Help Link — carries period params so navigating back to home preserves context */}
             <Link
@@ -149,7 +156,7 @@ export function BottomNav() {
                   alert("লগআউট করতে সমস্যা হয়েছে। পেজ রিফ্রেশ করুন।");
                   return;
                 }
-                window.location.href = "/login";
+                window.location.href = "/home";
               }}
               className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold rounded-xl hover:bg-red-50 dark:hover:bg-red-950/30 text-red-600 transition-all active:scale-95 text-left"
             >

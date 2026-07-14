@@ -16,7 +16,7 @@ export default async function UpdatePasswordPage({
   // redirecting the user here.
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    redirect('/login?message=লিঙ্কটি মেয়াদোত্তীর্ণ বা অবৈধ। আবার চেষ্টা করুন।');
+    redirect('/home?mode=login&message=লিঙ্কটি মেয়াদোত্তীর্ণ বা অবৈধ। আবার চেষ্টা করুন।');
   }
 
   return (

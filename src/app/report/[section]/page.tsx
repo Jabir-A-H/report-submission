@@ -100,8 +100,7 @@ function SectionSwitcher() {
       const { data: { user } } = await supabase.auth.getUser();
       if (ignore) return;
       if (!user) {
-        setError("ব্যবহারকারী চিহ্নিত করা যায়নি।");
-        setIsLoading(false);
+        router.replace("/home");
         return;
       }
 

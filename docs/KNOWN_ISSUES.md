@@ -59,6 +59,14 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ---
 
+### Unauthenticated Protected Route Access Rendering Error Text (`ব্যবহারকারী চিহ্নিত করা যায়নি।`) & Fragmented Auth Entry (ADR 008)
+- **Date**: 2026-07-14
+- **Resolution Date**: 2026-07-14
+- **Description**: When opening direct protected URLs such as `/report/personal?type=monthly&month=7&year=2026` without an active login session, client components set a local error state (`setError("ব্যবহারকারী চিহ্নিত করা যায়নি।")`) instead of redirecting the user to authenticate. Additionally, separate `/login` and `/register` routes fragmented onboarding and created redundant top-level navigation, while prominent theme/language toggles cluttered header dropdowns and absolute form input icons overlapped placeholder text on smaller viewports.
+- **Fix**: Consolidated `/login` and `/register` into a single dynamic portal page at `/home` (`AuthPortalClient`). Replaced the side-by-side 50-50 layout on `/home` with a vertical scrolling layout containing hero headings, a focused auth card (without top segmented tabs, using bottom toggle links (`অ্যাকাউন্ট নেই? নিবন্ধন করুন` / `অ্যাকাউন্ট আছে? লগ-ইন করুন`)), and rich platform feature cards right below. Added `!pl-12 !pr-4` to all form inputs with absolute icons to eliminate overlap with placeholders. Updated `middleware.ts` and client guards (`/report/[section]/page.tsx`, `UserDashboard`) to uniformly redirect unauthenticated visitors to `/home`. Finally, encapsulated prominent theme and language toggles inside `<details>` accordions (`UserDropdown`, `BottomNav`) and inline expanded footer items (`AppearanceFooterToggle`).
+
+---
+
 ### Unstable Client-Side Supabase Instantiation (`ReportProvider`)
 
 - **Date**: 2026-06-25

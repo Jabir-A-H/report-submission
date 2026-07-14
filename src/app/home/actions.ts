@@ -6,6 +6,71 @@ import { createServerClient } from '@supabase/ssr'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 
+export async function login(formData: FormData) {
+  const cookieStore = await cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch (error) {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing user sessions.
+          }
+        },
+      },
+    }
+  )
+
+  // Support user IDs by resolving them to their registered email dynamically
+  const rawIdOrEmail = formData.get('email') as string
+  let email = rawIdOrEmail
+
+  if (!rawIdOrEmail.includes('@')) {
+    const adminSupabase = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+    
+    const { data: profile, error: profileError } = await adminSupabase
+      .from('people')
+      .select('email')
+      .eq('user_id', rawIdOrEmail)
+      .maybeSingle()
+
+    if (!profileError && profile?.email) {
+      email = profile.email
+    } else {
+      // Fallback for custom or legacy local fallback accounts
+      email = `${rawIdOrEmail}@report.local`
+    }
+  }
+
+  const password = formData.get('password') as string
+
+  const { data: authData, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
+
+  if (error) {
+    // Return the exact error message with tab mode preserved
+    return redirect(`/home?mode=login&message=${encodeURIComponent(error.message)}`)
+  }
+
+  // Middleware enforces the active check on the next request to /
+  revalidatePath('/', 'layout')
+  redirect('/')
+}
+
 export async function register(formData: FormData) {
   const cookieStore = await cookies()
   const supabase = createServerClient(
@@ -36,17 +101,17 @@ export async function register(formData: FormData) {
   const userId = (formData.get('user_id') as string)?.trim()
 
   if (!name || !email || !password || !zoneId || !userId) {
-    return redirect(`/register?message=${encodeURIComponent('সকল তথ্য পূরণ করুন')}`)
+    return redirect(`/home?mode=register&message=${encodeURIComponent('সকল তথ্য পূরণ করুন')}`)
   }
 
   // Enforce simple username rules (alphanumeric, underscores, hyphens, min 3 chars)
   const userIdRegex = /^[a-zA-Z0-9_-]+$/
   if (userId.length < 3 || !userIdRegex.test(userId)) {
-    return redirect(`/register?message=${encodeURIComponent('ইউজার আইডি কমপক্ষে ৩ অক্ষরের হতে হবে এবং শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা, বা _ - ব্যবহার করা যাবে।')}`)
+    return redirect(`/home?mode=register&message=${encodeURIComponent('ইউজার আইডি কমপক্ষে ৩ অক্ষরের হতে হবে এবং শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা, বা _ - ব্যবহার করা যাবে।')}`)
   }
 
   if (password.length < 6) {
-    return redirect(`/register?message=${encodeURIComponent('পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে')}`)
+    return redirect(`/home?mode=register&message=${encodeURIComponent('পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে')}`)
   }
 
   // Check if User ID is already taken
@@ -55,14 +120,14 @@ export async function register(formData: FormData) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
   
-  const { data: existingUser, error: queryError } = await adminSupabase
+  const { data: existingUser } = await adminSupabase
     .from('people')
     .select('id')
     .eq('user_id', userId)
     .maybeSingle()
 
   if (existingUser) {
-    return redirect(`/register?message=${encodeURIComponent('এই ইউজার আইডিটি ইতিমধ্যে ব্যবহার করা হয়েছে। অন্য একটি নির্বাচন করুন।')}`)
+    return redirect(`/home?mode=register&message=${encodeURIComponent('এই ইউজার আইডিটি ইতিমধ্যে ব্যবহার করা হয়েছে। অন্য একটি নির্বাচন করুন।')}`)
   }
 
   // 1. Create Supabase Auth user
@@ -82,13 +147,13 @@ export async function register(formData: FormData) {
     const msg = authError.message === 'User already registered' 
       ? 'এই ইমেইল দিয়ে আগেই নিবন্ধন করা হয়েছে।' 
       : authError.message
-    return redirect(`/register?message=${encodeURIComponent(msg)}`)
+    return redirect(`/home?mode=register&message=${encodeURIComponent(msg)}`)
   }
 
   // Supabase silently succeeds (no error) when the email already exists in auth
   // to prevent email enumeration. The giveaway is an empty identities array.
   if (!authData?.user || (authData.user.identities?.length ?? 0) === 0) {
-    return redirect(`/register?message=${encodeURIComponent('এই ইমেইল দিয়ে আগেই নিবন্ধন করা হয়েছে।')}`)
+    return redirect(`/home?mode=register&message=${encodeURIComponent('এই ইমেইল দিয়ে আগেই নিবন্ধন করা হয়েছে।')}`)
   }
 
   // Sign out immediately — user must wait for admin approval

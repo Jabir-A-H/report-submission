@@ -48,8 +48,8 @@ Supabase Edge / API Layer
 
 ### 1.3 Route Protection & Middleware Governance
 The application relies on `src/middleware.ts` as the **single source of truth** for authentication and authorization enforcement:
-- **Public Paths** (no auth required): `/home` (landing page), `/login`, `/register`, `/forgot-password`, `/update-password` (guarded by session check in page component), `/pending-approval`, `/auth/*`.
-- **Protected Paths** (including `/` and `/report/*`): Middleware executes `supabase.auth.getUser()`. If unauthenticated, visitors on `/` are thrown to `/home`; all others go to `/login`.
+- **Public Paths** (no auth required): `/home` (unified dynamic portal & landing page), `/auth/*`, `/forgot-password`, `/update-password` (guarded by session check in page component), `/pending-approval`. Note: `/login` and `/register` have been consolidated into `/home` (ADR 008). `/home` employs a centered vertical scrolling layout without any topbar header. The hero section displays simply `তা'লীমুল কুরআন বিভাগ` without top pills or paragraph subtitles, followed immediately by `AuthPortalClient` (Login/Register box), and rich platform feature cards (`প্ল্যাটফর্মের মূল বৈশিষ্ট্যসমূহ`) below. Mode switching (`login` vs `register`) is driven cleanly by the bottom toggle link (`অ্যাকাউন্ট নেই? নিবন্ধন করুন` / `অ্যাকাউন্ট আছে? লগ-ইন করুন`), removing top segmented tabs. All form inputs containing absolute icons (`Mail`, `Lock`, `User`, `Tag`, `MapPin` with `pointer-events-none`) enforce `!pl-12 !pr-4` (`!pl-12 !pr-8` for select) to prevent placeholder/text collision. Finally, the bottom footer row on `/home` embeds the `সাহায্য (Help)` link (`/help`) along with `AppearanceFooterToggle` (`ভাষা: [বাংলা | EN]` and `থিম: [লাইট | ডার্ক...]`) directly inline.
+- **Protected Paths** (including `/` and `/report/*`): Middleware executes `supabase.auth.getUser()`. If unauthenticated, all visitors are uniformly redirected to `/home` (with search parameters cleared). Legacy or direct attempts to access `/login` or `/register` are intercepted by middleware and redirected to `/home` (`/home?mode=register` for `/register`). If an authenticated user hits `/home`, middleware redirects them to `/`. Furthermore, client-side guards on `/report/[section]` and `/report` explicitly run `router.replace('/home')` if `!user` is encountered after `getUser()`.
 - **Approval Gate (`active = false`)**: If a session exists but the corresponding user profile in the `people` table has `active = false` (or is missing entirely as an orphaned auth account), middleware silently intercepts navigation and redirects to `/pending-approval`.
 - **API Paths (`/api/*`)**: Return a structured `401 JSON` payload instead of 307 redirects.
 - **Search Parameter Sanitization**: Middleware clears URL search query parameters (`url.search = ""`) prior to redirecting to prevent session pollution and credential leakage.
@@ -124,6 +124,7 @@ In addition to daily Supabase managed backups, GitHub Actions cron workflow `.gi
 ## Chapter 4: Application Flows, Route Governance & API Services
 
 ### 4.1 Authentication & Onboarding
+- **Unified Dynamic Portal (`/home`)**: Consolidated `/login` and `/register` into a centered vertical scrolling portal page without any top header bar. The hero section displays simply `তা'লীমুল কুরআন বিভাগ` (without top pills or paragraph subtitles), followed directly by `AuthPortalClient` and rich platform feature cards. Mode switching (`login` vs `register`) is handled cleanly by bottom toggle links (`অ্যাকাউন্ট নেই? নিবন্ধন করুন` / `অ্যাকাউন্ট আছে? লগ-ইন করুন`), eliminating redundant top tabs. All form inputs with absolute icons (`Mail`, `Lock`, `User`, `Tag`, `MapPin`) enforce `!pl-12 !pr-4` (`!pl-12 !pr-8` for select) to prevent placeholder/text overlap. The bottom footer row embeds the `সাহায্য (Help)` link (`/help`) alongside `AppearanceFooterToggle` (`ভাষা: [বাংলা | EN]` and `থিম: [লাইট | ডার্ক...]`) directly inline.
 - **Live Registration Validation**: `src/components/auth/register-form-client.tsx` executes real-time `onBlur` server actions (`checkEmailAvailability`, `checkUserIdAvailability`). Queries indexed `public.people` directly to verify availability without API scaling caps (ADR 003).
 - **Silent Email Collision Guard**: In `actions.ts`, if `supabase.auth.signUp()` returns `identities.length === 0`, registration is halted with a Bangla warning to prevent email enumeration attacks.
 - **PKCE Password Recovery**: `/forgot-password` generates recovery links pointing to `/auth/callback?next=/update-password`. Route handler `src/app/auth/callback/route.ts` executes `exchangeCodeForSession()`, establishing SSR session cookies reliably.
@@ -180,12 +181,13 @@ During the Round 2 UI/UX refinement cycle (ADR 005), a Hybrid State Persistence 
   - `SectionLayout` Prev/Next section buttons = `/report/${section}${queryString}` (always carry params)
 - **Robust Null-String Param Guard**: `isValidParam()` helper used in both `UserDashboard` and `SectionSwitcher` rejects the string `"null"` and `"undefined"` (which can appear when Next.js serializes `null` query values). This prevents `parseInt("null") = NaN` from reaching the RPC.
 - **Section Grid Visibility Guard**: `UserDashboard` only renders the report section links grid when `hasParams && !isLoading && !error`. Before a period is selected, only the `PeriodSelector` card is shown.
-- **Defensive Logout Cleanup (`SessionCleaner`)**: The `SessionCleaner` component on `/login/page.tsx` is retained as a defensive no-op. Since sessionStorage is no longer actively written, it clears any stale data from previous builds.
+- **Defensive Logout Cleanup (`SessionCleaner`)**: The `SessionCleaner` component on `/home/page.tsx` is retained as a defensive no-op to purge any stale data upon landing at the unauthenticated portal.
 - **Context-Powered Compact Header View Toggle (`ViewModeContext`)**: The `Form / Table` (`LayoutList` / `Table2`) switcher is lifted out of individual form bodies directly into the top-right corner of the secondary navigation bar (`SectionLayout`), replacing the redundant `LayoutGrid` button (`flex justify-end min-w-[80px] md:min-w-[110px]`). Using `ViewModeContext` exported by `view-mode-toggle.tsx`, table-heavy forms (`CoursesForm`, `OrganizationalForm`, `PersonalForm`, `MeetingsForm`) provide their view state without prop drilling. If `CompactViewToggle` is rendered above a non-toggleable section (`ReportHeaderForm`, `ExtraForm`, `CommentForm`), it gracefully returns `null`.
 - **Flat UI Card Design & Single-Open Accordions (`CoursesForm`)**: Inner box borders and background tints (`bg-muted/20 border border-border/40`) inside cards are eliminated across courses, meetings, personal, and header forms in favor of flat uppercase section dividers (`border-t border-border/40`). Input grids utilize dynamic multi-breakpoint responsive columns (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`). Furthermore, all 8 course categories on `CoursesForm` render as collapsible accordions with rotating `ChevronDown` indicators, where **only the first category (`COURSE_CATEGORIES[0]`) is open by default (`openCards: { [COURSE_CATEGORIES[0]]: true }`)**, eliminating vertical scroll fatigue.
 - **Form Primitive Expansion (`AutoSaveField`)**: The shared input primitive now supports three explicit presentation modes: (1) default stacked label-input layout, (2) inline compact row layout (`inline`, optional `inputWidth`) used by flat cards, and (3) dense table-cell mode (`tableMode`) used by horizontal matrix tables. Control heights were tightened (`h-[46px]` for standard inputs and `min-h-[110px]` for textareas) to reduce vertical bloat while preserving readability.
 - **Extra & Comment Section Card Refinement**: `ExtrasForm` is now explicitly split into two cards (`মক্তব রিপোর্ট` and `সফর রিপোর্ট`) with dedicated category arrays (`MOKTOB_CATEGORIES`, `SAFAR_CATEGORIES`) while preserving the same data table mapping (`report_extra`). `CommentsForm` was visually aligned to the same flat card system (`rounded-2xl`, compact heading row) for consistency with other sections.
 - **Global Card Motion Policy Adjustment (`globals.css`)**: `.premium-card` hover lift and aggressive shadow escalation were removed from the global utility class. Card elevation remains stable by default, and motion emphasis is now applied selectively at component level to avoid excessive hover movement in dense dashboard/report interfaces.
+- **Collapsible Appearance Settings Accordions**: `UserDropdown` and `BottomNav` encapsulate `ThemeToggle` and `LanguageToggle` within native `<details className="group ...">` accordions triggered by `⚙️ থিম ও ভাষা (Appearance)`, preventing visual clutter on top navigation bars (ADR 008).
 
 
 ---
@@ -209,8 +211,11 @@ Changelogs and versioning rely on strict commit prefixes:
 Historical documentation describing the migration from the legacy Python/Flask system (`models.py`, `LEGACY_MAPPING.md`, `MIGRATION_PLAN.md`) is archived in `docs/archive/`.
 
 ### 7.2 File Path Index
-- `src/middleware.ts` — Route governance & auth approval gate.
-- `src/app/auth/register/actions.ts` — Registration server actions & uniqueness checks.
+- `src/middleware.ts` — Route governance, auth approval gate, and unauthenticated redirects (`/home`).
+- `src/app/home/page.tsx` — Unified dynamic authentication & landing portal (ADR 008).
+- `src/app/home/actions.ts` — Unified login & registration server actions (`login`, `register`, live uniqueness checks).
+- `src/components/auth/auth-portal-client.tsx` — Minimalist single-purpose dual-mode (`Login` / `Register`) auth card component driven by bottom toggle links without top tabs.
+- `src/components/layout/appearance-footer-toggle.tsx` — Inline expanded bottom footer controls for language (`ভাষা: [বাংলা | EN]`) and theme (`থিম: [লাইট | ডার্ক...]`) selection.
 - `src/app/report/page.tsx` — Report document layout, dynamic responsive table overflow thresholds (`min-w-[500px]`), and transparent border-framed inline statistics (ADR 004).
 - `src/components/dashboard/user-dashboard.tsx` — User report matrix dashboard, Bismillah heading, period selector, and section links grid. URL params are sole period state source of truth (ADR 006).
 - `src/components/report/section-layout.tsx` — Secondary top navigation bar with `CompactViewToggle` top-right slot (ADR 005).
@@ -219,8 +224,8 @@ Historical documentation describing the migration from the legacy Python/Flask s
 - `src/components/report/sections/courses-form.tsx` — Courses form layout with single-open collapsible accordions and flat UI dividers (ADR 005).
 - `src/components/report/sections/extras-form.tsx` — Split Maktab/Safar cards with dedicated category groups.
 - `src/components/report/sections/comments-form.tsx` — Flat comment card aligned to section UI architecture.
-- `src/components/auth/session-cleaner.tsx` — Client component enforcing force purge (`sessionStorage.removeItem`) on `/login` mount (ADR 005).
+- `src/components/auth/session-cleaner.tsx` — Client component enforcing force purge (`sessionStorage.removeItem`) on `/home` mount (ADR 005).
 - `src/app/globals.css` — Global semantic tokens and reusable card/input utility classes.
 - `docs/ROADMAP.md` — Active engineering tracking & sprint sequencing.
 - `docs/KNOWN_ISSUES.md` — Living technical debt & bug repository.
-- `docs/ADR/` — Formal Architecture Decision Records (`001` through `005`).
+- `docs/ADR/` — Formal Architecture Decision Records (`001` through `008`).
