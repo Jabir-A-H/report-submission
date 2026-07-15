@@ -97,17 +97,17 @@ export function RegisterFormClient({
         // We set loading back to false so the user can try again.
         setLoading(false)
       }} 
-      className="animate-in flex-1 flex flex-col w-full justify-center gap-6 text-foreground"
+      className="animate-in flex-1 flex flex-col w-full justify-center gap-4 text-foreground"
     >
-      <div className="space-y-4">
+      <div className="space-y-2.5">
         <div>
-          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block" htmlFor="name">
+          <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block" htmlFor="name">
               পূর্ণ নাম
           </label>
           <div className="relative">
-            <User className="w-5 h-5 text-muted-foreground/60 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <User className="w-4 h-4 text-muted-foreground/60 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
-              className="modern-input !pl-12 !pr-4 w-full h-12 text-base bg-muted/40 focus:bg-background transition-colors rounded-xl border border-border"
+              className="modern-input !pl-10 !pr-3.5 w-full h-10 text-sm bg-muted/40 focus:bg-background transition-colors rounded-xl border border-border"
               name="name"
               placeholder="আপনার পূর্ণ নাম"
               required
@@ -116,13 +116,13 @@ export function RegisterFormClient({
         </div>
 
         <div>
-          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block" htmlFor="user_id">
+          <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block" htmlFor="user_id">
               ইউজার আইডি (ইউনিক)
           </label>
           <div className="relative">
-            <Tag className="w-5 h-5 text-muted-foreground/60 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Tag className="w-4 h-4 text-muted-foreground/60 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
-              className={`modern-input !pl-12 !pr-4 w-full h-12 text-base bg-muted/40 focus:bg-background transition-colors rounded-xl border ${
+              className={`modern-input !pl-10 !pr-3.5 w-full h-10 text-sm bg-muted/40 focus:bg-background transition-colors rounded-xl border ${
                 userIdStatus === 'taken' ? 'border-red-500' : userIdStatus === 'available' ? 'border-green-500' : 'border-border'
               }`}
               name="user_id"
@@ -138,13 +138,13 @@ export function RegisterFormClient({
         </div>
 
         <div>
-          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block" htmlFor="email">
+          <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block" htmlFor="email">
               ইমেইল এড্রেস
           </label>
           <div className="relative">
-            <Mail className="w-5 h-5 text-muted-foreground/60 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Mail className="w-4 h-4 text-muted-foreground/60 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
-              className={`modern-input !pl-12 !pr-4 w-full h-12 text-base bg-muted/40 focus:bg-background transition-colors rounded-xl border ${
+              className={`modern-input !pl-10 !pr-3.5 w-full h-10 text-sm bg-muted/40 focus:bg-background transition-colors rounded-xl border ${
                 emailStatus === 'taken' ? 'border-red-500' : emailStatus === 'available' ? 'border-green-500' : 'border-border'
               }`}
               name="email"
@@ -159,13 +159,13 @@ export function RegisterFormClient({
         </div>
 
         <div>
-          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block" htmlFor="password">
+          <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block" htmlFor="password">
               পাসওয়ার্ড
           </label>
           <div className="relative">
-            <Lock className="w-5 h-5 text-muted-foreground/60 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Lock className="w-4 h-4 text-muted-foreground/60 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
-              className="modern-input !pl-12 !pr-4 w-full h-12 text-base bg-muted/40 focus:bg-background transition-colors tracking-widest rounded-xl border border-border"
+              className="modern-input !pl-10 !pr-3.5 w-full h-10 text-sm bg-muted/40 focus:bg-background transition-colors tracking-widest rounded-xl border border-border"
               type="password"
               name="password"
               placeholder="••••••••"
@@ -176,15 +176,15 @@ export function RegisterFormClient({
         </div>
 
         <div>
-          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block" htmlFor="zone_id">
+          <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block" htmlFor="zone_id">
               জোন নির্বাচন করুন
           </label>
           <div className="relative">
-            <MapPin className="w-5 h-5 text-muted-foreground/60 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <MapPin className="w-4 h-4 text-muted-foreground/60 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <select
               name="zone_id"
               required
-              className="modern-input !pl-12 !pr-8 w-full h-12 text-base bg-muted/40 focus:bg-background transition-colors rounded-xl border border-border cursor-pointer"
+              className="modern-input !pl-10 !pr-8 w-full h-10 text-sm bg-muted/40 focus:bg-background transition-colors rounded-xl border border-border cursor-pointer"
             >
               <option value="">-- জোন নির্বাচন করুন --</option>
               {zones?.map((zone) => (
@@ -200,19 +200,19 @@ export function RegisterFormClient({
       <button 
         type="submit" 
         disabled={loading || hasBlockingError || emailStatus === 'checking' || userIdStatus === 'checking'}
-        className="modern-btn btn-primary h-14 text-lg font-bold w-full flex items-center justify-center gap-3 group mt-2 shadow-xl shadow-primary/20 rounded-xl bg-primary text-primary-foreground disabled:opacity-50"
+        className="modern-btn btn-primary h-10 text-sm font-bold w-full flex items-center justify-center gap-2 group mt-1 shadow-lg shadow-primary/15 rounded-xl bg-primary text-primary-foreground disabled:opacity-50"
       >
         {loading ? (
-          <Loader2 className="w-5 h-5 animate-spin" />
+          <Loader2 className="w-4 h-4 animate-spin" />
         ) : (
           <>
             নিবন্ধন করুন
-            <UserPlus className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            <UserPlus className="w-4 h-4 group-hover:scale-110 transition-transform" />
           </>
         )}
       </button>
 
-      <div className="flex flex-col sm:flex-row items-center justify-between pt-4 text-sm text-muted-foreground font-medium gap-4 border-t border-border/40 mt-4">
+      <div className="flex flex-col sm:flex-row items-center justify-between pt-3 text-xs text-muted-foreground font-medium gap-3 border-t border-border/40 mt-2">
         {!onSwitchToLogin && (
           <Link href="/home" className="hover:text-primary transition-colors">
             &larr; হোম পেজ

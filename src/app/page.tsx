@@ -21,7 +21,7 @@ export default async function Home() {
   const isAdmin = profile?.role === "admin" || profile?.role === "superadmin";
 
   return (
-    <div className="min-h-screen">
+    <div className="flex-1 flex flex-col">
       {isAdmin ? <AdminDashboard /> : <UserDashboard />}
     </div>
   );

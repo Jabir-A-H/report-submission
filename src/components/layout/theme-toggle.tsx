@@ -46,16 +46,17 @@ export function ThemeToggle() {
 
   useEffect(() => setMounted(true), []);
 
-  if (!mounted) return <div className="h-[72px]" />;
+  const currentTheme = mounted ? theme : "solarized-light";
 
   return (
-    <div className="grid grid-cols-4 gap-1.5">
+    <div className="grid grid-cols-4 gap-1.5" suppressHydrationWarning>
       {themeOptions.map((t) => {
-        const isActive = theme === t.id;
+        const isActive = currentTheme === t.id;
         return (
           <button
             key={t.id}
             onClick={() => setTheme(t.id)}
+            suppressHydrationWarning
             className={cn(
               "flex flex-col items-center gap-1 px-1 py-1.5 rounded-lg transition-all duration-200 group",
               isActive

@@ -760,7 +760,7 @@ export default function CityReportPage() {
                 isEditing ? "ring-2 ring-primary/20" : ""
               }`}
             >
-              <div className="absolute top-0 right-0 p-12 bg-emerald-500/5 rounded-full blur-3xl -mr-10 -mt-10" />
+              <div className="absolute top-0 right-0 p-12 bg-emerald-500/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none transform-gpu" />
               <h2 className="text-xl font-bold text-emerald-600 mb-6 relative z-10 flex items-center justify-between">
                 মূল তথ্য (সমষ্টিগত)
                 {isEditing && (

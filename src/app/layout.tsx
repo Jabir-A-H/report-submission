@@ -41,7 +41,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="bn" suppressHydrationWarning data-scroll-behavior="smooth">
-      <body className={`${inter.variable} ${tiroBangla.variable} antialiased font-sans flex flex-col min-h-screen overscroll-none`}>
+      <body className={`${inter.variable} ${tiroBangla.variable} antialiased font-sans flex flex-col min-h-screen overscroll-none overflow-x-hidden`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="solarized-light"

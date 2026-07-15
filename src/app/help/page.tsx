@@ -162,7 +162,7 @@ export default function HelpPage() {
 
           {/* Quick Support Card */}
           <div className="bg-card border border-border/80 rounded-2xl p-6 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 bg-primary/5 rounded-full blur-2xl -mr-6 -mt-6" />
+            <div className="absolute top-0 right-0 p-8 bg-primary/5 rounded-full blur-2xl -mr-6 -mt-6 pointer-events-none transform-gpu" />
             <h3 className="font-bold text-base text-foreground mb-4 relative z-10">
               জরুরি কারিগরি সহায়তা
             </h3>

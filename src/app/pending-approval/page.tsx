@@ -2,7 +2,7 @@ import { CheckCircle2, LogOut, Clock } from 'lucide-react'
 
 export default function PendingApprovalPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-background">
+    <div className="flex-1 flex items-center justify-center p-6 bg-background">
       <div className="w-full max-w-md text-center space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
         {/* Icon */}
         <div className="mx-auto w-24 h-24 bg-amber-100 rounded-[2rem] flex items-center justify-center shadow-xl shadow-amber-100/50">

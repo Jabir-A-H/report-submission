@@ -2,7 +2,7 @@
   "name": "talimul-quran-report-submission",
   "version": "0.1.0",
   "private": true,
-  "description": "Modern, high-fidelity report submission and management system.",
+  "description": "A dual-language (Bengali & English) organizational reporting platform. Replaces manual spreadsheets with instant auto-save forms, multi-period zone assessments, real-time city-wide aggregation, and print-ready PDF & Excel exports—effortlessly usable from mobile or desktop.",
   "author": "Jabir A.H <jabir@example.com>",
   "license": "MIT",
   "repository": {
@@ -16,9 +16,12 @@
   "keywords": [
     "nextjs",
     "supabase",
-    "report-submission",
-    "dashboard",
-    "premium-ui"
+    "react-19",
+    "tailwind-v4",
+    "bengali-localization",
+    "reporting-system",
+    "mobile-first",
+    "enterprise-analytics"
   ],
   "scripts": {
     "dev": "next dev",

@@ -39,7 +39,7 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex-1 flex bg-background">
       {/* Admin Sidebar - Hidden on mobile, shown on desktop */}
       <aside className="hidden lg:flex w-72 bg-card border-r border-border flex-col sticky top-0 h-screen">
         <div className="p-6 border-b border-border">
@@ -130,7 +130,7 @@ export default async function AdminLayout({
       </aside>
 
       {/* Main Content Area */}
-      <main className="grow p-4 md:p-8 lg:p-10 overflow-auto">{children}</main>
+      <main className="grow p-4 md:p-8 lg:p-10 min-w-0">{children}</main>
     </div>
   );
 }

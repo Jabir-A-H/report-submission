@@ -16,23 +16,26 @@ export function PeriodSelector({ monthlyOnly = false }: { monthlyOnly?: boolean 
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  // Initialize state to safe default strings to avoid hydration errors
-  const [mounted, setMounted] = useState(false);
-  const [type, setType] = useState("monthly");
-  const [month, setMonth] = useState("1");
-  const [year, setYear] = useState("2026");
+  // Initialize state directly from URL search parameters to eliminate hydration pop-in delays
+  const [type, setType] = useState(() => {
+    const rawType = searchParams?.get("type") || searchParams?.get("report_type");
+    const URL_TO_ENGLISH: Record<string, string> = {
+      "মাসিক": "monthly",
+      "ত্রৈমাসিক": "quarterly",
+      "ষান্মাসিক": "halfYearly",
+      "নয়-মাসিক": "nineMonth",
+      "বার্ষিক": "yearly",
+    };
+    const cleanType = URL_TO_ENGLISH[rawType || ""] || rawType || "monthly";
+    return monthlyOnly ? "monthly" : cleanType;
+  });
+  const [month, setMonth] = useState(() => searchParams?.get("month") || String(new Date().getMonth() + 1));
+  const [year, setYear] = useState(() => searchParams?.get("year") || String(new Date().getFullYear()));
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  // Set mounted to true on client-side mount
-  // Set mounted to true on client-side mount
+  // Sync state cleanly whenever URL search parameters change during client navigation
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Sync state with URL search parameters changes only after mounted is true
-  useEffect(() => {
-    if (!mounted) return;
-    const rawType = searchParams.get("type") || searchParams.get("report_type");
+    const rawType = searchParams?.get("type") || searchParams?.get("report_type");
     const URL_TO_ENGLISH: Record<string, string> = {
       "মাসিক": "monthly",
       "ত্রৈমাসিক": "quarterly",
@@ -42,9 +45,9 @@ export function PeriodSelector({ monthlyOnly = false }: { monthlyOnly?: boolean 
     };
     const cleanType = URL_TO_ENGLISH[rawType || ""] || rawType || "monthly";
     setType(monthlyOnly ? "monthly" : cleanType);
-    setMonth(searchParams.get("month") || String(new Date().getMonth() + 1));
-    setYear(searchParams.get("year") || String(new Date().getFullYear()));
-  }, [searchParams, mounted, monthlyOnly]);
+    if (searchParams?.get("month")) setMonth(searchParams.get("month")!);
+    if (searchParams?.get("year")) setYear(searchParams.get("year")!);
+  }, [searchParams, monthlyOnly]);
 
 
   const getEndingMonthForPeriod = (reportType: string): number => {
@@ -102,6 +105,7 @@ export function PeriodSelector({ monthlyOnly = false }: { monthlyOnly?: boolean 
             <select 
               value={type}
               onChange={(e) => setType(e.target.value)}
+              suppressHydrationWarning
               className="modern-input w-full bg-muted/50 focus:bg-background transition-colors"
             >
               <option value="monthly">{t.reportTypes.monthly}</option>
@@ -122,6 +126,7 @@ export function PeriodSelector({ monthlyOnly = false }: { monthlyOnly?: boolean 
             value={month}
             onChange={(e) => setMonth(e.target.value)}
             disabled={type !== "monthly"}
+            suppressHydrationWarning
             className="modern-input w-full bg-muted/50 focus:bg-background transition-colors disabled:opacity-50"
           >
             <option value="1">জানুয়ারি</option>
@@ -147,6 +152,7 @@ export function PeriodSelector({ monthlyOnly = false }: { monthlyOnly?: boolean 
           <select 
             value={year}
             onChange={(e) => setYear(e.target.value)}
+            suppressHydrationWarning
             className="modern-input w-full bg-muted/50 focus:bg-background transition-colors"
           >
             <option value="2025">২০২৫</option>

@@ -10,11 +10,13 @@ export default async function ForgotPasswordPage({
   const resolvedParams = await searchParams;
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 relative overflow-hidden bg-background">
+    <div className="flex-1 grid lg:grid-cols-2 relative bg-background">
       
-      {/* Decorative Background Elements */}
-      <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/5 rounded-full blur-3xl -z-10 translate-x-1/2 -translate-y-1/2" />
-      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-3xl -z-10 -translate-x-1/2 translate-y-1/2" />
+      {/* Decorative Background Elements (contained inside absolute inset-0 overflow-hidden, optimized for low-end mobile GPUs) */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute -top-32 -right-32 sm:-top-64 sm:-right-64 w-80 sm:w-[800px] h-80 sm:h-[800px] bg-primary/5 rounded-full blur-2xl sm:blur-3xl transform-gpu" />
+        <div className="hidden sm:block absolute -bottom-64 -left-64 w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-3xl transform-gpu" />
+      </div>
 
       {/* Left Panel: Branding / Messaging */}
       <div className="hidden lg:flex flex-col justify-center p-12 relative overflow-hidden bg-linear-to-br from-primary/10 to-primary/5 border-r border-border/50">
