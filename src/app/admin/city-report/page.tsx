@@ -293,7 +293,7 @@ function sumHeaderRows(rows: HeaderRow[]): HeaderRow | null {
 // ─── Page Component ───────────────────────────────────────────────────────────
 
 export default function CityReportPage() {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   // Period selection state
   const [reportType, setReportType] = useState("মাসিক");

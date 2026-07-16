@@ -1,5 +1,4 @@
 import { createClient } from "@/utils/supabase/server";
-import { AdminDashboard } from "@/components/dashboard/admin-dashboard";
 import { UserDashboard } from "@/components/dashboard/user-dashboard";
 import { redirect } from "next/navigation";
 
@@ -18,11 +17,14 @@ export default async function Home() {
     .eq("supabase_uid", user.id)
     .single();
 
-  const isAdmin = profile?.role === "admin" || profile?.role === "superadmin";
+  // Admins go to the dedicated admin area (ADR-009)
+  if (profile?.role === "admin" || profile?.role === "superadmin") {
+    redirect("/admin");
+  }
 
   return (
     <div className="flex-1 flex flex-col">
-      {isAdmin ? <AdminDashboard /> : <UserDashboard />}
+      <UserDashboard />
     </div>
   );
 }

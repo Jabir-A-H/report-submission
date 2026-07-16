@@ -49,7 +49,8 @@ export function BottomNav() {
   }, [supabase]);
 
   const isAuthPage = ["/home", "/auth", "/pending-approval", "/forgot-password", "/update-password"].includes(pathname);
-  if (isAuthPage) return null;
+  const isAdminArea = pathname.startsWith("/admin");
+  if (isAuthPage || isAdminArea) return null;
 
   // Build period param string from current URL params — carries period context across navigation
   const paramsStr = searchParams.toString();

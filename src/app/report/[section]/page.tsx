@@ -104,14 +104,21 @@ function SectionSwitcher() {
         return;
       }
 
-      // Get the user's person record for their zone
+      // Get the user's person record for their zone and role
       const { data: person } = await supabase
         .from("people")
-        .select("zone_id")
+        .select("zone_id, role")
         .eq("supabase_uid", user.id)
         .single();
 
       if (ignore) return;
+
+      // WEB-006 fix (ADR-009): Admins must not access zone data-entry forms
+      if (person?.role === "admin" || person?.role === "superadmin") {
+        router.replace("/admin");
+        return;
+      }
+
       if (!person?.zone_id) {
         setError("আপনার জোন এখনও নির্ধারণ করা হয়নি।");
         setIsLoading(false);

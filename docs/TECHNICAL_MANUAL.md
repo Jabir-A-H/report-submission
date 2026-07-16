@@ -96,7 +96,11 @@ Every report corpus contains ~250+ individual metrics divided into 7 structural 
 ### 3.1 Core Entity Definitions
 The database resides on managed Supabase PostgreSQL. Core application tables reside in the `public` schema:
 - **`people`**: User profiles linked 1:1 to `auth.users.id` via `supabase_uid` (`ON DELETE CASCADE`). Synchronized automatically upon account creation via trigger `on_auth_user_created`. Enforces unique custom `user_id` strings (e.g. `'sumona'`). Contains `active` boolean (approval gate).
-- **`zones`**: Geographical zone registries.
+- **`zone`**: Geographical zone registries with hierarchical type classification. Contains two additional columns beyond `id` and `name`:
+  - `zone_type TEXT NOT NULL DEFAULT 'zone'` — Classifies the zone's level in the organizational hierarchy. Current values: `'city'` (aggregates data from child zones; no data entry), `'zone'` (active reporting unit; users submit zone reports). Future values (TBD): `'thana'`, `'ward'`, `'unit'`. Column is free-text intentionally — new values can be added without schema migration.
+  - `parent_id INTEGER REFERENCES zone(id)` — Self-referential foreign key linking child zones to their parent. DCS (`id=1`) has `parent_id = NULL` (root). All current reporting zones (ids 2–14) have `parent_id = 1` (child of DCS). Future thana/ward zones will set `parent_id` to their respective parent zone id.
+  - **DCS Identity**: Zone `id=1` (`ডি সি এস` — Dhaka City South) is the city-level administrative entity (`zone_type='city'`). It is NOT a data-entry zone. The city report is computed by aggregating all `zone_type='zone'` child zones. All `view_city_*_agg` views exclude `zone_type='city'` zones from their sums via `WHERE z.zone_type != 'city'`.
+  - **Zone Deletion Guard**: Zone deletion must check both `user_count > 0` (existing guard) AND `child_zone_count > 0` (blocks deletion if child zones exist via `parent_id`) to prevent FK constraint violations.
 - **`report`**: Root report headers identifying `zone_id`, `year`, `month`, and `report_type`. Enforces `UNIQUE (zone_id, month, year, report_type)` mathematical constraint.
 - **Child Tables (`report_headers`, `report_courses`, `report_organizational`, `report_personal`, `report_meetings`, `report_extras`, `report_comments`)**: Contain metric payloads. Linked via `report_id` foreign key (`ON DELETE CASCADE`).
 - **`city_report_overrides`**: Records admin corrections (`year`, `month`, `report_type`, `section`, `field`, `value`).
@@ -129,9 +133,24 @@ In addition to daily Supabase managed backups, GitHub Actions cron workflow `.gi
 - **Silent Email Collision Guard**: In `actions.ts`, if `supabase.auth.signUp()` returns `identities.length === 0`, registration is halted with a Bangla warning to prevent email enumeration attacks.
 - **PKCE Password Recovery**: `/forgot-password` generates recovery links pointing to `/auth/callback?next=/update-password`. Route handler `src/app/auth/callback/route.ts` executes `exchangeCodeForSession()`, establishing SSR session cookies reliably.
 
-### 4.2 Admin Flow & Overrides
-- **User Governance (`/admin/users`)**: Admins toggle user approval via explicit green **অনুমোদন করুন** (Approve -> `active=true`) and amber **নিষ্ক্রিয় করুন** (Deactivate -> `active=false`) action buttons.
-- **Inline City Overrides (`/admin/city-report`)**: Admins click any aggregated numeric field to trigger inline adjustments, inserting records directly into `city_report_overrides`.
+### 4.2 Admin Flow & Routes (ADR-009)
+
+The admin area is structured as **4 purposeful pages** plus a simple navigation landing. All admin routes live under `/admin/*`. The public `<Navbar>` and `<BottomNav>` components return `null` on all `/admin/*` routes (pathname exclusion). A dedicated `lg:hidden` mobile admin header with a hamburger drawer is rendered inside `src/app/admin/layout.tsx`.
+
+**Admin Route Map:**
+
+| Route | Purpose |
+|:---|:---|
+| `/admin` | Dashboard landing — 3 navigation cards (no DB queries) |
+| `/admin/reports` | Paginated, filtered list of all submitted zone reports |
+| `/admin/city-report` | Aggregated city-wide report + inline override editing |
+| `/admin/management` | Tab 1: User management · Tab 2: Zone management |
+
+- **User Governance (`/admin/management` → Users tab)**: Admins toggle user approval via **অনুমোদন করুন** (Approve → `active=true`) and **নিষ্ক্রিয় করুন** (Deactivate → `active=false`) action buttons. Also supports zone reassignment and account deletion.
+- **Zone Management (`/admin/management` → Zones tab)**: Add/delete zones. Displays `zone_type` and `parent_id` for each zone. Delete is blocked if the zone has active users OR child zones (FK guard).
+- **Inline City Overrides (`/admin/city-report`)**: Admins click any aggregated numeric field to trigger inline adjustments, inserting records directly into `city_report_overrides`. This is the **only** page where city-level data can be corrected. The override page uses `view_city_*_agg` views (which already apply `zone_type != 'city'` exclusions) and then applies overrides via `city_report_overrides` on top.
+- **Admin Role Guard**: `src/app/report/[section]/page.tsx` redirects to `/admin` if `role === 'admin' || role === 'superadmin'` — preventing admins from submitting zone-level report data. (WEB-006 fix, ADR-009.)
+- **DCS City View in `/report`**: When an admin selects DCS (`zone_type='city'`) in the `/report` zone dropdown, the page queries `view_city_*_agg` views and renders read-only aggregated data — not the DCS zone's own report. Override capability is only available via `/admin/city-report`.
 
 ### 4.3 Export Services (Landscape PDF & Excel - `src/app/api/export/pdf/route.tsx`)
 Export generation is handled via Next.js API route handlers (`/api/export/excel` and `/api/export/pdf`), engineered with strict page budgeting and visual parity (ADR 007):
@@ -211,12 +230,21 @@ Changelogs and versioning rely on strict commit prefixes:
 Historical documentation describing the migration from the legacy Python/Flask system (`models.py`, `LEGACY_MAPPING.md`, `MIGRATION_PLAN.md`) is archived in `docs/archive/`.
 
 ### 7.2 File Path Index
-- `src/middleware.ts` — Route governance, auth approval gate, and unauthenticated redirects (`/home`).
+- `middleware.ts` — Route governance, auth approval gate, and unauthenticated redirects (`/home`). No role-based routing — role checks are done at the page/component level.
 - `src/app/home/page.tsx` — Unified dynamic authentication & landing portal (ADR 008).
 - `src/app/home/actions.ts` — Unified login & registration server actions (`login`, `register`, live uniqueness checks).
+- `src/app/page.tsx` — Role-based root. Admins redirect to `/admin`; users render `<UserDashboard />`.
+- `src/app/admin/layout.tsx` — Admin shell: server component wrapping `<AdminSidebar />` plus `{children}`. Excludes public `<Navbar>` via pathname guard.
+- `src/app/admin/AdminSidebar.tsx` — Client navigation component: 3 sidebar links, mobile header with hamburger drawer (`useState`), and sign-out action.
+- `src/app/admin/page.tsx` — Admin dashboard landing: 3 `<Link>` navigation cards. No DB queries.
+- `src/app/admin/reports/page.tsx` — Paginated, filtered zone report list (`useMemo` client). Each row links to `/report?zone_id=...&report_id=...`.
+- `src/app/admin/city-report/page.tsx` — Aggregated city report viewer + `city_report_overrides` inline editing (the only override-capable page).
+- `src/app/admin/management/page.tsx` — Merged Users + Zones management page with two tabs (`useMemo` client).
+- `src/app/admin/management/actions.ts` — Server actions for management (`deleteUserAction` with role verification and cascade removal).
 - `src/components/auth/auth-portal-client.tsx` — Minimalist single-purpose dual-mode (`Login` / `Register`) auth card component driven by bottom toggle links without top tabs.
 - `src/components/layout/appearance-footer-toggle.tsx` — Inline expanded bottom footer controls for language (`ভাষা: [বাংলা | EN]`) and theme (`থিম: [লাইট | ডার্ক...]`) selection.
-- `src/app/report/page.tsx` — Report document layout, dynamic responsive table overflow thresholds (`min-w-[500px]`), and transparent border-framed inline statistics (ADR 004).
+- `src/app/report/page.tsx` — Report document layout, dynamic responsive table overflow thresholds (`min-w-[500px]`), transparent border-framed inline statistics (ADR 004). Admins see aggregated city data when DCS zone is selected.
+- `src/app/report/[section]/page.tsx` — Zone report data-entry forms. Role guard: admin/superadmin → redirect to `/admin` (WEB-006 fix, ADR-009).
 - `src/components/dashboard/user-dashboard.tsx` — User report matrix dashboard, Bismillah heading, period selector, and section links grid. URL params are sole period state source of truth (ADR 006).
 - `src/components/report/section-layout.tsx` — Secondary top navigation bar with `CompactViewToggle` top-right slot (ADR 005).
 - `src/components/report/auto-save-field.tsx` — Shared report field primitive with `inline` and `tableMode` rendering paths.
@@ -228,4 +256,4 @@ Historical documentation describing the migration from the legacy Python/Flask s
 - `src/app/globals.css` — Global semantic tokens and reusable card/input utility classes.
 - `docs/ROADMAP.md` — Active engineering tracking & sprint sequencing.
 - `docs/KNOWN_ISSUES.md` — Living technical debt & bug repository.
-- `docs/ADR/` — Formal Architecture Decision Records (`001` through `008`).
+- `docs/ADR/` — Formal Architecture Decision Records (`001` through `009`).

@@ -5,6 +5,23 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ## Active / Deferred Issues
 
+### WEB-006: Admin Role Has No Guard on `/report/[section]` Data-Entry Forms
+- **Date**: 2026-07-16
+- **Severity**: High
+- **Description**: `src/app/report/[section]/page.tsx` has no role check. After fetching the user profile, it reads `person.zone_id` and proceeds to call `get_or_create_report()` regardless of whether the user is an admin or superadmin. Since both current admins are assigned `zone_id = 1` (DCS), visiting `/report/header?type=monthly&month=7&year=2026` as a superadmin silently creates/opens a DCS zone report and presents the full data-entry form. This allows admins to accidentally submit data into a zone report — which then gets included in the city aggregation via `view_city_header_agg` (and all other city views), corrupting the city total.
+- **Related**: The accidental report `id=36` (zone_id=1, July 2026) was created this way.
+- **Planned Fix (ADR-009)**: Add a role check immediately after profile fetch in `SectionSwitcher`. If `role === 'admin' || role === 'superadmin'` → `router.replace('/admin')`. Part of the admin site restructure work.
+
+---
+
+### Accidental DCS Zone Report in DB (`report.id = 36`)
+- **Date**: 2026-07-16
+- **Severity**: Medium (data integrity)
+- **Description**: `report.id = 36` (zone_id=1 / ডি সি এস, month=7, year=2026, type=মাসিক) was auto-created when a superadmin visited the data-entry form route. Its data is currently included in city aggregation views. The record is likely empty but pollutes the city total for July 2026.
+- **Planned Fix (ADR-009)**: Delete this record before updating the `view_city_*_agg` views to exclude `zone_type = 'city'`. Once views are updated, DCS records are permanently excluded regardless.
+
+---
+
 ### Mobile Touch Target Ergonomics Violations (<44px)
 - **Date**: 2026-06-26
 - **Description**: Nested category table action and delete buttons in `AutoSaveField` rows maintain small hit areas (~24px x 24px), violating WCAG 2.2 AA mobile touch target guidelines (minimum 44px x 44px).

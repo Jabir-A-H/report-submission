@@ -10,10 +10,11 @@ export function Navbar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Hide Navbar on Login, Register, Home or when simplified view is needed
+  // Hide Navbar on auth pages and admin area (admin has its own sidebar/header)
   const isAuthPage = ["/home", "/auth", "/pending-approval", "/forgot-password", "/update-password"].includes(pathname);
+  const isAdminArea = pathname.startsWith("/admin");
   
-  if (isAuthPage) return null;
+  if (isAuthPage || isAdminArea) return null;
 
   // Build period query string — carries period context across all navigation links
   const paramsStr = searchParams.toString();
