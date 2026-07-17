@@ -1,6 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
-import AdminSidebar from "./AdminSidebar";
 
 export default async function AdminLayout({
   children,
@@ -26,11 +25,11 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="flex-1 flex flex-col lg:flex-row bg-background">
-      <AdminSidebar userEmail={user.email ?? ""} />
-
-      {/* Main Content Area */}
-      <main className="grow p-4 md:p-8 lg:p-10 min-w-0">{children}</main>
+    <div className="flex-1 flex flex-col bg-background min-h-screen">
+      {/* Main Content Area — top and bottom navigation bars are unified via Navbar and BottomNav */}
+      <main className="grow container mx-auto p-4 md:p-8 lg:p-10 min-w-0 pb-20 md:pb-10">
+        {children}
+      </main>
     </div>
   );
 }

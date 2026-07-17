@@ -96,7 +96,9 @@ Every report corpus contains ~250+ individual metrics divided into 7 structural 
 ### 3.1 Core Entity Definitions
 The database resides on managed Supabase PostgreSQL. Core application tables reside in the `public` schema:
 - **`people`**: User profiles linked 1:1 to `auth.users.id` via `supabase_uid` (`ON DELETE CASCADE`). Synchronized automatically upon account creation via trigger `on_auth_user_created`. Enforces unique custom `user_id` strings (e.g. `'sumona'`). Contains `active` boolean (approval gate).
-- **`zone`**: Geographical zone registries with hierarchical type classification. Contains two additional columns beyond `id` and `name`:
+- **`zone`**: Geographical zone registries with hierarchical type classification (`zone_type`, `parent_id`).
+  - **Schema Migration Staging (`ADR-009`)**: The DDL migrations `ALTER TABLE zone ADD COLUMN IF NOT EXISTS zone_type TEXT NOT NULL DEFAULT 'zone';` and `ALTER TABLE zone ADD COLUMN IF NOT EXISTS parent_id INTEGER REFERENCES zone(id);` are staged for execution when the application hierarchy is ported down one level.
+  - **Frontend Schema-Resilience & Fallback Protocol**: To guarantee zero downtime or `42703 (undefined_column)` Postgres query failures while the database remains unmigrated, all frontend queries (`fetchZones`, `fetchUsers` in `ManagementPage`) utilize `select("*")` instead of hardcoded column lists. Furthermore, `addZone()` includes an automatic `42703 error trap` that falls back to inserting `{ name }` if `zone_type` / `parent_id` do not exist in the live database table yet.
   - `zone_type TEXT NOT NULL DEFAULT 'zone'` — Classifies the zone's level in the organizational hierarchy. Current values: `'city'` (aggregates data from child zones; no data entry), `'zone'` (active reporting unit; users submit zone reports). Future values (TBD): `'thana'`, `'ward'`, `'unit'`. Column is free-text intentionally — new values can be added without schema migration.
   - `parent_id INTEGER REFERENCES zone(id)` — Self-referential foreign key linking child zones to their parent. DCS (`id=1`) has `parent_id = NULL` (root). All current reporting zones (ids 2–14) have `parent_id = 1` (child of DCS). Future thana/ward zones will set `parent_id` to their respective parent zone id.
   - **DCS Identity**: Zone `id=1` (`ডি সি এস` — Dhaka City South) is the city-level administrative entity (`zone_type='city'`). It is NOT a data-entry zone. The city report is computed by aggregating all `zone_type='zone'` child zones. All `view_city_*_agg` views exclude `zone_type='city'` zones from their sums via `WHERE z.zone_type != 'city'`.
@@ -135,19 +137,24 @@ In addition to daily Supabase managed backups, GitHub Actions cron workflow `.gi
 
 ### 4.2 Admin Flow & Routes (ADR-009)
 
-The admin area is structured as **4 purposeful pages** plus a simple navigation landing. All admin routes live under `/admin/*`. The public `<Navbar>` and `<BottomNav>` components return `null` on all `/admin/*` routes (pathname exclusion). A dedicated `lg:hidden` mobile admin header with a hamburger drawer is rendered inside `src/app/admin/layout.tsx`.
+The admin area is structured as **4 purposeful pages** (`/admin`, `/admin/reports`, `/admin/city-report`, `/admin/management`). Instead of using a separate left sidebar or a disconnected mobile hamburger menu, navigation is completely unified across the application via `src/components/layout/navbar.tsx` and `src/components/layout/bottom-nav.tsx`:
+- **Desktop Top Bar (`Navbar`)**: When logged in as an `admin` or `superadmin` (`profile.role`), the header stays visible across all `/admin/*` routes and displays the 4 core admin links (**ড্যাশবোর্ড**, **জমাকৃত রিপোর্ট**, **সিটি রিপোর্ট**, **ব্যবস্থাপনা**) right inside the top bar alongside `UserDropdown`.
+- **Mobile Bottom Bar (`BottomNav`)**: When `isAdmin` is true, the bottom bar automatically transforms into a 5-tab admin layout (`grid-cols-5`) right at the bottom of the screen: **ড্যাশবোর্ড** (`/admin`), **জমাকৃত** (`/admin/reports`), **সিটি** (`/admin/city-report`), **ব্যবস্থাপনা** (`/admin/management`), and **প্রোফাইল** (toggles slide-up panel with Theme, Language, Help, and Logout).
+- **Clean Shell (`/admin/layout.tsx`)**: Acts as a lightweight server component enforcing role verification (`redirect('/')` if not admin) and wrapping `{children}` without any duplicate sidebar columns or mobile drawers.
 
 **Admin Route Map:**
 
 | Route | Purpose |
 |:---|:---|
-| `/admin` | Dashboard landing — 3 navigation cards (no DB queries) |
+| `/admin` | Dashboard landing — Current Month Report Condition panel + 3 navigation cards |
 | `/admin/reports` | Paginated, filtered list of all submitted zone reports |
 | `/admin/city-report` | Aggregated city-wide report + inline override editing |
 | `/admin/management` | Tab 1: User management · Tab 2: Zone management |
 
-- **User Governance (`/admin/management` → Users tab)**: Admins toggle user approval via **অনুমোদন করুন** (Approve → `active=true`) and **নিষ্ক্রিয় করুন** (Deactivate → `active=false`) action buttons. Also supports zone reassignment and account deletion.
-- **Zone Management (`/admin/management` → Zones tab)**: Add/delete zones. Displays `zone_type` and `parent_id` for each zone. Delete is blocked if the zone has active users OR child zones (FK guard).
+- **Current Month Report Condition Panel (`/admin`)**: At the top of the Admin Dashboard landing page (`src/app/admin/page.tsx`), an authoritative real-time summary panel displays the current month's (`month`, `year`) reporting status across all active zones assigned to the logged-in admin (`reportableZones`). It highlights **মোট জোন / এলাকা** (`totalZonesCount`), **রিপোর্ট জমা হয়েছে** (`submittedCount`), and **এখনও অপেক্ষমাণ** (`pendingCount`) inside three vibrant KPI summary cards, accompanied by a dynamic progress bar (`completionPercentage%`). Furthermore, it provides two detailed tag lists showing the exact names of every zone that has submitted vs. pending (`submittedZones` vs `pendingZones`), turning into a celebratory congratulatory banner (`🎉 অভিনন্দন! ...`) once all zones complete their report submission.
+- **User Governance (`/admin/management` → Users tab)**: Admins toggle user approval via **অনুমোদন করুন** (Approve → `active=true`) and **নিষ্ক্রিয় করুন** (Deactivate → `active=false`) action buttons. Also features instant text search (Name/Email/ID/Zone) combined with multi-filter dropdowns (**স্ট্যাটাস ফিল্টার**: All/Active/Pending; **রোল ফিল্টার**: All/Normal/Admin; **জোন ফিল্টার**: All/Specific Zone).
+- **Zone Management (`/admin/management` → Zones tab)**: Add/delete zones using a full-width responsive grid (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`). Each zone card displays its **এলাকার ধরন (`zone_type`)** badge (`সিটি / নগর`, `জোন পর্যায়`, `থানা পর্যায়`, `ওয়ার্ড / হালকা`) and its **অধীনস্থ (`parent_id` / hierarchy)** parent zone. Clicking the interactive `[X] জন ইউজার দেখুন` button pops open the **Assigned Users Quick Modal (`selectedZoneForUsers`)**, listing every assigned user with avatar and status, plus a direct jump link to pre-filter the Users tab by that exact zone. The `+ নতুন জোন যোগ করুন` button is aligned on the right side directly opposite the `মোট জোন` badge, launching a centered **Floating Modal Dialog** (`floating type`) equipped with instant autofocus, `এলাকার ধরন (Zone Type)` selector, and `ঊর্ধ্বতন জোন (Hierarchy Parent)` dropdown.
+- **404 / Unknown Route Governance (`/not-found.tsx` & `/[...not-found]/page.tsx`)**: Intercepts any unmatched or broken URL (`/report/invalid`, `/admin/random`) and redirects immediately to `/`, where role verification directs admins to `/admin`, normal users to `<UserDashboard />`, and guests to `/home`.
 - **Inline City Overrides (`/admin/city-report`)**: Admins click any aggregated numeric field to trigger inline adjustments, inserting records directly into `city_report_overrides`. This is the **only** page where city-level data can be corrected. The override page uses `view_city_*_agg` views (which already apply `zone_type != 'city'` exclusions) and then applies overrides via `city_report_overrides` on top.
 - **Admin Role Guard**: `src/app/report/[section]/page.tsx` redirects to `/admin` if `role === 'admin' || role === 'superadmin'` — preventing admins from submitting zone-level report data. (WEB-006 fix, ADR-009.)
 - **DCS City View in `/report`**: When an admin selects DCS (`zone_type='city'`) in the `/report` zone dropdown, the page queries `view_city_*_agg` views and renders read-only aggregated data — not the DCS zone's own report. Override capability is only available via `/admin/city-report`.
@@ -234,13 +241,16 @@ Historical documentation describing the migration from the legacy Python/Flask s
 - `src/app/home/page.tsx` — Unified dynamic authentication & landing portal (ADR 008).
 - `src/app/home/actions.ts` — Unified login & registration server actions (`login`, `register`, live uniqueness checks).
 - `src/app/page.tsx` — Role-based root. Admins redirect to `/admin`; users render `<UserDashboard />`.
-- `src/app/admin/layout.tsx` — Admin shell: server component wrapping `<AdminSidebar />` plus `{children}`. Excludes public `<Navbar>` via pathname guard.
-- `src/app/admin/AdminSidebar.tsx` — Client navigation component: 3 sidebar links, mobile header with hamburger drawer (`useState`), and sign-out action.
+- `src/app/not-found.tsx` — Standard 404 server redirect to `/`.
+- `src/app/[...not-found]/page.tsx` — Catch-all unmatched route handler redirecting to `/`.
+- `src/app/admin/layout.tsx` — Admin shell: server container enforcing role verification and wrapping `{children}` without separate sidebars.
 - `src/app/admin/page.tsx` — Admin dashboard landing: 3 `<Link>` navigation cards. No DB queries.
 - `src/app/admin/reports/page.tsx` — Paginated, filtered zone report list (`useMemo` client). Each row links to `/report?zone_id=...&report_id=...`.
 - `src/app/admin/city-report/page.tsx` — Aggregated city report viewer + `city_report_overrides` inline editing (the only override-capable page).
 - `src/app/admin/management/page.tsx` — Merged Users + Zones management page with two tabs (`useMemo` client).
 - `src/app/admin/management/actions.ts` — Server actions for management (`deleteUserAction` with role verification and cascade removal).
+- `src/components/layout/navbar.tsx` — Desktop navigation bar (`hidden md:block`). Dynamically displays 4 admin links on desktop (`/admin`, `/admin/reports`, `/admin/city-report`, `/admin/management`) for admins or inside `/admin/*`.
+- `src/components/layout/bottom-nav.tsx` — Mobile navigation bar (`md:hidden`). Dynamically displays 5 tabs for admins (`grid-cols-5`: Dashboard, Submitted, City, Management, Profile slide-up) and 3 tabs (`grid-cols-3`) for normal users.
 - `src/components/auth/auth-portal-client.tsx` — Minimalist single-purpose dual-mode (`Login` / `Register`) auth card component driven by bottom toggle links without top tabs.
 - `src/components/layout/appearance-footer-toggle.tsx` — Inline expanded bottom footer controls for language (`ভাষা: [বাংলা | EN]`) and theme (`থিম: [লাইট | ডার্ক...]`) selection.
 - `src/app/report/page.tsx` — Report document layout, dynamic responsive table overflow thresholds (`min-w-[500px]`), transparent border-framed inline statistics (ADR 004). Admins see aggregated city data when DCS zone is selected.

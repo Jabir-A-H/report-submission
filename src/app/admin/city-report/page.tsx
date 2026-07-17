@@ -135,6 +135,37 @@ const REPORT_TYPES = [
   { value: "বার্ষিক", label: "বার্ষিক" },
 ];
 
+const COURSE_CATEGORIES = [
+  "বিশিষ্টদের",
+  "সাধারণদের",
+  "কর্মীদের",
+  "ইউনিট সভানেত্রী",
+  "অগ্রসরদের",
+  "রুকনদের অনুশীলনী ক্লাস",
+  "শিশু- তা'লিমুল কুরআন",
+  "নিরক্ষর- তা'লিমুস সলাত",
+];
+
+const PERSONAL_CATEGORIES = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"];
+
+const PERSONAL_METRICS_ROWS = [
+  { key: "teaching", label: "কতজন শিখাচ্ছেন" },
+  { key: "learning", label: "কতজনকে শিখাচ্ছেন" },
+  { key: "olama_invited", label: "দাওয়াতপ্রাপ্ত ওলামা" },
+  { key: "became_shohojogi", label: "সহযোগী হয়েছেন" },
+  { key: "became_sokrio_shohojogi", label: "সক্রিয় সহযোগী হয়েছেন" },
+  { key: "became_kormi", label: "কর্মী হয়েছেন" },
+  { key: "became_rukon", label: "রুকন হয়েছেন" },
+];
+
+const MEETING_CATEGORIES = [
+  "কমিটি বৈঠক হয়েছে",
+  "মুয়াল্লিমাদের নিয়ে বৈঠক",
+  "Committee Orientation",
+  "Muallima Orientation",
+  "অন্যান্য",
+];
+
 const HEADER_FIELDS: { key: keyof HeaderRow; label: string; color?: string }[] =
   [
     { key: "total_muallima", label: "মোট মুয়াল্লিমা" },
@@ -153,61 +184,6 @@ const HEADER_FIELDS: { key: keyof HeaderRow; label: string; color?: string }[] =
     { key: "total_unit", label: "মোট ইউনিট" },
     { key: "units_with_muallima", label: "মুয়াল্লিমা আছে" },
   ];
-
-const COURSE_COLUMNS: { key: keyof CourseRow; label: string }[] = [
-  { key: "category", label: "বিভাগ/ধরন" },
-  { key: "number", label: "সংখ্যা" },
-  { key: "increase", label: "বৃদ্ধি" },
-  { key: "decrease", label: "ঘাটতি" },
-  { key: "sessions", label: "ক্লাস" },
-  { key: "students", label: "শিক্ষার্থী" },
-  { key: "attendance", label: "উপস্থিতি" },
-  { key: "status_board", label: "বোর্ড" },
-  { key: "status_qayda", label: "কায়দা" },
-  { key: "status_ampara", label: "আমপারা" },
-  { key: "status_quran", label: "কুরআন" },
-  { key: "completed", label: "শেষ করেছে" },
-  { key: "correctly_learned", label: "সহীহ শিখেছে" },
-];
-
-const ORG_COLUMNS: { key: keyof OrgRow; label: string }[] = [
-  { key: "category", label: "বিভাগ" },
-  { key: "number", label: "সংখ্যা" },
-  { key: "increase", label: "বৃদ্ধি" },
-  { key: "amount", label: "পরিমাণ/টাকা" },
-];
-
-const PERSONAL_COLUMNS: { key: keyof PersonalRow; label: string }[] = [
-  { key: "category", label: "বিভাগ" },
-  { key: "teaching", label: "তা'লীম দান" },
-  { key: "learning", label: "তা'লীম গ্রহণ" },
-  { key: "olama_invited", label: "ওলামা আমন্ত্রণ" },
-  { key: "became_shohojogi", label: "সহযোগী" },
-  { key: "became_sokrio_shohojogi", label: "সক্রিয় সহযোগী" },
-  { key: "became_kormi", label: "কর্মী" },
-  { key: "became_rukon", label: "রুকন" },
-];
-
-const MEETING_COLUMNS = [
-  { key: "category", label: "বিভাগ" },
-  { group: "মহানগরী", fields: [
-    { key: "city_count", label: "সংখ্যা" },
-    { key: "city_avg_attendance", label: "গড় উপস্থিতি" },
-  ]},
-  { group: "থানা", fields: [
-    { key: "thana_count", label: "সংখ্যা" },
-    { key: "thana_avg_attendance", label: "গড় উপস্থিতি" },
-  ]},
-  { group: "ওয়ার্ড", fields: [
-    { key: "ward_count", label: "সংখ্যা" },
-    { key: "ward_avg_attendance", label: "গড় উপস্থিতি" },
-  ]},
-] as const;
-
-const EXTRA_COLUMNS: { key: keyof ExtraRow; label: string }[] = [
-  { key: "category", label: "বিভাগ" },
-  { key: "number", label: "সংখ্যা" },
-];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -753,407 +729,403 @@ export default function CityReportPage() {
       {/* ── Data Sections ───────────────────────────────────────────────────── */}
       {!isLoading && hasAnyData && (
         <div className="space-y-8">
-          {/* ────── 1. Header Section ────── */}
+          {/* ────── 0. Header Summary Block ────── */}
           {headerData && (
-            <section
-              className={`bg-card border-l-4 border-l-emerald-500 border-y border-r border-border rounded-xl p-6 shadow-sm overflow-hidden relative transition-all ${
-                isEditing ? "ring-2 ring-primary/20" : ""
-              }`}
-            >
-              <div className="absolute top-0 right-0 p-12 bg-emerald-500/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none transform-gpu" />
-              <h2 className="text-xl font-bold text-emerald-600 mb-6 relative z-10 flex items-center justify-between">
-                মূল তথ্য (সমষ্টিগত)
-                {isEditing && (
-                  <span className="text-xs bg-primary/10 text-primary px-3 py-1 rounded-full">
-                    এডিটিং চালু আছে
+            <div className="space-y-6">
+              <div className="grid grid-cols-3 max-[320px]:grid-cols-1 gap-3 md:gap-6 text-sm bg-muted/30 p-5 rounded-2xl border border-border/60">
+                <div>
+                  <span className="text-muted-foreground block mb-1 text-xs font-semibold">দায়িত্বশীল:</span>
+                  <span className="font-extrabold text-foreground text-base">
+                    মহানগরী সভাপতি / সেক্রেটারি
                   </span>
-                )}
-              </h2>
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 relative z-10">
-                {HEADER_FIELDS.map(({ key, label, color }) => {
-                  const computedVal = (headerData[key] as number) ?? 0;
-                  const { value, isOverridden } = getVal(
-                    "header",
-                    key,
-                    computedVal
-                  );
-                  return (
-                    <div
-                      key={key}
-                      className={`p-4 bg-muted/40 rounded-xl border border-border/50 group ${
-                        isOverridden
-                          ? "ring-2 ring-amber-400/50 bg-amber-50/50 dark:bg-amber-900/20"
-                          : ""
-                      }`}
-                    >
-                      <span className="text-muted-foreground block mb-2 text-sm">
-                        {label}:
-                      </span>
-                      <span
-                        className={`font-bold text-2xl ${color || "text-foreground"}`}
-                      >
-                        {color === "text-green-600" && value > 0 && "+"}
-                        {color === "text-red-500" && value > 0 && "-"}
-                        {toBn(value)}
-                      </span>
-                      {isEditing && (
-                        <CorrectionButton
-                          year={year}
-                          month={month}
-                          reportType={reportType}
-                          section="header"
-                          field={key}
-                          currentValue={value}
-                        />
-                      )}
-                    </div>
-                  );
-                })}
+                </div>
+                <div>
+                  <span className="text-muted-foreground block mb-1 text-xs font-semibold">বিভাগ:</span>
+                  <span className="font-extrabold text-foreground text-base">
+                    তা'লীমুল কুরআন বিভাগ, মহানগরী
+                  </span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block mb-1 text-xs font-semibold">রিপোর্ট সময়কাল:</span>
+                  <span className="font-extrabold text-foreground text-base">
+                    {periodLabel}
+                  </span>
+                </div>
               </div>
-            </section>
+
+              <div className="grid grid-cols-2 max-[320px]:grid-cols-1 lg:grid-cols-4 gap-3 sm:gap-4">
+                {/* Col 1: Total Muallima + Increase/Decrease */}
+                <div className="p-4 bg-muted/40 rounded-xl border border-border/40 flex flex-col justify-between">
+                  <div>
+                    <span className="text-muted-foreground block mb-1 text-xs font-bold">মোট মুয়াল্লিমা:</span>
+                    <span className="font-black text-xl text-foreground">
+                      <NumericCell section="header" field="total_muallima" computedValue={headerData.total_muallima ?? 0} />
+                    </span>
+                  </div>
+                  <div className="border-t border-border/40 pt-3 mt-3">
+                    <span className="text-muted-foreground block mb-1 text-xs font-bold">বৃদ্ধি / ঘাটতি:</span>
+                    <span className="font-black text-lg text-foreground inline-flex gap-1.5 items-center">
+                      <span className="text-green-600">+<NumericCell section="header" field="muallima_increase" computedValue={headerData.muallima_increase ?? 0} /></span>
+                      <span className="text-muted-foreground/60">/</span>
+                      <span className="text-red-500">-<NumericCell section="header" field="muallima_decrease" computedValue={headerData.muallima_decrease ?? 0} /></span>
+                    </span>
+                  </div>
+                </div>
+
+                {/* Col 2: Certified Muallima + Certified Taking Classes */}
+                <div className="p-4 bg-muted/40 rounded-xl border border-border/40 flex flex-col justify-between">
+                  <div>
+                    <span className="text-muted-foreground block mb-1 text-xs font-bold">সার্টিফিকেটপ্রাপ্ত মুয়াল্লিমা:</span>
+                    <span className="font-black text-xl text-foreground">
+                      <NumericCell section="header" field="certified_muallima" computedValue={headerData.certified_muallima ?? 0} />
+                    </span>
+                  </div>
+                  <div className="border-t border-border/40 pt-3 mt-3">
+                    <span className="text-muted-foreground block mb-1 text-xs font-bold">সার্টিফিকেটপ্রাপ্ত ক্লাস নিচ্ছেন:</span>
+                    <span className="font-bold text-lg text-foreground">
+                      <NumericCell section="header" field="certified_muallima_taking_classes" computedValue={headerData.certified_muallima_taking_classes ?? 0} />
+                    </span>
+                  </div>
+                </div>
+
+                {/* Col 3: Trained Muallima + Trained Taking Classes */}
+                <div className="p-4 bg-muted/40 rounded-xl border border-border/40 flex flex-col justify-between">
+                  <div>
+                    <span className="text-muted-foreground block mb-1 text-xs font-bold">প্রশিক্ষণপ্রাপ্ত মুয়াল্লিমা:</span>
+                    <span className="font-black text-xl text-foreground">
+                      <NumericCell section="header" field="trained_muallima" computedValue={headerData.trained_muallima ?? 0} />
+                    </span>
+                  </div>
+                  <div className="border-t border-border/40 pt-3 mt-3">
+                    <span className="text-muted-foreground block mb-1 text-xs font-bold">প্রশিক্ষণপ্রাপ্ত ক্লাস নিচ্ছেন:</span>
+                    <span className="font-bold text-lg text-foreground">
+                      <NumericCell section="header" field="trained_muallima_taking_classes" computedValue={headerData.trained_muallima_taking_classes ?? 0} />
+                    </span>
+                  </div>
+                </div>
+
+                {/* Col 4: Total Unit + Unit With Muallima */}
+                <div className="p-4 bg-muted/40 rounded-xl border border-border/40 flex flex-col justify-between">
+                  <div>
+                    <span className="text-muted-foreground block mb-1 text-xs font-bold">ইউনিট সংখ্যা:</span>
+                    <span className="font-black text-xl text-foreground">
+                      <NumericCell section="header" field="total_unit" computedValue={headerData.total_unit ?? 0} />
+                    </span>
+                  </div>
+                  <div className="border-t border-border/40 pt-3 mt-3">
+                    <span className="text-muted-foreground block mb-1 text-xs font-bold">মুয়াল্লিমা সহ ইউনিট:</span>
+                    <span className="font-bold text-lg text-foreground">
+                      <NumericCell section="header" field="units_with_muallima" computedValue={headerData.units_with_muallima ?? 0} />
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
 
-          {/* ────── 2. Courses Section ────── */}
-          {courseData.length > 0 && (
-            <section
-              className={`bg-card border-l-4 border-l-purple-500 border-y border-r border-border rounded-xl p-6 shadow-sm overflow-hidden transition-all ${
-                isEditing ? "ring-2 ring-primary/20" : ""
-              }`}
-            >
-              <h2 className="text-xl font-bold text-purple-600 mb-4">
-                গ্রুপ / কোর্স রিপোর্ট (সমষ্টিগত)
-              </h2>
-              <div className="overflow-x-auto w-full pb-4">
-                <table className="w-full text-sm text-left whitespace-nowrap">
-                  <thead className="bg-purple-500/5 text-purple-700 dark:text-purple-400">
-                    <tr>
-                      {COURSE_COLUMNS.map((col, i) => (
-                        <th
-                          key={col.key}
-                          className={`px-4 py-3 font-bold border-b border-purple-500/20 ${
-                            i === 0
-                              ? "rounded-tl-lg"
-                              : i === COURSE_COLUMNS.length - 1
-                                ? "rounded-tr-lg text-center"
-                                : "text-center"
-                          }`}
-                        >
-                          {col.label}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {courseData.map((row) => (
-                      <tr
-                        key={row.category}
-                        className="hover:bg-muted/50 transition-colors"
-                      >
-                        <td className="px-4 py-3 font-semibold text-foreground">
-                          {row.category}
+          {/* ────── ১. গ্রুপ / কোর্স রিপোর্ট ────── */}
+          <div className="space-y-4">
+            <div className="overflow-x-auto rounded-xl border border-border bg-background">
+              <table className="w-full text-sm text-center border-collapse">
+                <thead className="bg-purple-500/5 text-purple-800 font-bold border-b border-border">
+                  <tr>
+                    <th rowSpan={2} className="px-4 py-3 font-black border-r border-border text-left">বিভাগ/ধরন</th>
+                    <th colSpan={3} className="px-4 py-2 font-black border-r border-b border-border">গ্রুপ / কোর্স</th>
+                    <th rowSpan={2} className="px-4 py-3 font-black border-r border-border">অধিবেশন</th>
+                    <th rowSpan={2} className="px-4 py-3 font-black border-r border-border">শিক্ষার্থী</th>
+                    <th rowSpan={2} className="px-4 py-3 font-black border-r border-border">উপস্থিতি</th>
+                    <th colSpan={4} className="px-4 py-2 font-black border-r border-b border-border">শিক্ষার্থী অবস্থান</th>
+                    <th rowSpan={2} className="px-4 py-3 font-black border-r border-border">কতজন নিয়ে সমাপ্ত</th>
+                    <th rowSpan={2} className="px-4 py-3 font-black">সহীহ শিখেছেন কতজন</th>
+                  </tr>
+                  <tr className="bg-purple-500/10 text-purple-900 border-b border-border text-[11px]">
+                    <th className="px-2 py-2 border-r border-border font-bold">সংখ্যা</th>
+                    <th className="px-2 py-2 border-r border-border font-bold">বৃদ্ধি</th>
+                    <th className="px-2 py-2 border-r border-border font-bold">ঘাটতি</th>
+                    <th className="px-2 py-2 border-r border-border font-bold">বোর্ড</th>
+                    <th className="px-2 py-2 border-r border-border font-bold">কায়দা</th>
+                    <th className="px-2 py-2 border-r border-border font-bold">আমপারা</th>
+                    <th className="px-2 py-2 border-r border-border font-bold">কুরআন</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {COURSE_CATEGORIES.map((cat) => {
+                    const row = courseData.find((r) => r.category === cat) || {
+                      number: 0,
+                      increase: 0,
+                      decrease: 0,
+                      sessions: 0,
+                      students: 0,
+                      attendance: 0,
+                      status_board: 0,
+                      status_qayda: 0,
+                      status_ampara: 0,
+                      status_quran: 0,
+                      completed: 0,
+                      correctly_learned: 0,
+                    };
+                    return (
+                      <tr key={cat} className="hover:bg-muted/40 transition-colors">
+                        <td className="px-4 py-3 border-r border-border text-left font-bold text-foreground">{cat}</td>
+                        <td className="px-2 py-3 border-r border-border">
+                          <NumericCell section="course" field="number" computedValue={row.number ?? 0} category={cat} />
                         </td>
-                        {COURSE_COLUMNS.filter((c) => c.key !== "category").map(
-                          (col) => (
-                            <td key={col.key} className="px-4 py-3 text-center">
-                              <NumericCell
-                                section="course"
-                                field={col.key}
-                                computedValue={row[col.key] as number}
-                                category={row.category}
-                              />
-                            </td>
+                        <td className="px-2 py-3 border-r border-border text-green-600 font-medium">
+                          +<NumericCell section="course" field="increase" computedValue={row.increase ?? 0} category={cat} />
+                        </td>
+                        <td className="px-2 py-3 border-r border-border text-red-500 font-medium">
+                          -<NumericCell section="course" field="decrease" computedValue={row.decrease ?? 0} category={cat} />
+                        </td>
+                        <td className="px-2 py-3 border-r border-border">
+                          <NumericCell section="course" field="sessions" computedValue={row.sessions ?? 0} category={cat} />
+                        </td>
+                        <td className="px-2 py-3 border-r border-border">
+                          <NumericCell section="course" field="students" computedValue={row.students ?? 0} category={cat} />
+                        </td>
+                        <td className="px-2 py-3 border-r border-border">
+                          <NumericCell section="course" field="attendance" computedValue={row.attendance ?? 0} category={cat} />
+                        </td>
+                        <td className="px-2 py-3 border-r border-border">
+                          <NumericCell section="course" field="status_board" computedValue={row.status_board ?? 0} category={cat} />
+                        </td>
+                        <td className="px-2 py-3 border-r border-border">
+                          <NumericCell section="course" field="status_qayda" computedValue={row.status_qayda ?? 0} category={cat} />
+                        </td>
+                        <td className="px-2 py-3 border-r border-border">
+                          <NumericCell section="course" field="status_ampara" computedValue={row.status_ampara ?? 0} category={cat} />
+                        </td>
+                        <td className="px-2 py-3 border-r border-border">
+                          <NumericCell section="course" field="status_quran" computedValue={row.status_quran ?? 0} category={cat} />
+                        </td>
+                        <td className="px-2 py-3 border-r border-border">
+                          <NumericCell section="course" field="completed" computedValue={row.completed ?? 0} category={cat} />
+                        </td>
+                        <td className="px-2 py-3">
+                          <NumericCell section="course" field="correctly_learned" computedValue={row.correctly_learned ?? 0} category={cat} />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Inline Maktab Stats */}
+            <div className="p-4 rounded-xl border border-border text-xs sm:text-sm">
+              <span className="font-black text-muted-foreground block text-xs tracking-wider uppercase mb-2">মক্তব রিপোর্ট:</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                <div className="flex items-center justify-between sm:flex-col sm:items-start sm:justify-center px-3 py-2 rounded-lg border border-border/70 gap-0.5">
+                  <span className="text-muted-foreground font-semibold">মক্তব সংখ্যা:</span>
+                  <span className="font-black text-foreground text-sm sm:text-base">
+                    <NumericCell section="extra" field="number" computedValue={extraData.find(e => e.category === "মক্তব সংখ্যা")?.number ?? 0} category="মক্তব সংখ্যা" /> টি
+                  </span>
+                </div>
+                <div className="flex items-center justify-between sm:flex-col sm:items-start sm:justify-center px-3 py-2 rounded-lg border border-border/70 gap-0.5">
+                  <span className="text-muted-foreground font-semibold">মক্তব বৃদ্ধি:</span>
+                  <span className="font-black text-green-600 text-sm sm:text-base inline-flex items-center">
+                    +<NumericCell section="extra" field="number" computedValue={extraData.find(e => e.category === "মক্তব বৃদ্ধি")?.number ?? 0} category="মক্তব বৃদ্ধি" /> টি
+                  </span>
+                </div>
+                <div className="flex items-center justify-between sm:flex-col sm:items-start sm:justify-center px-3 py-2 rounded-lg border border-border/70 gap-0.5">
+                  <span className="text-muted-foreground font-semibold">মহানগরী পরিচালিত:</span>
+                  <span className="font-black text-foreground text-sm sm:text-base">
+                    <NumericCell section="extra" field="number" computedValue={extraData.find(e => e.category === "মহানগরী পরিচালিত")?.number ?? 0} category="মহানগরী পরিচালিত" /> টি
+                  </span>
+                </div>
+                <div className="flex items-center justify-between sm:flex-col sm:items-start sm:justify-center px-3 py-2 rounded-lg border border-border/70 gap-0.5">
+                  <span className="text-muted-foreground font-semibold">স্থানীয়ভাবে পরিচালিত:</span>
+                  <span className="font-black text-foreground text-sm sm:text-base">
+                    <NumericCell section="extra" field="number" computedValue={extraData.find(e => e.category === "স্থানীয়ভাবে পরিচালিত")?.number ?? 0} category="স্থানীয়ভাবে পরিচালিত" /> টি
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ────── ২. দাওয়াত ও সংগঠন ────── */}
+          <div className="space-y-4 pt-4">
+            <div className="overflow-x-auto rounded-xl border border-border bg-background">
+              <table className="w-full text-sm text-center border-collapse table-fixed min-w-[500px]">
+                <thead className="bg-blue-500/5 text-blue-800 font-bold border-b border-border">
+                  <tr>
+                    <th className="w-[34%] px-3 py-3 text-left border-r border-border font-black">দাওয়াত ও সংগঠন</th>
+                    <th className="w-[17%] px-2 py-3 border-r border-border">সংখ্যা</th>
+                    <th className="w-[17%] px-2 py-3 border-r border-border">বৃদ্ধি</th>
+                    <th className="w-[16%] px-2 py-3 border-r border-border">পরিমাণ / টাকা</th>
+                    <th className="w-[16%] px-2 py-3 text-left">মন্তব্য</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {ORG_CATEGORIES.map((cat) => {
+                    const row = orgData.find((r) => r.category === cat || (cat === "সহযোগী হয়েছেন" && r.category === "সহযোগী হয়েছে") || (cat === "সহযোগী হয়েছে" && r.category === "সহযোগী হয়েছেন") || (cat === "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতটি" && r.category === "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)")) || {
+                      number: 0,
+                      increase: 0,
+                      amount: 0,
+                      comments: "",
+                    };
+                    return (
+                      <tr key={cat} className="hover:bg-muted/40 transition-colors">
+                        <td className="w-[34%] px-3 py-3 border-r border-border text-left font-bold text-foreground break-words">{cat}</td>
+                        <td className="w-[17%] px-2 py-3 border-r border-border">
+                          <NumericCell section="organizational" field="number" computedValue={(row as any).number ?? 0} category={cat} />
+                        </td>
+                        <td className="w-[17%] px-2 py-3 border-r border-border text-green-600">
+                          +<NumericCell section="organizational" field="increase" computedValue={(row as any).increase ?? 0} category={cat} />
+                        </td>
+                        <td className="w-[16%] px-2 py-3 border-r border-border">
+                          <NumericCell section="organizational" field="amount" computedValue={(row as any).amount ?? 0} category={cat} />
+                        </td>
+                        <td className="w-[16%] px-2 py-3 text-left text-muted-foreground text-xs truncate" title={(row as any).comments || ""}>
+                          {(row as any).comments || "—"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* ────── ৩. ব্যক্তিগত উদ্যোগে তা'লীমুল কুরআন ────── */}
+          <div className="space-y-4 pt-4">
+            <div className="overflow-x-auto rounded-xl border border-border bg-background">
+              <table className="w-full text-sm text-center border-collapse table-fixed min-w-[500px]">
+                <thead className="bg-pink-500/5 text-pink-800 font-bold border-b border-border">
+                  <tr>
+                    <th className="w-[36%] px-3 py-3 text-left border-r border-border font-black break-words">ব্যক্তিগত উদ্যোগে তা'লীমুল কুরআন</th>
+                    {PERSONAL_CATEGORIES.map((cat) => (
+                      <th key={cat} className="w-[16%] px-2 py-3 border-r border-border font-bold break-words">
+                        {cat === "সক্রিয় সহযোগী" ? "সক্রিয় সহযোগী হয়েছেন" : cat}
+                      </th>
+                    ))}
+                    <th className="w-[16%] px-2 py-3 font-bold">মোট</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {PERSONAL_METRICS_ROWS.map((metric) => (
+                    <tr key={metric.key} className="hover:bg-muted/40 transition-colors">
+                      <td className="w-[36%] px-3 py-3 border-r border-border text-left font-bold text-foreground break-words">
+                        {metric.label}
+                      </td>
+                      {PERSONAL_CATEGORIES.map((cat) => {
+                        const val = ((personalData.find((r) => r.category === cat) || {}) as any)[metric.key] || 0;
+                        return (
+                          <td key={cat} className="w-[16%] px-2 py-3 border-r border-border">
+                            <NumericCell section="personal" field={metric.key} computedValue={val} category={cat} />
+                          </td>
+                        );
+                      })}
+                      <td className="w-[16%] px-2 py-3 font-black text-foreground">
+                        {toBn(
+                          PERSONAL_CATEGORIES.reduce(
+                            (sum, cat) => sum + (((personalData.find((r) => r.category === cat) || {}) as any)[metric.key] || 0),
+                            0
                           )
                         )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-          )}
-
-          {/* ────── 3. Organizational Section ────── */}
-          {orgData.length > 0 && (
-            <section
-              className={`bg-card border-l-4 border-l-blue-500 border-y border-r border-border rounded-xl p-6 shadow-sm overflow-hidden transition-all ${
-                isEditing ? "ring-2 ring-primary/20" : ""
-              }`}
-            >
-              <h2 className="text-xl font-bold text-blue-600 mb-4">
-                সাংগঠনিক রিপোর্ট (সমষ্টিগত)
-              </h2>
-              <div className="overflow-x-auto w-full pb-4">
-                <table className="w-full text-sm text-left whitespace-nowrap">
-                  <thead className="bg-blue-500/5 text-blue-700 dark:text-blue-400">
-                    <tr>
-                      {ORG_COLUMNS.map((col, i) => (
-                        <th
-                          key={col.key}
-                          className={`px-4 py-3 font-bold border-b border-blue-500/20 ${
-                            i === 0
-                              ? "rounded-tl-lg"
-                              : i === ORG_COLUMNS.length - 1
-                                ? "rounded-tr-lg text-center"
-                                : "text-center"
-                          }`}
-                        >
-                          {col.label}
-                        </th>
-                      ))}
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {ORG_CATEGORIES.map((cat) => {
-                      const row = orgData.find((r) => r.category === cat || (cat === "সহযোগী হয়েছেন" && r.category === "সহযোগী হয়েছে") || (cat === "সহযোগী হয়েছে" && r.category === "সহযোগী হয়েছেন") || (cat === "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতটি" && r.category === "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)")) || {
-                        category: cat,
-                        number: 0,
-                        increase: 0,
-                        amount: 0,
-                        comments: "",
-                      };
-                      return (
-                        <tr
-                          key={cat}
-                          className="hover:bg-muted/50 transition-colors"
-                        >
-                          <td className="px-4 py-3 font-semibold text-foreground">
-                            {cat}
-                          </td>
-                          {ORG_COLUMNS.filter((c) => c.key !== "category").map(
-                            (col) => (
-                              <td key={col.key} className="px-4 py-3 text-center">
-                                <NumericCell
-                                  section="organizational"
-                                  field={col.key}
-                                  computedValue={(row as any)[col.key] as number}
-                                  category={cat}
-                                />
-                              </td>
-                            )
-                          )}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-          )}
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
 
-          {/* ────── 4. Personal Section ────── */}
-          {personalData.length > 0 && (
-            <section
-              className={`bg-card border-l-4 border-l-pink-500 border-y border-r border-border rounded-xl p-6 shadow-sm overflow-hidden transition-all ${
-                isEditing ? "ring-2 ring-primary/20" : ""
-              }`}
-            >
-              <h2 className="text-xl font-bold text-pink-600 mb-4">
-                ব্যক্তিগত রিপোর্ট (সমষ্টিগত)
-              </h2>
-              <div className="overflow-x-auto w-full pb-4">
-                <table className="w-full text-sm text-left whitespace-nowrap">
-                  <thead className="bg-pink-500/5 text-pink-700 dark:text-pink-400">
-                    <tr>
-                      {PERSONAL_COLUMNS.map((col, i) => (
-                        <th
-                          key={col.key}
-                          className={`px-4 py-3 font-bold border-b border-pink-500/20 ${
-                            i === 0
-                              ? "rounded-tl-lg"
-                              : i === PERSONAL_COLUMNS.length - 1
-                                ? "rounded-tr-lg text-center"
-                                : "text-center"
-                          }`}
-                        >
-                          {col.label}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {personalData.map((row) => (
-                      <tr
-                        key={row.category}
-                        className="hover:bg-muted/50 transition-colors"
-                      >
-                        <td className="px-4 py-3 font-semibold text-foreground">
-                          {row.category}
+          {/* ────── ৪. বৈঠকসমূহ ────── */}
+          <div className="space-y-4 pt-4">
+            <div className="overflow-x-auto rounded-xl border border-border bg-background">
+              <table className="w-full text-sm text-center border-collapse table-fixed min-w-[520px]">
+                <thead className="bg-cyan-500/5 text-cyan-800 font-bold border-b border-border">
+                  <tr>
+                    <th rowSpan={2} className="w-[28%] px-3 py-3 text-left border-r border-b border-border font-black break-words">বৈঠকসমূহ</th>
+                    <th colSpan={2} className="w-[20%] px-2 py-2 text-center border-r border-b border-border font-black">মহানগরী</th>
+                    <th colSpan={2} className="w-[20%] px-2 py-2 text-center border-r border-b border-border font-black">থানা</th>
+                    <th colSpan={2} className="w-[20%] px-2 py-2 text-center border-r border-b border-border font-black">ওয়ার্ড</th>
+                    <th rowSpan={2} className="w-[12%] px-2 py-3 text-left border-b border-border font-black">মন্তব্য</th>
+                  </tr>
+                  <tr className="bg-cyan-500/10 text-cyan-900 border-b border-border text-[11px]">
+                    <th className="w-[10%] px-1 py-2 border-r border-border font-bold">কতটি</th>
+                    <th className="w-[10%] px-1 py-2 border-r border-border font-bold">গড় উপস্থিতি</th>
+                    <th className="w-[10%] px-1 py-2 border-r border-border font-bold">কতটি</th>
+                    <th className="w-[10%] px-1 py-2 border-r border-border font-bold">গড় উপস্থিতি</th>
+                    <th className="w-[10%] px-1 py-2 border-r border-border font-bold">কতটি</th>
+                    <th className="w-[10%] px-1 py-2 border-r border-border font-bold">গড় উপস্থিতি</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {MEETING_CATEGORIES.map((cat) => {
+                    const row = meetingData.find((r) => r.category === cat || (cat === "Committee Orientation" && (r.category === "Committee Orientation / Muallima Orientation" || r.category === "Orientation / Result Publish")) || (cat === "Muallima Orientation" && (r.category === "Committee Orientation / Muallima Orientation" || r.category === "Orientation / Result Publish"))) || {
+                      city_count: 0,
+                      city_avg_attendance: 0,
+                      thana_count: 0,
+                      thana_avg_attendance: 0,
+                      ward_count: 0,
+                      ward_avg_attendance: 0,
+                      comments: "",
+                    };
+                    const customTitle = (row as any).meeting_name?.trim() || ((row as any).comments?.trim() && (row as any).comments?.trim() !== "—" ? (row as any).comments?.trim() : "");
+                    const displayLabel = cat === "অন্যান্য" && customTitle ? customTitle : cat;
+                    return (
+                      <tr key={cat} className="hover:bg-muted/40 transition-colors">
+                        <td className="w-[28%] px-3 py-3 border-r border-border text-left font-bold text-foreground break-words">{displayLabel}</td>
+                        <td className="w-[10%] px-1 py-3 border-r border-border">
+                          <NumericCell section="meeting" field="city_count" computedValue={(row as any).city_count ?? 0} category={cat} />
                         </td>
-                        {PERSONAL_COLUMNS.filter(
-                          (c) => c.key !== "category"
-                        ).map((col) => (
-                          <td key={col.key} className="px-4 py-3 text-center">
-                            <NumericCell
-                              section="personal"
-                              field={col.key}
-                              computedValue={row[col.key] as number}
-                              category={row.category}
-                            />
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-          )}
-
-          {/* ────── 5. Meeting Section ────── */}
-          {meetingData.length > 0 && (
-            <section
-              className={`bg-card border-l-4 border-l-cyan-500 border-y border-r border-border rounded-xl p-6 shadow-sm overflow-hidden transition-all ${
-                isEditing ? "ring-2 ring-primary/20" : ""
-              }`}
-            >
-              <h2 className="text-xl font-bold text-cyan-600 mb-4">
-                সভা / বৈঠক রিপোর্ট (সমষ্টিগত)
-              </h2>
-              <div className="overflow-x-auto w-full pb-4">
-                <table className="w-full text-sm text-left whitespace-nowrap">
-                  <thead>
-                    {/* Group header row */}
-                    <tr className="bg-cyan-500/5 text-cyan-700 dark:text-cyan-400">
-                      <th
-                        rowSpan={2}
-                        className="px-4 py-3 font-bold border-b border-cyan-500/20 rounded-tl-lg"
-                      >
-                        বিভাগ
-                      </th>
-                      <th
-                        colSpan={2}
-                        className="px-4 py-2 font-bold border-b border-cyan-500/20 text-center"
-                      >
-                        মহানগরী
-                      </th>
-                      <th
-                        colSpan={2}
-                        className="px-4 py-2 font-bold border-b border-cyan-500/20 text-center"
-                      >
-                        থানা
-                      </th>
-                      <th
-                        colSpan={2}
-                        className="px-4 py-2 font-bold border-b border-cyan-500/20 text-center rounded-tr-lg"
-                      >
-                        ওয়ার্ড
-                      </th>
-                    </tr>
-                    {/* Sub-header row */}
-                    <tr className="bg-cyan-500/5 text-cyan-600 dark:text-cyan-400 text-xs">
-                      <th className="px-4 py-2 font-bold border-b border-cyan-500/20 text-center">
-                        সংখ্যা
-                      </th>
-                      <th className="px-4 py-2 font-bold border-b border-cyan-500/20 text-center">
-                        গড় উপস্থিতি
-                      </th>
-                      <th className="px-4 py-2 font-bold border-b border-cyan-500/20 text-center">
-                        সংখ্যা
-                      </th>
-                      <th className="px-4 py-2 font-bold border-b border-cyan-500/20 text-center">
-                        গড় উপস্থিতি
-                      </th>
-                      <th className="px-4 py-2 font-bold border-b border-cyan-500/20 text-center">
-                        সংখ্যা
-                      </th>
-                      <th className="px-4 py-2 font-bold border-b border-cyan-500/20 text-center">
-                        গড় উপস্থিতি
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {meetingData.map((row) => (
-                      <tr
-                        key={row.category}
-                        className="hover:bg-muted/50 transition-colors"
-                      >
-                        <td className="px-4 py-3 font-semibold text-foreground break-words">
-                          {(() => {
-                            const customTitle = row.meeting_name?.trim() || (row.comments?.trim() && row.comments?.trim() !== "—" ? row.comments?.trim() : "");
-                            return row.category === "অন্যান্য" && customTitle ? customTitle : row.category;
-                          })()}
+                        <td className="w-[10%] px-1 py-3 border-r border-border">
+                          <NumericCell section="meeting" field="city_avg_attendance" computedValue={(row as any).city_avg_attendance ?? 0} category={cat} />
                         </td>
-                        {(
-                          [
-                            "city_count",
-                            "city_avg_attendance",
-                            "thana_count",
-                            "thana_avg_attendance",
-                            "ward_count",
-                            "ward_avg_attendance",
-                          ] as const
-                        ).map((field) => (
-                          <td key={field} className="px-4 py-3 text-center">
-                            <NumericCell
-                              section="meeting"
-                              field={field}
-                              computedValue={row[field] as number}
-                              category={row.category}
-                            />
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-          )}
-
-          {/* ────── 6. Extra Section ────── */}
-          {extraData.length > 0 && (
-            <section
-              className={`bg-card border-l-4 border-l-orange-500 border-y border-r border-border rounded-xl p-6 shadow-sm overflow-hidden transition-all ${
-                isEditing ? "ring-2 ring-primary/20" : ""
-              }`}
-            >
-              <h2 className="text-xl font-bold text-orange-600 mb-4">
-                অতিরিক্ত তথ্য (সমষ্টিগত)
-              </h2>
-              <div className="overflow-x-auto w-full pb-4">
-                <table className="w-full text-sm text-left whitespace-nowrap">
-                  <thead className="bg-orange-500/5 text-orange-700 dark:text-orange-400">
-                    <tr>
-                      {EXTRA_COLUMNS.map((col, i) => (
-                        <th
-                          key={col.key}
-                          className={`px-4 py-3 font-bold border-b border-orange-500/20 ${
-                            i === 0
-                              ? "rounded-tl-lg"
-                              : i === EXTRA_COLUMNS.length - 1
-                                ? "rounded-tr-lg text-center"
-                                : "text-center"
-                          }`}
-                        >
-                          {col.label}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {extraData.map((row) => (
-                      <tr
-                        key={row.category}
-                        className="hover:bg-muted/50 transition-colors"
-                      >
-                        <td className="px-4 py-3 font-semibold text-foreground">
-                          {row.category}
+                        <td className="w-[10%] px-1 py-3 border-r border-border">
+                          <NumericCell section="meeting" field="thana_count" computedValue={(row as any).thana_count ?? 0} category={cat} />
                         </td>
-                        <td className="px-4 py-3 text-center">
-                          <NumericCell
-                            section="extra"
-                            field="number"
-                            computedValue={row.number}
-                            category={row.category}
-                          />
+                        <td className="w-[10%] px-1 py-3 border-r border-border">
+                          <NumericCell section="meeting" field="thana_avg_attendance" computedValue={(row as any).thana_avg_attendance ?? 0} category={cat} />
+                        </td>
+                        <td className="w-[10%] px-1 py-3 border-r border-border">
+                          <NumericCell section="meeting" field="ward_count" computedValue={(row as any).ward_count ?? 0} category={cat} />
+                        </td>
+                        <td className="w-[10%] px-1 py-3 border-r border-border">
+                          <NumericCell section="meeting" field="ward_avg_attendance" computedValue={(row as any).ward_avg_attendance ?? 0} category={cat} />
+                        </td>
+                        <td className="w-[12%] px-2 py-3 text-left text-muted-foreground text-xs truncate" title={(row as any).comments || ""}>
+                          {(row as any).comments || "—"}
                         </td>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Inline Safar Stats */}
+            <div className="p-4 rounded-xl border border-border text-xs sm:text-sm">
+              <span className="font-black text-muted-foreground block text-xs tracking-wider uppercase mb-2">সফর রিপোর্ট:</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                <div className="flex items-center justify-between sm:flex-col sm:items-start sm:justify-center px-3 py-2 rounded-lg border border-border/70 gap-0.5">
+                  <span className="text-muted-foreground font-semibold">মহানগরীর সফর:</span>
+                  <span className="font-black text-foreground text-sm sm:text-base">
+                    <NumericCell section="extra" field="number" computedValue={extraData.find(e => e.category === "মহানগরীর সফর")?.number ?? 0} category="মহানগরীর সফর" /> টি
+                  </span>
+                </div>
+                <div className="flex items-center justify-between sm:flex-col sm:items-start sm:justify-center px-3 py-2 rounded-lg border border-border/70 gap-0.5">
+                  <span className="text-muted-foreground font-semibold">থানা কমিটির সফর:</span>
+                  <span className="font-black text-foreground text-sm sm:text-base">
+                    <NumericCell section="extra" field="number" computedValue={extraData.find(e => e.category === "থানা কমিটির সফর")?.number ?? 0} category="থানা কমিটির সফর" /> টি
+                  </span>
+                </div>
+                <div className="flex items-center justify-between sm:flex-col sm:items-start sm:justify-center px-3 py-2 rounded-lg border border-border/70 gap-0.5">
+                  <span className="text-muted-foreground font-semibold">থানা প্রতিনিধির সফর:</span>
+                  <span className="font-black text-foreground text-sm sm:text-base">
+                    <NumericCell section="extra" field="number" computedValue={extraData.find(e => e.category === "থানা প্রতিনিধির সফর")?.number ?? 0} category="থানা প্রতিনিধির সফর" /> টি
+                  </span>
+                </div>
+                <div className="flex items-center justify-between sm:flex-col sm:items-start sm:justify-center px-3 py-2 rounded-lg border border-border/70 gap-0.5">
+                  <span className="text-muted-foreground font-semibold">ওয়ার্ড প্রতিনিধির সফর:</span>
+                  <span className="font-black text-foreground text-sm sm:text-base">
+                    <NumericCell section="extra" field="number" computedValue={extraData.find(e => e.category === "ওয়ার্ড প্রতিনিধির সফর")?.number ?? 0} category="ওয়ার্ড প্রতিনিধির সফর" /> টি
+                  </span>
+                </div>
               </div>
-            </section>
-          )}
+            </div>
+          </div>
         </div>
       )}
     </div>

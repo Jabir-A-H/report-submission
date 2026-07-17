@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
 import { createClient } from "@/utils/supabase/client";
-import { Home, ClipboardList, User, HelpCircle, ShieldCheck, Map, LogOut } from "lucide-react";
+import { Home, ClipboardList, User, HelpCircle, ShieldCheck, Map, LogOut, FileText, Building2, Settings, LayoutDashboard } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import { LanguageToggle } from "./language-toggle";
 
@@ -49,8 +49,7 @@ export function BottomNav() {
   }, [supabase]);
 
   const isAuthPage = ["/home", "/auth", "/pending-approval", "/forgot-password", "/update-password"].includes(pathname);
-  const isAdminArea = pathname.startsWith("/admin");
-  if (isAuthPage || isAdminArea) return null;
+  if (isAuthPage) return null;
 
   // Build period param string from current URL params — carries period context across navigation
   const paramsStr = searchParams.toString();
@@ -61,8 +60,7 @@ export function BottomNav() {
   // Report tab links to /report overview page with params
   const reportHref = `/report${periodQuery}`;
 
-  const isHomeActive = pathname === "/" && !pathname.startsWith("/report");
-  const isReportActive = pathname.startsWith("/report");
+  const showAdminNav = isAdmin || pathname.startsWith("/admin");
 
   return (
     <>
@@ -122,26 +120,15 @@ export function BottomNav() {
               <span>{t.help || "সাহায্য"}</span>
             </Link>
 
-            {/* Admin Links */}
-            {isAdmin && (
-              <>
-                <Link
-                  href="/admin/users"
-                  onClick={() => setIsProfileOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2.5 text-sm font-bold rounded-xl hover:bg-primary/5 transition-all text-foreground"
-                >
-                  <ShieldCheck className="w-4 h-4 text-primary" />
-                  <span>ইউজার ম্যানেজমেন্ট</span>
-                </Link>
-                <Link
-                  href="/admin/zones"
-                  onClick={() => setIsProfileOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2.5 text-sm font-bold rounded-xl hover:bg-primary/5 transition-all text-foreground"
-                >
-                  <Map className="w-4 h-4 text-primary" />
-                  <span>জোন ম্যানেজমেন্ট</span>
-                </Link>
-              </>
+            {showAdminNav && (
+              <Link
+                href="/admin"
+                onClick={() => setIsProfileOpen(false)}
+                className="flex items-center gap-3 px-3 py-2.5 text-sm font-bold rounded-xl hover:bg-primary/5 transition-all text-foreground"
+              >
+                <ShieldCheck className="w-4 h-4 text-primary" />
+                <span>অ্যাডমিন ড্যাশবোর্ড</span>
+              </Link>
             )}
 
             <div className="my-2 border-t border-muted/50" />
@@ -168,50 +155,118 @@ export function BottomNav() {
         </div>
       )}
 
-      {/* Main Bottom Nav Bar (Opaque 3 Tabs) */}
+      {/* Main Bottom Nav Bar */}
       <nav className="fixed bottom-0 left-0 z-50 w-full h-16 bg-card border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.15)] md:hidden opacity-100">
-        <div className="grid h-full max-w-lg grid-cols-3 mx-auto font-medium">
-          {/* Tab 1: Home */}
-          <Link
-            href={homeHref}
-            onClick={() => setIsProfileOpen(false)}
-            className={`inline-flex flex-col items-center justify-center px-5 hover:bg-muted/50 group ${
-              isHomeActive && !isProfileOpen ? "text-primary" : "text-muted-foreground"
-            }`}
-          >
-            <Home className={`w-6 h-6 mb-1 group-active:scale-90 transition-transform ${isHomeActive && !isProfileOpen ? "text-primary" : ""}`} />
-            <span className="text-[11px] leading-tight font-bold truncate w-full text-center">
-              {t.home || "হোম"}
-            </span>
-          </Link>
+        {showAdminNav ? (
+          <div className="grid h-full max-w-lg grid-cols-5 mx-auto font-medium">
+            <Link
+              href="/admin"
+              onClick={() => setIsProfileOpen(false)}
+              className={`inline-flex flex-col items-center justify-center px-2 hover:bg-muted/50 group ${
+                pathname === "/admin" && !isProfileOpen ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              <LayoutDashboard className={`w-5 h-5 mb-1 group-active:scale-90 transition-transform ${pathname === "/admin" && !isProfileOpen ? "text-primary" : ""}`} />
+              <span className="text-[10px] leading-tight font-bold truncate w-full text-center">
+                ড্যাশবোর্ড
+              </span>
+            </Link>
 
-          {/* Tab 2: Report — navigates to home dashboard with params to pick section */}
-          <Link
-            href={reportHref}
-            onClick={() => setIsProfileOpen(false)}
-            className={`inline-flex flex-col items-center justify-center px-5 hover:bg-muted/50 group ${
-              isReportActive && !isProfileOpen ? "text-primary" : "text-muted-foreground"
-            }`}
-          >
-            <ClipboardList className={`w-6 h-6 mb-1 group-active:scale-90 transition-transform ${isReportActive && !isProfileOpen ? "text-primary" : ""}`} />
-            <span className="text-[11px] leading-tight font-bold truncate w-full text-center">
-              {t.report || "রিপোর্ট"}
-            </span>
-          </Link>
+            <Link
+              href="/admin/reports"
+              onClick={() => setIsProfileOpen(false)}
+              className={`inline-flex flex-col items-center justify-center px-2 hover:bg-muted/50 group ${
+                pathname.startsWith("/admin/reports") && !isProfileOpen ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              <FileText className={`w-5 h-5 mb-1 group-active:scale-90 transition-transform ${pathname.startsWith("/admin/reports") && !isProfileOpen ? "text-primary" : ""}`} />
+              <span className="text-[10px] leading-tight font-bold truncate w-full text-center">
+                জমাকৃত
+              </span>
+            </Link>
 
-          {/* Tab 3: Profile Toggle */}
-          <button
-            onClick={() => setIsProfileOpen(!isProfileOpen)}
-            className={`inline-flex flex-col items-center justify-center px-5 hover:bg-muted/50 group outline-none ${
-              isProfileOpen ? "text-primary bg-primary/5" : "text-muted-foreground"
-            }`}
-          >
-            <User className={`w-6 h-6 mb-1 group-active:scale-90 transition-transform ${isProfileOpen ? "text-primary" : ""}`} />
-            <span className="text-[11px] leading-tight font-bold truncate w-full text-center">
-              প্রোফাইল
-            </span>
-          </button>
-        </div>
+            <Link
+              href="/admin/city-report"
+              onClick={() => setIsProfileOpen(false)}
+              className={`inline-flex flex-col items-center justify-center px-2 hover:bg-muted/50 group ${
+                pathname.startsWith("/admin/city-report") && !isProfileOpen ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              <Building2 className={`w-5 h-5 mb-1 group-active:scale-90 transition-transform ${pathname.startsWith("/admin/city-report") && !isProfileOpen ? "text-primary" : ""}`} />
+              <span className="text-[10px] leading-tight font-bold truncate w-full text-center">
+                সিটি
+              </span>
+            </Link>
+
+            <Link
+              href="/admin/management"
+              onClick={() => setIsProfileOpen(false)}
+              className={`inline-flex flex-col items-center justify-center px-2 hover:bg-muted/50 group ${
+                pathname.startsWith("/admin/management") && !isProfileOpen ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              <Settings className={`w-5 h-5 mb-1 group-active:scale-90 transition-transform ${pathname.startsWith("/admin/management") && !isProfileOpen ? "text-primary" : ""}`} />
+              <span className="text-[10px] leading-tight font-bold truncate w-full text-center">
+                ব্যবস্থাপনা
+              </span>
+            </Link>
+
+            <button
+              onClick={() => setIsProfileOpen(!isProfileOpen)}
+              className={`inline-flex flex-col items-center justify-center px-2 hover:bg-muted/50 group outline-none ${
+                isProfileOpen ? "text-primary bg-primary/5" : "text-muted-foreground"
+              }`}
+            >
+              <User className={`w-5 h-5 mb-1 group-active:scale-90 transition-transform ${isProfileOpen ? "text-primary" : ""}`} />
+              <span className="text-[10px] leading-tight font-bold truncate w-full text-center">
+                প্রোফাইল
+              </span>
+            </button>
+          </div>
+        ) : (
+          <div className="grid h-full max-w-lg grid-cols-3 mx-auto font-medium">
+            {/* Tab 1: Home */}
+            <Link
+              href={homeHref}
+              onClick={() => setIsProfileOpen(false)}
+              className={`inline-flex flex-col items-center justify-center px-5 hover:bg-muted/50 group ${
+                pathname === "/" && !pathname.startsWith("/report") && !isProfileOpen ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              <Home className={`w-6 h-6 mb-1 group-active:scale-90 transition-transform ${pathname === "/" && !pathname.startsWith("/report") && !isProfileOpen ? "text-primary" : ""}`} />
+              <span className="text-[11px] leading-tight font-bold truncate w-full text-center">
+                {t.home || "হোম"}
+              </span>
+            </Link>
+
+            {/* Tab 2: Report */}
+            <Link
+              href={reportHref}
+              onClick={() => setIsProfileOpen(false)}
+              className={`inline-flex flex-col items-center justify-center px-5 hover:bg-muted/50 group ${
+                pathname.startsWith("/report") && !isProfileOpen ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              <ClipboardList className={`w-6 h-6 mb-1 group-active:scale-90 transition-transform ${pathname.startsWith("/report") && !isProfileOpen ? "text-primary" : ""}`} />
+              <span className="text-[11px] leading-tight font-bold truncate w-full text-center">
+                {t.report || "রিপোর্ট"}
+              </span>
+            </Link>
+
+            {/* Tab 3: Profile Toggle */}
+            <button
+              onClick={() => setIsProfileOpen(!isProfileOpen)}
+              className={`inline-flex flex-col items-center justify-center px-5 hover:bg-muted/50 group outline-none ${
+                isProfileOpen ? "text-primary bg-primary/5" : "text-muted-foreground"
+              }`}
+            >
+              <User className={`w-6 h-6 mb-1 group-active:scale-90 transition-transform ${isProfileOpen ? "text-primary" : ""}`} />
+              <span className="text-[11px] leading-tight font-bold truncate w-full text-center">
+                প্রোফাইল
+              </span>
+            </button>
+          </div>
+        )}
       </nav>
     </>
   );

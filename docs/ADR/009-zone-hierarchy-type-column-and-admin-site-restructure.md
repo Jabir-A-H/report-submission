@@ -142,9 +142,12 @@ When an admin selects DCS (zone_type = 'city') in the `/report` zone dropdown:
 - Render read-only (no edit buttons, no "go to section" buttons)
 - This gives the admin a clean read-only city report view from `/report`, while `/admin/city-report` remains the override-specific page
 
-### 6. Nav Collision Fix
+### 6. Nav Collision Fix & Unified Navigation Architecture
 
-`<Navbar>` and `<BottomNav>` add `pathname.startsWith('/admin')` to their exclusion check. Admin layout adds a `lg:hidden` mobile header with hamburger drawer.
+Instead of rendering a disconnected left sidebar on desktop or a hamburger drawer on mobile, `<Navbar>` and `<BottomNav>` dynamically adapt to the user's role across the entire application:
+- **Desktop (`Navbar`)**: For admins or when inside `/admin/*`, the top header displays the 4 core admin links (`ড্যাশবোর্ড`, `জমাকৃত রিপোর্ট`, `সিটি রিপোর্ট`, `ব্যবস্থাপনা`) right inside the top navigation bar alongside `UserDropdown`.
+- **Mobile (`BottomNav`)**: For admins, the bottom navigation bar dynamically shifts from 3 tabs (`grid-cols-3`) to a sleek 5-tab grid (`grid-cols-5`): `ড্যাশবোর্ড`, `জমাকৃত`, `সিটি`, `ব্যবস্থাপনা`, and `প্রোফাইল` (slide-up panel with Theme, Language, Help, and Logout).
+- **Admin Shell (`/admin/layout.tsx`)**: Renders as a full-width container without `AdminSidebar.tsx` or separate mobile headers.
 
 ### 7. Root `/` Admin Redirect
 
@@ -173,8 +176,22 @@ Delete `report.id = 36` (zone_id=1, July 2026 — accidentally created via admin
 - `parent_id` column is self-referential (`REFERENCES zone(id)`). Deleting a parent zone while child zones exist would violate FK constraint. The zone deletion guard (currently checks `user_count > 0`) must also check `child_zone_count > 0`.
 - Zone type names (`'thana'`, `'ward'`, etc.) are deferred — the column allows any string. Application code should treat `zone_type != 'city'` as "reportable zone" rather than pattern-matching specific names.
 
-## Implementation Notes
+## Implementation Notes & Migration Staging Protocol
 
+### 1. Staged Database Migration (To Be Applied Later)
+When the application hierarchy is ported down one level, the following SQL DDL migration must be applied atomically via `apply_migration` (or Supabase SQL Editor):
+```sql
+ALTER TABLE zone ADD COLUMN IF NOT EXISTS zone_type TEXT NOT NULL DEFAULT 'zone';
+ALTER TABLE zone ADD COLUMN IF NOT EXISTS parent_id INTEGER REFERENCES zone(id);
+```
+
+### 2. Frontend Schema Resilience & Fallback Protocol
+During systematic debugging of `ManagementPage` (`src/app/admin/management/page.tsx`), it was observed that explicitly selecting `select("id, name, zone_type, parent_id")` against an unmigrated database threw Postgres Error `42703 (undefined_column)`, resulting in `zonesData === null` and an empty zone list UI (`0 items`).
+To permanently prevent schema-transition breakage:
+- **Resilient Querying**: Both `fetchUsers` and `fetchZones` use `supabase.from("zone").select("*")`. When `zone_type` and `parent_id` are absent in Postgres, the query succeeds returning existing columns without error. Once the migration runs, the extra columns are automatically captured and rendered in the UI.
+- **Fallback Insertion (`42703` Trap)**: `addZone()` attempts insertion with `{ name, zone_type, parent_id }` first. If Postgres throws error code `42703`, the function catches it and automatically retries inserting with just `{ name }`.
+
+### 3. General Implementation Checklist
 - Delete `report.id = 36` before updating views (to avoid transient inclusion)
 - Migration must be an `apply_migration` via Supabase MCP — not applied ad-hoc
 - All 6 `view_city_*_agg` views must be updated atomically

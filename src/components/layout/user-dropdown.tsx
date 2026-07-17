@@ -117,12 +117,12 @@ export function UserDropdown() {
 
             {user?.role === "admin" && (
               <Link
-                href="/admin/users"
+                href="/admin"
                 className="group flex items-center gap-3 px-3 py-2.5 text-sm font-bold rounded-xl hover:bg-primary/5 transition-all text-muted-foreground hover:text-primary"
                 onClick={() => setIsOpen(false)}
               >
                 <ShieldCheck className="w-4 h-4" />
-                <span>অ্যাডমিন প্যানেল</span>
+                <span>অ্যাডমিন ড্যাশবোর্ড</span>
               </Link>
             )}
             
