@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
 import { createClient } from "@/utils/supabase/client";
-import { Home, ClipboardList, User, HelpCircle, ShieldCheck, Map, LogOut, FileText, Building2, Settings, LayoutDashboard } from "lucide-react";
+import { Home, ClipboardList, User, HelpCircle, LogOut, FileText, Building2, Settings, LayoutDashboard } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import { LanguageToggle } from "./language-toggle";
 
@@ -120,17 +120,6 @@ export function BottomNav() {
               <span>{t.help || "সাহায্য"}</span>
             </Link>
 
-            {showAdminNav && (
-              <Link
-                href="/admin"
-                onClick={() => setIsProfileOpen(false)}
-                className="flex items-center gap-3 px-3 py-2.5 text-sm font-bold rounded-xl hover:bg-primary/5 transition-all text-foreground"
-              >
-                <ShieldCheck className="w-4 h-4 text-primary" />
-                <span>অ্যাডমিন ড্যাশবোর্ড</span>
-              </Link>
-            )}
-
             <div className="my-2 border-t border-muted/50" />
 
             {/* Logout Button */}
@@ -194,7 +183,7 @@ export function BottomNav() {
             >
               <Building2 className={`w-5 h-5 mb-1 group-active:scale-90 transition-transform ${pathname.startsWith("/admin/city-report") && !isProfileOpen ? "text-primary" : ""}`} />
               <span className="text-[10px] leading-tight font-bold truncate w-full text-center">
-                সিটি
+                এডিট
               </span>
             </Link>
 

@@ -78,7 +78,7 @@ export function Navbar() {
                     pathname.startsWith("/admin/city-report") ? "text-primary px-2 py-1 bg-primary/5 rounded-lg" : "text-muted-foreground"
                   }`}
                 >
-                  সিটি রিপোর্ট
+                  এডিট রিপোর্ট
                 </Link>
                 <Link
                   href="/admin/management"

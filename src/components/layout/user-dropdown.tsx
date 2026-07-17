@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useLanguage } from "@/components/providers/language-provider";
-import { User, LogOut, ShieldCheck, HelpCircle } from "lucide-react";
+import { User, LogOut, HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
@@ -114,17 +114,6 @@ export function UserDropdown() {
               <HelpCircle className="w-4 h-4" />
               <span>সাহায্য</span>
             </Link>
-
-            {user?.role === "admin" && (
-              <Link
-                href="/admin"
-                className="group flex items-center gap-3 px-3 py-2.5 text-sm font-bold rounded-xl hover:bg-primary/5 transition-all text-muted-foreground hover:text-primary"
-                onClick={() => setIsOpen(false)}
-              >
-                <ShieldCheck className="w-4 h-4" />
-                <span>অ্যাডমিন ড্যাশবোর্ড</span>
-              </Link>
-            )}
             
             <div className="my-2 border-t border-muted/50" />
             

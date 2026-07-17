@@ -177,7 +177,7 @@ export function UserDashboard() {
     return () => {
       ignore = true;
     };
-  }, [typeParam, monthParam, yearParam, supabase, setReportId, loadReport, hasParams]);
+  }, [typeParam, monthParam, yearParam, supabase, setReportId, loadReport, hasParams, router]);
 
   const sections = [
     { id: "header", name: t.sections.header, icon: FileText },

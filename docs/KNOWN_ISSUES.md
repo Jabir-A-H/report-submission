@@ -40,6 +40,12 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ## Resolved Historical Issues
 
+### Save Override Failure (`42P10`) & Edit Report Display Enhancements (ADR 010)
+- **Date**: 2026-07-17
+- **Resolution Date**: 2026-07-17
+- **Description**: Admins could not save city-level override corrections in `/admin/city-report`; PostgREST threw `42P10: there is no unique or exclusion constraint matching the ON CONFLICT specification`. The `city_report_override` table lacked a unique constraint matching `(year, month, report_type, section, field, category)`. Additionally, the page had a friction-causing override toggle button, and overridden cells only displayed the new value (`value`) without revealing what the original aggregated zone total (`computedValue`) was prior to override.
+- **Fix**: Added Postgres constraint `ALTER TABLE public.city_report_override ADD CONSTRAINT city_report_override_unique_key UNIQUE NULLS NOT DISTINCT (year, month, report_type, section, field, category)` via Supabase. Updated `CorrectionButton.tsx` to use check-then-update/insert logic backed by matching composite `onConflict` keys, and added a `Trash2` ("মুছুন") button to revert overrides. Renamed `/admin/city-report` title and nav items to **এডিট রিপোর্ট** (`Edit Report` / `এডিট`) with override mode enabled permanently (`isEditing = true` + `⚡ ওভাররাইড মোড সক্রিয়` badge). Updated `NumericCell` to render comparative dual values `[ <s>computedValue</s> newValue ]` inside the amber badge whenever `isOverridden` is true.
+
 ### Authoritative Labeling Drift, Table Mode Structure & PDF Page Overflow (ADR 007)
 - **Date**: 2026-07-13
 - **Resolution Date**: 2026-07-13

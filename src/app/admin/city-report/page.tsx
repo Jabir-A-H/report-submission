@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, createContext, useContext } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { CorrectionButton } from "@/components/admin/correction-button";
 import {
   Building2,
   Download,
+  Edit2,
   FileText,
   Loader2,
   Save,
@@ -266,6 +267,105 @@ function sumHeaderRows(rows: HeaderRow[]): HeaderRow | null {
   return base;
 }
 
+// ─── Context & Top-Level Cell Component ────────────────────────────────────────
+
+const CityReportContext = createContext<{
+  year: number;
+  month: number;
+  reportType: string;
+  isEditing: boolean;
+  getVal: (
+    section: string,
+    field: string,
+    computedValue: number | null | undefined,
+    category?: string
+  ) => { value: number; isOverridden: boolean };
+} | null>(null);
+
+function NumericCell({
+  section,
+  field,
+  computedValue,
+  category,
+  className = "",
+}: {
+  section: string;
+  field: string;
+  computedValue: number;
+  category?: string;
+  className?: string;
+}) {
+  const ctx = useContext(CityReportContext);
+  if (!ctx) return null;
+  const { year, month, reportType, isEditing, getVal } = ctx;
+  const { value, isOverridden } = getVal(
+    section,
+    field,
+    computedValue,
+    category
+  );
+  if (isOverridden) {
+    const badge = (
+      <span
+        className="inline-flex items-center px-2 py-0.5 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 font-black border border-amber-500/30 shadow-2xs hover:bg-amber-500/25 transition-all"
+        title={`মূল সমষ্টিগত মান: ${toBn(computedValue)}`}
+      >
+        {toBn(value)}
+      </span>
+    );
+
+    return (
+      <span className={`group inline-flex items-center gap-1 ${className}`}>
+        {isEditing ? (
+          <CorrectionButton
+            year={year}
+            month={month}
+            reportType={reportType}
+            section={section}
+            field={field}
+            category={category}
+            currentValue={value}
+            computedValue={computedValue}
+            isOverridden={isOverridden}
+            customTrigger={
+              <span className="inline-flex items-center gap-1">
+                {badge}
+                <span
+                  className="opacity-60 group-hover/cb:opacity-100 min-h-[26px] min-w-[26px] inline-flex items-center justify-center hover:bg-primary/10 rounded-lg text-primary transition-all active:scale-95"
+                  title="সংশোধন করুন (Override)"
+                >
+                  <Edit2 size={13} />
+                </span>
+              </span>
+            }
+          />
+        ) : (
+          badge
+        )}
+      </span>
+    );
+  }
+
+  return (
+    <span className={`group inline-flex items-center gap-1 ${className}`}>
+      <span>{toBn(value)}</span>
+      {isEditing && (
+        <CorrectionButton
+          year={year}
+          month={month}
+          reportType={reportType}
+          section={section}
+          field={field}
+          category={category}
+          currentValue={value}
+          computedValue={computedValue}
+          isOverridden={isOverridden}
+        />
+      )}
+    </span>
+  );
+}
+
 // ─── Page Component ───────────────────────────────────────────────────────────
 
 export default function CityReportPage() {
@@ -287,7 +387,7 @@ export default function CityReportPage() {
 
   // UI state
   const [isLoading, setIsLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(true);
   const [hasFetched, setHasFetched] = useState(false);
 
   // Override map: `section:field:category` → value
@@ -498,53 +598,7 @@ export default function CityReportPage() {
     meetingData.length > 0 ||
     extraData.length > 0;
 
-  // ─── Render Helpers ─────────────────────────────────────────────────────────
-
-  /** Render a numeric cell with override highlight + CorrectionButton */
-  function NumericCell({
-    section,
-    field,
-    computedValue,
-    category,
-    className = "",
-  }: {
-    section: string;
-    field: string;
-    computedValue: number;
-    category?: string;
-    className?: string;
-  }) {
-    const { value, isOverridden } = getVal(
-      section,
-      field,
-      computedValue,
-      category
-    );
-    return (
-      <span className={`group inline-flex items-center gap-1 ${className}`}>
-        <span
-          className={`${
-            isOverridden
-              ? "bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded-md"
-              : ""
-          }`}
-        >
-          {toBn(value)}
-        </span>
-        {isEditing && (
-          <CorrectionButton
-            year={year}
-            month={month}
-            reportType={reportType}
-            section={section}
-            field={field}
-            category={category}
-            currentValue={value}
-          />
-        )}
-      </span>
-    );
-  }
+  // ─── Render Helpers (NumericCell moved top-level) ─────────────────────────
 
   // ─── Period Label ───────────────────────────────────────────────────────────
 
@@ -559,6 +613,7 @@ export default function CityReportPage() {
   // ─── Render ─────────────────────────────────────────────────────────────────
 
   return (
+    <CityReportContext.Provider value={{ year, month, reportType, isEditing, getVal }}>
     <div className="py-8 max-w-7xl mx-auto animate-in fade-in duration-500">
       {/* ── Page Header ─────────────────────────────────────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 p-6 bg-card border border-border/50 rounded-[2rem] shadow-sm">
@@ -568,30 +623,20 @@ export default function CityReportPage() {
           </div>
           <div>
             <h1 className="text-2xl md:text-3xl font-black text-foreground">
-              সিটি রিপোর্ট
+              এডিট রিপোর্ট
             </h1>
             <p className="text-muted-foreground mt-1">
-              মহানগরীর সকল জোনের সমষ্টিগত রিপোর্ট
+              মহানগরীর সমষ্টিগত রিপোর্ট সংশোধন ও সম্পাদনা (ওভাররাইড মোড সক্রিয়)
             </p>
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-4">
           {/* Action Buttons */}
-          <div className="flex gap-2 w-full sm:w-auto">
-            <button
-              onClick={() => setIsEditing(!isEditing)}
-              className={`modern-btn border flex-1 sm:flex-none justify-center gap-2 px-4 py-2 hover:bg-muted text-sm font-bold transition-all ${
-                isEditing
-                  ? "border-primary bg-primary/5 text-primary"
-                  : "border-border bg-card"
-              }`}
-            >
-              <Save className="w-4 h-4" />
-              <span className="hidden lg:inline">
-                {isEditing ? "ওভাররাইড বন্ধ করুন" : "ওভাররাইড করুন"}
-              </span>
-            </button>
+          <div className="flex gap-2 w-full sm:w-auto items-center">
+            <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-300 rounded-xl text-xs font-black">
+              <span>⚡ ওভাররাইড মোড সক্রিয়</span>
+            </div>
             <button
               onClick={handleDownloadPDF}
               className="modern-btn border border-border bg-card flex-1 sm:flex-none justify-center gap-2 px-4 py-2 hover:bg-muted text-sm font-bold"
@@ -1129,5 +1174,6 @@ export default function CityReportPage() {
         </div>
       )}
     </div>
+    </CityReportContext.Provider>
   );
 }

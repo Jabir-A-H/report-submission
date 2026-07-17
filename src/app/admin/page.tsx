@@ -25,8 +25,8 @@ const NAV_CARDS = [
     iconColor: "text-blue-600",
   },
   {
-    title: "সিটি রিপোর্ট",
-    description: "সমগ্র শহরের সমষ্টিগত রিপোর্ট ও প্রয়োজনীয় সংশোধন",
+    title: "এডিট রিপোর্ট",
+    description: "সমগ্র শহরের সমষ্টিগত রিপোর্ট ও প্রয়োজনীয় সংশোধন (ওভাররাইড)",
     href: "/admin/city-report",
     icon: Building2,
     iconBg: "bg-purple-500/10",

@@ -63,6 +63,7 @@ export default function ManagementPage() {
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "pending">("all");
   const [roleFilter, setRoleFilter] = useState<"all" | "user" | "admin">("all");
   const [zoneFilter, setZoneFilter] = useState<"all" | number>("all");
+  const [isMobileFiltersExpanded, setIsMobileFiltersExpanded] = useState(false);
   const [usersLoading, setUsersLoading] = useState(true);
   const [userActionLoading, setUserActionLoading] = useState<number | null>(null);
   const [confirmDeleteUser, setConfirmDeleteUser] = useState<number | null>(null);
@@ -392,8 +393,8 @@ export default function ManagementPage() {
       {/* ═══════════════════ USERS TAB ═══════════════════ */}
       {activeTab === "users" && !usersLoading && (
         <>
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Desktop Stats Grid (Hidden on small screens) */}
+          <div className="hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-4">
             {userStats.map((stat) => (
               <div key={stat.label} className="premium-card p-4 flex items-center gap-4 border-muted/50">
                 <div className={`w-12 h-12 rounded-2xl ${stat.bg} ${stat.color} flex items-center justify-center shadow-inner`}>
@@ -407,26 +408,60 @@ export default function ManagementPage() {
             ))}
           </div>
 
+          {/* Mobile Compact KPI Ribbon (Hidden on desktop) */}
+          <div className="sm:hidden flex items-center justify-between p-3 bg-card border border-border/80 rounded-2xl shadow-2xs text-xs font-bold divide-x divide-border/60">
+            <div className="flex items-center gap-1.5 px-2 text-green-600 first:pl-0">
+              <span>সক্রিয়:</span>
+              <strong className="font-black text-sm">{activeCount}</strong>
+            </div>
+            <div className="flex items-center gap-1.5 px-2 text-amber-600">
+              <span>অপেক্ষমাণ:</span>
+              <strong className="font-black text-sm">{pendingCount}</strong>
+            </div>
+            <div className="flex items-center gap-1.5 px-2 text-primary">
+              <span>অ্যাডমিন:</span>
+              <strong className="font-black text-sm">{adminCount}</strong>
+            </div>
+            <div className="flex items-center gap-1.5 px-2 text-muted-foreground last:pr-0">
+              <span>মোট:</span>
+              <strong className="font-black text-sm text-foreground">{users.length}</strong>
+            </div>
+          </div>
+
           {/* Search & Filter Bar */}
-          <div className="premium-card p-5 border-muted/50 bg-card space-y-4">
+          <div className="premium-card p-4 sm:p-5 border-muted/50 bg-card space-y-3.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm font-black text-foreground">
                 <Filter className="w-4 h-4 text-primary" />
                 <span>সার্চ ও ফিল্টার অপশন</span>
               </div>
-              {hasActiveFilters && (
+              <div className="flex items-center gap-2">
+                {/* Mobile Filter Toggle Button */}
                 <button
-                  onClick={resetFilters}
-                  className="text-xs font-bold text-red-600 hover:text-red-700 flex items-center gap-1 active:scale-95 transition-all cursor-pointer"
+                  type="button"
+                  onClick={() => setIsMobileFiltersExpanded(!isMobileFiltersExpanded)}
+                  className="sm:hidden flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border/80 bg-muted/40 text-[11px] font-bold text-foreground active:scale-95 transition-all cursor-pointer"
                 >
-                  <X className="w-3.5 h-3.5" />
-                  <span>ফিল্টার রিসেট করুন</span>
+                  <span>{isMobileFiltersExpanded ? "ফিল্টার লুকান" : "ফিল্টার অপশন"}</span>
+                  {hasActiveFilters && !isMobileFiltersExpanded && (
+                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                  )}
                 </button>
-              )}
+
+                {hasActiveFilters && (
+                  <button
+                    onClick={resetFilters}
+                    className="text-xs font-bold text-red-600 hover:text-red-700 flex items-center gap-1 active:scale-95 transition-all cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    <span>ফিল্টার রিসেট করুন</span>
+                  </button>
+                )}
+              </div>
             </div>
 
+            {/* Always visible Search input on both mobile and desktop */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-              {/* Text Search Bar */}
               <div className="relative sm:col-span-2 lg:col-span-1">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
@@ -446,46 +481,49 @@ export default function ManagementPage() {
                 )}
               </div>
 
-              {/* Status Filter */}
-              <div>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value as any)}
-                  className="w-full h-11 px-3.5 text-sm bg-muted/20 border border-border rounded-xl font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all appearance-none cursor-pointer"
-                >
-                  <option value="all">সকল অবস্থা (Status)</option>
-                  <option value="active">সক্রিয় ইউজার</option>
-                  <option value="pending">অপেক্ষমাণ ইউজার</option>
-                </select>
-              </div>
+              {/* Collapsible Dropdowns on mobile, always grid-aligned on sm and up */}
+              <div className={`${isMobileFiltersExpanded ? "grid grid-cols-1 gap-3.5" : "hidden"} sm:contents`}>
+                {/* Status Filter */}
+                <div>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value as any)}
+                    className="w-full h-11 px-3.5 text-sm bg-muted/20 border border-border rounded-xl font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all appearance-none cursor-pointer"
+                  >
+                    <option value="all">সকল অবস্থা (Status)</option>
+                    <option value="active">সক্রিয় ইউজার</option>
+                    <option value="pending">অপেক্ষমাণ ইউজার</option>
+                  </select>
+                </div>
 
-              {/* Role Filter */}
-              <div>
-                <select
-                  value={roleFilter}
-                  onChange={(e) => setRoleFilter(e.target.value as any)}
-                  className="w-full h-11 px-3.5 text-sm bg-muted/20 border border-border rounded-xl font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all appearance-none cursor-pointer"
-                >
-                  <option value="all">সকল রোল (Role)</option>
-                  <option value="user">সাধারণ ইউজার</option>
-                  <option value="admin">অ্যাডমিন / সুপার অ্যাডমিন</option>
-                </select>
-              </div>
+                {/* Role Filter */}
+                <div>
+                  <select
+                    value={roleFilter}
+                    onChange={(e) => setRoleFilter(e.target.value as any)}
+                    className="w-full h-11 px-3.5 text-sm bg-muted/20 border border-border rounded-xl font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all appearance-none cursor-pointer"
+                  >
+                    <option value="all">সকল রোল (Role)</option>
+                    <option value="user">সাধারণ ইউজার</option>
+                    <option value="admin">অ্যাডমিন / সুপার অ্যাডমিন</option>
+                  </select>
+                </div>
 
-              {/* Zone Filter */}
-              <div>
-                <select
-                  value={zoneFilter}
-                  onChange={(e) => setZoneFilter(e.target.value === "all" ? "all" : Number(e.target.value))}
-                  className="w-full h-11 px-3.5 text-sm bg-muted/20 border border-border rounded-xl font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all appearance-none cursor-pointer"
-                >
-                  <option value="all">সকল জোন (Zone)</option>
-                  {userZones.map((z) => (
-                    <option key={z.id} value={z.id}>
-                      {z.name}
-                    </option>
-                  ))}
-                </select>
+                {/* Zone Filter */}
+                <div>
+                  <select
+                    value={zoneFilter}
+                    onChange={(e) => setZoneFilter(e.target.value === "all" ? "all" : Number(e.target.value))}
+                    className="w-full h-11 px-3.5 text-sm bg-muted/20 border border-border rounded-xl font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all appearance-none cursor-pointer"
+                  >
+                    <option value="all">সকল জোন (Zone)</option>
+                    {userZones.map((z) => (
+                      <option key={z.id} value={z.id}>
+                        {z.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -646,12 +684,15 @@ export default function ManagementPage() {
             <button
               onClick={() => {
                 setZoneError(null);
+                setNewZoneName("");
+                setNewZoneType("zone");
+                setNewZoneParentId("");
                 setIsAddZoneModalOpen(true);
               }}
               className="modern-btn btn-primary px-5 py-3 rounded-2xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2.5 font-black active:scale-95 transition-all self-start sm:self-auto cursor-pointer"
             >
               <Plus className="w-5 h-5" />
-              <span>নতুন জোন যোগ করুন</span>
+              <span>নতুন জোন</span>
             </button>
           </div>
 
@@ -750,7 +791,14 @@ export default function ManagementPage() {
 
           {/* ─── Assigned Users Quick View Modal ─── */}
           {selectedZoneForUsers && (
-            <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px] flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <div
+              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px] flex items-center justify-center p-4 animate-in fade-in duration-200"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  setSelectedZoneForUsers(null);
+                }
+              }}
+            >
               <div className="premium-card p-6 bg-card border border-border shadow-2xl max-w-lg w-full space-y-5 animate-in zoom-in-95 duration-200 max-h-[85vh] flex flex-col">
                 <div className="flex items-start justify-between border-b border-border/60 pb-3 gap-3">
                   <div>
@@ -841,7 +889,15 @@ export default function ManagementPage() {
 
           {/* ─── Floating New Zone Modal with Hierarchy & Zone Type ─── */}
           {isAddZoneModalOpen && (
-            <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px] flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <div
+              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px] flex items-center justify-center p-4 animate-in fade-in duration-200"
+              onClick={(e) => {
+                if (e.target === e.currentTarget && !newZoneName.trim() && !addLoading) {
+                  setIsAddZoneModalOpen(false);
+                  setZoneError(null);
+                }
+              }}
+            >
               <div className="premium-card p-6 bg-card border border-border shadow-2xl max-w-md w-full space-y-5 animate-in zoom-in-95 duration-200">
                 <div className="flex items-center justify-between border-b border-border/60 pb-3">
                   <h3 className="text-lg font-black flex items-center gap-2 text-foreground">
