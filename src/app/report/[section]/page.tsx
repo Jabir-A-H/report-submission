@@ -115,7 +115,7 @@ function SectionSwitcher() {
 
       // WEB-006 fix (ADR-009): Admins must not access zone data-entry forms
       if (person?.role === "admin" || person?.role === "superadmin") {
-        router.replace("/admin");
+        router.replace("/dashboard");
         return;
       }
 

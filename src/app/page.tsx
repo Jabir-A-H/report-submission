@@ -19,7 +19,7 @@ export default async function Home() {
 
   // Admins go to the dedicated admin area (ADR-009)
   if (profile?.role === "admin" || profile?.role === "superadmin") {
-    redirect("/admin");
+    redirect("/dashboard");
   }
 
   return (

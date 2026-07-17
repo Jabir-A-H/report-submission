@@ -5,23 +5,6 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ## Active / Deferred Issues
 
-### WEB-006: Admin Role Has No Guard on `/report/[section]` Data-Entry Forms
-- **Date**: 2026-07-16
-- **Severity**: High
-- **Description**: `src/app/report/[section]/page.tsx` has no role check. After fetching the user profile, it reads `person.zone_id` and proceeds to call `get_or_create_report()` regardless of whether the user is an admin or superadmin. Since both current admins are assigned `zone_id = 1` (DCS), visiting `/report/header?type=monthly&month=7&year=2026` as a superadmin silently creates/opens a DCS zone report and presents the full data-entry form. This allows admins to accidentally submit data into a zone report — which then gets included in the city aggregation via `view_city_header_agg` (and all other city views), corrupting the city total.
-- **Related**: The accidental report `id=36` (zone_id=1, July 2026) was created this way.
-- **Planned Fix (ADR-009)**: Add a role check immediately after profile fetch in `SectionSwitcher`. If `role === 'admin' || role === 'superadmin'` → `router.replace('/admin')`. Part of the admin site restructure work.
-
----
-
-### Accidental DCS Zone Report in DB (`report.id = 36`)
-- **Date**: 2026-07-16
-- **Severity**: Medium (data integrity)
-- **Description**: `report.id = 36` (zone_id=1 / ডি সি এস, month=7, year=2026, type=মাসিক) was auto-created when a superadmin visited the data-entry form route. Its data is currently included in city aggregation views. The record is likely empty but pollutes the city total for July 2026.
-- **Planned Fix (ADR-009)**: Delete this record before updating the `view_city_*_agg` views to exclude `zone_type = 'city'`. Once views are updated, DCS records are permanently excluded regardless.
-
----
-
 ### Mobile Touch Target Ergonomics Violations (<44px)
 - **Date**: 2026-06-26
 - **Description**: Nested category table action and delete buttons in `AutoSaveField` rows maintain small hit areas (~24px x 24px), violating WCAG 2.2 AA mobile touch target guidelines (minimum 44px x 44px).
@@ -39,6 +22,18 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 ---
 
 ## Resolved Historical Issues
+
+### Admin Route Grouping (`(admin)`), Submission Lock (`is_submitted`), & Full-Field City Parity (ADR 012)
+- **Date**: 2026-07-17
+- **Resolution Date**: 2026-07-17
+- **Description**: The admin area previously suffered from 7 fragmented legacy `/admin/*` routes with duplication and nav collisions. Furthermore, the dashboard Current Month Report Condition panel counted draft reports as completed without a formal submission mechanism (`is_submitted`), and `/city-report` only allowed numeric overrides without support for qualitative remarks (`city_comment`) or a clean View/Edit mode switcher.
+- **Fix**: Migrated all admin pages (`/dashboard`, `/reports`, `/city-report`, `/management`) into `src/app/(admin)/*` (`(admin)` route group), completely eliminating the `/admin/` URL prefix per zero backward compatibility. Added `is_submitted (BOOLEAN DEFAULT false)` to `public.report` and added the **"রিপোর্ট জমা সম্পন্ন হয়েছে (Report Submission Done)"** checkbox (`CommentsForm`) to authoritative lock and track completion on the dashboard. Upgraded `CorrectionButton` with `isText={true}` `<textarea>` support to store string overrides in `city_report_override`, added Section 5 (**৫. মন্তব্য ও বিশেষ পর্যালোচনা / Comments**) to `CityReportPage`, and added the **`[ 👁️ ভিউ মোড / ⚡ এডিট মোড ]`** toggle to cleanly switch between inspecting and editing.
+
+### WEB-006 & Accidental DCS Zone Report in DB (`report.id = 36`, ADR 009)
+- **Date**: 2026-07-16
+- **Resolution Date**: 2026-07-17
+- **Description**: `src/app/report/[section]/page.tsx` had no role check, allowing superadmins to visit `/report/header?type=monthly&month=7&year=2026` and accidentally create a DCS zone report (`id=36`).
+- **Fix**: Enforced `SectionSwitcher` role guard (`if (role === 'admin' || role === 'superadmin') router.replace('/dashboard')`). Excluded DCS (`zone_type = 'city'`) across city aggregation views and route handlers.
 
 ### Save Override Failure (`42P10`) & Edit Report Display Enhancements (ADR 010)
 - **Date**: 2026-07-17

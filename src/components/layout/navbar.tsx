@@ -42,13 +42,13 @@ export function Navbar() {
   // Report link: goes to the /report overview page with period params
   const reportHref = `/report${periodQuery}`;
 
-  const showAdminNav = isAdmin || pathname.startsWith("/admin");
+  const showAdminNav = isAdmin || pathname.startsWith("/dashboard") || pathname.startsWith("/reports") || pathname.startsWith("/city-report") || pathname.startsWith("/management");
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-card opacity-100 hidden md:block shadow-xs">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-8">
-          <Link href={showAdminNav ? "/admin" : homeHref} className="flex items-center space-x-2">
+          <Link href={showAdminNav ? "/dashboard" : homeHref} className="flex items-center space-x-2">
             <span className="text-xl font-black text-primary hover:opacity-80 transition-opacity uppercase tracking-tighter">
                {t.siteTitle}
             </span>
@@ -57,33 +57,33 @@ export function Navbar() {
             {showAdminNav ? (
               <>
                 <Link
-                  href="/admin"
+                  href="/dashboard"
                   className={`transition-all hover:text-primary ${
-                    pathname === "/admin" ? "text-primary px-2 py-1 bg-primary/5 rounded-lg" : "text-muted-foreground"
+                    pathname === "/dashboard" ? "text-primary px-2 py-1 bg-primary/5 rounded-lg" : "text-muted-foreground"
                   }`}
                 >
                   ড্যাশবোর্ড
                 </Link>
                 <Link
-                  href="/admin/reports"
+                  href="/reports"
                   className={`transition-all hover:text-primary ${
-                    pathname.startsWith("/admin/reports") ? "text-primary px-2 py-1 bg-primary/5 rounded-lg" : "text-muted-foreground"
+                    pathname.startsWith("/reports") ? "text-primary px-2 py-1 bg-primary/5 rounded-lg" : "text-muted-foreground"
                   }`}
                 >
                   জমাকৃত রিপোর্ট
                 </Link>
                 <Link
-                  href="/admin/city-report"
+                  href="/city-report"
                   className={`transition-all hover:text-primary ${
-                    pathname.startsWith("/admin/city-report") ? "text-primary px-2 py-1 bg-primary/5 rounded-lg" : "text-muted-foreground"
+                    pathname.startsWith("/city-report") ? "text-primary px-2 py-1 bg-primary/5 rounded-lg" : "text-muted-foreground"
                   }`}
                 >
-                  এডিট রিপোর্ট
+                  সিটি রিপোর্ট
                 </Link>
                 <Link
-                  href="/admin/management"
+                  href="/management"
                   className={`transition-all hover:text-primary ${
-                    pathname.startsWith("/admin/management") ? "text-primary px-2 py-1 bg-primary/5 rounded-lg" : "text-muted-foreground"
+                    pathname.startsWith("/management") ? "text-primary px-2 py-1 bg-primary/5 rounded-lg" : "text-muted-foreground"
                   }`}
                 >
                   ব্যবস্থাপনা

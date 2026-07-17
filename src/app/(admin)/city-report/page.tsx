@@ -7,6 +7,7 @@ import {
   Building2,
   Download,
   Edit2,
+  Eye,
   FileText,
   Loader2,
   Save,
@@ -277,9 +278,9 @@ const CityReportContext = createContext<{
   getVal: (
     section: string,
     field: string,
-    computedValue: number | null | undefined,
+    computedValue: any,
     category?: string
-  ) => { value: number; isOverridden: boolean };
+  ) => { value: any; isOverridden: boolean };
 } | null>(null);
 
 function NumericCell({
@@ -288,12 +289,14 @@ function NumericCell({
   computedValue,
   category,
   className = "",
+  isText,
 }: {
   section: string;
   field: string;
-  computedValue: number;
+  computedValue: any;
   category?: string;
   className?: string;
+  isText?: boolean;
 }) {
   const ctx = useContext(CityReportContext);
   if (!ctx) return null;
@@ -301,16 +304,16 @@ function NumericCell({
   const { value, isOverridden } = getVal(
     section,
     field,
-    computedValue,
+    computedValue ?? (isText ? "" : 0),
     category
   );
   if (isOverridden) {
     const badge = (
       <span
-        className="inline-flex items-center px-2 py-0.5 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 font-black border border-amber-500/30 shadow-2xs hover:bg-amber-500/25 transition-all"
-        title={`মূল সমষ্টিগত মান: ${toBn(computedValue)}`}
+        className={`inline-flex items-center px-2 py-0.5 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 font-black border border-amber-500/30 shadow-2xs hover:bg-amber-500/25 transition-all ${isText ? "text-sm text-left whitespace-pre-wrap font-normal" : ""}`}
+        title={`মূল মান: ${isText ? (computedValue || "নেই") : toBn(computedValue)}`}
       >
-        {toBn(value)}
+        {isText ? (value || "কোনো মন্তব্য নেই") : toBn(value)}
       </span>
     );
 
@@ -327,6 +330,7 @@ function NumericCell({
             currentValue={value}
             computedValue={computedValue}
             isOverridden={isOverridden}
+            isText={isText}
             customTrigger={
               <span className="inline-flex items-center gap-1">
                 {badge}
@@ -348,7 +352,7 @@ function NumericCell({
 
   return (
     <span className={`group inline-flex items-center gap-1 ${className}`}>
-      <span>{toBn(value)}</span>
+      <span>{isText ? (value || <span className="text-muted-foreground italic text-xs">কোনো মন্তব্য নেই</span>) : toBn(value)}</span>
       {isEditing && (
         <CorrectionButton
           year={year}
@@ -360,6 +364,7 @@ function NumericCell({
           currentValue={value}
           computedValue={computedValue}
           isOverridden={isOverridden}
+          isText={isText}
         />
       )}
     </span>
@@ -623,29 +628,50 @@ export default function CityReportPage() {
           </div>
           <div>
             <h1 className="text-2xl md:text-3xl font-black text-foreground">
-              এডিট রিপোর্ট
+              সিটি রিপোর্ট
             </h1>
             <p className="text-muted-foreground mt-1">
-              মহানগরীর সমষ্টিগত রিপোর্ট সংশোধন ও সম্পাদনা (ওভাররাইড মোড সক্রিয়)
+              মহানগরীর সমষ্টিগত রিপোর্ট পর্যালোচনা ও প্রয়োজনবোধে ওভাররাইড সংশোধন
             </p>
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-4">
-          {/* Action Buttons */}
-          <div className="flex gap-2 w-full sm:w-auto items-center">
-            <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-300 rounded-xl text-xs font-black">
-              <span>⚡ ওভাররাইড মোড সক্রিয়</span>
+          {/* Action Buttons & View Mode Switcher */}
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto items-center">
+            <div className="flex items-center gap-1 bg-muted p-1 rounded-xl border border-border">
+              <button
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
+                  !isEditing ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span>ভিউ মোড</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsEditing(true)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
+                  isEditing ? "bg-amber-600 text-white shadow-xs" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Edit2 className="w-3.5 h-3.5" />
+                <span>এডিট মোড</span>
+              </button>
             </div>
             <button
               onClick={handleDownloadPDF}
               className="modern-btn border border-border bg-card flex-1 sm:flex-none justify-center gap-2 px-4 py-2 hover:bg-muted text-sm font-bold"
+              title="পিডিএফ ডাউনলোড"
             >
               <FileText className="w-4 h-4 text-purple-600" />
             </button>
             <button
               onClick={handleDownloadExcel}
               className="modern-btn border border-border bg-card flex-1 sm:flex-none justify-center gap-2 px-4 py-2 hover:bg-muted text-sm font-bold"
+              title="এক্সেল ডাউনলোড"
             >
               <Download className="w-4 h-4 text-green-600" />
             </button>
@@ -1167,6 +1193,32 @@ export default function CityReportPage() {
                   <span className="font-black text-foreground text-sm sm:text-base">
                     <NumericCell section="extra" field="number" computedValue={extraData.find(e => e.category === "ওয়ার্ড প্রতিনিধির সফর")?.number ?? 0} category="ওয়ার্ড প্রতিনিধির সফর" /> টি
                   </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── 5. Comments Section ────────────────────────────────────────────── */}
+          <div className="bg-card border border-border/60 rounded-3xl overflow-hidden shadow-xs">
+            <div className="px-6 py-5 bg-muted/30 border-b border-border/60 flex items-center justify-between">
+              <h2 className="text-lg md:text-xl font-black text-foreground tracking-tight flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block" />
+                ৫. মন্তব্য ও বিশেষ পর্যালোচনা (Comments)
+              </h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="p-4 rounded-2xl bg-muted/40 border border-border/60">
+                <span className="font-black text-xs tracking-wider uppercase text-muted-foreground block mb-2">
+                  মহানগরীর সামষ্টিক মন্তব্য / বিশেষ পর্যবেক্ষণ (ওভাররাইড বা ইনপুট করুন):
+                </span>
+                <div className="text-base font-medium text-foreground min-h-[60px] p-3 bg-card border border-border/80 rounded-xl">
+                  <NumericCell
+                    section="comment"
+                    field="city_comment"
+                    computedValue=""
+                    category="মহানগরী মন্তব্য"
+                    isText={true}
+                  />
                 </div>
               </div>
             </div>

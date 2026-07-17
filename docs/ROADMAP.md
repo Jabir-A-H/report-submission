@@ -46,15 +46,15 @@
 13. [ ] **DCS Read-Only City View in `/report`**: When admin selects DCS zone, query `view_city_*_agg` views instead of `report WHERE zone_id=1`. Render read-only. (Depends on item 2.)
 
 **Active (UI/code restructure):**
-4. [ ] **Fix WEB-006 — Admin Role Guard on `/report/[section]`**: Add `if (role === 'admin' || role === 'superadmin') router.replace('/admin')` in `SectionSwitcher` after profile fetch.
-5. [ ] **Admin Nav Collision Fix**: Add `pathname.startsWith('/admin')` exclusion to `<Navbar>` and `<BottomNav>`. Add `lg:hidden` mobile admin header with hamburger drawer to `src/app/admin/layout.tsx`.
-6. [ ] **Root `/` Admin Redirect**: `src/app/page.tsx`: `redirect('/admin')` when `isAdmin === true`.
-7. [ ] **Admin Dashboard Landing (`/admin`)**: Simple server component — 3 `<Link>` navigation cards (Reports, City Report, Management). No DB queries.
-8. [ ] **Admin Reports Page (`/admin/reports`)**: Replace simple table with the paginated+filtered version (migrated from `zone-reports/page.tsx`). Fix `useMemo`. Each row links to `/report?zone_id=...&report_id=...`.
-9. [ ] **Admin City Report Page (`/admin/city-report`)**: Fix `useMemo` only. This is the override-specific page. No functional changes.
-10. [ ] **Admin Management Page (`/admin/management`)**: New merged page. Tab 1: Users (from `users/page.tsx` — approve/deactivate/zone-reassign/delete). Tab 2: Zones (from `zones/page.tsx` — add/delete). Fix `useMemo`.
-11. [ ] **Admin Sidebar Update**: 3 links only — জমাকৃত রিপোর্ট, সিটি রিপোর্ট, ব্যবস্থাপনা. Sign Out at bottom.
-12. [ ] **Delete Redundant Admin Routes**: `src/app/admin/dashboard/`, `src/app/admin/approval/`, `src/app/admin/zone-reports/`, `src/app/admin/zones/`, `src/app/admin/users/`, `src/components/dashboard/admin-dashboard.tsx`.
+4. [x] **Fix WEB-006 — Admin Role Guard on `/report/[section]`**: Add `if (role === 'admin' || role === 'superadmin') router.replace('/dashboard')` in `SectionSwitcher` after profile fetch.
+5. [x] **Admin Nav Collision Fix**: Add `showAdminNav` check across `<Navbar>` and `<BottomNav>` to display unified top/bottom bars without duplication.
+6. [x] **Root `/` Admin Redirect**: `src/app/page.tsx`: `redirect('/dashboard')` when `isAdmin === true`.
+7. [x] **Admin Dashboard Landing (`/dashboard`)**: Simple server component — Current Month Report Condition panel + 3 navigation cards (`/reports`, `/city-report`, `/management`).
+8. [x] **Admin Reports Page (`/reports`)**: Paginated+filtered zone report list. Each row links to `/report?zone_id=...&report_id=...`.
+9. [x] **Admin City Report Page (`/city-report`)**: Aggregated city report viewer with upgraded override capabilities.
+10. [x] **Admin Management Page (`/management`)**: Merged Users + Zones management page (`নতুন জোন` button, compact mobile KPI ribbon).
+11. [x] **Admin Sidebar Update**: 4 unified links — ড্যাশবোর্ড, জমাকৃত রিপোর্ট, সিটি রিপোর্ট, ব্যবস্থাপনা alongside UserDropdown.
+12. [x] **Delete Redundant Admin Routes**: Removed all legacy `/admin/*` directories per zero dead-weight and zero backward compatibility policy.
 
 ## Phase 3.6: Edit Report Override Hardening & Comparative Display (Completed — ADR 010)
 1. [x] **Postgres Unique Constraint Fix (`city_report_override`)**: Executed `ALTER TABLE public.city_report_override ADD CONSTRAINT city_report_override_unique_key UNIQUE NULLS NOT DISTINCT (year, month, report_type, section, field, category);` to resolve PostgREST `onConflict` `42P10` errors and ensure idempotent upsert/check-then-update reliability.
@@ -62,6 +62,12 @@
 3. [x] **Clean Override Highlight & Interactive Trigger (`customTrigger`)**: Updated `NumericCell` (`CityReportPage`) to display the overridden number clearly inside a prominent highlighted badge (`bg-amber-500/15 text-amber-600 font-black`) without showing old strike-through values. Tapping directly on the highlighted overridden number opens the `CorrectionButton` floating change panel (via `customTrigger`), where both the original aggregated value (`computedValue`) and the current value are inspected and edited. Added `Trash2` ("মুছুন") button to `CorrectionButton` to allow one-click override reversion/deletion.
 4. [x] **React Compiler & Hook Parity**: Extracted `NumericCell` and `CityReportContext` top-level outside `CityReportPage()` to eliminate React 19 / ESLint `react-hooks/static-components` (`Cannot create components during render`) errors. Fixed missing `router` dependency warning in `UserDashboard`.
 5. [x] **Universal Click-Outside Modal Protection (`if unchanged`) & Button Clean-up**: Standardized all floating panels and modals (`CorrectionButton` change floating panel, `Add Zone Modal`, and `Assigned Users Modal`) to automatically close when clicking outside on the backdrop if and only if input fields remain unchanged (`newValue === currentValue.toString()` or `!newZoneName.trim()`), preventing accidental dismissal of unsaved edits while offering effortless 1-click dismissal when inspecting. Renamed the add zone button from `নতুন জোন যোগ করুন` to `নতুন জোন` across `management/page.tsx`.
+
+## Phase 3.7: Route Group Simplification (`(admin)`), Submission Lock (`is_submitted`), & City Parity (Completed — ADR 012)
+1. [x] **Route Grouping (`(admin)/*`) & Clean URL Architecture**: Replaced `src/app/admin/*` directory with Next.js route group `src/app/(admin)/*`. Renamed index route to `dashboard/page.tsx` (`/dashboard`). Updated all links across `Navbar`, `BottomNav`, `UserDropdown`, and redirects (`middleware.ts`, `SectionSwitcher`, `page.tsx`) to cleanly target `/dashboard`, `/reports`, `/city-report`, and `/management` without legacy redirects.
+2. [x] **Authoritative Submission Governance (`is_submitted`)**: Added `is_submitted (BOOLEAN DEFAULT false)` column to `public.report`. Integrated **"রিপোর্ট জমা সম্পন্ন হয়েছে (Report Submission Done)"** checkbox into `CommentsForm` (`/report/comment`), locking completion state directly to DB. Updated `/dashboard` Current Month Report Condition panel to strictly verify `r.is_submitted === true` when calculating completed vs. pending zone KPIs (`submittedCount` vs `pendingCount`), ensuring incomplete drafts are not counted.
+3. [x] **Full-Field City Report Parity & Upgraded Text Overrides**: Upgraded `CorrectionButton` and `NumericCell` with `isText={true}` support (`<textarea>` rendering storing text strings in `city_report_override`). Added Section 5 (**৫. মন্তব্য ও বিশেষ পর্যালোচনা / Comments**) to `CityReportPage` (`/city-report`) where city admins can input or override city remarks (`city_comment`).
+4. [x] **City Report View/Edit Mode Switcher & Rename Back**: Renamed `/city-report` page header and tabs across `Navbar`, `BottomNav`, `UserDropdown`, and `CityReportPage` from `এডিট রিপোর্ট` back to `সিটি রিপোর্ট` ("City Report"). Replaced static override badge with interactive **`[ 👁️ ভিউ মোড / ⚡ এডিট মোড ]`** toggle (`isEditing` state), hiding all correction buttons/badges cleanly when inspecting in View Mode while allowing rapid one-click editing in Edit Mode.
 
 ## Phase 4: Post-Stabilization Feature Expansion
 - [ ] **Signature Upload**: Add an option for users/admins to upload a handwritten signature image for PDF exports.

@@ -21,6 +21,7 @@ If docs and code conflict, do not guess. Flag the drift and align docs to implem
 Before making any changes, checking schemas, or designing features, consult:
 - **`docs/TECHNICAL_MANUAL.md`**: For auth gating (`people.active = true`), Supabase client separation (`server` vs `client` vs `admin`), atomic report initialization (`get_or_create_report` RPC), schema naming, and UI layouts.
 - **`docs/ADR/*`**: For architectural decisions.
+- **Active Development & Zero Dead-Weight Policy**: This project is in active development with no requirement for backward compatibility or legacy code retention. When refactoring or replacing features, you **MUST immediately delete** all replaced files, orphaned components, unused hooks, and obsolete dependencies (`package.json`). Do not leave commented-out code or dead weights in the codebase.
 
 ---
 

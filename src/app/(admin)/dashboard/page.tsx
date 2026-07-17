@@ -19,15 +19,15 @@ const NAV_CARDS = [
   {
     title: "জমাকৃত রিপোর্ট",
     description: "সকল জোনের জমাকৃত রিপোর্টের তালিকা ও পর্যালোচনা",
-    href: "/admin/reports",
+    href: "/reports",
     icon: FileText,
     iconBg: "bg-blue-500/10",
     iconColor: "text-blue-600",
   },
   {
-    title: "এডিট রিপোর্ট",
+    title: "সিটি রিপোর্ট",
     description: "সমগ্র শহরের সমষ্টিগত রিপোর্ট ও প্রয়োজনীয় সংশোধন (ওভাররাইড)",
-    href: "/admin/city-report",
+    href: "/city-report",
     icon: Building2,
     iconBg: "bg-purple-500/10",
     iconColor: "text-purple-600",
@@ -35,7 +35,7 @@ const NAV_CARDS = [
   {
     title: "ব্যবস্থাপনা",
     description: "ব্যবহারকারী, জোন ও এলাকার পর্যায় নিয়ন্ত্রণ",
-    href: "/admin/management",
+    href: "/management",
     icon: Settings,
     iconBg: "bg-emerald-500/10",
     iconColor: "text-emerald-600",
@@ -87,7 +87,7 @@ export default async function AdminDashboardPage() {
       supabase.from("zone").select("*").order("name"),
       supabase
         .from("report")
-        .select("id, zone_id, report_type")
+        .select("id, zone_id, report_type, is_submitted")
         .eq("year", currentYear)
         .eq("month", currentMonth)
         .eq("report_type", "মাসিক"),
@@ -109,10 +109,10 @@ export default async function AdminDashboardPage() {
 
   const myZoneIds = new Set(myZones.map((z) => z.id));
 
-  // Calculate submission status for current month
+  // Calculate submission status for current month strictly checking is_submitted
   const submittedZoneIds = new Set(
     (currentReports || [])
-      .filter((r) => myZoneIds.has(r.zone_id))
+      .filter((r) => myZoneIds.has(r.zone_id) && Boolean(r.is_submitted))
       .map((r) => r.zone_id)
   );
 

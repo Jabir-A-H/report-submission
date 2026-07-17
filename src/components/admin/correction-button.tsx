@@ -11,10 +11,11 @@ interface CorrectionButtonProps {
   section: string
   field: string
   category?: string
-  currentValue: number
-  computedValue?: number
+  currentValue: number | string
+  computedValue?: number | string
   isOverridden?: boolean
   customTrigger?: React.ReactNode
+  isText?: boolean
 }
 
 const BENGALI_DIGITS = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
@@ -38,6 +39,7 @@ export function CorrectionButton({
   computedValue,
   isOverridden = false,
   customTrigger,
+  isText = false,
 }: CorrectionButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [newValue, setNewValue] = useState(currentValue.toString())
@@ -192,15 +194,25 @@ export function CorrectionButton({
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">সংশোধিত মান</label>
-            <input 
-              type="number"
-              value={newValue}
-              onChange={(e) => setNewValue(e.target.value)}
-              className="w-full text-2xl font-black p-5 bg-muted border-2 border-transparent focus:border-primary focus:bg-card text-foreground rounded-2xl outline-none transition-all"
-            />
+            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">সংশোধিত মান / মন্তব্য</label>
+            {isText || (typeof currentValue === "string" && isNaN(Number(currentValue)) && currentValue !== "") ? (
+              <textarea
+                value={newValue}
+                onChange={(e) => setNewValue(e.target.value)}
+                rows={4}
+                placeholder="আপনার মন্তব্য বা বিস্তারিত এখানে লিখুন..."
+                className="w-full text-base font-medium p-4 bg-muted border-2 border-transparent focus:border-primary focus:bg-card text-foreground rounded-2xl outline-none transition-all resize-y"
+              />
+            ) : (
+              <input 
+                type="number"
+                value={newValue}
+                onChange={(e) => setNewValue(e.target.value)}
+                className="w-full text-2xl font-black p-5 bg-muted border-2 border-transparent focus:border-primary focus:bg-card text-foreground rounded-2xl outline-none transition-all"
+              />
+            )}
             <p className="text-xs font-medium text-muted-foreground px-1 pt-1">
-              মূল সমষ্টিগত মান (Aggregated): <span className="font-bold text-foreground">{toBn(computedValue ?? currentValue)}</span>
+              মূল সমষ্টিগত মান: <span className="font-bold text-foreground">{toBn(computedValue ?? currentValue)}</span>
               {isOverridden && <span className="ml-2 text-amber-600 font-semibold">(বর্তমানে ওভাররাইড করা)</span>}
             </p>
           </div>

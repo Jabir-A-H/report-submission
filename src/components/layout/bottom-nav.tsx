@@ -149,52 +149,52 @@ export function BottomNav() {
         {showAdminNav ? (
           <div className="grid h-full max-w-lg grid-cols-5 mx-auto font-medium">
             <Link
-              href="/admin"
+              href="/dashboard"
               onClick={() => setIsProfileOpen(false)}
               className={`inline-flex flex-col items-center justify-center px-2 hover:bg-muted/50 group ${
-                pathname === "/admin" && !isProfileOpen ? "text-primary" : "text-muted-foreground"
+                pathname === "/dashboard" && !isProfileOpen ? "text-primary" : "text-muted-foreground"
               }`}
             >
-              <LayoutDashboard className={`w-5 h-5 mb-1 group-active:scale-90 transition-transform ${pathname === "/admin" && !isProfileOpen ? "text-primary" : ""}`} />
+              <LayoutDashboard className={`w-5 h-5 mb-1 group-active:scale-90 transition-transform ${pathname === "/dashboard" && !isProfileOpen ? "text-primary" : ""}`} />
               <span className="text-[10px] leading-tight font-bold truncate w-full text-center">
                 ড্যাশবোর্ড
               </span>
             </Link>
 
             <Link
-              href="/admin/reports"
+              href="/reports"
               onClick={() => setIsProfileOpen(false)}
               className={`inline-flex flex-col items-center justify-center px-2 hover:bg-muted/50 group ${
-                pathname.startsWith("/admin/reports") && !isProfileOpen ? "text-primary" : "text-muted-foreground"
+                pathname.startsWith("/reports") && !isProfileOpen ? "text-primary" : "text-muted-foreground"
               }`}
             >
-              <FileText className={`w-5 h-5 mb-1 group-active:scale-90 transition-transform ${pathname.startsWith("/admin/reports") && !isProfileOpen ? "text-primary" : ""}`} />
+              <FileText className={`w-5 h-5 mb-1 group-active:scale-90 transition-transform ${pathname.startsWith("/reports") && !isProfileOpen ? "text-primary" : ""}`} />
               <span className="text-[10px] leading-tight font-bold truncate w-full text-center">
                 জমাকৃত
               </span>
             </Link>
 
             <Link
-              href="/admin/city-report"
+              href="/city-report"
               onClick={() => setIsProfileOpen(false)}
               className={`inline-flex flex-col items-center justify-center px-2 hover:bg-muted/50 group ${
-                pathname.startsWith("/admin/city-report") && !isProfileOpen ? "text-primary" : "text-muted-foreground"
+                pathname.startsWith("/city-report") && !isProfileOpen ? "text-primary" : "text-muted-foreground"
               }`}
             >
-              <Building2 className={`w-5 h-5 mb-1 group-active:scale-90 transition-transform ${pathname.startsWith("/admin/city-report") && !isProfileOpen ? "text-primary" : ""}`} />
+              <Building2 className={`w-5 h-5 mb-1 group-active:scale-90 transition-transform ${pathname.startsWith("/city-report") && !isProfileOpen ? "text-primary" : ""}`} />
               <span className="text-[10px] leading-tight font-bold truncate w-full text-center">
-                এডিট
+                সিটি
               </span>
             </Link>
 
             <Link
-              href="/admin/management"
+              href="/management"
               onClick={() => setIsProfileOpen(false)}
               className={`inline-flex flex-col items-center justify-center px-2 hover:bg-muted/50 group ${
-                pathname.startsWith("/admin/management") && !isProfileOpen ? "text-primary" : "text-muted-foreground"
+                pathname.startsWith("/management") && !isProfileOpen ? "text-primary" : "text-muted-foreground"
               }`}
             >
-              <Settings className={`w-5 h-5 mb-1 group-active:scale-90 transition-transform ${pathname.startsWith("/admin/management") && !isProfileOpen ? "text-primary" : ""}`} />
+              <Settings className={`w-5 h-5 mb-1 group-active:scale-90 transition-transform ${pathname.startsWith("/management") && !isProfileOpen ? "text-primary" : ""}`} />
               <span className="text-[10px] leading-tight font-bold truncate w-full text-center">
                 ব্যবস্থাপনা
               </span>
