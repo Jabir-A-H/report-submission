@@ -34,6 +34,13 @@ Before making any changes, checking schemas, or designing features, consult:
 
 ---
 
+## Execution Discipline (mandatory)
+- **Never run `git commit` (or stage changes in preparation for one) on your own initiative.** Finish the assigned goal and stop with the changes uncommitted. The user reviews everything themselves via `git diff` / `git show` and commits when satisfied — you do not need to commit for your work to be inspectable.
+- **Never run `git checkout <file>`, `git restore`, `git stash`, or `git reset --hard` — or any other command that discards or reverts uncommitted work — without asking first.** If you believe a file genuinely needs to be reverted, state which file, why, and wait for explicit confirmation before running the command. Do not do this silently mid-run.
+- **Prefer existing MCP servers over custom scripts.** If an MCP server already exposes the needed functionality (e.g., the Supabase MCP for schema, data, or query work), use it directly. Do not write a one-off Node.js or Python script to replicate what the MCP server already does.
+
+---
+
 ## Antigravity systemic docs directive (mandatory)
 When implementation and docs are updated/decided, instruct Antigravity to run this exactly and treat it as a required system step:
 
