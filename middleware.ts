@@ -67,7 +67,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // If user is authenticated, check if they are active (approved)
-  if (user && !isPublicRoute && !isApiRoute) {
+  if (user && !isPublicRoute) {
     const { data: person } = await supabase
       .from('people')
       .select('active')
@@ -75,8 +75,11 @@ export async function middleware(request: NextRequest) {
       .single()
 
     // Treat both missing people rows (orphaned auth account) AND
-    // inactive=false the same way — send to pending-approval.
-    if (!person || person.active === false) {
+    // active !== true the same way
+    if (!person || person.active !== true) {
+      if (isApiRoute) {
+        return NextResponse.json({ error: 'Account pending approval or inactive' }, { status: 403 })
+      }
       const url = request.nextUrl.clone()
       url.pathname = '/pending-approval'
       url.search = ""

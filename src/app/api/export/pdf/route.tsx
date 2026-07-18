@@ -740,7 +740,7 @@ export async function GET(request: Request) {
       .eq("supabase_uid", user.id)
       .maybeSingle();
 
-    if (requesterProfileError || !requesterProfile || requesterProfile.active === false) {
+    if (requesterProfileError || !requesterProfile || requesterProfile.active !== true) {
       return new NextResponse("Forbidden", { status: 403 });
     }
 

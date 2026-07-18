@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { translations, Language } from "@/lib/i18n";
 import { createClient } from "@/utils/supabase/server";
 import {
   ShieldCheck,
@@ -15,32 +17,32 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-const NAV_CARDS = [
+const getNavCards = (t: typeof translations[Language]) => [
   {
-    title: "জমাকৃত রিপোর্ট",
-    description: "সকল জোনের জমাকৃত রিপোর্টের তালিকা ও পর্যালোচনা",
+    title: t.labels.allZoneReports || t.reports || "Reports",
+    description: t.labels.allZoneReportsDesc || "সকল জোনের জমাকৃত রিপোর্টের তালিকা ও পর্যালোচনা", 
     href: "/reports",
     icon: FileText,
     iconBg: "bg-blue-500/10",
     iconColor: "text-blue-600",
   },
   {
-    title: "সিটি রিপোর্ট",
-    description: "সমগ্র শহরের সমষ্টিগত রিপোর্ট ও প্রয়োজনীয় সংশোধন (ওভাররাইড)",
+    title: t.labels.cityReportTitle || "City Report",
+    description: t.labels.cityReportDesc || "সমগ্র শহরের সমষ্টিগত রিপোর্ট ও প্রয়োজনীয় সংশোধন (ওভাররাইড)",
     href: "/city-report",
     icon: Building2,
     iconBg: "bg-purple-500/10",
     iconColor: "text-purple-600",
   },
   {
-    title: "ব্যবস্থাপনা",
-    description: "ব্যবহারকারী, জোন ও এলাকার পর্যায় নিয়ন্ত্রণ",
+    title: t.management,
+    description: t.labels.managementSubtitle,
     href: "/management",
     icon: Settings,
     iconBg: "bg-emerald-500/10",
     iconColor: "text-emerald-600",
   },
-] as const;
+];
 
 const BN_MONTHS = [
   "জানুয়ারি",
@@ -63,6 +65,10 @@ function toBn(num: number | string): string {
 }
 
 export default async function AdminDashboardPage() {
+  const cookieStore = await cookies();
+  const lang = (cookieStore.get("app-language")?.value || "bn") as Language;
+  const t = translations[lang];
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -135,10 +141,10 @@ export default async function AdminDashboardPage() {
           </div>
           <div>
             <h1 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">
-              অ্যাডমিন ড্যাশবোর্ড
+              {t.dashboard}
             </h1>
             <p className="text-muted-foreground mt-1 font-bold">
-              প্রশাসনিক কন্ট্রোল সেন্টার — রিপোর্ট পর্যালোচনা ও এলাকা ব্যবস্থাপনা
+              {t.labels.adminControlCenter}
             </p>
           </div>
         </div>
@@ -157,10 +163,10 @@ export default async function AdminDashboardPage() {
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-primary font-black text-xs uppercase tracking-widest">
               <BarChart3 className="w-4 h-4" />
-              <span>চলমান মাসের হালনাগাদ চিত্র</span>
+              <span>{t.labels.currentMonthUpdate}</span>
             </div>
             <h2 className="text-xl md:text-2xl font-black text-foreground">
-              {monthNameBn} {toBn(currentYear)} — রিপোর্ট জমাদানের অবস্থা
+              {monthNameBn} {toBn(currentYear)} — {t.labels.reportCondition}
             </h2>
           </div>
 
@@ -168,10 +174,10 @@ export default async function AdminDashboardPage() {
             <TrendingUp className="w-5 h-5 text-primary shrink-0" />
             <div>
               <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                জমাদানের হার
+                {t.labels.submissionRate}
               </p>
               <p className="text-lg font-black text-primary leading-none">
-                {toBn(completionPercentage)}% সম্পন্ন
+                {toBn(completionPercentage)}% {t.labels.completedPercentage}
               </p>
             </div>
           </div>
@@ -182,7 +188,7 @@ export default async function AdminDashboardPage() {
           <div className="p-5 rounded-2xl bg-blue-500/5 border border-blue-500/15 flex items-center justify-between">
             <div>
               <p className="text-xs font-bold text-blue-600/80 uppercase tracking-wider">
-                মোট জোন / এলাকা
+                {t.labels.totalZones}
               </p>
               <p className="text-3xl font-black text-blue-600 mt-1">
                 {toBn(totalZonesCount)}
@@ -197,7 +203,7 @@ export default async function AdminDashboardPage() {
           <div className="p-5 rounded-2xl bg-green-500/5 border border-green-500/15 flex items-center justify-between">
             <div>
               <p className="text-xs font-bold text-green-600/80 uppercase tracking-wider">
-                রিপোর্ট জমা হয়েছে
+                {t.labels.submitted}
               </p>
               <p className="text-3xl font-black text-green-600 mt-1">
                 {toBn(submittedCount)}
@@ -212,7 +218,7 @@ export default async function AdminDashboardPage() {
           <div className="p-5 rounded-2xl bg-amber-500/5 border border-amber-500/15 flex items-center justify-between">
             <div>
               <p className="text-xs font-bold text-amber-600/80 uppercase tracking-wider">
-                এখনও অপেক্ষমাণ
+                {t.labels.pendingReports}
               </p>
               <p className="text-3xl font-black text-amber-600 mt-1">
                 {toBn(pendingCount)}
@@ -246,11 +252,11 @@ export default async function AdminDashboardPage() {
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-sm font-black text-green-600">
               <CheckCircle2 className="w-4 h-4" />
-              <span>জমাকৃত জোন সমূহ ({toBn(submittedCount)}টি)</span>
+              <span>{t.labels.submittedZonesList} ({toBn(submittedCount)}টি)</span>
             </div>
             {submittedCount === 0 ? (
               <p className="text-xs text-muted-foreground font-bold bg-muted/30 p-3 rounded-xl border border-border/40">
-                চলতি মাসের কোনো জোনের রিপোর্ট এখনও জমা হয়নি।
+                {t.labels.noReportsSubmitted}
               </p>
             ) : (
               <div className="flex flex-wrap gap-2">
@@ -271,12 +277,12 @@ export default async function AdminDashboardPage() {
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-sm font-black text-amber-600">
               <AlertCircle className="w-4 h-4" />
-              <span>অপেক্ষমাণ জোন সমূহ ({toBn(pendingCount)}টি)</span>
+              <span>{t.labels.pendingZonesList} ({toBn(pendingCount)}টি)</span>
             </div>
             {pendingCount === 0 ? (
               <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-2xl text-green-700 dark:text-green-400 text-xs font-black flex items-center gap-2.5">
                 <span className="text-base">🎉</span>
-                <span>অভিনন্দন! চলতি মাসের সকল জোনের রিপোর্ট জমা সম্পন্ন হয়েছে।</span>
+                <span>{t.labels.allReportsSubmitted}</span>
               </div>
             ) : (
               <div className="flex flex-wrap gap-2">
@@ -298,10 +304,10 @@ export default async function AdminDashboardPage() {
       {/* ── Navigation Cards ────────────────────────────────────── */}
       <div className="space-y-4">
         <h2 className="text-xl font-black text-foreground tracking-tight flex items-center gap-2">
-          <span>প্রশাসনিক কার্যক্রম</span>
+          <span>{t.labels.adminActivities}</span>
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {NAV_CARDS.map((card) => {
+          {getNavCards(t).map((card) => {
             const Icon = card.icon;
             return (
               <Link

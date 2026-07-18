@@ -6,7 +6,7 @@ import { Globe, Palette } from 'lucide-react'
 import { useLanguage } from '@/components/providers/language-provider'
 
 export function AppearanceFooterToggle() {
-  const { language } = useLanguage()
+  const { t } = useLanguage()
 
   return (
     <div className="flex flex-wrap items-center justify-center sm:justify-end gap-4 sm:gap-6">
@@ -15,7 +15,7 @@ export function AppearanceFooterToggle() {
         <div className="flex items-center gap-1.5 text-muted-foreground">
           <Globe className="w-3.5 h-3.5 text-primary shrink-0" />
           <span className="text-xs font-bold hidden sm:inline">
-            {language === 'bn' ? 'ভাষা:' : 'Language:'}
+            {t.language}:
           </span>
         </div>
         <LanguageToggle />
@@ -28,7 +28,7 @@ export function AppearanceFooterToggle() {
         <div className="flex items-center gap-1.5 text-muted-foreground">
           <Palette className="w-3.5 h-3.5 text-primary shrink-0" />
           <span className="text-xs font-bold hidden sm:inline">
-            {language === 'bn' ? 'থিম:' : 'Theme:'}
+            {t.theme}:
           </span>
         </div>
         <ThemeToggle />

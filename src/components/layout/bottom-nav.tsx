@@ -94,17 +94,17 @@ export function BottomNav() {
               <summary className="flex items-center justify-between px-3.5 py-2.5 text-xs font-bold text-muted-foreground hover:text-foreground cursor-pointer select-none transition-colors">
                 <span className="flex items-center gap-2.5">
                   <span className="text-base">⚙️</span>
-                  <span>থিম ও ভাষা (Appearance)</span>
+                  <span>{t.labels.appearance}</span>
                 </span>
                 <span className="text-[10px] group-open:rotate-180 transition-transform duration-200">▼</span>
               </summary>
               <div className="p-3 space-y-2.5 border-t border-border/40 bg-muted/30 animate-in fade-in duration-200">
                 <div className="px-2 py-1.5 bg-background/60 rounded-lg">
-                  <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest block mb-1.5">থিম</span>
+                  <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest block mb-1.5">{t.theme}</span>
                   <ThemeToggle />
                 </div>
                 <div className="flex items-center justify-between px-2.5 py-2 bg-background/60 rounded-lg">
-                  <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">ভাষা</span>
+                  <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{t.language}</span>
                   <LanguageToggle />
                 </div>
               </div>
@@ -117,7 +117,7 @@ export function BottomNav() {
               className="flex items-center gap-3 px-3 py-2.5 text-sm font-bold rounded-xl hover:bg-muted/60 transition-all text-foreground"
             >
               <HelpCircle className="w-4 h-4 text-primary" />
-              <span>{t.help || "সাহায্য"}</span>
+              <span>{t.help}</span>
             </Link>
 
             <div className="my-2 border-t border-muted/50" />
@@ -130,15 +130,15 @@ export function BottomNav() {
                   const res = await fetch("/auth/logout", { method: "POST" });
                   if (!res.ok) throw new Error("Logout failed");
                 } catch {
-                  alert("লগআউট করতে সমস্যা হয়েছে। পেজ রিফ্রেশ করুন।");
+                  alert(t.labels.logoutError);
                   return;
                 }
                 window.location.href = "/home";
               }}
               className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold rounded-xl hover:bg-red-50 dark:hover:bg-red-950/30 text-red-600 transition-all active:scale-95 text-left"
             >
-              <LogOut className="w-4 h-4" />
-              <span>{t.logout || "লগআউট"}</span>
+              <LogOut className="w-4 h-4 text-destructive" />
+              <span>{t.logout}</span>
             </button>
           </div>
         </div>
@@ -157,7 +157,7 @@ export function BottomNav() {
             >
               <LayoutDashboard className={`w-5 h-5 mb-1 group-active:scale-90 transition-transform ${pathname === "/dashboard" && !isProfileOpen ? "text-primary" : ""}`} />
               <span className="text-[10px] leading-tight font-bold truncate w-full text-center">
-                ড্যাশবোর্ড
+                {t.dashboard}
               </span>
             </Link>
 
@@ -170,7 +170,7 @@ export function BottomNav() {
             >
               <FileText className={`w-5 h-5 mb-1 group-active:scale-90 transition-transform ${pathname.startsWith("/reports") && !isProfileOpen ? "text-primary" : ""}`} />
               <span className="text-[10px] leading-tight font-bold truncate w-full text-center">
-                জমাকৃত
+                {t.reports}
               </span>
             </Link>
 
@@ -183,7 +183,7 @@ export function BottomNav() {
             >
               <Building2 className={`w-5 h-5 mb-1 group-active:scale-90 transition-transform ${pathname.startsWith("/city-report") && !isProfileOpen ? "text-primary" : ""}`} />
               <span className="text-[10px] leading-tight font-bold truncate w-full text-center">
-                সিটি
+                {t.adminActions.cityReport}
               </span>
             </Link>
 
@@ -196,7 +196,7 @@ export function BottomNav() {
             >
               <Settings className={`w-5 h-5 mb-1 group-active:scale-90 transition-transform ${pathname.startsWith("/management") && !isProfileOpen ? "text-primary" : ""}`} />
               <span className="text-[10px] leading-tight font-bold truncate w-full text-center">
-                ব্যবস্থাপনা
+                {t.management}
               </span>
             </Link>
 
@@ -208,7 +208,7 @@ export function BottomNav() {
             >
               <User className={`w-5 h-5 mb-1 group-active:scale-90 transition-transform ${isProfileOpen ? "text-primary" : ""}`} />
               <span className="text-[10px] leading-tight font-bold truncate w-full text-center">
-                প্রোফাইল
+                {t.profile}
               </span>
             </button>
           </div>
@@ -224,7 +224,7 @@ export function BottomNav() {
             >
               <Home className={`w-6 h-6 mb-1 group-active:scale-90 transition-transform ${pathname === "/" && !pathname.startsWith("/report") && !isProfileOpen ? "text-primary" : ""}`} />
               <span className="text-[11px] leading-tight font-bold truncate w-full text-center">
-                {t.home || "হোম"}
+                {t.home}
               </span>
             </Link>
 
@@ -238,7 +238,7 @@ export function BottomNav() {
             >
               <ClipboardList className={`w-6 h-6 mb-1 group-active:scale-90 transition-transform ${pathname.startsWith("/report") && !isProfileOpen ? "text-primary" : ""}`} />
               <span className="text-[11px] leading-tight font-bold truncate w-full text-center">
-                {t.report || "রিপোর্ট"}
+                {t.report}
               </span>
             </Link>
 
@@ -251,7 +251,7 @@ export function BottomNav() {
             >
               <User className={`w-6 h-6 mb-1 group-active:scale-90 transition-transform ${isProfileOpen ? "text-primary" : ""}`} />
               <span className="text-[11px] leading-tight font-bold truncate w-full text-center">
-                প্রোফাইল
+                {t.profile}
               </span>
             </button>
           </div>

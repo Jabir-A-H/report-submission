@@ -30,6 +30,7 @@ import {
   sumRows,
   sumHeaderRows,
 } from "@/lib/report-utils";
+import { useLanguage } from "@/components/providers/language-provider";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -252,6 +253,8 @@ function NumericCell({
 // ─── Page Component ───────────────────────────────────────────────────────────
 
 export default function CityReportPage() {
+  const { t } = useLanguage();
+
   const supabase = useMemo(() => createClient(), []);
 
   // Period selection state
@@ -519,10 +522,10 @@ export default function CityReportPage() {
           </div>
           <div>
             <h1 className="text-2xl md:text-3xl font-black text-foreground">
-              সিটি রিপোর্ট
+              {t.labels.cityReportTitle}
             </h1>
             <p className="text-muted-foreground mt-1">
-              মহানগরীর সমষ্টিগত রিপোর্ট পর্যালোচনা ও প্রয়োজনবোধে ওভাররাইড সংশোধন
+              {t.labels.cityReportDesc}
             </p>
           </div>
         </div>
@@ -539,7 +542,7 @@ export default function CityReportPage() {
                 }`}
               >
                 <Eye className="w-3.5 h-3.5" />
-                <span>ভিউ মোড</span>
+                <span>{t.labels.viewMode}</span>
               </button>
               <button
                 type="button"
@@ -549,7 +552,7 @@ export default function CityReportPage() {
                 }`}
               >
                 <Edit2 className="w-3.5 h-3.5" />
-                <span>এডিট মোড</span>
+                <span>{t.labels.editMode}</span>
               </button>
             </div>
             <button
@@ -576,7 +579,7 @@ export default function CityReportPage() {
           {/* Report Type */}
           <div className="flex-1 space-y-2 w-full">
             <label className="text-sm font-bold text-muted-foreground">
-              ধরন
+              {t.labels.reportTypeLabel}
             </label>
             <select
               value={reportType}
@@ -594,7 +597,7 @@ export default function CityReportPage() {
           {/* Month — only meaningful for মাসিক */}
           <div className="flex-1 space-y-2 w-full">
             <label className="text-sm font-bold text-muted-foreground">
-              মাস {reportType !== "মাসিক" && <span className="text-xs text-muted-foreground/60">(প্রযোজ্য নয়)</span>}
+              {t.labels.monthLabel} {reportType !== "মাসিক" && <span className="text-xs text-muted-foreground/60">({t.labels.notApplicable})</span>}
             </label>
             <select
               value={month}
@@ -613,7 +616,7 @@ export default function CityReportPage() {
           {/* Year */}
           <div className="flex-1 space-y-2 w-full">
             <label className="text-sm font-bold text-muted-foreground">
-              সাল
+              {t.labels.yearLabel}
             </label>
             <select
               value={year}
@@ -638,7 +641,7 @@ export default function CityReportPage() {
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <>
-                <span>দেখুন</span>
+                <span>{t.labels.viewButton}</span>
                 <ChevronRight className="w-4 h-4 group-active:translate-x-1 transition-transform" />
               </>
             )}
@@ -648,7 +651,7 @@ export default function CityReportPage() {
         {/* Period badge */}
         {hasFetched && !isLoading && (
           <div className="mt-4 text-xs font-bold text-muted-foreground">
-            প্রদর্শিত সময়কাল:{" "}
+            {t.labels.showingPeriod}{" "}
             <span className="text-foreground">{periodLabel}</span>{" "}
             <span className="text-primary">({reportType})</span>
           </div>
@@ -688,11 +691,10 @@ export default function CityReportPage() {
         <div className="bg-card border border-border rounded-2xl p-16 text-center shadow-sm">
           <SearchX className="w-16 h-16 text-muted-foreground/40 mx-auto mb-4" />
           <h3 className="text-xl font-bold text-foreground mb-2">
-            কোনো ডেটা পাওয়া যায়নি
+            {t.labels.noDataFoundTitle}
           </h3>
           <p className="text-muted-foreground max-w-md mx-auto">
-            নির্বাচিত সময়কাল ({periodLabel}) এর জন্য কোনো রিপোর্ট ডেটা
-            পাওয়া যায়নি। দয়া করে অন্য সময়কাল নির্বাচন করুন।
+            ({periodLabel}) {t.labels.noDataFoundDesc}
           </p>
         </div>
       )}
@@ -705,19 +707,19 @@ export default function CityReportPage() {
             <div className="space-y-6">
               <div className="grid grid-cols-3 max-[320px]:grid-cols-1 gap-3 md:gap-6 text-sm bg-muted/30 p-5 rounded-2xl border border-border/60">
                 <div>
-                  <span className="text-muted-foreground block mb-1 text-xs font-semibold">দায়িত্বশীল:</span>
+                  <span className="text-muted-foreground block mb-1 text-xs font-semibold">{t.labels.responsibleTitle}</span>
                   <span className="font-extrabold text-foreground text-base">
-                    মহানগরী সভাপতি / সেক্রেটারি
+                    {t.labels.responsibleValue}
                   </span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground block mb-1 text-xs font-semibold">বিভাগ:</span>
+                  <span className="text-muted-foreground block mb-1 text-xs font-semibold">{t.labels.departmentTitle}</span>
                   <span className="font-extrabold text-foreground text-base">
-                    তা'লীমুল কুরআন বিভাগ, মহানগরী
+                    {t.labels.departmentValue}
                   </span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground block mb-1 text-xs font-semibold">রিপোর্ট সময়কাল:</span>
+                  <span className="text-muted-foreground block mb-1 text-xs font-semibold">{t.labels.reportPeriodTitle}</span>
                   <span className="font-extrabold text-foreground text-base">
                     {periodLabel}
                   </span>
@@ -728,13 +730,13 @@ export default function CityReportPage() {
                 {/* Col 1: Total Muallima + Increase/Decrease */}
                 <div className="p-4 bg-muted/40 rounded-xl border border-border/40 flex flex-col justify-between">
                   <div>
-                    <span className="text-muted-foreground block mb-1 text-xs font-bold">মোট মুয়াল্লিমা:</span>
+                    <span className="text-muted-foreground block mb-1 text-xs font-bold">{t.labels.totalMuallima}:</span>
                     <span className="font-black text-xl text-foreground">
                       <NumericCell section="header" field="total_muallima" computedValue={headerData.total_muallima ?? 0} />
                     </span>
                   </div>
                   <div className="border-t border-border/40 pt-3 mt-3">
-                    <span className="text-muted-foreground block mb-1 text-xs font-bold">বৃদ্ধি / ঘাটতি:</span>
+                    <span className="text-muted-foreground block mb-1 text-xs font-bold">{t.labels.increaseDecrease}</span>
                     <span className="font-black text-lg text-foreground inline-flex gap-1.5 items-center">
                       <span className="text-green-600">+<NumericCell section="header" field="muallima_increase" computedValue={headerData.muallima_increase ?? 0} /></span>
                       <span className="text-muted-foreground/60">/</span>
@@ -746,13 +748,13 @@ export default function CityReportPage() {
                 {/* Col 2: Certified Muallima + Certified Taking Classes */}
                 <div className="p-4 bg-muted/40 rounded-xl border border-border/40 flex flex-col justify-between">
                   <div>
-                    <span className="text-muted-foreground block mb-1 text-xs font-bold">সার্টিফিকেটপ্রাপ্ত মুয়াল্লিমা:</span>
+                    <span className="text-muted-foreground block mb-1 text-xs font-bold">{t.labels.certifiedMuallimaLabel}:</span>
                     <span className="font-black text-xl text-foreground">
                       <NumericCell section="header" field="certified_muallima" computedValue={headerData.certified_muallima ?? 0} />
                     </span>
                   </div>
                   <div className="border-t border-border/40 pt-3 mt-3">
-                    <span className="text-muted-foreground block mb-1 text-xs font-bold">সার্টিফিকেটপ্রাপ্ত ক্লাস নিচ্ছেন:</span>
+                    <span className="text-muted-foreground block mb-1 text-xs font-bold">{t.labels.certifiedTakingClasses}:</span>
                     <span className="font-bold text-lg text-foreground">
                       <NumericCell section="header" field="certified_muallima_taking_classes" computedValue={headerData.certified_muallima_taking_classes ?? 0} />
                     </span>
@@ -762,13 +764,13 @@ export default function CityReportPage() {
                 {/* Col 3: Trained Muallima + Trained Taking Classes */}
                 <div className="p-4 bg-muted/40 rounded-xl border border-border/40 flex flex-col justify-between">
                   <div>
-                    <span className="text-muted-foreground block mb-1 text-xs font-bold">প্রশিক্ষণপ্রাপ্ত মুয়াল্লিমা:</span>
+                    <span className="text-muted-foreground block mb-1 text-xs font-bold">{t.labels.trainedMuallimaLabel}:</span>
                     <span className="font-black text-xl text-foreground">
                       <NumericCell section="header" field="trained_muallima" computedValue={headerData.trained_muallima ?? 0} />
                     </span>
                   </div>
                   <div className="border-t border-border/40 pt-3 mt-3">
-                    <span className="text-muted-foreground block mb-1 text-xs font-bold">প্রশিক্ষণপ্রাপ্ত ক্লাস নিচ্ছেন:</span>
+                    <span className="text-muted-foreground block mb-1 text-xs font-bold">{t.labels.trainedTakingClasses}:</span>
                     <span className="font-bold text-lg text-foreground">
                       <NumericCell section="header" field="trained_muallima_taking_classes" computedValue={headerData.trained_muallima_taking_classes ?? 0} />
                     </span>
@@ -778,13 +780,13 @@ export default function CityReportPage() {
                 {/* Col 4: Total Unit + Unit With Muallima */}
                 <div className="p-4 bg-muted/40 rounded-xl border border-border/40 flex flex-col justify-between">
                   <div>
-                    <span className="text-muted-foreground block mb-1 text-xs font-bold">ইউনিট সংখ্যা:</span>
+                    <span className="text-muted-foreground block mb-1 text-xs font-bold">{t.labels.unitCount}:</span>
                     <span className="font-black text-xl text-foreground">
                       <NumericCell section="header" field="total_unit" computedValue={headerData.total_unit ?? 0} />
                     </span>
                   </div>
                   <div className="border-t border-border/40 pt-3 mt-3">
-                    <span className="text-muted-foreground block mb-1 text-xs font-bold">মুয়াল্লিমা সহ ইউনিট:</span>
+                    <span className="text-muted-foreground block mb-1 text-xs font-bold">{t.labels.unitsWithMuallima}:</span>
                     <span className="font-bold text-lg text-foreground">
                       <NumericCell section="header" field="units_with_muallima" computedValue={headerData.units_with_muallima ?? 0} />
                     </span>

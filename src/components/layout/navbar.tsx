@@ -62,7 +62,7 @@ export function Navbar() {
                     pathname === "/dashboard" ? "text-primary px-2 py-1 bg-primary/5 rounded-lg" : "text-muted-foreground"
                   }`}
                 >
-                  ড্যাশবোর্ড
+                  {t.dashboard}
                 </Link>
                 <Link
                   href="/reports"
@@ -70,7 +70,7 @@ export function Navbar() {
                     pathname.startsWith("/reports") ? "text-primary px-2 py-1 bg-primary/5 rounded-lg" : "text-muted-foreground"
                   }`}
                 >
-                  জমাকৃত রিপোর্ট
+                  {t.reports}
                 </Link>
                 <Link
                   href="/city-report"
@@ -78,7 +78,7 @@ export function Navbar() {
                     pathname.startsWith("/city-report") ? "text-primary px-2 py-1 bg-primary/5 rounded-lg" : "text-muted-foreground"
                   }`}
                 >
-                  সিটি রিপোর্ট
+                  {t.adminActions.cityReport}
                 </Link>
                 <Link
                   href="/management"
@@ -86,7 +86,7 @@ export function Navbar() {
                     pathname.startsWith("/management") ? "text-primary px-2 py-1 bg-primary/5 rounded-lg" : "text-muted-foreground"
                   }`}
                 >
-                  ব্যবস্থাপনা
+                  {t.management}
                 </Link>
               </>
             ) : (
@@ -97,7 +97,7 @@ export function Navbar() {
                     pathname === "/" ? "text-primary px-2 py-1 bg-primary/5 rounded-lg" : "text-muted-foreground"
                   }`}
                 >
-                  {t.home || "হোম"}
+                  {t.home}
                 </Link>
                 <Link
                   href={reportHref}

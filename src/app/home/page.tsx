@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/server";
 import { AuthPortalClient } from "@/components/auth/auth-portal-client";
 import { SessionCleaner } from "@/components/auth/session-cleaner";
 import { AppearanceFooterToggle } from "@/components/layout/appearance-footer-toggle";
+import { getServerLanguage } from "@/lib/i18n";
 
 export default async function HomePage({
   searchParams,
@@ -13,6 +14,7 @@ export default async function HomePage({
 }) {
   const resolvedParams = await searchParams;
   const supabase = await createClient();
+  const { t } = await getServerLanguage();
 
   // Redirect if user is already logged in
   const { data: { user } } = await supabase.auth.getUser();
@@ -49,7 +51,7 @@ export default async function HomePage({
         {/* Hero Headings Area */}
         <div className="text-center max-w-3xl mx-auto mb-3 sm:mb-4 animate-in fade-in slide-in-from-top-6 duration-700">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-foreground tracking-tight leading-tight sm:leading-none font-bengali">
-            তা&apos;লীমুল কুরআন বিভাগ
+            {t.talimulQuranDept}
           </h1>
         </div>
 
@@ -77,14 +79,14 @@ export default async function HomePage({
       <footer className="w-full border-t border-border/40 bg-background/80 py-3 mt-auto shrink-0">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-medium text-muted-foreground">
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4">
-            <p>© {new Date().getFullYear()} রিপোর্ট সাবমিশন সিস্টেম। সকল অধিকার সংরক্ষিত।</p>
+            <p>© {new Date().getFullYear()} {t.copyrightText}</p>
             <span className="hidden sm:inline text-border">|</span>
             <Link
               href="/help"
               className="inline-flex items-center gap-1.5 font-bold text-foreground/80 hover:text-primary transition-colors underline underline-offset-2"
             >
               <HelpCircle className="w-3.5 h-3.5 text-primary" />
-              <span>সাহায্য (Help)</span>
+              <span>{t.helpEn}</span>
             </Link>
           </div>
           <AppearanceFooterToggle />

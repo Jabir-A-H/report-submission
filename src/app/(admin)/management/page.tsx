@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 
 import { deleteUserAction } from "./actions";
+import { useLanguage } from "@/components/providers/language-provider";
 
 // ─── Types ───────────────────────────────────────────────────────────
 type Person = {
@@ -53,6 +54,8 @@ type ZoneWithStats = {
 
 // ─── Component ───────────────────────────────────────────────────────
 export default function ManagementPage() {
+  const { t } = useLanguage();
+
   const supabase = useMemo(() => createClient(), []);
   const [activeTab, setActiveTab] = useState<"users" | "zones">("users");
 
@@ -282,10 +285,10 @@ export default function ManagementPage() {
   const adminCount = users.filter((u) => u.role === "admin" || u.role === "superadmin").length;
 
   const userStats = [
-    { label: "সক্রিয় ইউজার", value: activeCount, icon: UserCheck, color: "text-green-600", bg: "bg-green-100" },
-    { label: "অপেক্ষমাণ", value: pendingCount, icon: UserPlus, color: "text-amber-600", bg: "bg-amber-100" },
-    { label: "অ্যাডমিন", value: adminCount, icon: ShieldCheck, color: "text-primary", bg: "bg-primary/10" },
-    { label: "মোট", value: users.length, icon: Users, color: "text-gray-600", bg: "bg-gray-100" },
+    { label: t.labels.activeUser, value: activeCount, icon: UserCheck, color: "text-green-600", bg: "bg-green-100" },
+    { label: t.labels.pendingUser, value: pendingCount, icon: UserPlus, color: "text-amber-600", bg: "bg-amber-100" },
+    { label: "Admin", value: adminCount, icon: ShieldCheck, color: "text-primary", bg: "bg-primary/10" },
+    { label: "Total", value: users.length, icon: Users, color: "text-gray-600", bg: "bg-gray-100" },
   ];
 
   function resetFilters() {
@@ -306,14 +309,14 @@ export default function ManagementPage() {
   function getZoneTypeLabel(type?: string | null) {
     switch (type) {
       case "city":
-        return "সিটি / নগর";
+        return t.labels.cityLevel;
       case "thana":
-        return "থানা পর্যায়";
+        return t.labels.thanaLevel;
       case "ward":
-        return "ওয়ার্ড / হালকা";
+        return t.labels.wardLevel;
       case "zone":
       default:
-        return "জোন পর্যায়";
+        return t.labels.zoneLevel;
     }
   }
 
@@ -345,8 +348,8 @@ export default function ManagementPage() {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black tracking-tight">ব্যবস্থাপনা</h1>
-          <p className="text-muted-foreground">ব্যবহারকারী এবং জোন সমূহ নিয়ন্ত্রণ করুন</p>
+          <h1 className="text-3xl font-black tracking-tight">{t.management}</h1>
+          <p className="text-muted-foreground">{t.labels.managementSubtitle}</p>
         </div>
         <button
           onClick={handleRefresh}
@@ -368,7 +371,7 @@ export default function ManagementPage() {
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            ব্যবহারকারী
+            {t.labels.activeUser.split(" ")[1] || "Users"}
           </button>
           <button
             onClick={() => setActiveTab("zones")}
@@ -378,7 +381,7 @@ export default function ManagementPage() {
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            জোন
+            Zones
           </button>
         </div>
       </div>
@@ -411,19 +414,19 @@ export default function ManagementPage() {
           {/* Mobile Compact KPI Ribbon (Hidden on desktop) */}
           <div className="sm:hidden flex items-center justify-between p-3 bg-card border border-border/80 rounded-2xl shadow-2xs text-xs font-bold divide-x divide-border/60">
             <div className="flex items-center gap-1.5 px-2 text-green-600 first:pl-0">
-              <span>সক্রিয়:</span>
+              <span>{t.userStats.active}:</span>
               <strong className="font-black text-sm">{activeCount}</strong>
             </div>
             <div className="flex items-center gap-1.5 px-2 text-amber-600">
-              <span>অপেক্ষমাণ:</span>
+              <span>{t.userStats.pending}:</span>
               <strong className="font-black text-sm">{pendingCount}</strong>
             </div>
             <div className="flex items-center gap-1.5 px-2 text-primary">
-              <span>অ্যাডমিন:</span>
+              <span>{t.userStats.admin}:</span>
               <strong className="font-black text-sm">{adminCount}</strong>
             </div>
             <div className="flex items-center gap-1.5 px-2 text-muted-foreground last:pr-0">
-              <span>মোট:</span>
+              <span>{t.userStats.total}:</span>
               <strong className="font-black text-sm text-foreground">{users.length}</strong>
             </div>
           </div>
@@ -433,7 +436,7 @@ export default function ManagementPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm font-black text-foreground">
                 <Filter className="w-4 h-4 text-primary" />
-                <span>সার্চ ও ফিল্টার অপশন</span>
+                <span>{t.labels.filterOptions || "Search & Filter Options"}</span>
               </div>
               <div className="flex items-center gap-2">
                 {/* Mobile Filter Toggle Button */}
@@ -442,7 +445,7 @@ export default function ManagementPage() {
                   onClick={() => setIsMobileFiltersExpanded(!isMobileFiltersExpanded)}
                   className="sm:hidden flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border/80 bg-muted/40 text-[11px] font-bold text-foreground active:scale-95 transition-all cursor-pointer"
                 >
-                  <span>{isMobileFiltersExpanded ? "ফিল্টার লুকান" : "ফিল্টার অপশন"}</span>
+                  <span>{isMobileFiltersExpanded ? t.labels.hideFilters : (t.labels.filterOptions || "Filter Options")}</span>
                   {hasActiveFilters && !isMobileFiltersExpanded && (
                     <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                   )}
@@ -454,7 +457,7 @@ export default function ManagementPage() {
                     className="text-xs font-bold text-red-600 hover:text-red-700 flex items-center gap-1 active:scale-95 transition-all cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
-                    <span>ফিল্টার রিসেট করুন</span>
+                    <span>{t.labels.resetFilters}</span>
                   </button>
                 )}
               </div>
@@ -466,7 +469,7 @@ export default function ManagementPage() {
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   type="text"
-                  placeholder="নাম, ইমেইল বা আইডি দিয়ে খুঁজুন..."
+                  placeholder={t.labels.searchUsers}
                   className="modern-input pl-10 pr-8 h-11 bg-muted/20 focus:bg-background text-sm font-bold w-full"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -490,9 +493,9 @@ export default function ManagementPage() {
                     onChange={(e) => setStatusFilter(e.target.value as any)}
                     className="w-full h-11 px-3.5 text-sm bg-muted/20 border border-border rounded-xl font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all appearance-none cursor-pointer"
                   >
-                    <option value="all">সকল অবস্থা (Status)</option>
-                    <option value="active">সক্রিয় ইউজার</option>
-                    <option value="pending">অপেক্ষমাণ ইউজার</option>
+                    <option value="all">{t.labels.allStatus}</option>
+                    <option value="active">{t.labels.activeUser}</option>
+                    <option value="pending">{t.labels.pendingUser}</option>
                   </select>
                 </div>
 
@@ -503,9 +506,9 @@ export default function ManagementPage() {
                     onChange={(e) => setRoleFilter(e.target.value as any)}
                     className="w-full h-11 px-3.5 text-sm bg-muted/20 border border-border rounded-xl font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all appearance-none cursor-pointer"
                   >
-                    <option value="all">সকল রোল (Role)</option>
-                    <option value="user">সাধারণ ইউজার</option>
-                    <option value="admin">অ্যাডমিন / সুপার অ্যাডমিন</option>
+                    <option value="all">{t.labels.allRoles}</option>
+                    <option value="user">{t.labels.normalUser}</option>
+                    <option value="admin">{t.labels.adminRole}</option>
                   </select>
                 </div>
 
@@ -516,7 +519,7 @@ export default function ManagementPage() {
                     onChange={(e) => setZoneFilter(e.target.value === "all" ? "all" : Number(e.target.value))}
                     className="w-full h-11 px-3.5 text-sm bg-muted/20 border border-border rounded-xl font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all appearance-none cursor-pointer"
                   >
-                    <option value="all">সকল জোন (Zone)</option>
+                    <option value="all">{t.labels.allZones}</option>
                     {userZones.map((z) => (
                       <option key={z.id} value={z.id}>
                         {z.name}
@@ -529,7 +532,7 @@ export default function ManagementPage() {
 
             {/* Filter Results Summary */}
             <div className="flex items-center justify-between text-xs font-bold text-muted-foreground pt-1 border-t border-border/40">
-              <span>প্রদর্শিত ইউজার: <strong className="text-foreground font-black">{filteredUsers.length}</strong> জন (মোট {users.length} জনের মধ্যে)</span>
+              <span>{t.labels.displayedUsers}: <strong className="text-foreground font-black">{filteredUsers.length}</strong> {t.labels.outOfTotal.replace("জনের মধ্যে", "").trim()} ({t.labels.activeUser.split(" ")[1] || "Users"} {users.length})</span>
             </div>
           </div>
 
@@ -591,7 +594,7 @@ export default function ManagementPage() {
                         : "bg-amber-500/10 text-amber-600 border border-amber-500/20"
                     }`}
                   >
-                    {user.active ? "সক্রিয়" : "অপেক্ষমাণ"}
+                    {user.active ? t.userStats.active : t.userStats.pending}
                   </span>
 
                   <div className="flex items-center gap-2">
@@ -654,13 +657,13 @@ export default function ManagementPage() {
 
           {filteredUsers.length === 0 && (
             <div className="text-center py-12 text-muted-foreground font-bold space-y-3">
-              <p className="text-base">কোনো ইউজার পাওয়া যায়নি।</p>
+              <p className="text-base">{t.labels.noUsersFound}</p>
               {hasActiveFilters && (
                 <button
                   onClick={resetFilters}
                   className="px-4 py-2 bg-primary/10 text-primary font-black rounded-xl text-xs hover:bg-primary/20 transition-all cursor-pointer"
                 >
-                  필্টার রিসেট করুন
+                  {t.labels.resetFilters}
                 </button>
               )}
             </div>
@@ -676,7 +679,7 @@ export default function ManagementPage() {
             <div className="bg-primary/5 px-4 py-3 rounded-2xl border border-primary/10 flex items-center gap-3 self-start">
               <TrendingUp className="w-5 h-5 text-primary" />
               <div>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">মোট জোন</p>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t.zoneStats.total}</p>
                 <p className="text-xl font-black leading-none">{zonesWithStats.length}</p>
               </div>
             </div>
@@ -692,7 +695,7 @@ export default function ManagementPage() {
               className="modern-btn btn-primary px-5 py-3 rounded-2xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2.5 font-black active:scale-95 transition-all self-start sm:self-auto cursor-pointer"
             >
               <Plus className="w-5 h-5" />
-              <span>নতুন জোন</span>
+              <span>{t.labels.addZone}</span>
             </button>
           </div>
 
@@ -708,7 +711,7 @@ export default function ManagementPage() {
           <div className="space-y-4">
             <h2 className="text-xl font-black flex items-center gap-2">
               <Map className="w-5 h-5 text-primary" />
-              <span>জোন ও এলাকার তালিকা</span>
+              <span>{t.labels.zoneListTitle}</span>
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -734,7 +737,7 @@ export default function ManagementPage() {
                             {zone.parent_name && (
                               <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-muted text-muted-foreground flex items-center gap-1">
                                 <Layers className="w-2.5 h-2.5" />
-                                <span>অধীনস্থ: {zone.parent_name}</span>
+                                <span>{t.labels.subordinate} {zone.parent_name}</span>
                               </span>
                             )}
                           </div>
@@ -773,7 +776,7 @@ export default function ManagementPage() {
                   <div className="pt-3 border-t border-border/40 flex items-center justify-between gap-2">
                     <span className="flex items-center gap-1.5 text-xs text-muted-foreground font-bold">
                       <FileText className="w-3.5 h-3.5 text-primary" />
-                      <span>{zone.report_count} টি রিপোর্ট</span>
+                      <span>{zone.report_count} {t.labels.reportsCount}</span>
                     </span>
 
                     <button
@@ -781,7 +784,7 @@ export default function ManagementPage() {
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 text-primary font-black text-xs hover:bg-primary/20 active:scale-95 transition-all cursor-pointer"
                     >
                       <Users2 className="w-3.5 h-3.5" />
-                      <span>{zone.user_count} জন ইউজার দেখুন</span>
+                      <span>{zone.user_count} {t.labels.viewUsers}</span>
                     </button>
                   </div>
                 </div>
@@ -855,7 +858,7 @@ export default function ManagementPage() {
                                 : "bg-amber-500/10 text-amber-600"
                             }`}
                           >
-                            {u.active ? "সক্রিয়" : "অপেক্ষমাণ"}
+                            {u.active ? t.userStats.active : t.userStats.pending}
                           </span>
                         </div>
                       </div>

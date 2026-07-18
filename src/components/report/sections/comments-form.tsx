@@ -3,8 +3,10 @@
 import { AutoSaveField } from "../auto-save-field";
 import { MessageSquare, CheckCircle2 } from "lucide-react";
 import { useReport } from "../report-context";
+import { useLanguage } from "@/components/providers/language-provider";
 
 export function CommentsForm() {
+  const { t } = useLanguage();
   const { data, updateField, reportId } = useReport();
   const isSubmitted = Boolean(data?.is_submitted);
 
@@ -23,17 +25,17 @@ export function CommentsForm() {
           <div className="p-2 bg-yellow-500/10 rounded-xl text-yellow-600">
              <MessageSquare className="w-4 h-4" />
           </div>
-          <h3 className="text-base sm:text-lg font-bold text-foreground leading-tight">মন্তব্য</h3>
+          <h3 className="text-base sm:text-lg font-bold text-foreground leading-tight">{t.labels.comments}</h3>
         </div>
 
         <div className="pt-1">
             <AutoSaveField 
-              label="বিশেষ কোন মন্তব্য থাকলে এখানে লিখুন" 
+              label={t.labels.specialComment} 
               name="comment" 
               type="textarea" 
               section="comment" 
               table="report_comment" 
-              placeholder="আপনার বিস্তারিত মন্তব্য এখানে লিখুন..."
+              placeholder={t.labels.commentPlaceholder}
             />
         </div>
       </div>
@@ -50,10 +52,10 @@ export function CommentsForm() {
           </div>
           <div>
             <h4 className="font-bold text-base sm:text-lg leading-tight">
-              রিপোর্ট জমা সম্পন্ন হয়েছে (Report Submission Done)
+              {t.labels.reportSubmissionDone}
             </h4>
             <p className="text-xs sm:text-sm text-muted-foreground mt-1 leading-relaxed">
-              সবগুলো সেকশন সঠিকভাবে পূরণ করা হলে এই বক্সে টিক দিয়ে আপনার মাসিক রিপোর্ট জমা নিশ্চিত করুন।
+              {t.labels.reportSubmissionHelper}
             </p>
           </div>
         </div>

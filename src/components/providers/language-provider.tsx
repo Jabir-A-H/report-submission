@@ -7,6 +7,7 @@ type LanguageContextType = {
   language: Language;
   setLanguage: (lang: Language) => void;
   t: Translations;
+  tc: (key: string) => string;
 };
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -26,12 +27,16 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     setLanguage(lang);
     localStorage.setItem("app-language", lang);
     document.documentElement.lang = lang;
+    document.cookie = `app-language=${lang}; path=/; max-age=31536000`;
   };
 
   const t = translations[language];
+  const tc = (key: string) => {
+    return (t.categories as Record<string, string>)[key] || key;
+  };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, t, tc }}>
       {children}
     </LanguageContext.Provider>
   );

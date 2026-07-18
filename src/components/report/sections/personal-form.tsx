@@ -4,10 +4,12 @@ import { useState } from "react";
 import { AutoSaveField } from "../auto-save-field";
 import { UserPlus, ChevronDown } from "lucide-react";
 import { ViewModeProvider, useViewModeContext } from "../view-mode-toggle";
+import { useLanguage } from "@/components/providers/language-provider";
 
 import { PERSONAL_CATEGORIES, PERSONAL_METRICS_ROWS } from "@/lib/report-utils";
 
 function PersonalFormContent() {
+  const { t, tc, language } = useLanguage();
   const { viewMode } = useViewModeContext();
   const [openCards, setOpenCards] = useState<Record<string, boolean>>({
     [PERSONAL_CATEGORIES[0]]: true,
@@ -27,11 +29,11 @@ function PersonalFormContent() {
           <thead>
             <tr className="border-b border-border bg-muted/50 text-muted-foreground text-xs font-black">
               <th className="p-3 w-52 sticky left-0 bg-muted/90 backdrop-blur z-10 border-r border-border/50 text-left">
-                ব্যক্তিগত উদ্যোগে তা'লীমুল কুরআন
+                {t.labels.personalInitiative}
               </th>
               {PERSONAL_CATEGORIES.map((cat) => (
                 <th key={cat} className="p-2 text-center w-32 border-r border-border font-bold text-foreground">
-                  {cat === "সক্রিয় সহযোগী" ? "সক্রিয় সহযোগী হয়েছেন" : cat}
+                  {cat === "সক্রিয় সহযোগী" ? t.labels.becameActiveAssociate : tc(cat as any)}
                 </th>
               ))}
             </tr>
@@ -40,7 +42,7 @@ function PersonalFormContent() {
             {PERSONAL_METRICS_ROWS.map((metric) => (
               <tr key={metric.key} className="hover:bg-muted/30 transition-colors">
                 <td className="p-3 w-52 font-bold text-foreground sticky left-0 bg-card z-10 border-r border-border/50 text-xs sm:text-sm">
-                  {metric.label}
+                  {tc(metric.label as any)}
                 </td>
                 {PERSONAL_CATEGORIES.map((cat) => (
                   <td key={cat} className="p-1 border-r border-border/40">
@@ -84,7 +86,7 @@ function PersonalFormContent() {
                   <UserPlus className="w-4 h-4" />
                 </div>
                 <h3 className="text-base sm:text-lg font-bold text-foreground">
-                  {category === "সক্রিয় সহযোগী" ? "সক্রিয় সহযোগী হয়েছেন" : category}
+                  {category === "সক্রিয় সহযোগী" ? t.labels.becameActiveAssociate : tc(category as any)}
                 </h3>
               </div>
               <div className="p-1.5 rounded-lg bg-muted/40 text-muted-foreground hover:text-foreground transition-colors">
@@ -102,7 +104,7 @@ function PersonalFormContent() {
                 {/* General Teaching */}
                 <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   <AutoSaveField
-                    label="কতজন শিখাচ্ছেন"
+                    label={t.labels.howManyTeaching}
                     name="teaching"
                     type="number"
                     section="personal"
@@ -112,7 +114,7 @@ function PersonalFormContent() {
                     inputWidth="w-28"
                   />
                   <AutoSaveField
-                    label="কতজনকে শিখাচ্ছেন"
+                    label={t.labels.howManyBeingTaught}
                     name="learning"
                     type="number"
                     section="personal"
@@ -126,10 +128,10 @@ function PersonalFormContent() {
                 {/* Olama Outreach - Clean without nested box borders */}
                 <div className="pt-4 border-t border-border/40 space-y-3.5">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/30 pb-2.5">
-                    <h4 className="text-xs font-bold text-pink-600 uppercase tracking-wide">উলামাদের মাঝে দাওয়াত</h4>
+                    <h4 className="text-xs font-bold text-pink-600 uppercase tracking-wide">{t.labels.dawahToUlama}</h4>
                     <div className="w-full sm:w-64">
                       <AutoSaveField
-                        label="দাওয়াত দিয়েছেন (জন)"
+                        label={t.labels.dawahGivenCount}
                         name="olama_invited"
                         type="number"
                         section="personal"
@@ -142,10 +144,10 @@ function PersonalFormContent() {
                   </div>
 
                   <div>
-                    <h5 className="text-xs font-semibold text-muted-foreground mb-2.5">দাওয়াত প্রাপ্ত উলামাদের মধ্যে:</h5>
+                    <h5 className="text-xs font-semibold text-muted-foreground mb-2.5">{t.labels.amongUlamaGivenDawah}</h5>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                       <AutoSaveField
-                        label="সহযোগী হয়েছেন"
+                        label={t.labels.becameAssociate}
                         name="became_shohojogi"
                         type="number"
                         section="personal"
@@ -154,7 +156,7 @@ function PersonalFormContent() {
                         inline
                       />
                       <AutoSaveField
-                        label="সক্রিয় সহযোগী হয়েছেন"
+                        label={t.labels.becameActiveAssociate}
                         name="became_sokrio_shohojogi"
                         type="number"
                         section="personal"
@@ -167,7 +169,7 @@ function PersonalFormContent() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                     <AutoSaveField
-                      label="কর্মী হয়েছেন"
+                      label={t.labels.becameWorker}
                       name="became_kormi"
                       type="number"
                       section="personal"
@@ -176,7 +178,7 @@ function PersonalFormContent() {
                       inline
                     />
                     <AutoSaveField
-                      label="রুকন হয়েছেন"
+                      label={t.labels.becameRukon}
                       name="became_rukon"
                       type="number"
                       section="personal"

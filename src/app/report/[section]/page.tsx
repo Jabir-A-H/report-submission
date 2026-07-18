@@ -24,7 +24,7 @@ function SectionSwitcher() {
   const { section } = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { t } = useLanguage();
+  const { t, tc } = useLanguage();
   const { reportId, setReportId, loadReport } = useReport();
   const supabase = useMemo(() => createClient(), []);
   const [isLoading, setIsLoading] = useState(true);
@@ -91,7 +91,7 @@ function SectionSwitcher() {
 
       if (selectedYear > currentYear || (selectedYear === currentYear && endingMonth > currentMonth)) {
         if (!ignore) {
-          setError("ভবিষ্যতের সময়ের জন্য রিপোর্ট তৈরি বা পরিবর্তন করা সম্ভব নয়।");
+          setError(t.futureReportError);
           setIsLoading(false);
         }
         return;
@@ -119,19 +119,24 @@ function SectionSwitcher() {
         return;
       }
 
-      if (!person?.zone_id) {
-        setError("আপনার জোন এখনও নির্ধারণ করা হয়নি।");
+      if (!person || !person.zone_id) {
+        setError(t.zoneNotAssigned);
         setIsLoading(false);
         return;
       }
 
       // Map dynamic URL types to Bangla report types
       const REPORT_TYPE_MAP: Record<string, string> = {
-        monthly: "মাসিক",
-        quarterly: "ত্রৈমাসিক",
-        halfYearly: "ষান্মাসিক",
-        nineMonth: "নয়-মাসিক",
-        yearly: "বার্ষিক",
+        monthly: t.reportTypes.monthly,
+        quarterly: t.reportTypes.quarterly,
+        halfYearly: t.reportTypes.halfYearly,
+        nineMonth: t.reportTypes.nineMonth,
+        yearly: t.reportTypes.yearly,
+        [t.reportTypes.monthly]: t.reportTypes.monthly,
+        [t.reportTypes.quarterly]: t.reportTypes.quarterly,
+        [t.reportTypes.halfYearly]: t.reportTypes.halfYearly,
+        [t.reportTypes.nineMonth]: t.reportTypes.nineMonth,
+        [t.reportTypes.yearly]: t.reportTypes.yearly,
         "মাসিক": "মাসিক",
         "ত্রৈমাসিক": "ত্রৈমাসিক",
         "ষান্মাসিক": "ষান্মাসিক",
@@ -150,8 +155,8 @@ function SectionSwitcher() {
 
       if (ignore) return;
       if (rpcErr || !repId) {
-        console.error("RPC Error:", rpcErr);
-        setError("রিপোর্ট লোড বা তৈরি করতে সমস্যা হয়েছে।");
+        console.error("Error initializing report:", rpcErr);
+        setError(t.reportLoadError);
       } else {
         setReportId(repId);
         await loadReport(repId);
@@ -166,7 +171,7 @@ function SectionSwitcher() {
     return () => {
       ignore = true;
     };
-  }, [typeParam, monthParam, yearParam, hasValidParams, supabase, router, setReportId, loadReport]);
+  }, [typeParam, monthParam, yearParam, hasValidParams, supabase, router, setReportId, loadReport, t]);
 
   if (!hasValidParams || isLoading) {
     return (

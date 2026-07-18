@@ -5,42 +5,45 @@ import { Sun, Moon, Palette } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
-const themeOptions = [
-  {
-    id: "light",
-    label: "লাইট",
-    icon: Sun,
-    bg: "bg-[hsl(220,33%,98%)]",
-    fg: "border-[hsl(190,90%,40%)]",
-    dot: "bg-[hsl(190,90%,40%)]",
-  },
-  {
-    id: "dark",
-    label: "ডার্ক",
-    icon: Moon,
-    bg: "bg-[hsl(222,47%,11%)]",
-    fg: "border-[hsl(190,90%,45%)]",
-    dot: "bg-[hsl(190,90%,45%)]",
-  },
-  {
-    id: "solarized-light",
-    label: "সোলার",
-    icon: Palette,
-    bg: "bg-[hsl(44,87%,94%)]",
-    fg: "border-[hsl(175,59%,40%)]",
-    dot: "bg-[hsl(175,59%,40%)]",
-  },
-  {
-    id: "solarized-dark",
-    label: "সো. ডার্ক",
-    icon: Palette,
-    bg: "bg-[hsl(192,100%,13%)]",
-    fg: "border-[hsl(175,59%,40%)]",
-    dot: "bg-[hsl(175,59%,40%)]",
-  },
-];
+import { useLanguage } from "@/components/providers/language-provider";
 
 export function ThemeToggle() {
+  const { t } = useLanguage();
+
+  const themeOptions = [
+    {
+      id: "light",
+      label: t.labels.themeLight,
+      icon: Sun,
+      bg: "bg-[hsl(220,33%,98%)]",
+      fg: "border-[hsl(190,90%,40%)]",
+      dot: "bg-[hsl(190,90%,40%)]",
+    },
+    {
+      id: "dark",
+      label: t.labels.themeDark,
+      icon: Moon,
+      bg: "bg-[hsl(222,47%,11%)]",
+      fg: "border-[hsl(190,90%,45%)]",
+      dot: "bg-[hsl(190,90%,45%)]",
+    },
+    {
+      id: "solarized-light",
+      label: t.labels.themeSolar,
+      icon: Palette,
+      bg: "bg-[hsl(44,87%,94%)]",
+      fg: "border-[hsl(175,59%,40%)]",
+      dot: "bg-[hsl(175,59%,40%)]",
+    },
+    {
+      id: "solarized-dark",
+      label: t.labels.themeSolarDark,
+      icon: Palette,
+      bg: "bg-[hsl(192,100%,13%)]",
+      fg: "border-[hsl(175,59%,40%)]",
+      dot: "bg-[hsl(175,59%,40%)]",
+    },
+  ];
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 

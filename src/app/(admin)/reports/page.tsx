@@ -17,6 +17,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import Link from "next/link";
+import { useLanguage } from "@/components/providers/language-provider";
 
 // ── Types ──────────────────────────────────────────────────────────
 type ReportRow = {
@@ -72,6 +73,8 @@ const PER_PAGE_OPTIONS = [10, 25, 50, 100] as const;
 
 // ── Component ──────────────────────────────────────────────────────
 export default function ZoneReportsPage() {
+  const { t } = useLanguage();
+
   const supabase = useMemo(() => createClient(), []);
 
   // Filter state
@@ -220,10 +223,10 @@ export default function ZoneReportsPage() {
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl font-black text-foreground">
-                সব জোন রিপোর্ট
+                {t.labels.allZoneReports}
               </h1>
               <p className="text-muted-foreground mt-1">
-                সকল জোনের জমাকৃত রিপোর্টের তালিকা
+                {t.labels.allZoneReportsDesc}
               </p>
             </div>
           </div>
@@ -233,7 +236,7 @@ export default function ZoneReportsPage() {
             className="modern-btn border border-border bg-card px-4 py-2 text-sm font-bold flex items-center gap-2 active:scale-95 transition-all disabled:opacity-50 self-start"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            <span className="md:hidden">রিফ্রেশ</span>
+            <span className="md:hidden">{t.labels.refresh}</span>
           </button>
         </div>
 
@@ -242,13 +245,13 @@ export default function ZoneReportsPage() {
           {/* Zone Search */}
           <div className="md:col-span-3">
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block">
-              জোন অনুসন্ধান
+              {t.labels.searchZone}
             </label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
-                placeholder="জোনের নাম লিখুন..."
+                placeholder={t.labels.searchZonePlaceholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="modern-input h-12 w-full pl-10 bg-muted/30 focus:bg-background"
@@ -259,14 +262,14 @@ export default function ZoneReportsPage() {
           {/* Report Type */}
           <div className="md:col-span-3">
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block">
-              রিপোর্টের ধরন
+              {t.labels.reportTypeLabel}
             </label>
             <select
               value={reportType}
               onChange={(e) => setReportType(e.target.value)}
               className="modern-input h-12 w-full bg-muted/30 focus:bg-background"
             >
-              <option value="all">সকল ধরন</option>
+              <option value="all">{t.labels.allTypes}</option>
               <option value="মাসিক">মাসিক</option>
               <option value="ত্রৈমাসিক">ত্রৈমাসিক</option>
               <option value="ষান্মাসিক">ষান্মাসিক</option>
@@ -278,14 +281,14 @@ export default function ZoneReportsPage() {
           {/* Month */}
           <div className="md:col-span-2">
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block">
-              মাস
+              {t.labels.monthLabel}
             </label>
             <select
               value={filterMonth}
               onChange={(e) => setFilterMonth(Number(e.target.value))}
               className="modern-input h-12 w-full bg-muted/30 focus:bg-background"
             >
-              <option value={0}>সকল মাস</option>
+              <option value={0}>{t.labels.allMonths}</option>
               {Object.entries(BN_MONTHS).map(([num, name]) => (
                 <option key={num} value={num}>
                   {name}
@@ -297,14 +300,14 @@ export default function ZoneReportsPage() {
           {/* Year */}
           <div className="md:col-span-2">
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block">
-              বছর
+              {t.labels.yearLabel}
             </label>
             <select
               value={filterYear}
               onChange={(e) => setFilterYear(Number(e.target.value))}
               className="modern-input h-12 w-full bg-muted/30 focus:bg-background"
             >
-              <option value={0}>সকল বছর</option>
+              <option value={0}>{t.labels.allYears}</option>
               {yearOptions.map((y) => (
                 <option key={y} value={y}>
                   {toBengaliNum(y)}
@@ -325,7 +328,7 @@ export default function ZoneReportsPage() {
               ) : (
                 <Filter className="w-4 h-4" />
               )}
-              <span>ফিল্টার</span>
+              <span>{t.labels.filterButton}</span>
             </button>
           </div>
         </div>
@@ -339,7 +342,7 @@ export default function ZoneReportsPage() {
           </div>
           <div>
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-              মোট রিপোর্ট
+              {t.labels.totalReports}
             </p>
             <p className="text-xl font-black leading-none mt-1">
               {toBengaliNum(totalReports)}
@@ -353,7 +356,7 @@ export default function ZoneReportsPage() {
           </div>
           <div>
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-              রিপোর্টকৃত জোন
+              {t.labels.reportedZones}
             </p>
             <p className="text-xl font-black leading-none mt-1">
               {toBengaliNum(uniqueZones)}
@@ -367,7 +370,7 @@ export default function ZoneReportsPage() {
           </div>
           <div>
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-              ফিল্টারকৃত ফলাফল
+              {t.labels.filteredResults}
             </p>
             <p className="text-xl font-black leading-none mt-1">
               {toBengaliNum(totalCount)}
@@ -405,11 +408,11 @@ export default function ZoneReportsPage() {
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-muted/50 text-muted-foreground">
               <tr>
-                <th className="px-6 py-4 font-bold border-b border-border">জোন</th>
-                <th className="px-6 py-4 font-bold border-b border-border">ধরন</th>
-                <th className="px-6 py-4 font-bold border-b border-border">মাস/বছর</th>
+                <th className="px-6 py-4 font-bold border-b border-border">{t.labels.zoneCol}</th>
+                <th className="px-6 py-4 font-bold border-b border-border">{t.labels.typeCol}</th>
+                <th className="px-6 py-4 font-bold border-b border-border">{t.labels.monthYearCol}</th>
                 <th className="px-6 py-4 font-bold border-b border-border text-right">
-                  অ্যাকশন
+                  {t.labels.actionCol}
                 </th>
               </tr>
             </thead>
@@ -419,8 +422,8 @@ export default function ZoneReportsPage() {
                   <td colSpan={4} className="px-6 py-16 text-center">
                     <div className="flex flex-col items-center gap-3 text-muted-foreground">
                       <FileSpreadsheet className="w-10 h-10 opacity-40" />
-                      <p className="font-bold text-lg">কোনো রিপোর্ট পাওয়া যায়নি</p>
-                      <p className="text-sm">ফিল্টার পরিবর্তন করে আবার চেষ্টা করুন</p>
+                      <p className="font-bold text-lg">{t.labels.noReportsFound}</p>
+                      <p className="text-sm">{t.labels.changeFilterAndTryAgain}</p>
                     </div>
                   </td>
                 </tr>
@@ -455,7 +458,7 @@ export default function ZoneReportsPage() {
                         className="inline-flex items-center gap-2 text-sm font-bold text-primary hover:text-primary/80 transition-colors bg-primary/10 px-4 py-2 rounded-lg hover:bg-primary/20"
                       >
                         <Eye className="w-4 h-4" />
-                        রিপোর্ট দেখুন
+                        {t.labels.viewReport}
                       </Link>
                     </td>
                   </tr>
@@ -478,8 +481,8 @@ export default function ZoneReportsPage() {
           <div className="bg-card border border-border rounded-2xl p-10 text-center">
             <div className="flex flex-col items-center gap-3 text-muted-foreground">
               <FileSpreadsheet className="w-10 h-10 opacity-40" />
-              <p className="font-bold text-lg">কোনো রিপোর্ট পাওয়া যায়নি</p>
-              <p className="text-sm">ফিল্টার পরিবর্তন করে আবার চেষ্টা করুন</p>
+              <p className="font-bold text-lg">{t.labels.noReportsFound}</p>
+              <p className="text-sm">{t.labels.changeFilterAndTryAgain}</p>
             </div>
           </div>
         ) : (
@@ -505,13 +508,13 @@ export default function ZoneReportsPage() {
 
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <span className="text-muted-foreground text-xs block">ধরন</span>
+                  <span className="text-muted-foreground text-xs block">{t.labels.typeCol}</span>
                   <span className="font-semibold">
                     {REPORT_TYPE_LABELS[report.report_type] ?? report.report_type}
                   </span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground text-xs block">সময়কাল</span>
+                  <span className="text-muted-foreground text-xs block">{t.labels.reportPeriodTitle.replace(":", "")}</span>
                   <span className="font-semibold">
                     {BN_MONTHS[report.month] ?? report.month} {toBengaliNum(report.year)}
                   </span>
@@ -523,7 +526,7 @@ export default function ZoneReportsPage() {
                 className="w-full modern-btn bg-primary/10 text-primary hover:bg-primary/20 flex items-center justify-center gap-2 py-3 rounded-xl font-bold"
               >
                 <Eye className="w-4 h-4" />
-                রিপোর্ট দেখুন
+                {t.labels.viewReport}
               </Link>
             </div>
           ))
@@ -535,7 +538,7 @@ export default function ZoneReportsPage() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-4 px-2">
           {/* Per-page selector */}
           <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
-            <span>প্রদর্শন:</span>
+            <span>{t.labels.display}</span>
             <select
               value={perPage}
               onChange={(e) => setPerPage(Number(e.target.value))}
@@ -547,7 +550,7 @@ export default function ZoneReportsPage() {
                 </option>
               ))}
             </select>
-            <span>এন্ট্রি</span>
+            <span>{t.labels.entries}</span>
             <span className="text-xs ml-2">
               ({toBengaliNum((currentPage - 1) * perPage + 1)}–
               {toBengaliNum(Math.min(currentPage * perPage, totalCount))}{" "}

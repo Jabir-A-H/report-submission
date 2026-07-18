@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { login } from '@/app/home/actions'
 import { RegisterFormClient } from './register-form-client'
@@ -24,14 +24,14 @@ export function AuthPortalClient({
   const router = useRouter()
 
   // Ensure logged-in users navigating via client router or cached history are redirected
+  const supabase = useMemo(() => createClient(), [])
   useEffect(() => {
-    const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         router.replace('/')
       }
     })
-  }, [router])
+  }, [router, supabase])
 
   // Update tab when URL param changes
   useEffect(() => {

@@ -2,6 +2,7 @@ import { updatePassword } from './actions'
 import { Building2, Save } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import { getServerLanguage } from "@/lib/i18n";
 
 export default async function UpdatePasswordPage({
   searchParams,
@@ -11,12 +12,14 @@ export default async function UpdatePasswordPage({
   const resolvedParams = await searchParams;
   const supabase = await createClient();
   
+  const { t } = await getServerLanguage();
+
   // Guard: Only allow users with a valid session to update their password.
   // The /auth/callback route exchanges the email code for a session before
   // redirecting the user here.
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    redirect('/home?mode=login&message=লিঙ্কটি মেয়াদোত্তীর্ণ বা অবৈধ। আবার চেষ্টা করুন।');
+    redirect(`/home?mode=login&message=${encodeURIComponent(t.linkExpired)}`);
   }
 
   return (
@@ -34,11 +37,11 @@ export default async function UpdatePasswordPage({
           <div className="w-20 h-20 bg-primary text-primary-foreground rounded-[2rem] flex items-center justify-center mb-8 shadow-2xl shadow-primary/30 transform -rotate-6">
             <Building2 className="w-10 h-10" />
           </div>
-          <h1 className="text-5xl font-black text-foreground mb-6 leading-tight font-bengali">
-            নতুন পাসওয়ার্ড<br/>সেট করুন
+          <h1 className="text-5xl font-black text-foreground mb-6 leading-tight font-bengali whitespace-pre-wrap">
+            {t.setNewPassword}
           </h1>
           <p className="text-lg text-muted-foreground leading-relaxed">
-            আপনার অ্যাকাউন্টের জন্য একটি নতুন এবং সুরক্ষিত পাসওয়ার্ড তৈরি করুন। পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।
+            {t.newPasswordDesc}
           </p>
         </div>
       </div>
@@ -53,8 +56,8 @@ export default async function UpdatePasswordPage({
           </div>
 
           <div>
-            <h2 className="text-3xl font-black text-foreground mb-2">নতুন পাসওয়ার্ড</h2>
-            <p className="text-muted-foreground font-medium">আপনার নতুন পাসওয়ার্ডটি লিখুন</p>
+            <h2 className="text-3xl font-black text-foreground mb-2">{t.newPasswordLabel}</h2>
+            <p className="text-muted-foreground font-medium">{t.enterNewPassword}</p>
           </div>
 
           <form action={updatePassword} className="animate-in flex-1 flex flex-col w-full justify-center gap-6 text-foreground">
@@ -62,7 +65,7 @@ export default async function UpdatePasswordPage({
             <div className="space-y-4">
                <div>
                   <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block" htmlFor="password">
-                     নতুন পাসওয়ার্ড
+                     {t.newPasswordLabel}
                   </label>
                   <input
                     className="modern-input w-full h-14 text-lg bg-muted/40 focus:bg-background transition-colors tracking-widest px-4 rounded-xl border border-border"
@@ -76,7 +79,7 @@ export default async function UpdatePasswordPage({
                
                <div>
                   <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block" htmlFor="confirmPassword">
-                     পাসওয়ার্ড নিশ্চিত করুন
+                     {t.confirmPassword}
                   </label>
                   <input
                     className="modern-input w-full h-14 text-lg bg-muted/40 focus:bg-background transition-colors tracking-widest px-4 rounded-xl border border-border"
@@ -90,7 +93,7 @@ export default async function UpdatePasswordPage({
             </div>
 
             <button type="submit" className="modern-btn btn-primary h-14 text-lg font-bold w-full flex items-center justify-center gap-3 group mt-2 shadow-xl shadow-primary/20 bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity">
-               পাসওয়ার্ড সেভ করুন
+               {t.savePassword}
                <Save className="w-5 h-5 group-hover:scale-110 transition-transform" />
             </button>
 

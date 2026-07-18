@@ -89,17 +89,17 @@ export function UserDropdown() {
               <summary className="flex items-center justify-between px-3.5 py-2.5 text-xs font-bold text-muted-foreground hover:text-foreground cursor-pointer select-none transition-colors">
                 <span className="flex items-center gap-2.5">
                   <span className="text-base">⚙️</span>
-                  <span>থিম ও ভাষা (Appearance)</span>
+                  <span>{t.labels.appearance}</span>
                 </span>
                 <span className="text-[10px] group-open:rotate-180 transition-transform duration-200">▼</span>
               </summary>
               <div className="p-3 space-y-2.5 border-t border-border/40 bg-muted/30 animate-in fade-in duration-200">
                 <div className="px-2 py-1.5 bg-background/60 rounded-lg">
-                  <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest block mb-1.5">থিম</span>
+                  <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest block mb-1.5">{t.theme}</span>
                   <ThemeToggle />
                 </div>
                 <div className="flex items-center justify-between px-2.5 py-2 bg-background/60 rounded-lg">
-                  <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">ভাষা</span>
+                  <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{t.language}</span>
                   <LanguageToggle />
                 </div>
               </div>
@@ -112,7 +112,7 @@ export function UserDropdown() {
               className="group flex items-center gap-3 px-3 py-2.5 text-sm font-bold rounded-xl hover:bg-muted/60 transition-all text-muted-foreground hover:text-foreground"
             >
               <HelpCircle className="w-4 h-4" />
-              <span>সাহায্য</span>
+              <span>{t.help}</span>
             </Link>
             
             <div className="my-2 border-t border-muted/50" />
@@ -125,7 +125,7 @@ export function UserDropdown() {
                     const res = await fetch("/auth/logout", { method: "POST" });
                     if (!res.ok) throw new Error("Logout failed");
                   } catch {
-                    alert("সাইন আউট করতে সমস্যা হয়েছে। পেজ রিফ্রেশ করুন।");
+                    alert(t.labels.logoutError);
                     return;
                   }
                   window.location.href = "/home";

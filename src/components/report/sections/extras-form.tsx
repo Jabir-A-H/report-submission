@@ -17,7 +17,11 @@ const SAFAR_CATEGORIES = [
   "ওয়ার্ড প্রতিনিধির সফর",
 ];
 
+import { useLanguage } from "@/components/providers/language-provider";
+
 export function ExtrasForm() {
+  const { t, tc } = useLanguage();
+
   return (
     <div className="space-y-6">
       {/* Card 1: Moktob Report */}
@@ -26,14 +30,14 @@ export function ExtrasForm() {
           <div className="p-2 bg-green-500/10 rounded-xl text-green-600">
              <BookOpen className="w-4 h-4" />
           </div>
-          <h3 className="text-base sm:text-lg font-bold text-foreground leading-tight">মক্তব রিপোর্ট</h3>
+          <h3 className="text-base sm:text-lg font-bold text-foreground leading-tight">{t.labels.maktabReport}</h3>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {MOKTOB_CATEGORIES.map((category) => (
             <AutoSaveField 
               key={category}
-              label={category}
+              label={tc(category as any)}
               name="number" 
               type="number" 
               section="extra" 
@@ -52,14 +56,14 @@ export function ExtrasForm() {
           <div className="p-2 bg-emerald-500/10 rounded-xl text-emerald-600">
              <Compass className="w-4 h-4" />
           </div>
-          <h3 className="text-base sm:text-lg font-bold text-foreground leading-tight">সফর রিপোর্ট</h3>
+          <h3 className="text-base sm:text-lg font-bold text-foreground leading-tight">{t.labels.safarReport}</h3>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {SAFAR_CATEGORIES.map((category) => (
             <AutoSaveField 
               key={category}
-              label={category}
+              label={tc(category as any)}
               name="number" 
               type="number" 
               section="extra" 
