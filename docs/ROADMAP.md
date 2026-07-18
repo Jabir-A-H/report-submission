@@ -39,7 +39,10 @@
 
 **Context**: A systematic behavioral audit (2026-07-16) revealed the admin area had grown to 7 fragmented routes with structural duplication, a nav collision (public `<Navbar>` and `<BottomNav>` rendering on all `/admin/*` routes), 6+ `useMemo` violations, and a critical data integrity issue: DCS (ডি সি এস — the city-level entity, `zone_id=1`) was being treated as a regular zone, allowing admins to accidentally enter data via zone-manager forms and corrupt city aggregation totals. Additionally, the `zone` table had no structural way to distinguish city-level zones from reporting zones, requiring an extensible hierarchy schema.
 
-**Deferred (DB changes — apply separately):**
+**Deferred (DB changes — scheduled for future downward port rollout after user adoption):**
+> [!NOTE]
+> **Staged Rollout Strategy**: While the frontend (`ManagementPage`) and views (`ADR-009`) are structurally pre-built to support sub-tier extension, running the `zone_type` and `parent_id` SQL migration on the live database (`pxdkvewaglagnfcqeckn`) is **deliberately deferred**. The priority is allowing existing users to get comfortable and fully accustomed to the new 2-tier system (`City → Zone`) first. Once user adoption is solidified, we will port the system one level down (`Zone → Thana`) cleanly without disrupting active operations.
+
 1. [ ] **Zone Hierarchy Schema (`zone_type` + `parent_id`, ADR-009)**: Add `zone_type TEXT NOT NULL DEFAULT 'zone'` and `parent_id INTEGER REFERENCES zone(id)` columns to `zone` table. Set DCS (`id=1`) to `zone_type='city', parent_id=NULL`. Set all other 13 zones to `zone_type='zone', parent_id=1`.
 2. [ ] **Update All 6 `view_city_*_agg` Postgres Views**: Add `JOIN zone z ON r.zone_id = z.id` + `WHERE z.zone_type != 'city'` to all six city aggregation views.
 3. [ ] **Delete Accidental DCS Report (`report.id=36`)**: Remove the auto-created report before view updates.

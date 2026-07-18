@@ -178,8 +178,11 @@ Delete `report.id = 36` (zone_id=1, July 2026 — accidentally created via admin
 
 ## Implementation Notes & Migration Staging Protocol
 
-### 1. Staged Database Migration (To Be Applied Later)
-When the application hierarchy is ported down one level, the following SQL DDL migration must be applied atomically via `apply_migration` (or Supabase SQL Editor):
+### 1. Staged Database Migration (To Be Applied Later After User Adoption)
+> [!IMPORTANT]
+> **Rollout Governance**: Execution of this SQL migration on the live database (`pxdkvewaglagnfcqeckn`) and porting the reporting tree one level down (from `Zone` to `Thana` level) are **deliberately staged for a later rollout phase**. We must first ensure that our current users get completely accustomed to and confident with the newly established 2-tier system (`City → Zone`). Only after stable user adoption is achieved will we execute this DDL query and port down to the next hierarchical tier.
+
+When the application hierarchy is officially ported down one level (`Zone → Thana`), the following SQL DDL migration must be applied atomically via `apply_migration` (or Supabase SQL Editor):
 ```sql
 ALTER TABLE zone ADD COLUMN IF NOT EXISTS zone_type TEXT NOT NULL DEFAULT 'zone';
 ALTER TABLE zone ADD COLUMN IF NOT EXISTS parent_id INTEGER REFERENCES zone(id);

@@ -155,3 +155,12 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 - **Description**: Navigating from the Dashboard (`/?type=...&month=...&year=...`) to section or global pages (`/report/courses` or `/help`) and clicking "Home" resulted in period query parameter loss. Storing period filters purely in `localStorage` was rejected because it broke multi-tab side-by-side comparison (`Tab A` vs `Tab B`).
 - **Fix**: Implemented Hybrid State Persistence (URL query strings as active tab truth + `sessionStorage ("dashboard-period-params")` as fallback memory when returning to `/` with clean URLs). Enforced Clean Session Guarantee via explicit force purging (`sessionStorage.removeItem("dashboard-period-params")`) on `/auth/logout` (`user-dropdown`, `bottom-nav`) and initial `/login` mount (`SessionCleaner`) (ADR 005).
 
+---
+
+### App Router / Turbopack `performance.measure` Negative Timestamp TypeError on `not-found` Redirect
+- **Date**: 2026-07-17
+- **Resolution Date**: 2026-07-17
+- **Description**: When navigating to unmatched URLs or triggering 404 handlers (`src/app/not-found.tsx` and `src/app/[...not-found]/page.tsx`), Next.js client navigation crashed with `Runtime TypeError: Failed to execute 'measure' on 'Performance': 'NotFound' cannot have a negative time stamp.` Because both 404 route components previously executed `redirect("/")` synchronously inside their component render bodies, throwing `NEXT_REDIRECT` mid-render abruptly interrupted the `"NotFound"` route transition and immediately started a replacement navigation to `/`. This caused Next.js's internal performance instrumentation (`markRenderComplete`) to measure render duration (`routeChangeToRender` / `render`) against the newly overwritten navigation start mark (`routeChange`), producing negative `end - start` timestamps.
+- **Fix**: Converted both `src/app/not-found.tsx` and `src/app/[...not-found]/page.tsx` to `"use client"` components that return `null` during render (`beforeRender <= afterRender`) and perform a safe client navigation (`useRouter().replace("/")`) inside `useEffect`. This allows React to cleanly commit the 404 route segment and measure performance without negative timestamps before redirecting the browser.
+
+
