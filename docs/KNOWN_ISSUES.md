@@ -33,7 +33,7 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 - **Date**: 2026-07-16
 - **Resolution Date**: 2026-07-17
 - **Description**: `src/app/report/[section]/page.tsx` had no role check, allowing superadmins to visit `/report/header?type=monthly&month=7&year=2026` and accidentally create a DCS zone report (`id=36`).
-- **Fix**: Enforced `SectionSwitcher` role guard (`if (role === 'admin' || role === 'superadmin') router.replace('/dashboard')`). Excluded DCS (`zone_type = 'city'`) across city aggregation views and route handlers.
+- **Fix**: Enforced `SectionSwitcher` role guard (`if (role === 'admin' || role === 'superadmin') router.replace('/dashboard')`). Excluded DCS across city aggregation views pragmatically using a hardcoded `WHERE r.zone_id != 1` exclusion, as the full `zone_type = 'city'` ADR-009 schema migration remains deferred for user adoption reasons.
 
 ### Save Override Failure (`42P10`) & Edit Report Display Enhancements (ADR 010)
 - **Date**: 2026-07-17

@@ -13,8 +13,22 @@ import {
   Save,
   SearchX,
   ChevronRight,
+  AlertCircle,
 } from "lucide-react";
 import { ORG_CATEGORIES } from "@/components/report/sections/organizational-form";
+import {
+  BENGALI_DIGITS,
+  MONTHS_BN,
+  REPORT_TYPES,
+  COURSE_CATEGORIES,
+  PERSONAL_CATEGORIES,
+  PERSONAL_METRICS_ROWS,
+  MEETING_CATEGORIES,
+  toBn,
+  getMonthsForPeriod,
+  sumRows,
+  sumHeaderRows,
+} from "@/lib/report-utils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -110,64 +124,6 @@ interface OverrideRow {
   category: string | null;
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const BENGALI_DIGITS = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
-
-const MONTHS_BN = [
-  "জানুয়ারি",
-  "ফেব্রুয়ারি",
-  "মার্চ",
-  "এপ্রিল",
-  "মে",
-  "জুন",
-  "জুলাই",
-  "আগস্ট",
-  "সেপ্টেম্বর",
-  "অক্টোবর",
-  "নভেম্বর",
-  "ডিসেম্বর",
-];
-
-const REPORT_TYPES = [
-  { value: "মাসিক", label: "মাসিক" },
-  { value: "ত্রৈমাসিক", label: "ত্রৈমাসিক" },
-  { value: "ষান্মাসিক", label: "ষান্মাসিক" },
-  { value: "নয়-মাসিক", label: "নয়-মাসিক" },
-  { value: "বার্ষিক", label: "বার্ষিক" },
-];
-
-const COURSE_CATEGORIES = [
-  "বিশিষ্টদের",
-  "সাধারণদের",
-  "কর্মীদের",
-  "ইউনিট সভানেত্রী",
-  "অগ্রসরদের",
-  "রুকনদের অনুশীলনী ক্লাস",
-  "শিশু- তা'লিমুল কুরআন",
-  "নিরক্ষর- তা'লিমুস সলাত",
-];
-
-const PERSONAL_CATEGORIES = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"];
-
-const PERSONAL_METRICS_ROWS = [
-  { key: "teaching", label: "কতজন শিখাচ্ছেন" },
-  { key: "learning", label: "কতজনকে শিখাচ্ছেন" },
-  { key: "olama_invited", label: "দাওয়াতপ্রাপ্ত ওলামা" },
-  { key: "became_shohojogi", label: "সহযোগী হয়েছেন" },
-  { key: "became_sokrio_shohojogi", label: "সক্রিয় সহযোগী হয়েছেন" },
-  { key: "became_kormi", label: "কর্মী হয়েছেন" },
-  { key: "became_rukon", label: "রুকন হয়েছেন" },
-];
-
-const MEETING_CATEGORIES = [
-  "কমিটি বৈঠক হয়েছে",
-  "মুয়াল্লিমাদের নিয়ে বৈঠক",
-  "Committee Orientation",
-  "Muallima Orientation",
-  "অন্যান্য",
-];
-
 const HEADER_FIELDS: { key: keyof HeaderRow; label: string; color?: string }[] =
   [
     { key: "total_muallima", label: "মোট মুয়াল্লিমা" },
@@ -187,87 +143,6 @@ const HEADER_FIELDS: { key: keyof HeaderRow; label: string; color?: string }[] =
     { key: "units_with_muallima", label: "মুয়াল্লিমা আছে" },
   ];
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function toBn(n: number | string | null | undefined): string {
-  if (n === null || n === undefined) return "০";
-  return String(n).replace(/\d/g, (d) => BENGALI_DIGITS[parseInt(d)]);
-}
-
-/** Get the months array for a given report type and selected month */
-function getMonthsForPeriod(
-  reportType: string,
-  selectedMonth: number
-): number[] {
-  switch (reportType) {
-    case "ত্রৈমাসিক":
-      return [1, 2, 3];
-    case "ষান্মাসিক":
-      return [1, 2, 3, 4, 5, 6];
-    case "নয়-মাসিক":
-      return [1, 2, 3, 4, 5, 6, 7, 8, 9];
-    case "বার্ষিক":
-      return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-    default: // মাসিক
-      return [selectedMonth];
-  }
-}
-
-/** Sum numeric fields across multiple rows, grouped by category */
-function sumRows<T>(
-  rows: T[],
-  numericKeys: string[]
-): T[] {
-  const grouped = new Map<string, T>();
-  for (const row of rows) {
-    const cat = ((row as any).category as string) || "__header__";
-    if (!grouped.has(cat)) {
-      grouped.set(cat, { ...row });
-    } else {
-      const existing = grouped.get(cat)!;
-      for (const k of numericKeys) {
-        (existing as any)[k] =
-          ((existing as any)[k] || 0) + ((row as any)[k] || 0);
-      }
-      if ((row as any).meeting_name && (row as any).meeting_name.trim() !== "") {
-        if (!((existing as any).meeting_name || "").includes((row as any).meeting_name.trim())) {
-          (existing as any).meeting_name = [(existing as any).meeting_name, (row as any).meeting_name.trim()].filter(Boolean).join(", ");
-        }
-      }
-      if ((row as any).comments && (row as any).comments.trim() !== "") {
-        if (!((existing as any).comments || "").includes((row as any).comments.trim())) {
-          (existing as any).comments = [(existing as any).comments, (row as any).comments.trim()].filter(Boolean).join(", ");
-        }
-      }
-    }
-  }
-  return Array.from(grouped.values());
-}
-
-/** Sum header rows (single row result) */
-function sumHeaderRows(rows: HeaderRow[]): HeaderRow | null {
-  if (rows.length === 0) return null;
-  const base = { ...rows[0] };
-  const numericKeys: (keyof HeaderRow)[] = [
-    "total_muallima",
-    "muallima_increase",
-    "muallima_decrease",
-    "certified_muallima",
-    "certified_muallima_taking_classes",
-    "trained_muallima",
-    "trained_muallima_taking_classes",
-    "total_unit",
-    "units_with_muallima",
-  ];
-  for (let i = 1; i < rows.length; i++) {
-    for (const k of numericKeys) {
-      (base as any)[k] =
-        ((base as any)[k] || 0) + ((rows[i] as any)[k] || 0);
-    }
-  }
-  return base;
-}
-
 // ─── Context & Top-Level Cell Component ────────────────────────────────────────
 
 const CityReportContext = createContext<{
@@ -279,7 +154,8 @@ const CityReportContext = createContext<{
     section: string,
     field: string,
     computedValue: any,
-    category?: string
+    category?: string,
+    isText?: boolean
   ) => { value: any; isOverridden: boolean };
 } | null>(null);
 
@@ -305,7 +181,8 @@ function NumericCell({
     section,
     field,
     computedValue ?? (isText ? "" : 0),
-    category
+    category,
+    isText
   );
   if (isOverridden) {
     const badge = (
@@ -394,6 +271,7 @@ export default function CityReportPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(true);
   const [hasFetched, setHasFetched] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Override map: `section:field:category` → value
   const overrideMap = useMemo(() => {
@@ -409,22 +287,24 @@ export default function CityReportPage() {
   function getVal(
     section: string,
     field: string,
-    computedValue: number | null | undefined,
-    category?: string
-  ): { value: number; isOverridden: boolean } {
+    computedValue: any,
+    category?: string,
+    isText?: boolean
+  ): { value: any; isOverridden: boolean } {
     const key = `${section}:${field}:${category || ""}`;
     const ov = overrideMap.get(key);
     if (ov !== undefined) {
-      return { value: Number(ov), isOverridden: true };
+      return { value: isText ? ov : Number(ov), isOverridden: true };
     }
-    return { value: computedValue ?? 0, isOverridden: false };
+    return { value: computedValue ?? (isText ? "" : 0), isOverridden: false };
   }
 
   // ─── Fetch Logic ────────────────────────────────────────────────────────────
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (ignoreFlag: { current: boolean }) => {
     setIsLoading(true);
     setHasFetched(true);
+    setError(null);
 
     const months = getMonthsForPeriod(reportType, month);
     const isMultiMonth = months.length > 1;
@@ -486,6 +366,8 @@ export default function CityReportPage() {
           .eq("report_type", reportType)
           .in("month", months),
       ]);
+
+      if (ignoreFlag.current) return;
 
       // Header
       const rawHeader = (headerRes.data as HeaderRow[]) || [];
@@ -562,15 +444,23 @@ export default function CityReportPage() {
       // Overrides
       setOverrides((overrideRes.data as OverrideRow[]) || []);
     } catch (err) {
+      if (ignoreFlag.current) return;
       console.error("Failed to fetch city report data:", err);
+      setError("ডেটা লোড করতে সমস্যা হয়েছে। অনুগ্রহ করে পেজটি রিফ্রেশ করুন।");
     } finally {
-      setIsLoading(false);
+      if (!ignoreFlag.current) {
+        setIsLoading(false);
+      }
     }
   }, [supabase, reportType, month, year]);
 
   // Fetch on mount
   useEffect(() => {
-    fetchData();
+    const ignore = { current: false };
+    fetchData(ignore);
+    return () => {
+      ignore.current = true;
+    };
   }, [fetchData]);
 
   // ─── Download handlers ─────────────────────────────────────────────────────
@@ -739,7 +629,7 @@ export default function CityReportPage() {
 
           {/* Go */}
           <button
-            onClick={fetchData}
+            onClick={() => fetchData({ current: false })}
             disabled={isLoading}
             className="modern-btn btn-primary h-[48px] px-8 flex items-center gap-2 group w-full md:w-auto justify-center disabled:opacity-60"
           >
@@ -783,8 +673,17 @@ export default function CityReportPage() {
         </div>
       )}
 
+      {/* ── Error State ─────────────────────────────────────────────────────── */}
+      {!isLoading && error && (
+        <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 text-center shadow-sm">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
+          <h3 className="text-lg font-bold text-red-600 mb-1">দুঃখিত!</h3>
+          <p className="text-red-600/80 max-w-md mx-auto">{error}</p>
+        </div>
+      )}
+
       {/* ── Empty State ─────────────────────────────────────────────────────── */}
-      {!isLoading && hasFetched && !hasAnyData && (
+      {!isLoading && hasFetched && !error && !hasAnyData && (
         <div className="bg-card border border-border rounded-2xl p-16 text-center shadow-sm">
           <SearchX className="w-16 h-16 text-muted-foreground/40 mx-auto mb-4" />
           <h3 className="text-xl font-bold text-foreground mb-2">
