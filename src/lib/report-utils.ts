@@ -16,12 +16,38 @@ export const MONTHS_BN = [
 ];
 
 export const REPORT_TYPES = [
-  { value: "মাসিক", label: "মাসিক" },
-  { value: "ত্রৈমাসিক", label: "ত্রৈমাসিক" },
-  { value: "ষান্মাসিক", label: "ষান্মাসিক" },
-  { value: "নয়-মাসিক", label: "নয়-মাসিক" },
-  { value: "বার্ষিক", label: "বার্ষিক" },
+  { value: "monthly", label: "মাসিক" },
+  { value: "quarterly", label: "ত্রৈমাসিক" },
+  { value: "halfYearly", label: "ষান্মাসিক" },
+  { value: "nineMonth", label: "নয়-মাসিক" },
+  { value: "yearly", label: "বার্ষিক" },
 ];
+
+export const DB_TYPE_MAP: Record<string, string> = {
+  monthly: "মাসিক",
+  quarterly: "ত্রৈমাসিক",
+  halfYearly: "ষান্মাসিক",
+  nineMonth: "নয়-মাসিক",
+  yearly: "বার্ষিক",
+  "মাসিক": "মাসিক",
+  "ত্রৈমাসিক": "ত্রৈমাসিক",
+  "ষান্মাসিক": "ষান্মাসিক",
+  "নয়-মাসিক": "নয়-মাসিক",
+  "বার্ষিক": "বার্ষিক",
+};
+
+export const URL_TO_ENGLISH_MAP: Record<string, string> = {
+  "মাসিক": "monthly",
+  "ত্রৈমাসিক": "quarterly",
+  "ষান্মাসিক": "halfYearly",
+  "নয়-মাসিক": "nineMonth",
+  "বার্ষিক": "yearly",
+  monthly: "monthly",
+  quarterly: "quarterly",
+  halfYearly: "halfYearly",
+  nineMonth: "nineMonth",
+  yearly: "yearly",
+};
 
 export const COURSE_CATEGORIES = [
   "বিশিষ্টদের",
@@ -32,6 +58,24 @@ export const COURSE_CATEGORIES = [
   "রুকনদের অনুশীলনী ক্লাস",
   "শিশু- তা'লিমুল কুরআন",
   "নিরক্ষর- তা'লিমুস সলাত",
+];
+
+export const ORG_CATEGORIES = [
+  "দাওয়াত দান",
+  "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
+  "সহযোগী হয়েছেন",
+  "সম্মতি দিয়েছেন",
+  "সক্রিয় সহযোগী",
+  "কর্মী",
+  "রুকন",
+  "দাওয়াতী ইউনিট",
+  "ইউনিট",
+  "সুধী",
+  "এককালীন",
+  "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতটি",
+  "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতজন",
+  "বই বিলি",
+  "বই বিক্রি",
 ];
 
 export const PERSONAL_CATEGORIES = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"];
@@ -54,6 +98,17 @@ export const MEETING_CATEGORIES = [
   "অন্যান্য",
 ];
 
+export const EXTRA_CATEGORIES = [
+  "মক্তব সংখ্যা",
+  "মক্তব বৃদ্ধি",
+  "মহানগরী পরিচালিত",
+  "স্থানীয়ভাবে পরিচালিত",
+  "মহানগরীর সফর",
+  "থানা কমিটির সফর",
+  "থানা প্রতিনিধির সফর",
+  "ওয়ার্ড প্রতিনিধির সফর",
+];
+
 export function toBn(n: number | string | null | undefined): string {
   if (n === null || n === undefined) return "০";
   return String(n).replace(/\d/g, (d) => BENGALI_DIGITS[parseInt(d)]);
@@ -63,7 +118,8 @@ export function getMonthsForPeriod(
   reportType: string,
   selectedMonth: number
 ): number[] {
-  switch (reportType) {
+  const dbType = DB_TYPE_MAP[reportType] || reportType;
+  switch (dbType) {
     case "ত্রৈমাসিক":
       return [1, 2, 3];
     case "ষান্মাসিক":
@@ -97,7 +153,7 @@ export function sumRows<T>(
           (existing as any).meeting_name = [(existing as any).meeting_name, (row as any).meeting_name.trim()].filter(Boolean).join(", ");
         }
       }
-      if ((row as any).comments && (row as any).comments.trim() !== "") {
+      if ((row as any).comments && (row as any).comments.trim() !== "" && (row as any).comments.trim() !== "—") {
         if (!((existing as any).comments || "").includes((row as any).comments.trim())) {
           (existing as any).comments = [(existing as any).comments, (row as any).comments.trim()].filter(Boolean).join(", ");
         }

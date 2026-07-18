@@ -3,21 +3,19 @@
 import { AutoSaveField } from "../auto-save-field";
 import { Send, Compass, BookOpen } from "lucide-react";
 
-export const MOKTOB_CATEGORIES = [
+const MOKTOB_CATEGORIES = [
   "মক্তব সংখ্যা",
   "মক্তব বৃদ্ধি",
   "মহানগরী পরিচালিত",
   "স্থানীয়ভাবে পরিচালিত",
 ];
 
-export const SAFAR_CATEGORIES = [
+const SAFAR_CATEGORIES = [
   "মহানগরীর সফর",
   "থানা কমিটির সফর",
   "থানা প্রতিনিধির সফর",
   "ওয়ার্ড প্রতিনিধির সফর",
 ];
-
-export const EXTRA_CATEGORIES = [...MOKTOB_CATEGORIES, ...SAFAR_CATEGORIES];
 
 export function ExtrasForm() {
   return (

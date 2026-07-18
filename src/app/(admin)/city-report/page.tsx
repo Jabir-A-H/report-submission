@@ -15,12 +15,13 @@ import {
   ChevronRight,
   AlertCircle,
 } from "lucide-react";
-import { ORG_CATEGORIES } from "@/components/report/sections/organizational-form";
+
 import {
   BENGALI_DIGITS,
   MONTHS_BN,
   REPORT_TYPES,
   COURSE_CATEGORIES,
+  ORG_CATEGORIES,
   PERSONAL_CATEGORIES,
   PERSONAL_METRICS_ROWS,
   MEETING_CATEGORIES,

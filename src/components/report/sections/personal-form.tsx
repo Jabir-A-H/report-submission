@@ -5,17 +5,7 @@ import { AutoSaveField } from "../auto-save-field";
 import { UserPlus, ChevronDown } from "lucide-react";
 import { ViewModeProvider, useViewModeContext } from "../view-mode-toggle";
 
-export const PERSONAL_CATEGORIES = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"];
-
-export const PERSONAL_METRICS_ROWS = [
-  { key: "teaching", label: "কতজন শিখাচ্ছেন" },
-  { key: "learning", label: "কতজনকে শিখাচ্ছেন" },
-  { key: "olama_invited", label: "দাওয়াতপ্রাপ্ত ওলামা" },
-  { key: "became_shohojogi", label: "সহযোগী হয়েছেন" },
-  { key: "became_sokrio_shohojogi", label: "সক্রিয় সহযোগী হয়েছেন" },
-  { key: "became_kormi", label: "কর্মী হয়েছেন" },
-  { key: "became_rukon", label: "রুকন হয়েছেন" },
-];
+import { PERSONAL_CATEGORIES, PERSONAL_METRICS_ROWS } from "@/lib/report-utils";
 
 function PersonalFormContent() {
   const { viewMode } = useViewModeContext();

@@ -4,23 +4,7 @@ import { AutoSaveField } from "../auto-save-field";
 import { Users2 } from "lucide-react";
 import { ViewModeProvider, useViewModeContext } from "../view-mode-toggle";
 
-export const ORG_CATEGORIES = [
-  "দাওয়াত দান",
-  "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
-  "সহযোগী হয়েছেন",
-  "সম্মতি দিয়েছেন",
-  "সক্রিয় সহযোগী",
-  "কর্মী",
-  "রুকন",
-  "দাওয়াতী ইউনিট",
-  "ইউনিট",
-  "সূধী",
-  "এককালীন",
-  "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতটি",
-  "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতজন",
-  "বই বিলি",
-  "বই বিক্রি",
-];
+import { ORG_CATEGORIES } from "@/lib/report-utils";
 
 function OrganizationalFormContent() {
   const { viewMode } = useViewModeContext();

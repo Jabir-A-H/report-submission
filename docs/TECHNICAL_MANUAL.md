@@ -89,6 +89,8 @@ Every report corpus contains ~250+ individual metrics divided into 7 structural 
 6. **মক্তব ও সফর রিপোর্ট (Maktab & Travel - `report_extras`)**: Maktab educational metrics (`মক্তব রিপোর্ট:`) positioned below Section 1 and travel/tour audits (`সফর রিপোর্ট:`) below Section 4. Rendered as transparent, border-framed cards (`p-4 rounded-xl border border-border` with inner tiles `px-3 py-2 rounded-lg border border-border/70`) without background tints (`bg-transparent`) or double boxiness.
 7. **মন্তব্য রিপোর্ট (Comments - `report_comments`)**: Free-text textual feedback and qualitative observations inside a clean `rounded-xl border border-border` container (`মন্তব্য:`).
 
+**Note on Centralization (ADR 013):** To prevent terminology drift and ensure absolute consistency across all report forms, city-aggregation views, and PDF/Excel export endpoints, all category string arrays (e.g., `ORG_CATEGORIES`, `COURSE_CATEGORIES`, `MEETING_CATEGORIES`) and aggregation helpers (`sumRows`, `sumHeaderRows`, `getMonthsForPeriod`) have been strictly centralized into a single source of truth: `src/lib/report-utils.ts`. 
+
 ---
 
 ## Chapter 3: Database Schema, Views & Zero-Cost Operations

@@ -5,13 +5,7 @@ import { AutoSaveField } from "../auto-save-field";
 import { Users, ChevronDown } from "lucide-react";
 import { ViewModeProvider, useViewModeContext } from "../view-mode-toggle";
 
-export const MEETING_CATEGORIES = [
-  "কমিটি বৈঠক হয়েছে",
-  "মুয়াল্লিমাদের নিয়ে বৈঠক",
-  "Committee Orientation",
-  "Muallima Orientation",
-  "অন্যান্য",
-];
+import { MEETING_CATEGORIES } from "@/lib/report-utils";
 
 function MeetingsFormContent() {
   const { viewMode } = useViewModeContext();

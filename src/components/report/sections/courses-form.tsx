@@ -5,16 +5,7 @@ import { AutoSaveField } from "../auto-save-field";
 import { BookOpen, ChevronDown } from "lucide-react";
 import { ViewModeProvider, useViewModeContext } from "../view-mode-toggle";
 
-export const COURSE_CATEGORIES = [
-  "বিশিষ্টদের",
-  "সাধারণদের",
-  "কর্মীদের",
-  "ইউনিট সভানেত্রী",
-  "অগ্রসরদের",
-  "রুকনদের অনুশীলনী ক্লাস",
-  "শিশু- তা'লিমুল কুরআন",
-  "নিরক্ষর- তা'লিমুস সলাত",
-];
+import { COURSE_CATEGORIES } from "@/lib/report-utils";
 
 function CoursesFormContent() {
   const { viewMode } = useViewModeContext();

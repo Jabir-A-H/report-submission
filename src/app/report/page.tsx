@@ -17,188 +17,23 @@ import {
   ChevronDown,
 } from "lucide-react";
 
-// ─── Constants & Categories ──────────────────────────────────────────────────
-
-const BENGALI_DIGITS = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
-const MONTHS_BN = [
-  "জানুয়ারি",
-  "ফেব্রুয়ারি",
-  "মার্চ",
-  "এপ্রিল",
-  "মে",
-  "জুন",
-  "জুলাই",
-  "আগস্ট",
-  "সেপ্টেম্বর",
-  "অক্টোবর",
-  "নভেম্বর",
-  "ডিসেম্বর",
-];
-
-const DB_TYPE_MAP: Record<string, string> = {
-  monthly: "মাসিক",
-  quarterly: "ত্রৈমাসিক",
-  halfYearly: "ষান্মাসিক",
-  nineMonth: "নয়-মাসিক",
-  yearly: "বার্ষিক",
-  "মাসিক": "মাসিক",
-  "ত্রৈমাসিক": "ত্রৈমাসিক",
-  "ষান্মাসিক": "ষান্মাসিক",
-  "নয়-মাসিক": "নয়-মাসিক",
-  "বার্ষিক": "বার্ষিক",
-};
-
-const URL_TO_ENGLISH_MAP: Record<string, string> = {
-  "মাসিক": "monthly",
-  "ত্রৈমাসিক": "quarterly",
-  "ষান্মাসিক": "halfYearly",
-  "নয়-মাসিক": "nineMonth",
-  "বার্ষিক": "yearly",
-  monthly: "monthly",
-  quarterly: "quarterly",
-  halfYearly: "halfYearly",
-  nineMonth: "nineMonth",
-  yearly: "yearly",
-};
-
-const REPORT_TYPES = [
-  { value: "monthly", label: "মাসিক" },
-  { value: "quarterly", label: "ত্রৈমাসিক" },
-  { value: "halfYearly", label: "ষান্মাসিক" },
-  { value: "nineMonth", label: "নয়-মাসিক" },
-  { value: "yearly", label: "বার্ষিক" },
-];
-
-const COURSE_CATEGORIES = [
-  "বিশিষ্টদের",
-  "সাধারণদের",
-  "কর্মীদের",
-  "ইউনিট সভানেত্রী",
-  "অগ্রসরদের",
-  "রুকনদের অনুশীলনী ক্লাস",
-  "শিশু- তা'লিমুল কুরআন",
-  "নিরক্ষর- তা'লিমুস সলাত",
-];
-
-const ORG_CATEGORIES = [
-  "দাওয়াত দান",
-  "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
-  "সহযোগী হয়েছেন",
-  "সম্মতি দিয়েছেন",
-  "সক্রিয় সহযোগী",
-  "কর্মী",
-  "রুকন",
-  "দাওয়াতী ইউনিট",
-  "ইউনিট",
-  "সূধী",
-  "এককালীন",
-  "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতটি",
-  "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতজন",
-  "বই বিলি",
-  "বই বিক্রি",
-];
-
-const PERSONAL_CATEGORIES = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"];
-
-const PERSONAL_METRICS_ROWS = [
-  { key: "teaching", label: "কতজন শিখাচ্ছেন" },
-  { key: "learning", label: "কতজনকে শিখাচ্ছেন" },
-  { key: "olama_invited", label: "দাওয়াতপ্রাপ্ত ওলামা" },
-  { key: "became_shohojogi", label: "সহযোগী হয়েছেন" },
-  { key: "became_sokrio_shohojogi", label: "সক্রিয় সহযোগী হয়েছেন" },
-  { key: "became_kormi", label: "কর্মী হয়েছেন" },
-  { key: "became_rukon", label: "রুকন হয়েছেন" },
-];
-
-const MEETING_CATEGORIES = [
-  "কমিটি বৈঠক হয়েছে",
-  "মুয়াল্লিমাদের নিয়ে বৈঠক",
-  "Committee Orientation",
-  "Muallima Orientation",
-  "অন্যান্য",
-];
-
-const EXTRA_CATEGORIES = [
-  "মক্তব সংখ্যা",
-  "মক্তব বৃদ্ধি",
-  "মহানগরী পরিচালিত",
-  "স্থানীয়ভাবে পরিচালিত",
-  "মহানগরীর সফর",
-  "থানা কমিটির সফর",
-  "থানা প্রতিনিধির সফর",
-  "ওয়ার্ড প্রতিনিধির সফর",
-];
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function toBn(n: number | string | null | undefined): string {
-  if (n === null || n === undefined) return "০";
-  return String(n).replace(/\d/g, (d) => BENGALI_DIGITS[parseInt(d)]);
-}
-
-function sumHeaderRows(rows: any[]): any | null {
-  if (rows.length === 0) return null;
-  const base = { ...rows[0] };
-  const numericKeys = [
-    "total_muallima",
-    "muallima_increase",
-    "muallima_decrease",
-    "certified_muallima",
-    "certified_muallima_taking_classes",
-    "trained_muallima",
-    "trained_muallima_taking_classes",
-    "total_unit",
-    "units_with_muallima",
-  ];
-  for (let i = 1; i < rows.length; i++) {
-    for (const k of numericKeys) {
-      base[k] = (base[k] || 0) + (rows[i][k] || 0);
-    }
-  }
-  return base;
-}
-
-function sumRows(rows: any[], numericKeys: string[]): any[] {
-  const grouped = new Map<string, any>();
-  for (const row of rows) {
-    const cat = row.category || "__header__";
-    if (!grouped.has(cat)) {
-      grouped.set(cat, { ...row });
-    } else {
-      const existing = grouped.get(cat)!;
-      for (const k of numericKeys) {
-        existing[k] = (existing[k] || 0) + (row[k] || 0);
-      }
-      if (row.meeting_name && row.meeting_name.trim() !== "") {
-        if (!(existing.meeting_name || "").includes(row.meeting_name.trim())) {
-          existing.meeting_name = [existing.meeting_name, row.meeting_name.trim()].filter(Boolean).join(", ");
-        }
-      }
-      if (row.comments && row.comments.trim() !== "" && row.comments.trim() !== "—") {
-        if (!(existing.comments || "").includes(row.comments.trim())) {
-          existing.comments = [existing.comments, row.comments.trim()].filter(Boolean).join(", ");
-        }
-      }
-    }
-  }
-  return Array.from(grouped.values());
-}
-
-function getMonthsForPeriod(reportType: string, selectedMonth: number): number[] {
-  const dbType = DB_TYPE_MAP[reportType] || reportType;
-  switch (dbType) {
-    case "ত্রৈমাসিক":
-      return [1, 2, 3];
-    case "ষান্মাসিক":
-      return [1, 2, 3, 4, 5, 6];
-    case "নয়-মাসিক":
-      return [1, 2, 3, 4, 5, 6, 7, 8, 9];
-    case "বার্ষিক":
-      return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-    default: // মাসিক
-      return [selectedMonth];
-  }
-}
+import {
+  BENGALI_DIGITS,
+  MONTHS_BN,
+  DB_TYPE_MAP,
+  URL_TO_ENGLISH_MAP,
+  REPORT_TYPES,
+  COURSE_CATEGORIES,
+  ORG_CATEGORIES,
+  PERSONAL_CATEGORIES,
+  PERSONAL_METRICS_ROWS,
+  MEETING_CATEGORIES,
+  EXTRA_CATEGORIES,
+  toBn,
+  sumHeaderRows,
+  sumRows,
+  getMonthsForPeriod,
+} from "@/lib/report-utils";
 
 // ─── Main Viewer Component ────────────────────────────────────────────────────
 
