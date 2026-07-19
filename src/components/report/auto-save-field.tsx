@@ -57,9 +57,10 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
   const [localValue, setLocalValue] = useState(getInitialValue());
 
   // Update local value if data changes externally (e.g. on load)
+  const currentVal = getInitialValue();
   useEffect(() => {
-    setLocalValue(getInitialValue());
-  }, [getInitialValue]);
+    setLocalValue(currentVal);
+  }, [currentVal]);
 
   const handleBlur = useCallback(() => {
     if (localValue !== getInitialValue()) {

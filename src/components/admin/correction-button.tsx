@@ -16,6 +16,7 @@ interface CorrectionButtonProps {
   isOverridden?: boolean
   customTrigger?: React.ReactNode
   isText?: boolean
+  onSuccess?: () => void
 }
 
 const BENGALI_DIGITS = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
@@ -93,7 +94,7 @@ export function CorrectionButton({
 
       if (saveError) throw saveError
       setIsOpen(false)
-      window.location.reload()
+      if (onSuccess) onSuccess()
     } catch (err) {
       console.error('Failed to save correction:', err)
       alert('সংশোধন সংরক্ষণ করতে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।')
@@ -126,7 +127,7 @@ export function CorrectionButton({
       const { error } = await query
       if (error) throw error
       setIsOpen(false)
-      window.location.reload()
+      if (onSuccess) onSuccess()
     } catch (err) {
       console.error('Failed to delete override:', err)
       alert('ওভাররাইড মুছতে সমস্যা হয়েছে।')

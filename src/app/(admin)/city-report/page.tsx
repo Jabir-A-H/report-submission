@@ -159,6 +159,7 @@ const CityReportContext = createContext<{
     category?: string,
     isText?: boolean
   ) => { value: any; isOverridden: boolean };
+  refreshData: () => void;
 } | null>(null);
 
 function NumericCell({
@@ -210,6 +211,7 @@ function NumericCell({
             computedValue={computedValue}
             isOverridden={isOverridden}
             isText={isText}
+            onSuccess={() => ctx.refreshData()}
             customTrigger={
               <span className="inline-flex items-center gap-1">
                 {badge}
@@ -244,6 +246,7 @@ function NumericCell({
           computedValue={computedValue}
           isOverridden={isOverridden}
           isText={isText}
+          onSuccess={() => ctx.refreshData()}
         />
       )}
     </span>
@@ -511,8 +514,12 @@ export default function CityReportPage() {
 
   // ─── Render ─────────────────────────────────────────────────────────────────
 
+  const refreshData = useCallback(() => {
+    fetchData({ current: false });
+  }, [fetchData]);
+
   return (
-    <CityReportContext.Provider value={{ year, month, reportType, isEditing, getVal }}>
+    <CityReportContext.Provider value={{ year, month, reportType, isEditing, getVal, refreshData }}>
     <div className="py-8 max-w-7xl mx-auto animate-in fade-in duration-500">
       {/* ── Page Header ─────────────────────────────────────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 p-6 bg-card border border-border/50 rounded-[2rem] shadow-sm">

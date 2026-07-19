@@ -171,4 +171,16 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 - **Description**: When navigating to unmatched URLs or triggering 404 handlers (`src/app/not-found.tsx` and `src/app/[...not-found]/page.tsx`), Next.js client navigation crashed with `Runtime TypeError: Failed to execute 'measure' on 'Performance': 'NotFound' cannot have a negative time stamp.` Because both 404 route components previously executed `redirect("/")` synchronously inside their component render bodies, throwing `NEXT_REDIRECT` mid-render abruptly interrupted the `"NotFound"` route transition and immediately started a replacement navigation to `/`. This caused Next.js's internal performance instrumentation (`markRenderComplete`) to measure render duration (`routeChangeToRender` / `render`) against the newly overwritten navigation start mark (`routeChange`), producing negative `end - start` timestamps.
 - **Fix**: Converted both `src/app/not-found.tsx` and `src/app/[...not-found]/page.tsx` to `"use client"` components that return `null` during render (`beforeRender <= afterRender`) and perform a safe client navigation (`useRouter().replace("/")`) inside `useEffect`. This allows React to cleanly commit the 404 route segment and measure performance without negative timestamps before redirecting the browser.
 
+---
 
+### Mobile UX & Performance: AutoSave Wiping, Nav Layout Shift, and City Report Refresh (ADR 013)
+- **Date**: 2026-07-19
+- **Resolution Date**: 2026-07-19
+- **Description**: Three distinct UX friction points existed on mobile/slower networks:
+  1. `AutoSaveField` wiped user keystrokes if context sibling updates triggered a re-render before the user finished typing.
+  2. `bottom-nav.tsx` caused a jarring layout shift by starting with user tabs and expanding to admin tabs after a slow `supabase.auth.getUser()` DB call completed.
+  3. City Report's `CorrectionButton` triggered a hard `window.location.reload()` upon save, ruining the SPA experience and scroll position.
+- **Fix**: 
+  1. Refactored `AutoSaveField`'s `useEffect` to compare against the *evaluated primitive* value of `getInitialValue`, completely decoupling the local input from upstream render cascades.
+  2. Implemented eager evaluation in `bottom-nav.tsx` using `pathname.startsWith(...)` for known admin routes to instantly render admin tabs without waiting for the DB fetch (relying on `middleware.ts` for actual security).
+  3. Deprecated the hard reload in `CorrectionButton` and replaced it with `ctx.refreshData()` localized state refresh via React Context.
