@@ -30,33 +30,33 @@
     "lint": "eslint src"
   },
   "dependencies": {
-    "@hookform/resolvers": "latest",
-    "@react-pdf/renderer": "latest",
-    "@supabase/ssr": "latest",
-    "@supabase/supabase-js": "latest",
+    "@hookform/resolvers": "^5.2.2",
+    "@react-pdf/renderer": "^4.3.2",
+    "@supabase/ssr": "^0.9.0",
+    "@supabase/supabase-js": "^2.99.3",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
-    "clsx": "latest",
+    "clsx": "^2.1.1",
     "exceljs": "^4.4.0",
     "lucide-react": "^0.577.0",
-    "next": "latest",
+    "next": "^16.2.9",
     "next-themes": "^0.4.6",
-    "react": "latest",
-    "react-dom": "latest",
-    "react-hook-form": "latest",
-    "tailwind-merge": "latest",
-    "zod": "latest"
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-hook-form": "^7.71.2",
+    "tailwind-merge": "^3.5.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.2",
-    "@types/node": "latest",
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
-    "autoprefixer": "latest",
-    "eslint": "latest",
-    "eslint-config-next": "latest",
-    "postcss": "latest",
-    "tailwindcss": "latest",
-    "typescript": "latest"
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.4.27",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.0",
+    "postcss": "^8.5.15",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^5.9.3"
   }
 }

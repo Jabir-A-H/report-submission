@@ -59,8 +59,7 @@ export function BottomNav() {
   const homeHref = `/${periodQuery}`;
   // Report tab links to /report overview page with params
   const reportHref = `/report${periodQuery}`;
-
-  const showAdminNav = isAdmin || pathname.startsWith("/admin");
+  const showAdminNav = isAdmin;
 
   return (
     <>

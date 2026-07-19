@@ -7,9 +7,17 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ### Mobile Touch Target Ergonomics Violations (<44px)
 - **Date**: 2026-06-26
-- **Description**: Nested category table action and delete buttons in `AutoSaveField` rows maintain small hit areas (~24px x 24px), violating WCAG 2.2 AA mobile touch target guidelines (minimum 44px x 44px).
+- **Description**: Inline inputs and textareas in `AutoSaveField` rows maintain small hit areas (heights `h-9` and `h-10` / `36px`-`40px`), violating WCAG 2.2 AA mobile touch target guidelines (minimum 44px x 44px).
 - **Impact**: Medium (mobile usability friction & accidental taps)
-- **Planned Fix**: Add `min-h-[44px] min-w-[44px]` touch padding wrappers.
+- **Status**: **RESOLVED / WONTFIX (Design Decision)** - Enforcing 44px on `tableMode` (`h-9`) was deliberately skipped to prevent vertical bloat and preserve the dense, compact matrix theme of the reporting grids.
+
+---
+
+### `sumHeaderRows()` Over-Counting Snapshot Metrics (KI-005)
+- **Date**: 2026-07-19
+- **Description**: Snapshot fields (e.g., `total_muallima`, `total_unit`) are incorrectly being summed across months when computing yearly/quarterly aggregate views. They should simply take the most recent month's snapshot value instead of summing historical data points.
+- **Impact**: High (data accuracy in aggregate reports)
+- **Status**: **DEFERRED** - Fix postponed. The logic for quarterly and yearly report generation will be completely overhauled in a future phase.
 
 ---
 

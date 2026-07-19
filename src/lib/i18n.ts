@@ -776,7 +776,6 @@ export const translations = {
 };
 
 export type Translations = typeof translations.bn;
-export type TranslatedCategory = keyof typeof translations.bn.categories;
 
 /**
  * Utility for Server Components to get translations based on the NEXT_LOCALE cookie.

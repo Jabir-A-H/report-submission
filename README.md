@@ -1,7 +1,7 @@
 # 📊 Report Submission System (রিপোর্ট সাবমিশন সিস্টেম)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Next.js](https://img.shields.io/badge/Next.js-15+-black.svg)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC.svg)](https://tailwindcss.com/)
 [![Supabase](https://img.shields.io/badge/Supabase-Database-3ECF8E.svg)](https://supabase.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org)
@@ -31,7 +31,7 @@ This system modernizes legacy reporting workflows into a fast, beautiful, secure
 
 ```mermaid
 graph TD
-    A[Manager registers at /register] --> B[Admin approves user in Admin Panel]
+    A[Manager registers at /home] --> B[Admin approves user in Management Panel]
     B --> C[Manager accesses Dashboard]
     C --> D[Selects period & fills out 7 report sections]
     D --> E[Real-time autosaves secure inputs in database]
@@ -41,7 +41,7 @@ graph TD
 ```
 
 ### 1. Registration & Security Gate
-New users register with email or a custom User ID. Next.js middleware enforces an **approval gate** (`active = false`)—new accounts remain in a pending state at `/pending-approval` and cannot view reports until explicitly activated by an administrator in `/admin/users`.
+New users register with email or a custom User ID. Next.js middleware enforces an **approval gate** (`active = false`)—new accounts remain in a pending state at `/pending-approval` and cannot view reports until explicitly activated by an administrator in `/management`.
 
 ### 2. Guided Multi-Period Dashboard Navigation
 The platform supports **5 temporal reporting periods**: Monthly (**মাসিক**), Quarterly (**ত্রৈমাসিক**), Half-Yearly (**ষান্মাসিক**), Nine-Month (**নয়-মাসিক**), and Yearly (**বার্ষিক**). The dashboard breaks reports down into seven key sections (Basic Info, Courses, Organizational, Personal, Meetings, Maktab/Travel, and Comments) for guided, modular data entry.
@@ -56,11 +56,11 @@ Once zone reports are collected, administrators can access a unified city-wide r
 
 ## 💻 Tech Stack
 
-- **Frontend**: Next.js 15+ (App Router), React 19 & TypeScript 5.x
+- **Frontend**: Next.js 16 (App Router), React 19 & TypeScript 5.x
 - **Styling**: Tailwind CSS v4, custom HSL color tokens & Glassmorphism UI
 - **Database & Auth**: Supabase (PostgreSQL, Auth, RLS Policies, Database Triggers, Atomic RPCs)
 - **Exports**: `@react-pdf/renderer` (with universal Kalpurush font) and `exceljs`
-- **Deployment & CI/CD**: Vercel & GitHub Actions (Automated `pg_dump` backups)
+- **Deployment & Backup**: Vercel & GitHub Actions (Automated `pg_dump` backups)
 
 ---
 
@@ -93,10 +93,19 @@ Open [http://localhost:3000](http://localhost:3000) to access the landing page.
 
 The documentation architecture adheres strictly to the **Master Manual + Living Trackers** pattern (ADR 001). Check out the authoritative references in the `docs/` directory:
 
-- 📖 **[Master Technical Manual](file:///f:/WebDev/report-submission/docs/TECHNICAL_MANUAL.md)** — Comprehensive authoritative specification synthesizing system architecture, domain vocabulary, database schema, route governance, export services, developer conventions, and mobile design system tokens.
-- 🗺️ **[Project Roadmap](file:///f:/WebDev/report-submission/docs/ROADMAP.md)** — Active engineering tracking and sprint sequencing (enforcing Core Reliability & Stabilization First).
-- 🐛 **[Known Issues Tracker](file:///f:/WebDev/report-submission/docs/KNOWN_ISSUES.md)** — Living technical debt and bug repository.
-- 🏛️ **[Architecture Decision Records](file:///f:/WebDev/report-submission/docs/ADR)** — Formal immutable records of structural engineering trade-offs:
-  - **[ADR 001: Documentation Suite Restructuring](file:///f:/WebDev/report-submission/docs/ADR/001-docs-suite-restructuring.md)** — Adoption of Master Manual + Living Trackers architecture.
-  - **[ADR 002: Core Reliability & Stabilization First](file:///f:/WebDev/report-submission/docs/ADR/002-core-reliability-stabilization-first.md)** — Prioritization of runtime stability, memoization, and race-condition elimination over feature expansion.
-  - **[ADR 003: Postgres Trigger Synchronized Profiles](file:///f:/WebDev/report-submission/docs/ADR/003-postgres-trigger-synchronized-profiles.md)** — Elimination of 1,000-user API caps via database triggers and synchronized profile indexing.
+- 📖 **[Master Technical Manual](./docs/TECHNICAL_MANUAL.md)** — Comprehensive authoritative specification synthesizing system architecture, domain vocabulary, database schema, route governance, export services, developer conventions, and mobile design system tokens.
+- 🗺️ **[Project Roadmap](./docs/ROADMAP.md)** — Active engineering tracking and sprint sequencing (enforcing Core Reliability & Stabilization First).
+- 🐛 **[Known Issues Tracker](./docs/KNOWN_ISSUES.md)** — Living technical debt and bug repository.
+- 🏛️ **[Architecture Decision Records](./docs/ADR)** — Formal immutable records of structural engineering trade-offs:
+  - **[ADR 001: Documentation Suite Restructuring](./docs/ADR/001-docs-suite-restructuring.md)** — Adoption of Master Manual + Living Trackers architecture.
+  - **[ADR 002: Core Reliability & Stabilization First](./docs/ADR/002-core-reliability-stabilization-first.md)** — Prioritization of runtime stability, memoization, and race-condition elimination over feature expansion.
+  - **[ADR 003: Postgres Trigger Synchronized Profiles](./docs/ADR/003-postgres-trigger-synchronized-profiles.md)** — Elimination of 1,000-user API caps via database triggers and synchronized profile indexing.
+  - **[ADR 004: Dynamic Responsive Tables & Transparent Stats](./docs/ADR/004-dynamic-responsive-tables-and-transparent-stats-architecture.md)** — Mobile-first table sizing and transparent stats cards.
+  - **[ADR 005: Hybrid State Persistence & Compact View Toggle](./docs/ADR/005-hybrid-state-persistence-and-compact-view-toggle-architecture.md)** — Legacy state system (superseded).
+  - **[ADR 006: URL-Only Period State Simplification](./docs/ADR/006-url-only-period-state-simplification.md)** — URL parameter truth over local/session storage.
+  - **[ADR 007: Authoritative Labeling & Landscape PDF Architecture](./docs/ADR/007-authoritative-labeling-harmonization-and-2-page-landscape-pdf-architecture.md)** — Strict 2-page A4 landscape PDF layout constraints.
+  - **[ADR 008: Unified Home Portal & Collapsible Settings](./docs/ADR/008-unified-home-portal-and-collapsible-settings-architecture.md)** — Consolidation of login/register flows to `/home`.
+  - **[ADR 009: Zone Hierarchy & Admin Restructure](./docs/ADR/009-zone-hierarchy-type-column-and-admin-site-restructure.md)** — Schema updates and admin dashboard reorganization.
+  - **[ADR 010: Edit Report Override & Constraint Display](./docs/ADR/010-edit-report-override-constraint-and-display.md)** — Database constraints and visual diffs for city overrides.
+  - **[ADR 011: Universal Click-Outside Modal Governance](./docs/ADR/011-universal-click-outside-modal-governance.md)** — Unified click-outside hooks for all modals.
+  - **[ADR 012: Route Group Simplification & Submission Lock](./docs/ADR/012-route-group-simplification-submission-governance-and-city-report-parity.md)** — `is_submitted` governance and `(admin)` route parity.
