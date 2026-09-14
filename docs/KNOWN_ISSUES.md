@@ -13,24 +13,6 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ---
 
-### `sumHeaderRows()` Over-Counting Snapshot Metrics (KI-005)
-- **Date**: 2026-07-19
-- **Description**: Snapshot fields (e.g., `total_muallima`, `total_unit`, `certified_muallima`, `trained_muallima`) represent static inventory stock rather than flow deltas. They are currently being summed across months when computing multi-month (quarterly/yearly) views, inflating totals.
-- **Location**: `src/lib/report-utils.ts:166-191`
-- **Impact**: High (data accuracy in aggregate reports)
-- **Status**: **ACTIVE (Scheduled for Phase 3.8)** - Update `sumHeaderRows()` to take the latest month's snapshot value for stock columns, summing only flow fields (`increase`, `decrease`).
-
----
-
-### Average Attendance Summed Instead of Weighted Mean (KI-006)
-- **Date**: 2026-09-14
-- **Description**: In both database views (`view_city_meeting_agg`) and client-side multi-month calculations (`sumRows` in `src/lib/report-utils.ts`), average attendance metrics (`*_avg_attendance`) are summed across zones and months rather than weighted by session count.
-- **Location**: `view_city_meeting_agg`, `src/lib/report-utils.ts:130-155`, `src/app/report/page.tsx`, `src/app/(admin)/city-report/page.tsx`, `export/excel/route.ts`, `export/pdf/route.tsx`
-- **Impact**: Critical (mathematically invalid metrics displayed in city summaries and export documents)
-- **Status**: **ACTIVE (Scheduled for Phase 3.8)** - Refactor to compute weighted mean `sum(avg * count) / sum(count)` or calculate total aggregate attendance directly.
-
----
-
 ### Bengali Category String Drift in `get_or_create_report` RPC (KI-007)
 - **Date**: 2026-09-14
 - **Description**: In the PostgreSQL `get_or_create_report` RPC function, two seeded categories differ slightly from the frontend form constants: `সহযোগী হয়েছে` (RPC, missing 'ন') vs app's `সহযোগী হয়েছেন`, and `সূধী` (RPC, long ূ) vs app's `সুধী`. Updates against these categories match 0 rows, resulting in silent data loss for newly seeded reports.
@@ -76,15 +58,6 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ---
 
-### Unused Dependencies in `package.json` (KI-012)
-- **Date**: 2026-07-20 / 2026-09-14
-- **Description**: `zod`, `react-hook-form`, and `@hookform/resolvers` are declared in `package.json` but never imported anywhere in `src/`, violating the project's Zero Dead-Weight Policy.
-- **Location**: `package.json:33,46,48`
-- **Impact**: Low (bloats package manifest and dependency tree)
-- **Status**: **ACTIVE (Scheduled for Phase 3.8)** - Prune unimported packages via `npm uninstall`.
-
----
-
 ### Supabase Free Tier: 2 Password Reset Emails Per Hour
 - **Date**: 2026-06-13
 - **Description**: Supabase's free tier enforces a hard limit of 2 password reset emails per hour per email address. This cannot be changed via the Dashboard on the free plan.
@@ -94,6 +67,23 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 ---
 
 ## Resolved Historical Issues
+
+### Mathematical Aggregation Parity, Weighted Averages & Zero Dead-Weight Cleanup (ADR 014, KI-005, KI-006, KI-012)
+- **Date**: 2026-09-14
+- **Resolution Date**: 2026-09-14
+- **Description**: 
+  1. `sumHeaderRows()` was summing all numeric columns across multi-month spans, causing inventory stock counts (`total_muallima`, `total_unit`, `certified_muallima`, etc.) to multiply incorrectly across periods (`KI-005`).
+  2. `sumRows()` was arithmetically adding average meeting attendance figures (`*_avg_attendance`) across periods instead of calculating weighted means (`KI-006`).
+  3. `package.json` contained unimported dependencies `zod`, `react-hook-form`, and `@hookform/resolvers` (`KI-012`).
+  4. Core math utilities lacked automated test coverage.
+- **Fix**:
+  1. Updated `sumHeaderRows()` in `src/lib/report-utils.ts` to separate snapshot inventory keys from delta flow keys (`muallima_increase`/`decrease`). Delta keys are summed across all months, while snapshot keys adopt the latest month's value (`latestRow[k]`).
+  2. Updated `sumRows()` in `src/lib/report-utils.ts` to pair `city_avg_attendance`, `thana_avg_attendance`, and `ward_avg_attendance` with their respective count keys and compute true weighted averages: $\text{Math.round}(\sum (\text{count} \times \text{avg}) / \sum \text{count})$.
+  3. Pruned unused dependencies via `npm uninstall zod react-hook-form @hookform/resolvers`.
+  4. Updated `tsconfig.json` compiler target to `es2022` and enabled `allowImportingTsExtensions`.
+  5. Created `src/lib/report-utils.test.ts` and registered `"test"` script in `package.json`, passing 10/10 automated tests.
+
+---
 
 ### Admin Route Grouping (`(admin)`), Submission Lock (`is_submitted`), & Full-Field City Parity (ADR 012)
 - **Date**: 2026-07-17

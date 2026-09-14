@@ -133,21 +133,38 @@ export function getMonthsForPeriod(
   }
 }
 
+const ATTENDANCE_WEIGHT_PAIRS: Record<string, string> = {
+  city_avg_attendance: "city_count",
+  thana_avg_attendance: "thana_count",
+  ward_avg_attendance: "ward_count",
+};
+
 export function sumRows<T>(
   rows: T[],
   numericKeys: string[]
 ): T[] {
   const grouped = new Map<string, T>();
+  const weights = new Map<string, Record<string, { totalAttendees: number; totalCount: number; reportCount: number; sumAvg: number }>>();
+
+  const isAvgKey = (key: string) => key in ATTENDANCE_WEIGHT_PAIRS;
+
   for (const row of rows) {
     const cat = ((row as any).category as string) || "__header__";
+
     if (!grouped.has(cat)) {
       grouped.set(cat, { ...row });
+      weights.set(cat, {});
     } else {
       const existing = grouped.get(cat)!;
+
+      // Sum standard numeric keys (non-averages)
       for (const k of numericKeys) {
-        (existing as any)[k] =
-          ((existing as any)[k] || 0) + ((row as any)[k] || 0);
+        if (!isAvgKey(k)) {
+          (existing as any)[k] =
+            ((existing as any)[k] || 0) + ((row as any)[k] || 0);
+        }
       }
+
       if ((row as any).meeting_name && (row as any).meeting_name.trim() !== "") {
         if (!((existing as any).meeting_name || "").includes((row as any).meeting_name.trim())) {
           (existing as any).meeting_name = [(existing as any).meeting_name, (row as any).meeting_name.trim()].filter(Boolean).join(", ");
@@ -159,33 +176,86 @@ export function sumRows<T>(
         }
       }
     }
-  }
-  return Array.from(grouped.values());
-}
 
-export function sumHeaderRows<T extends Record<string, any>>(rows: T[]): T | null {
-  if (rows.length === 0) return null;
-  // TODO: Yearly snapshots (total_muallima, total_unit, etc.) should not be summed across months.
-  // Instead, they should take the most recent month's value, while increase/decrease are summed.
-  // This is deferred for future refactoring.
-  const base = { ...rows[0] } as any;
-  const numericKeys = [
-    "total_muallima",
-    "muallima_increase",
-    "muallima_decrease",
-    "certified_muallima",
-    "certified_muallima_taking_classes",
-    "trained_muallima",
-    "trained_muallima_taking_classes",
-    "total_unit",
-    "units_with_muallima",
-  ];
-  for (let i = 1; i < rows.length; i++) {
+    // Accumulate weighted attendance for average keys
+    const catWeights = weights.get(cat)!;
     for (const k of numericKeys) {
-      if (k in rows[i]) {
-        base[k] = (base[k] || 0) + ((rows[i] as any)[k] || 0);
+      if (isAvgKey(k)) {
+        if (!catWeights[k]) {
+          catWeights[k] = { totalAttendees: 0, totalCount: 0, reportCount: 0, sumAvg: 0 };
+        }
+        const countKey = ATTENDANCE_WEIGHT_PAIRS[k];
+        const count = Number((row as any)[countKey]) || 0;
+        const avg = Number((row as any)[k]) || 0;
+
+        if (count > 0) {
+          catWeights[k].totalAttendees += count * avg;
+          catWeights[k].totalCount += count;
+        }
+        if (avg > 0) {
+          catWeights[k].reportCount += 1;
+          catWeights[k].sumAvg += avg;
+        }
       }
     }
   }
+
+  // Calculate final weighted averages for all groups
+  grouped.forEach((row, cat) => {
+    const catWeights = weights.get(cat);
+    if (!catWeights) return;
+
+    for (const k of numericKeys) {
+      if (isAvgKey(k)) {
+        const stats = catWeights[k];
+        if (stats && stats.totalCount > 0) {
+          (row as any)[k] = Math.round(stats.totalAttendees / stats.totalCount);
+        } else if (stats && stats.reportCount > 0) {
+          (row as any)[k] = Math.round(stats.sumAvg / stats.reportCount);
+        } else {
+          (row as any)[k] = 0;
+        }
+      }
+    }
+  });
+
+  return Array.from(grouped.values());
+}
+
+const HEADER_SNAPSHOT_KEYS = [
+  "total_muallima",
+  "certified_muallima",
+  "certified_muallima_taking_classes",
+  "trained_muallima",
+  "trained_muallima_taking_classes",
+  "total_unit",
+  "units_with_muallima",
+];
+
+const HEADER_DELTA_KEYS = [
+  "muallima_increase",
+  "muallima_decrease",
+];
+
+export function sumHeaderRows<T extends Record<string, any>>(rows: T[]): T | null {
+  if (!rows || rows.length === 0) return null;
+  if (rows.length === 1) return { ...rows[0] };
+
+  // Sort rows chronologically if month is available to capture the latest inventory snapshot
+  const sorted = [...rows].sort((a, b) => (Number(a.month) || 0) - (Number(b.month) || 0));
+  const latest = sorted[sorted.length - 1];
+
+  const base = { ...latest } as any;
+
+  // Flow deltas: sum across the multi-month period
+  for (const k of HEADER_DELTA_KEYS) {
+    base[k] = sorted.reduce((sum, r) => sum + (Number(r[k]) || 0), 0);
+  }
+
+  // Stock snapshots: take the latest month's stock value
+  for (const k of HEADER_SNAPSHOT_KEYS) {
+    base[k] = Number(latest[k]) || 0;
+  }
+
   return base as T;
 }

@@ -75,8 +75,8 @@
 ## Phase 3.8: Core Data Integrity, Save Reliability & Security Stabilization (Active)
 
 ### Tier 1: Data Calculation & Schema Synchronization (Critical Correctness)
-- [ ] **Weighted Average Attendance Calculation (KI-006)**: Refactor `sumRows()` in `src/lib/report-utils.ts` and `view_city_meeting_agg` SQL view to compute weighted mean `sum(avg * count) / sum(count)` or aggregate total attendance rather than summing raw averages across periods.
-- [ ] **Snapshot vs. Flow Stock Calculation (KI-005)**: Refactor `sumHeaderRows()` in `src/lib/report-utils.ts` to take the latest period's snapshot value for static stock fields (`total_muallima`, `total_unit`, `certified_muallima`, etc.) while summing flow fields (`increase`, `decrease`).
+- [x] **Weighted Average Attendance Calculation (KI-006, ADR 014)**: Refactored `sumRows()` in `src/lib/report-utils.ts` to compute weighted mean `sum(avg * count) / sum(count)` across periods rather than summing raw averages.
+- [x] **Snapshot vs. Flow Stock Calculation (KI-005, ADR 014)**: Refactored `sumHeaderRows()` in `src/lib/report-utils.ts` to take the latest period's snapshot value for static stock fields (`total_muallima`, `total_unit`, `certified_muallima`, etc.) while summing flow fields (`increase`, `decrease`).
 - [ ] **Database RPC String Synchronization (KI-007)**: Align seeded RPC category strings (`সহযোগী হয়েছেন` and `সুধী`) in PostgreSQL `get_or_create_report`, truncate test data, and reseed on next report open.
 
 ### Tier 2: Save Reliability & UX (Data Integrity)
@@ -89,8 +89,8 @@
 - [ ] **Database Hygiene**: Revoke unnecessary `TRUNCATE`/`REFERENCES`/`TRIGGER` grants from `anon`, remove unused `legacy_people` table.
 
 ### Tier 4: Code Quality & Zero Dead-Weight Policy
-- [ ] **Prune Unused Dependencies (KI-012)**: Remove unimported packages `zod`, `react-hook-form`, and `@hookform/resolvers` from `package.json`.
-- [ ] **Automated Unit Tests for `report-utils.ts`**: Add test coverage for `sumRows`, `sumHeaderRows`, and `getMonthsForPeriod` to prevent regression.
+- [x] **Prune Unused Dependencies (KI-012, ADR 014)**: Removed unimported packages `zod`, `react-hook-form`, and `@hookform/resolvers` from `package.json`.
+- [x] **Automated Unit Tests for `report-utils.ts` (ADR 014)**: Added comprehensive test suite `src/lib/report-utils.test.ts` via `node --test` covering `toBn`, `getMonthsForPeriod`, `sumHeaderRows`, and `sumRows` (10/10 passing).
 - [ ] **App Router Error & Loading Boundaries**: Add root `loading.tsx` and `error.tsx` under `src/app/`.
 
 ## Phase 4: Post-Stabilization Feature Expansion
