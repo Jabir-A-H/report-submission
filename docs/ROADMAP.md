@@ -72,6 +72,27 @@
 3. [x] **Full-Field City Report Parity & Upgraded Text Overrides**: Upgraded `CorrectionButton` and `NumericCell` with `isText={true}` support (`<textarea>` rendering storing text strings in `city_report_override`). Added Section 5 (**৫. মন্তব্য ও বিশেষ পর্যালোচনা / Comments**) to `CityReportPage` (`/city-report`) where city admins can input or override city remarks (`city_comment`).
 4. [x] **City Report View/Edit Mode Switcher & Rename Back**: Renamed `/city-report` page header and tabs across `Navbar`, `BottomNav`, `UserDropdown`, and `CityReportPage` from `এডিট রিপোর্ট` back to `সিটি রিপোর্ট` ("City Report"). Replaced static override badge with interactive **`[ 👁️ ভিউ মোড / ⚡ এডিট মোড ]`** toggle (`isEditing` state), hiding all correction buttons/badges cleanly when inspecting in View Mode while allowing rapid one-click editing in Edit Mode.
 
+## Phase 3.8: Core Data Integrity, Save Reliability & Security Stabilization (Active)
+
+### Tier 1: Data Calculation & Schema Synchronization (Critical Correctness)
+- [ ] **Weighted Average Attendance Calculation (KI-006)**: Refactor `sumRows()` in `src/lib/report-utils.ts` and `view_city_meeting_agg` SQL view to compute weighted mean `sum(avg * count) / sum(count)` or aggregate total attendance rather than summing raw averages across periods.
+- [ ] **Snapshot vs. Flow Stock Calculation (KI-005)**: Refactor `sumHeaderRows()` in `src/lib/report-utils.ts` to take the latest period's snapshot value for static stock fields (`total_muallima`, `total_unit`, `certified_muallima`, etc.) while summing flow fields (`increase`, `decrease`).
+- [ ] **Database RPC String Synchronization (KI-007)**: Align seeded RPC category strings (`সহযোগী হয়েছেন` and `সুধী`) in PostgreSQL `get_or_create_report`, truncate test data, and reseed on next report open.
+
+### Tier 2: Save Reliability & UX (Data Integrity)
+- [ ] **User-Facing Auto-Save Failure Alerts & Retry (KI-008)**: Add failure state to `ReportContext` and `AutoSaveIndicator`, treat 0-row updates as errors via `.select()`, and display a prominent Bengali failure banner with retry action on network failure.
+- [ ] **Save Flush on Page Exit / Visibility Change (KI-009)**: Add `visibilitychange` (hidden) and `beforeunload` handlers in `AutoSaveField` to flush dirty fields immediately before navigation or tab close.
+
+### Tier 3: Database & Security Hardening
+- [ ] **Lock Down City Views via `security_invoker = true` (KI-010)**: Execute `ALTER VIEW ... SET (security_invoker = true)` on all 7 `view_city_*` views so PostgREST queries cannot bypass base table RLS.
+- [ ] **Database Column `CHECK` Constraints (KI-011)**: Add `CHECK (number >= 0)` constraints across metric columns, plus `min="0" step="1"` on form inputs.
+- [ ] **Database Hygiene**: Revoke unnecessary `TRUNCATE`/`REFERENCES`/`TRIGGER` grants from `anon`, remove unused `legacy_people` table.
+
+### Tier 4: Code Quality & Zero Dead-Weight Policy
+- [ ] **Prune Unused Dependencies (KI-012)**: Remove unimported packages `zod`, `react-hook-form`, and `@hookform/resolvers` from `package.json`.
+- [ ] **Automated Unit Tests for `report-utils.ts`**: Add test coverage for `sumRows`, `sumHeaderRows`, and `getMonthsForPeriod` to prevent regression.
+- [ ] **App Router Error & Loading Boundaries**: Add root `loading.tsx` and `error.tsx` under `src/app/`.
+
 ## Phase 4: Post-Stabilization Feature Expansion
 - [ ] **Signature Upload**: Add an option for users/admins to upload a handwritten signature image for PDF exports.
 - [ ] **Custom JWT Claims (Performance)**: Store `role` and `active` as custom claims in the Supabase JWT via database hooks.

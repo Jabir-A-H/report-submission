@@ -15,9 +15,73 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ### `sumHeaderRows()` Over-Counting Snapshot Metrics (KI-005)
 - **Date**: 2026-07-19
-- **Description**: Snapshot fields (e.g., `total_muallima`, `total_unit`) are incorrectly being summed across months when computing yearly/quarterly aggregate views. They should simply take the most recent month's snapshot value instead of summing historical data points.
+- **Description**: Snapshot fields (e.g., `total_muallima`, `total_unit`, `certified_muallima`, `trained_muallima`) represent static inventory stock rather than flow deltas. They are currently being summed across months when computing multi-month (quarterly/yearly) views, inflating totals.
+- **Location**: `src/lib/report-utils.ts:166-191`
 - **Impact**: High (data accuracy in aggregate reports)
-- **Status**: **DEFERRED** - Fix postponed. The logic for quarterly and yearly report generation will be completely overhauled in a future phase.
+- **Status**: **ACTIVE (Scheduled for Phase 3.8)** - Update `sumHeaderRows()` to take the latest month's snapshot value for stock columns, summing only flow fields (`increase`, `decrease`).
+
+---
+
+### Average Attendance Summed Instead of Weighted Mean (KI-006)
+- **Date**: 2026-09-14
+- **Description**: In both database views (`view_city_meeting_agg`) and client-side multi-month calculations (`sumRows` in `src/lib/report-utils.ts`), average attendance metrics (`*_avg_attendance`) are summed across zones and months rather than weighted by session count.
+- **Location**: `view_city_meeting_agg`, `src/lib/report-utils.ts:130-155`, `src/app/report/page.tsx`, `src/app/(admin)/city-report/page.tsx`, `export/excel/route.ts`, `export/pdf/route.tsx`
+- **Impact**: Critical (mathematically invalid metrics displayed in city summaries and export documents)
+- **Status**: **ACTIVE (Scheduled for Phase 3.8)** - Refactor to compute weighted mean `sum(avg * count) / sum(count)` or calculate total aggregate attendance directly.
+
+---
+
+### Bengali Category String Drift in `get_or_create_report` RPC (KI-007)
+- **Date**: 2026-09-14
+- **Description**: In the PostgreSQL `get_or_create_report` RPC function, two seeded categories differ slightly from the frontend form constants: `সহযোগী হয়েছে` (RPC, missing 'ন') vs app's `সহযোগী হয়েছেন`, and `সূধী` (RPC, long ূ) vs app's `সুধী`. Updates against these categories match 0 rows, resulting in silent data loss for newly seeded reports.
+- **Location**: PostgreSQL RPC `get_or_create_report`, `src/lib/report-utils.ts`
+- **Impact**: Critical (values typed in forms fail to save to database)
+- **Status**: **ACTIVE (Scheduled for Phase 3.8)** - Update the 2 strings in the RPC function, wipe/truncate test data tables, and allow auto-reseeding on next report open.
+
+---
+
+### Silent Auto-Save Failures & Lack of Error Boundary / Retry (KI-008)
+- **Date**: 2026-07-20 / 2026-09-14
+- **Description**: `updateField` in `ReportContext` applies an optimistic UI update before initiating network requests. When the Supabase query fails, it only outputs to `console.error`. The UI retains the optimistic value and displays a green or default "saved" indicator, misleading users into believing unsaved data was stored. Additionally, 0-row updates (`.update()`) report success even if no rows match.
+- **Location**: `src/components/report/report-context.tsx:84-99`, `src/components/report/auto-save-indicator.tsx`
+- **Impact**: High (silent data loss on flaky connections or schema mismatches)
+- **Status**: **ACTIVE (Scheduled for Phase 3.8)** - Add explicit error state, surface Bengali failure banner with retry prompt, and append `.select()` to updates to treat 0-row updates as errors.
+
+---
+
+### Missing Auto-Save Flush on Exit / Unload (KI-009)
+- **Date**: 2026-09-14
+- **Description**: Auto-saving is triggered solely on input `onBlur`. If a user types into a field and immediately closes the tab or switches apps without explicitly blurring the input, pending keystrokes are lost.
+- **Location**: `src/components/report/auto-save-field.tsx`
+- **Impact**: Medium (lost keystrokes on abrupt mobile navigation or browser close)
+- **Status**: **ACTIVE (Scheduled for Phase 3.8)** - Add `visibilitychange` (hidden) and `beforeunload` event listeners to flush active input values.
+
+---
+
+### City Aggregation Views Bypass RLS (KI-010)
+- **Date**: 2026-09-14
+- **Description**: All seven `view_city_*` aggregation views are owned by `postgres` and lack `security_invoker = true`. Consequently, anyone possessing the Supabase anon key can query city-wide aggregates directly via PostgREST, bypassing base table RLS.
+- **Location**: PostgreSQL views (`view_city_header_agg`, `view_city_course_agg`, `view_city_organizational_agg`, `view_city_personal_agg`, `view_city_meeting_agg`, `view_city_extra_agg`, `view_city_course_final`)
+- **Impact**: High (unauthorized read access to consolidated organizational statistics)
+- **Status**: **ACTIVE (Scheduled for Phase 3.8)** - Execute `ALTER VIEW ... SET (security_invoker = true)` on all city aggregation views.
+
+---
+
+### Unconstrained Metric Database Columns (KI-011)
+- **Date**: 2026-09-14
+- **Description**: Metric numeric columns across `report_*` tables lack PostgreSQL `CHECK` constraints (e.g. `CHECK (number >= 0)`), relying entirely on HTML `type="number"` inputs which can be bypassed or permit negative values and scientific notation.
+- **Location**: Database schema (`report_header`, `report_course`, `report_organizational`, `report_personal`, `report_meeting`, `report_extra`)
+- **Impact**: Medium (potential database integrity corruption from negative or malformed metrics)
+- **Status**: **ACTIVE (Scheduled for Phase 3.8)** - Add SQL `CHECK` constraints on numeric columns and add `min="0" step="1"` to form inputs.
+
+---
+
+### Unused Dependencies in `package.json` (KI-012)
+- **Date**: 2026-07-20 / 2026-09-14
+- **Description**: `zod`, `react-hook-form`, and `@hookform/resolvers` are declared in `package.json` but never imported anywhere in `src/`, violating the project's Zero Dead-Weight Policy.
+- **Location**: `package.json:33,46,48`
+- **Impact**: Low (bloats package manifest and dependency tree)
+- **Status**: **ACTIVE (Scheduled for Phase 3.8)** - Prune unimported packages via `npm uninstall`.
 
 ---
 
