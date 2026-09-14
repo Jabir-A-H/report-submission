@@ -41,6 +41,7 @@ export function CorrectionButton({
   isOverridden = false,
   customTrigger,
   isText = false,
+  onSuccess,
 }: CorrectionButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [newValue, setNewValue] = useState(currentValue.toString())
