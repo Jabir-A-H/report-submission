@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import { translateAuthError } from '@/lib/i18n'
 
 export async function forgotPassword(formData: FormData) {
   const email = formData.get('email') as string
@@ -32,7 +33,7 @@ export async function forgotPassword(formData: FormData) {
   })
 
   if (error) {
-    return redirect(`/forgot-password?message=${encodeURIComponent(error.message)}`)
+    return redirect(`/forgot-password?message=${encodeURIComponent(translateAuthError(error.message))}`)
   }
 
   return redirect('/forgot-password?success=true')

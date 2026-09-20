@@ -214,6 +214,11 @@ export function RegisterFormClient({
         </div>
       </div>
 
+      <div className="p-2.5 bg-muted/40 border border-border/60 rounded-xl text-[11px] text-muted-foreground flex items-start sm:items-center gap-2 leading-tight">
+        <span className="text-primary font-bold shrink-0">📌 দ্রষ্টব্য:</span>
+        <span>নিবন্ধনের পর ইমেইল যাচাই এবং অ্যাডমিনের অনুমোদন সম্পন্ন হলে লগ-ইন করতে পারবেন।</span>
+      </div>
+
       <button 
         type="submit" 
         disabled={loading || hasBlockingError || emailStatus === 'checking' || userIdStatus === 'checking'}

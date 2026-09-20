@@ -111,21 +111,24 @@ The database resides on managed Supabase PostgreSQL. Core application tables res
 
 ### 3.2 Atomic Report Initialization (`get_or_create_report` RPC)
 To eliminate client-side race conditions and reduce network overhead from 8 requests to 1, report creation is executed via Postgres RPC function `get_or_create_report(p_zone_id, p_year, p_month, p_report_type)`:
-- **Atomicity**: Wraps root `report` insertion and 7 seed child table insertions (handling 50+ categories) inside a single Postgres transaction.
+- **Atomicity**: Wraps root `report` insertion and 7 seed child table insertions (handling 50+ categories) inside a single Postgres transaction. Seeded organizational categories strictly match canonical frontend strings (`'সহযোগী হয়েছেন'` and `'সুধী'` per ADR 016).
 - **Month Forcing**: If `p_report_type !== 'মাসিক'`, the SQL function forces `p_month := 1`, ensuring consistent database storage for all quarterly/annual entries.
 - **Concurrency Safety**: Employs `ON CONFLICT DO NOTHING` against the root unique constraint.
 
-### 3.3 High-Speed Aggregation Engine (Postgres Views)
-City-wide totals are computed at the database storage layer via 6 specialized views (`view_city_header_agg`, `view_city_course_agg`, `view_city_organizational_agg`, `view_city_personal_agg`, `view_city_meeting_agg`, `view_city_extra_agg`).
+### 3.3 High-Speed Aggregation Engine (Postgres Views & Security Invoker)
+City-wide totals are computed at the database storage layer via 7 specialized views (`view_city_header_agg`, `view_city_course_agg`, `view_city_organizational_agg`, `view_city_personal_agg`, `view_city_meeting_agg`, `view_city_extra_agg`, `view_city_course_final`).
+- **Security Invoker Enforcement (ADR 016)**: All views enforce `security_invoker = true`, ensuring that queries via PostgREST strictly execute with the permissions and RLS policies of the calling user rather than the view owner (`postgres`).
 - **Override Injection**: Views dynamically left-join `city_report_overrides` via `COALESCE(override.value, SUM(child.field))` to serve official corrections transparently.
 - **Non-Monthly Aggregation**: For quarterly/yearly periods, the frontend or export API queries constituent monthly records within the target months span (e.g. Jan-Mar) and executes client-side reduction.
 
-### 3.4 Row Level Security (RLS) & Security Definers
+### 3.4 Row Level Security (RLS) & Column Constraints
 - Standard users retain `SELECT`, `INSERT`, `UPDATE` rights exclusively where `zone_id = auth.uid() mapped zone`.
 - To prevent infinite RLS policy recursion on `people`, admin privileges are evaluated via `SECURITY DEFINER` SQL function `is_admin()`.
+- **Non-Negative Constraints (ADR 016)**: All numeric metric columns across `report_header`, `report_course`, `report_organizational`, `report_personal`, `report_meeting`, and `report_extra` enforce PostgreSQL `CHECK (col >= 0)` constraints.
+- **Permission Hardening**: Unnecessary `TRUNCATE`, `REFERENCES`, and `TRIGGER` permissions are revoked from the `anon` role.
 
 ### 3.5 Zero-Cost Backup Strategy
-In addition to daily Supabase managed backups, GitHub Actions cron workflow `.github/workflows/backup.yml` executes an automated, encrypted `pg_dump` of the PostgreSQL database and commits it to a secure private repository.
+In addition to daily Supabase managed backups, GitHub Actions cron workflow `.github/workflows/backup.yml` executes an automated `pg_dump` of the PostgreSQL database and commits it to a private repository. (Note: End-to-end symmetric encryption is tracked in KI-018 for Phase 4).
 
 ---
 
@@ -133,7 +136,8 @@ In addition to daily Supabase managed backups, GitHub Actions cron workflow `.gi
 
 ### 4.1 Authentication & Onboarding
 - **Unified Dynamic Portal (`/home`)**: Consolidated `/login` and `/register` into a centered vertical scrolling portal page without any top header bar. The hero section displays simply `তা'লীমুল কুরআন বিভাগ` (without top pills or paragraph subtitles), followed directly by `AuthPortalClient` and rich platform feature cards. Mode switching (`login` vs `register`) is handled cleanly by bottom toggle links (`অ্যাকাউন্ট নেই? নিবন্ধন করুন` / `অ্যাকাউন্ট আছে? লগ-ইন করুন`), eliminating redundant top tabs. All form inputs with absolute icons (`Mail`, `Lock`, `User`, `Tag`, `MapPin`) enforce `!pl-12 !pr-4` (`!pl-12 !pr-8` for select) to prevent placeholder/text overlap. The bottom footer row embeds the `সাহায্য (Help)` link (`/help`) alongside `AppearanceFooterToggle` (`ভাষা: [বাংলা | EN]` and `থিম: [লাইট | ডার্ক...]`) directly inline.
-- **Live Registration Validation**: `src/components/auth/register-form-client.tsx` executes real-time `onBlur` server actions (`checkEmailAvailability`, `checkUserIdAvailability`). Queries indexed `public.people` directly to verify availability without API scaling caps (ADR 003).
+- **Live Registration Validation & Guidance**: `src/components/auth/register-form-client.tsx` executes real-time `onBlur` server actions (`checkEmailAvailability`, `checkUserIdAvailability`) and displays an upfront guidance banner informing users that registration requires email confirmation and admin approval. Form enforces matching `confirmPassword` input before submission (ADR 015).
+- **Localized Technical Error Handling (ADR 016)**: All server actions (`login`, `register`, `forgotPassword`, `updatePassword`) pipe raw Supabase Auth errors through `translateAuthError()` (`src/lib/i18n.ts`), converting English technical errors into clear, actionable Bengali text.
 - **Silent Email Collision Guard**: In `actions.ts`, if `supabase.auth.signUp()` returns `identities.length === 0`, registration is halted with a Bangla warning to prevent email enumeration attacks.
 - **PKCE Password Recovery**: `/forgot-password` generates recovery links pointing to `/auth/callback?next=/update-password`. Route handler `src/app/auth/callback/route.ts` executes `exchangeCodeForSession()`, establishing SSR session cookies reliably.
 

@@ -13,29 +13,11 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ---
 
-### Bengali Category String Drift in `get_or_create_report` RPC (KI-007)
-- **Date**: 2026-09-14
-- **Description**: In the PostgreSQL `get_or_create_report` RPC function, two seeded categories differ slightly from the frontend form constants: `সহযোগী হয়েছে` (RPC, missing 'ন') vs app's `সহযোগী হয়েছেন`, and `সূধী` (RPC, long ূ) vs app's `সুধী`. Updates against these categories match 0 rows, resulting in silent data loss for newly seeded reports.
-- **Location**: PostgreSQL RPC `get_or_create_report`, `src/lib/report-utils.ts`
-- **Impact**: Critical (values typed in forms fail to save to database)
-- **Status**: **ACTIVE (Scheduled for Phase 3.8)** - Update the 2 strings in the RPC function, wipe/truncate test data tables, and allow auto-reseeding on next report open.
-
----
-
 ### Supabase Free Tier: 2 Password Reset Emails Per Hour
 - **Date**: 2026-06-13
 - **Description**: Supabase's free tier enforces a hard limit of 2 password reset emails per hour per email address. This cannot be changed via the Dashboard on the free plan.
 - **Impact**: Low (only affects testing; real users rarely reset passwords more than once).
 - **Workaround**: Use Gmail `+` aliases (e.g., `user+test1@gmail.com`) to get fresh rate limits per alias. All emails still arrive at the same inbox.
-
----
-
-### Untranslated Raw Supabase Auth Error Messages (KI-016)
-- **Date**: 2026-09-20
-- **Description**: `login()`, `forgotPassword()`, and `updatePassword()` server actions do `redirect(...error.message...)` verbatim for most error paths beyond a few hardcoded translations. Bengali-only users receive raw English Supabase SDK error strings (e.g., `"Email not confirmed"`, `"User already registered"`, `"Email rate limit exceeded"`) with no translated message and no actionable next step.
-- **Location**: `src/app/auth/login/actions.ts`, `src/app/auth/forgot-password/actions.ts`, `src/app/update-password/actions.ts`
-- **Impact**: Medium (confusing raw English error leaks to users who only read Bengali)
-- **Status**: **DEFERRED (Sprint 2)** — Extend `src/lib/i18n.ts` with an `authErrors` map covering common Supabase error strings; add a catch-all Bengali fallback for unmapped errors.
 
 ---
 
@@ -58,6 +40,23 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 ---
 
 ## Resolved Historical Issues
+
+### Database RPC String Alignment, View Security, Constraints & Auth Error Localization (ADR 016, KI-007, KI-010, KI-011, KI-016)
+- **Date**: 2026-09-20
+- **Resolution Date**: 2026-09-20
+- **Description**:
+  1. `get_or_create_report` seeded `'সহযোগী হয়েছে'` (missing 'ন') and `'সূধী'` (long ূ), causing silent 0-row update failures on those categories (`KI-007`).
+  2. Consolidation views lacked `security_invoker = true`, allowing anon requests to query city metrics without invoking table RLS (`KI-010`).
+  3. Metric numeric columns lacked database `CHECK` constraints, leaving storage vulnerable to malformed or negative data (`KI-011`).
+  4. Raw English Supabase errors (`Email not confirmed`, `User already registered`, rate limits) leaked to users via redirect query parameters (`KI-016`).
+- **Fix**:
+  1. Updated PostgreSQL RPC `get_or_create_report` with canonical category strings `'সহযোগী হয়েছেন'` and `'সুধী'`. Migrated existing test records in-place (`UPDATE report_organizational ...`) per Option A.
+  2. Executed `ALTER VIEW ... SET (security_invoker = true)` across all 7 consolidation views (`view_city_*`).
+  3. Added `CHECK (col >= 0)` constraints to all numeric metrics across `report_header`, `report_course`, `report_organizational`, `report_personal`, `report_meeting`, and `report_extra`. Revoked dangerous `TRUNCATE`, `REFERENCES`, `TRIGGER` privileges from `anon`.
+  4. Created `translateAuthError()` in `src/lib/i18n.ts` and wrapped all auth server action redirects (`login`, `register`, `forgotPassword`, `updatePassword`). Added an upfront verification guidance banner to `RegisterFormClient`. Added root `loading.tsx` and `error.tsx` App Router boundaries.
+
+---
+
 
 ### Save Reliability, Bengali Numeral Normalization, Password Confirmation & Timezone Parity (ADR 015, KI-008, KI-009, KI-013, KI-014, KI-015)
 - **Date**: 2026-09-20

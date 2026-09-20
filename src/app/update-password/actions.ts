@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import { translateAuthError } from '@/lib/i18n'
 
 export async function updatePassword(formData: FormData) {
   const password = formData.get('password') as string
@@ -22,7 +23,7 @@ export async function updatePassword(formData: FormData) {
   })
 
   if (error) {
-    return redirect(`/update-password?message=${encodeURIComponent(error.message)}`)
+    return redirect(`/update-password?message=${encodeURIComponent(translateAuthError(error.message))}`)
   }
 
   // Once updated successfully, redirect them to login with a success message

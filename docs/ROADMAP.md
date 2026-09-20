@@ -74,10 +74,10 @@
 
 ## Phase 3.8: Core Data Integrity, Save Reliability & Security Stabilization (Active)
 
-### Tier 1: Data Calculation & Schema Synchronization (Critical Correctness)
+### Tier 1: Data Calculation & Schema Synchronization (Completed — ADR 014, ADR 016)
 - [x] **Weighted Average Attendance Calculation (KI-006, ADR 014)**: Refactored `sumRows()` in `src/lib/report-utils.ts` to compute weighted mean `sum(avg * count) / sum(count)` across periods rather than summing raw averages.
 - [x] **Snapshot vs. Flow Stock Calculation (KI-005, ADR 014)**: Refactored `sumHeaderRows()` in `src/lib/report-utils.ts` to take the latest period's snapshot value for static stock fields (`total_muallima`, `total_unit`, `certified_muallima`, etc.) while summing flow fields (`increase`, `decrease`).
-- [ ] **Database RPC String Synchronization (KI-007)**: Align seeded RPC category strings (`সহযোগী হয়েছেন` and `সুধী`) in PostgreSQL `get_or_create_report`, truncate test data, and reseed on next report open.
+- [x] **Database RPC String Synchronization (KI-007, ADR 016)**: Aligned seeded RPC category strings (`সহযোগী হয়েছেন` and `সুধী`) in PostgreSQL `get_or_create_report`, and migrated existing test records in-place (Option A).
 
 ### Tier 2: Save Reliability, Field Worker UX & Timezone Parity (Completed in Sprint 1 — ADR 015)
 - [x] **User-Facing Auto-Save Failure Alerts & Retry (KI-008, ADR 015)**: Added `saveError` state to `ReportContext`, appended `.select('id')` to all updates to catch 0-row updates, and added 4-state `AutoSaveIndicator` with a prominent Bengali failure banner and retry button.
@@ -86,15 +86,16 @@
 - [x] **Registration Password Confirmation (KI-013, ADR 015)**: Added `confirmPassword` input to `register-form-client.tsx` and server-side validation in `src/app/home/actions.ts` returning `'পাসওয়ার্ড মিলছে না।'`.
 - [x] **Bangladesh Timezone Period Parity (KI-015, ADR 015)**: Added `getDhakaDate()` helper in `user-dashboard.tsx` and `period-selector.tsx` using `Intl.DateTimeFormat` with `timeZone: 'Asia/Dhaka'`, eliminating the 6-hour false future-period lockout.
 
-### Tier 3: Database & Security Hardening
-- [ ] **Lock Down City Views via `security_invoker = true` (KI-010)**: Execute `ALTER VIEW ... SET (security_invoker = true)` on all 7 `view_city_*` views so PostgREST queries cannot bypass base table RLS.
-- [ ] **Database Column `CHECK` Constraints (KI-011)**: Add `CHECK (number >= 0)` constraints across metric columns, plus `min="0" step="1"` on form inputs.
-- [ ] **Database Hygiene**: Revoke unnecessary `TRUNCATE`/`REFERENCES`/`TRIGGER` grants from `anon`, remove unused `legacy_people` table.
+### Tier 3: Database & Security Hardening (Completed in Sprint 2 — ADR 016)
+- [x] **Lock Down City Views via `security_invoker = true` (KI-010, ADR 016)**: Executed `ALTER VIEW ... SET (security_invoker = true)` on all 7 `view_city_*` views so PostgREST queries cannot bypass base table RLS.
+- [x] **Database Column `CHECK` Constraints (KI-011, ADR 016)**: Added `CHECK (col >= 0)` constraints across metric columns in `report_header`, `report_course`, `report_organizational`, `report_personal`, `report_meeting`, and `report_extra`.
+- [x] **Database Hygiene (ADR 016)**: Revoked unnecessary `TRUNCATE`, `REFERENCES`, `TRIGGER` grants from `anon`.
 
-### Tier 4: Code Quality & Zero Dead-Weight Policy
+### Tier 4: Code Quality & Zero Dead-Weight Policy (Completed — ADR 014, ADR 016)
 - [x] **Prune Unused Dependencies (KI-012, ADR 014)**: Removed unimported packages `zod`, `react-hook-form`, and `@hookform/resolvers` from `package.json`.
 - [x] **Automated Unit Tests for `report-utils.ts` (ADR 014)**: Added comprehensive test suite `src/lib/report-utils.test.ts` via `node --test` covering `toBn`, `getMonthsForPeriod`, `sumHeaderRows`, and `sumRows` (10/10 passing).
-- [ ] **App Router Error & Loading Boundaries**: Add root `loading.tsx` and `error.tsx` under `src/app/`.
+- [x] **App Router Error & Loading Boundaries (ADR 016)**: Added root `loading.tsx` and `error.tsx` under `src/app/`.
+- [x] **Auth Technical Error Translation (KI-016, ADR 016)**: Added `translateAuthError()` in `src/lib/i18n.ts` and wrapped all auth server actions.
 
 ## Phase 4: Post-Stabilization Feature Expansion
 - [ ] **Signature Upload**: Add an option for users/admins to upload a handwritten signature image for PDF exports.

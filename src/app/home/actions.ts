@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { createServerClient } from '@supabase/ssr'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
+import { translateAuthError } from '@/lib/i18n'
 
 export async function login(formData: FormData) {
   const cookieStore = await cookies()
@@ -62,8 +63,8 @@ export async function login(formData: FormData) {
   })
 
   if (error) {
-    // Return the exact error message with tab mode preserved
-    return redirect(`/home?mode=login&message=${encodeURIComponent(error.message)}`)
+    // Return localized Bengali error message with tab mode preserved
+    return redirect(`/home?mode=login&message=${encodeURIComponent(translateAuthError(error.message))}`)
   }
 
   // Middleware enforces the active check on the next request to /
@@ -149,9 +150,7 @@ export async function register(formData: FormData) {
   })
 
   if (authError) {
-    const msg = authError.message === 'User already registered' 
-      ? 'এই ইমেইল দিয়ে আগেই নিবন্ধন করা হয়েছে।' 
-      : authError.message
+    const msg = translateAuthError(authError.message)
     return redirect(`/home?mode=register&message=${encodeURIComponent(msg)}`)
   }
 

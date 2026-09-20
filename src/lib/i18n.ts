@@ -793,3 +793,46 @@ export async function getServerLanguage() {
 
   return { language: safeLang, t, tc };
 }
+
+const AUTH_ERROR_TRANSLATIONS: Record<string, string> = {
+  "invalid login credentials": "ইমেইল/ইউজার আইডি অথবা পাসওয়ার্ড সঠিক নয়।",
+  "email not confirmed": "ইমেইল এখনো নিশ্চিত করা হয়নি। অনুগ্রহ করে আপনার ইনবক্স চেক করুন।",
+  "user already registered": "এই ইমেইল দিয়ে আগেই নিবন্ধন করা হয়েছে।",
+  "email rate limit exceeded": "অতিরিক্ত অনুরোধ করা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।",
+  "over email send rate limit": "অতিরিক্ত ইমেইল অনুরোধ করা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।",
+  "password should be at least 6 characters": "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।",
+  "signup requires a valid password": "একটি বৈধ পাসওয়ার্ড প্রদান করুন।",
+  "user not found": "ব্যবহারকারী পাওয়া যায়নি।",
+  "database error saving new user": "সার্ভারে সমস্যা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।",
+};
+
+/**
+ * Translates raw Supabase Auth technical error strings into user-friendly Bengali.
+ * If the string already contains Bengali or has no mapping, returns a clean localized message.
+ */
+export function translateAuthError(rawMessage?: string | null): string {
+  if (!rawMessage) return "কিছু একটা সমস্যা হয়েছে, অনুগ্রহ করে আবার চেষ্টা করুন।";
+  
+  // If already Bengali, pass through directly
+  if (/[\u0980-\u09FF]/.test(rawMessage)) {
+    return rawMessage;
+  }
+
+  const normalized = rawMessage.trim().toLowerCase();
+  
+  for (const [pattern, translation] of Object.entries(AUTH_ERROR_TRANSLATIONS)) {
+    if (normalized.includes(pattern)) {
+      return translation;
+    }
+  }
+
+  if (normalized.includes("rate limit") || normalized.includes("too many requests")) {
+    return "অতিরিক্ত অনুরোধ করা হয়েছে। কিছুক্ষণ অপেক্ষা করে আবার চেষ্টা করুন।";
+  }
+
+  if (normalized.includes("network") || normalized.includes("fetch")) {
+    return "ইন্টারনেট সংযোগে সমস্যা হয়েছে। আপনার নেটওয়ার্ক চেক করুন।";
+  }
+
+  return "কিছু একটা সমস্যা হয়েছে, অনুগ্রহ করে আবার চেষ্টা করুন।";
+}
