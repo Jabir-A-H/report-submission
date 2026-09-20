@@ -79,9 +79,12 @@
 - [x] **Snapshot vs. Flow Stock Calculation (KI-005, ADR 014)**: Refactored `sumHeaderRows()` in `src/lib/report-utils.ts` to take the latest period's snapshot value for static stock fields (`total_muallima`, `total_unit`, `certified_muallima`, etc.) while summing flow fields (`increase`, `decrease`).
 - [ ] **Database RPC String Synchronization (KI-007)**: Align seeded RPC category strings (`সহযোগী হয়েছেন` and `সুধী`) in PostgreSQL `get_or_create_report`, truncate test data, and reseed on next report open.
 
-### Tier 2: Save Reliability & UX (Data Integrity)
-- [ ] **User-Facing Auto-Save Failure Alerts & Retry (KI-008)**: Add failure state to `ReportContext` and `AutoSaveIndicator`, treat 0-row updates as errors via `.select()`, and display a prominent Bengali failure banner with retry action on network failure.
-- [ ] **Save Flush on Page Exit / Visibility Change (KI-009)**: Add `visibilitychange` (hidden) and `beforeunload` handlers in `AutoSaveField` to flush dirty fields immediately before navigation or tab close.
+### Tier 2: Save Reliability, Field Worker UX & Timezone Parity (Completed in Sprint 1 — ADR 015)
+- [x] **User-Facing Auto-Save Failure Alerts & Retry (KI-008, ADR 015)**: Added `saveError` state to `ReportContext`, appended `.select('id')` to all updates to catch 0-row updates, and added 4-state `AutoSaveIndicator` with a prominent Bengali failure banner and retry button.
+- [x] **Save Flush on Page Exit / Visibility Change (KI-009, ADR 015)**: Added `visibilitychange` and `beforeunload` event listeners to `AutoSaveField` to flush dirty fields before tab close or mobile app switch.
+- [x] **Bengali Numeral Keyboard Normalization (KI-014, ADR 015)**: Replaced `type="number"` with `type="text" inputMode="numeric" pattern="[০-৯0-9]*"` across `AutoSaveField` and added `bnToEn()` normalizer converting Bengali digits to ASCII before saving.
+- [x] **Registration Password Confirmation (KI-013, ADR 015)**: Added `confirmPassword` input to `register-form-client.tsx` and server-side validation in `src/app/home/actions.ts` returning `'পাসওয়ার্ড মিলছে না।'`.
+- [x] **Bangladesh Timezone Period Parity (KI-015, ADR 015)**: Added `getDhakaDate()` helper in `user-dashboard.tsx` and `period-selector.tsx` using `Intl.DateTimeFormat` with `timeZone: 'Asia/Dhaka'`, eliminating the 6-hour false future-period lockout.
 
 ### Tier 3: Database & Security Hardening
 - [ ] **Lock Down City Views via `security_invoker = true` (KI-010)**: Execute `ALTER VIEW ... SET (security_invoker = true)` on all 7 `view_city_*` views so PostgREST queries cannot bypass base table RLS.

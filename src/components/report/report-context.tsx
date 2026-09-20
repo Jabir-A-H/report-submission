@@ -9,6 +9,8 @@ interface ReportContextType {
   data: Record<string, any>
   isSaving: boolean
   lastSaved: Date | null
+  saveError: string | null
+  clearSaveError: () => void
   updateField: (name: string, value: any, section: string, table?: string, category?: string) => Promise<void>
   loadReport: (id: number) => Promise<void>
 }
@@ -20,8 +22,11 @@ export function ReportProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState<Record<string, any>>({})
   const [isSaving, setIsSaving] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
   
   const supabase = useMemo(() => createClient(), [])
+
+  const clearSaveError = useCallback(() => setSaveError(null), [])
 
   const loadReport = useCallback(async (id: number) => {
     setIsSaving(true)
@@ -81,21 +86,27 @@ export function ReportProvider({ children }: { children: React.ReactNode }) {
       return nextData;
     });
 
-    let query = supabase.from(table).update({ [name]: value }).eq('report_id', reportId)
+    let query = supabase.from(table).update({ [name]: value }).eq('report_id', reportId).select('id')
     
     // For the main 'report' table, we use 'id'
     if (table === 'report') {
-      query = supabase.from('report').update({ [name]: value }).eq('id', reportId)
+      query = supabase.from('report').update({ [name]: value }).eq('id', reportId).select('id')
     } else if (category) {
       query = query.eq('category', category)
     }
 
-    const { error } = await query
+    const { data: updated, error } = await query
 
-    if (!error) {
+    if (!error && updated && updated.length > 0) {
       setLastSaved(new Date())
-    } else {
+      setSaveError(null)
+    } else if (error) {
       console.error(`Failed to save to ${table}:`, error)
+      setSaveError('সংরক্ষণ ব্যর্থ হয়েছে')
+    } else {
+      // 0-row update: no error but nothing was written
+      console.error(`0-row update on ${table} (name=${name}, category=${category})`)
+      setSaveError('সংরক্ষণ ব্যর্থ হয়েছে')
     }
     setIsSaving(false)
   }, [reportId, supabase])
@@ -105,10 +116,12 @@ export function ReportProvider({ children }: { children: React.ReactNode }) {
     setReportId, 
     data, 
     isSaving, 
-    lastSaved, 
+    lastSaved,
+    saveError,
+    clearSaveError,
     updateField,
     loadReport 
-  }), [reportId, data, isSaving, lastSaved, updateField, loadReport])
+  }), [reportId, data, isSaving, lastSaved, saveError, clearSaveError, updateField, loadReport])
 
   return (
     <ReportContext.Provider value={contextValue}>

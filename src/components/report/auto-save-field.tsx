@@ -4,6 +4,11 @@ import { useReport } from "./report-context";
 import { useState, useCallback, useEffect } from "react";
 import { useLanguage } from "@/components/providers/language-provider";
 
+/** Convert Bengali/Arabic-Indic digits (০-৯) to ASCII digits (0-9). */
+function bnToEn(val: string): string {
+  return val.replace(/[০-৯]/g, (d) => String(d.charCodeAt(0) - 0x09E6));
+}
+
 interface AutoSaveFieldProps {
   label: string;
   name: string;
@@ -62,16 +67,46 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
     setLocalValue(currentVal);
   }, [currentVal]);
 
-  const handleBlur = useCallback(() => {
-    if (localValue !== getInitialValue()) {
-      updateField(name, localValue, section, table, category);
+  /** Persist to DB — normalises Bengali digits to ASCII before saving. */
+  const persist = useCallback(() => {
+    const initial = getInitialValue();
+    if (localValue !== initial) {
+      const normalised = type === "number" ? bnToEn(String(localValue)) : localValue;
+      updateField(name, normalised, section, table, category);
     }
-  }, [localValue, getInitialValue, name, section, table, category, updateField]);
+  }, [localValue, getInitialValue, name, section, table, category, updateField, type]);
+
+  const handleBlur = useCallback(() => {
+    persist();
+  }, [persist]);
+
+  // Task 2: flush dirty value on tab-hide or page unload (mobile-safe exit flush)
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") persist();
+    };
+    const onBeforeUnload = () => persist();
+
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("beforeunload", onBeforeUnload);
+    };
+  }, [persist]);
+
+  // Task 3: numeric fields use type="text" + inputMode="numeric" to accept Bengali digits
+  const isNumeric = type === "number";
+  const inputType = isNumeric ? "text" : (type === "textarea" ? "textarea" : type);
+  const inputMode = isNumeric ? "numeric" : undefined;
+  const inputPattern = isNumeric ? "[০-৯0-9]*" : undefined;
 
   if (tableMode) {
     return (
       <input
-        type={type}
+        type={inputType}
+        inputMode={inputMode}
+        pattern={inputPattern}
         value={localValue}
         onChange={(e) => setLocalValue(e.target.value)}
         onBlur={handleBlur}
@@ -88,7 +123,9 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
           {label}
         </label>
         <input
-          type={type}
+          type={inputType}
+          inputMode={inputMode}
+          pattern={inputPattern}
           value={localValue}
           onChange={(e) => setLocalValue(e.target.value)}
           onBlur={handleBlur}
@@ -115,7 +152,9 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
         />
       ) : (
         <input
-          type={type}
+          type={inputType}
+          inputMode={inputMode}
+          pattern={inputPattern}
           value={localValue}
           onChange={(e) => setLocalValue(e.target.value)}
           onBlur={handleBlur}

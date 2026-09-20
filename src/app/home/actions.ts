@@ -97,10 +97,11 @@ export async function register(formData: FormData) {
   const name = formData.get('name') as string
   const email = formData.get('email') as string
   const password = formData.get('password') as string
+  const confirmPassword = formData.get('confirmPassword') as string
   const zoneId = formData.get('zone_id') as string
   const userId = (formData.get('user_id') as string)?.trim()
 
-  if (!name || !email || !password || !zoneId || !userId) {
+  if (!name || !email || !password || !confirmPassword || !zoneId || !userId) {
     return redirect(`/home?mode=register&message=${encodeURIComponent('সকল তথ্য পূরণ করুন')}`)
   }
 
@@ -112,6 +113,10 @@ export async function register(formData: FormData) {
 
   if (password.length < 6) {
     return redirect(`/home?mode=register&message=${encodeURIComponent('পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে')}`)
+  }
+
+  if (password !== confirmPassword) {
+    return redirect(`/home?mode=register&message=${encodeURIComponent('পাসওয়ার্ড মিলছে না।')}`)
   }
 
   // Check if User ID is already taken

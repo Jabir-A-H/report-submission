@@ -176,6 +176,23 @@ export function RegisterFormClient({
         </div>
 
         <div>
+          <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block" htmlFor="confirmPassword">
+              পাসওয়ার্ড নিশ্চিত করুন
+          </label>
+          <div className="relative">
+            <Lock className="w-4 h-4 text-muted-foreground/60 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              className="modern-input !pl-10 !pr-3.5 w-full h-10 text-sm bg-muted/40 focus:bg-background transition-colors tracking-widest rounded-xl border border-border"
+              type="password"
+              name="confirmPassword"
+              placeholder="••••••••"
+              minLength={6}
+              required
+            />
+          </div>
+        </div>
+
+        <div>
           <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block" htmlFor="zone_id">
               জোন নির্বাচন করুন
           </label>

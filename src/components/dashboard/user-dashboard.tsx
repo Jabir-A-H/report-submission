@@ -28,6 +28,20 @@ const BENGALI_MONTHS = [
 
 const BENGALI_DIGITS = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
 
+/** Returns the current month (1-12) and year in Asia/Dhaka time (UTC+6). */
+function getDhakaDate(): { month: number; year: number } {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Dhaka",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  return {
+    year: Number(parts.find((p) => p.type === "year")?.value ?? new Date().getFullYear()),
+    month: Number(parts.find((p) => p.type === "month")?.value ?? (new Date().getMonth() + 1)),
+  };
+}
+
 function toBn(n: number | string | null | undefined): string {
   if (n === null || n === undefined) return "০";
   return String(n).replace(/\d/g, (d) => BENGALI_DIGITS[parseInt(d)]);
@@ -75,10 +89,8 @@ export function UserDashboard() {
       setIsLoading(true);
       setError(null);
 
-      // Validate future periods
-      const now = new Date();
-      const currentMonth = now.getMonth() + 1;
-      const currentYear = now.getFullYear();
+      // Validate future periods using Bangladesh local time (UTC+6)
+      const { month: currentMonth, year: currentYear } = getDhakaDate();
 
       const getEndingMonthForPeriod = (reportType: string): number => {
         switch (reportType) {

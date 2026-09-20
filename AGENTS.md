@@ -2,11 +2,19 @@
 
 This document defines mandatory operational rules and protocols for all AI agents and developers contributing to the **Report Submission System** (`report-submission`).
 
+## 🎯 Mission
+Treat this project as a production reporting system where correctness, stability, and data integrity are higher priority than rapid feature output.
+
 ---
 
 ## 📌 RULE 1: Mandatory Post-Session Documentation Protocol
 
 > **CRITICAL DIRECTIVE:** You MUST ALWAYS update, reconcile, and optimize the documentation in `docs/` after every coding, debugging, refactoring, or design session before concluding work.
+
+### Antigravity Systemic Docs Directive
+When implementation and docs are updated/decided, Antigravity must execute this systemic documentation step:
+> *"now add all these info that we decided on and actually implemented into the dcos properly for a complete docs suite. use any skills as needed."*
+Run this systemically for docs sync, ADR alignment, roadmap updates, and known-issues cleanup.
 
 At the end of any session or significant milestone:
 

@@ -29,8 +29,16 @@ export function PeriodSelector({ monthlyOnly = false }: { monthlyOnly?: boolean 
     const cleanType = URL_TO_ENGLISH[rawType || ""] || rawType || "monthly";
     return monthlyOnly ? "monthly" : cleanType;
   });
-  const [month, setMonth] = useState(() => searchParams?.get("month") || String(new Date().getMonth() + 1));
-  const [year, setYear] = useState(() => searchParams?.get("year") || String(new Date().getFullYear()));
+  const [month, setMonth] = useState(() => {
+    if (searchParams?.get("month")) return searchParams.get("month")!;
+    const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dhaka", month: "2-digit" }).formatToParts(new Date());
+    return parts.find((p) => p.type === "month")?.value ?? String(new Date().getMonth() + 1);
+  });
+  const [year, setYear] = useState(() => {
+    if (searchParams?.get("year")) return searchParams.get("year")!;
+    const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dhaka", year: "numeric" }).formatToParts(new Date());
+    return parts.find((p) => p.type === "year")?.value ?? String(new Date().getFullYear());
+  });
   const [validationError, setValidationError] = useState<string | null>(null);
 
   // Sync state cleanly whenever URL search parameters change during client navigation
@@ -72,9 +80,11 @@ export function PeriodSelector({ monthlyOnly = false }: { monthlyOnly?: boolean 
   const handleGo = () => {
     const selMonth = parseInt(month);
     const selYear = parseInt(year);
-    const now = new Date();
-    const currentMonth = now.getMonth() + 1;
-    const currentYear = now.getFullYear();
+    // Use Bangladesh local time (UTC+6) to avoid false future-period block in early morning hours
+    const dhakaYear = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dhaka", year: "numeric" }).format(new Date());
+    const dhakaMonth = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dhaka", month: "2-digit" }).format(new Date());
+    const currentYear = parseInt(dhakaYear);
+    const currentMonth = parseInt(dhakaMonth);
 
     const isMonthly = type === "monthly" || type === "মাসিক";
     const endingMonth = isMonthly ? selMonth : getEndingMonthForPeriod(type);

@@ -22,42 +22,6 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ---
 
-### Silent Auto-Save Failures & Lack of Error Boundary / Retry (KI-008)
-- **Date**: 2026-07-20 / 2026-09-14
-- **Description**: `updateField` in `ReportContext` applies an optimistic UI update before initiating network requests. When the Supabase query fails, it only outputs to `console.error`. The UI retains the optimistic value and displays a green or default "saved" indicator, misleading users into believing unsaved data was stored. Additionally, 0-row updates (`.update()`) report success even if no rows match.
-- **Location**: `src/components/report/report-context.tsx:84-99`, `src/components/report/auto-save-indicator.tsx`
-- **Impact**: High (silent data loss on flaky connections or schema mismatches)
-- **Status**: **ACTIVE (Scheduled for Phase 3.8)** - Add explicit error state, surface Bengali failure banner with retry prompt, and append `.select()` to updates to treat 0-row updates as errors.
-
----
-
-### Missing Auto-Save Flush on Exit / Unload (KI-009)
-- **Date**: 2026-09-14
-- **Description**: Auto-saving is triggered solely on input `onBlur`. If a user types into a field and immediately closes the tab or switches apps without explicitly blurring the input, pending keystrokes are lost.
-- **Location**: `src/components/report/auto-save-field.tsx`
-- **Impact**: Medium (lost keystrokes on abrupt mobile navigation or browser close)
-- **Status**: **ACTIVE (Scheduled for Phase 3.8)** - Add `visibilitychange` (hidden) and `beforeunload` event listeners to flush active input values.
-
----
-
-### City Aggregation Views Bypass RLS (KI-010)
-- **Date**: 2026-09-14
-- **Description**: All seven `view_city_*` aggregation views are owned by `postgres` and lack `security_invoker = true`. Consequently, anyone possessing the Supabase anon key can query city-wide aggregates directly via PostgREST, bypassing base table RLS.
-- **Location**: PostgreSQL views (`view_city_header_agg`, `view_city_course_agg`, `view_city_organizational_agg`, `view_city_personal_agg`, `view_city_meeting_agg`, `view_city_extra_agg`, `view_city_course_final`)
-- **Impact**: High (unauthorized read access to consolidated organizational statistics)
-- **Status**: **ACTIVE (Scheduled for Phase 3.8)** - Execute `ALTER VIEW ... SET (security_invoker = true)` on all city aggregation views.
-
----
-
-### Unconstrained Metric Database Columns (KI-011)
-- **Date**: 2026-09-14
-- **Description**: Metric numeric columns across `report_*` tables lack PostgreSQL `CHECK` constraints (e.g. `CHECK (number >= 0)`), relying entirely on HTML `type="number"` inputs which can be bypassed or permit negative values and scientific notation.
-- **Location**: Database schema (`report_header`, `report_course`, `report_organizational`, `report_personal`, `report_meeting`, `report_extra`)
-- **Impact**: Medium (potential database integrity corruption from negative or malformed metrics)
-- **Status**: **ACTIVE (Scheduled for Phase 3.8)** - Add SQL `CHECK` constraints on numeric columns and add `min="0" step="1"` to form inputs.
-
----
-
 ### Supabase Free Tier: 2 Password Reset Emails Per Hour
 - **Date**: 2026-06-13
 - **Description**: Supabase's free tier enforces a hard limit of 2 password reset emails per hour per email address. This cannot be changed via the Dashboard on the free plan.
@@ -66,7 +30,52 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ---
 
+### Untranslated Raw Supabase Auth Error Messages (KI-016)
+- **Date**: 2026-09-20
+- **Description**: `login()`, `forgotPassword()`, and `updatePassword()` server actions do `redirect(...error.message...)` verbatim for most error paths beyond a few hardcoded translations. Bengali-only users receive raw English Supabase SDK error strings (e.g., `"Email not confirmed"`, `"User already registered"`, `"Email rate limit exceeded"`) with no translated message and no actionable next step.
+- **Location**: `src/app/auth/login/actions.ts`, `src/app/auth/forgot-password/actions.ts`, `src/app/update-password/actions.ts`
+- **Impact**: Medium (confusing raw English error leaks to users who only read Bengali)
+- **Status**: **DEFERRED (Sprint 2)** — Extend `src/lib/i18n.ts` with an `authErrors` map covering common Supabase error strings; add a catch-all Bengali fallback for unmapped errors.
+
+---
+
+### Quarterly/Multi-Month Periods Hardcoded to January Start (KI-017)
+- **Date**: 2026-09-20
+- **Description**: `getMonthsForPeriod()` in `src/lib/report-utils.ts` ignores the selected month for all non-monthly types. "Quarterly" always returns Jan-Mar, never Q2/Q3/Q4. Whether this represents cumulative year-to-date reporting (intentional) or a bug is currently ambiguous — org confirmation required before any code change.
+- **Location**: `src/lib/report-utils.ts` → `getMonthsForPeriod()`
+- **Impact**: Low-Medium (incorrect period aggregation for non-monthly report types if true rolling quarters are intended)
+- **Status**: **DEFERRED — Requires org confirmation** — Confirm with the organization whether multi-month periods mean rolling quarters or year-to-date checkpoints. If year-to-date: update UI labels to make it explicit. If rolling: fix `getMonthsForPeriod()` to compute from `selectedMonth`.
+
+---
+
+### Backup Workflow Not Actually Encrypted (KI-018)
+- **Date**: 2026-09-20
+- **Description**: `TECHNICAL_MANUAL.md` §6 describes database backups as "encrypted." The actual `.github/workflows/backup.yml` produces a plain, unencrypted `pg_dump` SQL file committed to a second GitHub repository. "Private repo" is access control, not encryption. The dump contains personal data (emails, per-user submissions).
+- **Location**: `.github/workflows/backup.yml`, `docs/TECHNICAL_MANUAL.md`
+- **Impact**: Medium (documentation falsely claims encryption; private backup repo exposure would leak plaintext PII)
+- **Status**: **DEFERRED (Phase 4)** — At minimum, correct `TECHNICAL_MANUAL.md` to accurately describe the current unencrypted state. When ready: add GPG symmetric encryption step (`gpg --symmetric --cipher-algo AES256`) to the workflow before the git commit, storing the passphrase as a GitHub Actions secret.
+
+---
+
 ## Resolved Historical Issues
+
+### Save Reliability, Bengali Numeral Normalization, Password Confirmation & Timezone Parity (ADR 015, KI-008, KI-009, KI-013, KI-014, KI-015)
+- **Date**: 2026-09-20
+- **Resolution Date**: 2026-09-20
+- **Description**: 
+  1. `updateField` silently hid save errors and 0-row updates, leaving a stale "সংরক্ষিত HH:MM" timestamp that misled users into believing unsaved data had synced (`KI-008`).
+  2. Auto-save only executed on input blur, dropping unblurred inputs if users closed tabs or switched apps (`KI-009`).
+  3. Registration had only a single password field, creating silent typo lockouts (`KI-013`).
+  4. HTML `type="number"` inputs rejected Bengali Unicode numerals (০-৯) from Android keyboards (`KI-014`).
+  5. UTC server time on Vercel triggered a false "future period" block for the first 6 hours of the 1st of each month in Bangladesh (`KI-015`).
+- **Fix**:
+  1. Updated `ReportContext` in `src/components/report/report-context.tsx` to add `saveError` state and `clearSaveError()`. Appended `.select('id')` to all `.update()` calls to detect 0-row updates as errors. Updated `AutoSaveIndicator` to display a 4-state indicator prioritizing error alerts ("সংরক্ষণ ব্যর্থ হয়েছে — আবার চেষ্টা করুন") with retry action.
+  2. Implemented `visibilitychange` (for mobile app switching) and `beforeunload` (for desktop closing) event listeners inside `AutoSaveField` (`src/components/report/auto-save-field.tsx`) to flush dirty unblurred keystrokes to the database via `persist()`.
+  3. Replaced `type="number"` with `type="text" inputMode="numeric" pattern="[০-৯0-9]*"` across `AutoSaveField` and added `bnToEn()` normalizer converting Bengali digits (০-৯) to standard ASCII integers before DB transmission.
+  4. Added `confirmPassword` input to `src/components/auth/register-form-client.tsx` with server-side validation in `src/app/home/actions.ts` returning `'পাসওয়ার্ড মিলছে না।'`.
+  5. Introduced `getDhakaDate()` helper using `Intl.DateTimeFormat` with `timeZone: 'Asia/Dhaka'` in `user-dashboard.tsx` and `period-selector.tsx`, ensuring period validation aligns with Bangladesh local time (UTC+6).
+
+---
 
 ### Mathematical Aggregation Parity, Weighted Averages & Zero Dead-Weight Cleanup (ADR 014, KI-005, KI-006, KI-012)
 - **Date**: 2026-09-14
