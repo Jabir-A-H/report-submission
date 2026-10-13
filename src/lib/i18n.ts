@@ -3,7 +3,7 @@ export type Language = "bn" | "en";
 export const translations = {
   bn: {
     // Common
-    siteTitle: "রিপোর্ট সাবমিশন সিস্টেম",
+    siteTitle: "তা'লীমুল কুরআন রিপোর্ট",
     dashboard: "ড্যাশবোর্ড",
     home: "হোম",
     login: "লগ-ইন",
@@ -15,8 +15,8 @@ export const translations = {
     report: "রিপোর্ট",
     reports: "জমাকৃত রিপোর্ট",
     management: "ব্যবস্থাপনা",
-    footerCopyright: "© ২০২৫ রিপোর্ট সাবমিশন সিস্টেম। সকল অধিকার সংরক্ষিত।",
-    copyrightText: "রিপোর্ট সাবমিশন সিস্টেম। সকল অধিকার সংরক্ষিত।",
+    footerCopyright: "© ২০২৫ তা'লীমুল কুরআন রিপোর্ট। সকল অধিকার সংরক্ষিত।",
+    copyrightText: "তা'লীমুল কুরআন রিপোর্ট। সকল অধিকার সংরক্ষিত।",
     talimulQuranDept: "তা'লীমুল কুরআন বিভাগ",
     helpEn: "সাহায্য (Help)",
     linkExpired: "লিঙ্কটি মেয়াদোত্তীর্ণ বা অবৈধ। আবার চেষ্টা করুন।",
@@ -389,7 +389,7 @@ export const translations = {
   },
   en: {
     // Common
-    siteTitle: "Report Submission System",
+    siteTitle: "Talimul Quran Report",
     dashboard: "Dashboard",
     home: "Home",
     login: "Login",
@@ -401,8 +401,8 @@ export const translations = {
     report: "Report",
     reports: "Submitted Reports",
     management: "Management",
-    footerCopyright: "© 2025 Report Submission System. All rights reserved.",
-    copyrightText: "Report Submission System. All rights reserved.",
+    footerCopyright: "© 2025 Talimul Quran Report. All rights reserved.",
+    copyrightText: "Talimul Quran Report. All rights reserved.",
     talimulQuranDept: "Talimul Quran Department",
     helpEn: "Help",
     linkExpired: "The link has expired or is invalid. Please try again.",

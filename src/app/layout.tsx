@@ -18,8 +18,8 @@ const tiroBangla = Tiro_Bangla({
 });
 
 export const metadata: Metadata = {
-  title: "রিপোর্ট সাবমিশন সিস্টেম",
-  description: "Modern, high-fidelity report submission and management system.",
+  title: "তা'লীমুল কুরআন রিপোর্ট",
+  description: "Talimul Quran Report - সাংগঠনিক রিপোর্ট সাবমিশন ও মনিটরিং পোর্টাল",
 };
 
 export const viewport: Viewport = {

@@ -41,7 +41,7 @@ Next.js App Router
        ▼
 Supabase Edge / API Layer
        │
-       ├─ Auth (Email/Password & Custom User ID via Server Actions)
+       ├─ Auth (Email/Password, Custom User ID & Supabase Google OAuth)
        ├─ PostgreSQL (Tables, Triggers, RLS Policies, Aggregation Views)
        └─ Edge Functions / API Routes (Excel & Landscape PDF Export Generation)
 ```
@@ -138,6 +138,7 @@ In addition to daily Supabase managed backups, GitHub Actions cron workflow `.gi
 - **Unified Dynamic Portal (`/home`)**: Consolidated `/login` and `/register` into a centered vertical scrolling portal page without any top header bar. The hero section displays simply `তা'লীমুল কুরআন বিভাগ` (without top pills or paragraph subtitles), followed directly by `AuthPortalClient` and rich platform feature cards. Mode switching (`login` vs `register`) is handled cleanly by bottom toggle links (`অ্যাকাউন্ট নেই? নিবন্ধন করুন` / `অ্যাকাউন্ট আছে? লগ-ইন করুন`), eliminating redundant top tabs. All form inputs with absolute icons (`Mail`, `Lock`, `User`, `Tag`, `MapPin`) enforce `!pl-12 !pr-4` (`!pl-12 !pr-8` for select) to prevent placeholder/text overlap. The bottom footer row embeds the `সাহায্য (Help)` link (`/help`) alongside `AppearanceFooterToggle` (`ভাষা: [বাংলা | EN]` and `থিম: [লাইট | ডার্ক...]`) directly inline.
 - **Live Registration Validation & Guidance**: `src/components/auth/register-form-client.tsx` executes real-time `onBlur` server actions (`checkEmailAvailability`, `checkUserIdAvailability`) and displays an upfront guidance banner informing users that registration requires email confirmation and admin approval. Form enforces matching `confirmPassword` input before submission (ADR 015).
 - **Localized Technical Error Handling (ADR 016)**: All server actions (`login`, `register`, `forgotPassword`, `updatePassword`) pipe raw Supabase Auth errors through `translateAuthError()` (`src/lib/i18n.ts`), converting English technical errors into clear, actionable Bengali text.
+- **Google OAuth Integration (ADR 017)**: Reusable `GoogleSignInButton` (`src/components/auth/google-sign-in-button.tsx`) integrated into both Login and Registration tabs. Authenticates via `supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: '/auth/callback' } })`. Supports automatic account linking when Google's verified email matches an existing email/password account, preserving user zones, approval status, and roles. Unapproved first-time Google sign-ins are safely intercepted by `middleware.ts` and redirected to `/pending-approval`.
 - **Silent Email Collision Guard**: In `actions.ts`, if `supabase.auth.signUp()` returns `identities.length === 0`, registration is halted with a Bangla warning to prevent email enumeration attacks.
 - **PKCE Password Recovery**: `/forgot-password` generates recovery links pointing to `/auth/callback?next=/update-password`. Route handler `src/app/auth/callback/route.ts` executes `exchangeCodeForSession()`, establishing SSR session cookies reliably.
 
@@ -227,6 +228,11 @@ During the Round 2 UI/UX refinement cycle (ADR 005), a Hybrid State Persistence 
 - **Global Card Motion Policy Adjustment (`globals.css`)**: `.premium-card` hover lift and aggressive shadow escalation were removed from the global utility class. Card elevation remains stable by default, and motion emphasis is now applied selectively at component level to avoid excessive hover movement in dense dashboard/report interfaces.
 - **Collapsible Appearance Settings Accordions**: `UserDropdown` and `BottomNav` encapsulate `ThemeToggle` and `LanguageToggle` within native `<details className="group ...">` accordions triggered by `⚙️ থিম ও ভাষা (Appearance)`, preventing visual clutter on top navigation bars (ADR 008).
 
+### 5.6 Progressive Web App (PWA) & Trusted Web Activity (TWA) Android Packaging (ADR 017)
+- **Metadata Route Manifest (`src/app/manifest.ts`)**: Generates dynamic `/manifest.webmanifest` defining `standalone` display mode, Bengali/English naming, brand theme color `#0da2b8`, and links to maskable PNG icons (`/icons/icon-192.png`, `/icons/icon-512.png`).
+- **Android TWA Packaging (Google Bubblewrap)**: Configured via root `twa-manifest.json` using Google's official Bubblewrap CLI engine. Wraps the production web application into a native ~2 MB Android APK/AAB running inside a chromeless Chrome Custom Tab instance.
+- **Domain Verification (`public/.well-known/assetlinks.json`)**: Serves Android Digital Asset Links to verify website ownership against the release keystore's SHA-256 fingerprint, enabling borderless full-screen application launch on mobile devices.
+- **Automated CI/CD APK Pipeline (`.github/workflows/build-apk.yml`)**: Compiles, signs, and uploads release APKs and Android App Bundles (AAB) on tag creation (`v*`) or manual `workflow_dispatch`. Includes automated fallback development keystore generation when repository secrets (`ANDROID_KEYSTORE_BASE64`) are not configured.
 
 ---
 

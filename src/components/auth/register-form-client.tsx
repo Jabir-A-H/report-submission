@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import { register, checkEmailAvailability, checkUserIdAvailability } from '@/app/home/actions'
 import { UserPlus, Loader2, CheckCircle2, XCircle, User, Tag, Mail, Lock, MapPin } from 'lucide-react'
 import Link from 'next/link'
+import { GoogleSignInButton } from './google-sign-in-button'
 
 type FieldStatus = 'idle' | 'checking' | 'available' | 'taken'
 
@@ -46,6 +47,7 @@ export function RegisterFormClient({
   onSwitchToLogin?: () => void
 }) {
   const [loading, setLoading] = useState(false)
+  const [googleErrorMessage, setGoogleErrorMessage] = useState<string | null>(null)
 
   // On-blur validation state
   const [emailStatus, setEmailStatus] = useState<FieldStatus>('idle')
@@ -234,6 +236,25 @@ export function RegisterFormClient({
         )}
       </button>
 
+      {/* Divider */}
+      <div className="relative my-1">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-border/60" />
+        </div>
+        <div className="relative flex justify-center text-[10px] uppercase">
+          <span className="bg-card px-2.5 text-muted-foreground font-bold tracking-wider">
+            অথবা
+          </span>
+        </div>
+      </div>
+
+      {/* Google Sign-In */}
+      <GoogleSignInButton
+        label="গুগল দিয়ে সরাসরি যুক্ত হন"
+        onError={(msg) => setGoogleErrorMessage(msg)}
+        disabled={loading}
+      />
+
       <div className="flex flex-col sm:flex-row items-center justify-between pt-3 text-xs text-muted-foreground font-medium gap-3 border-t border-border/40 mt-2">
         {!onSwitchToLogin && (
           <Link href="/home" className="hover:text-primary transition-colors">
@@ -257,9 +278,9 @@ export function RegisterFormClient({
         )}
       </div>
 
-      {errorMessage && (
+      {(googleErrorMessage || errorMessage) && (
         <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-600 rounded-2xl text-center font-bold text-sm animate-in zoom-in duration-300">
-          {errorMessage}
+          {googleErrorMessage || errorMessage}
         </div>
       )}
     </form>

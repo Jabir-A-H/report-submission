@@ -1,0 +1,27 @@
+{
+  "packageId": "org.talimulquran.report",
+  "host": "talimul-report.vercel.app",
+  "name": "Talimul Quran Report",
+  "launcherName": "Talimul Quran",
+  "display": "standalone",
+  "themeColor": "#0da2b8",
+  "navigationColor": "#0da2b8",
+  "backgroundColor": "#ffffff",
+  "enableNotifications": false,
+  "startUrl": "/home",
+  "iconUrl": "https://talimul-report.vercel.app/icons/icon-512.png",
+  "maskableIconUrl": "https://talimul-report.vercel.app/icons/icon-512.png",
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://talimul-report.vercel.app/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false
+}

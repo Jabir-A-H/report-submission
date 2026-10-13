@@ -98,12 +98,12 @@
 - [x] **Auth Technical Error Translation (KI-016, ADR 016)**: Added `translateAuthError()` in `src/lib/i18n.ts` and wrapped all auth server actions.
 
 ## Phase 4: Post-Stabilization Feature Expansion
+- [x] **Google OAuth Sign-In (ADR 017)**: Integrated Supabase Google OAuth into `/home` (`AuthPortalClient`, `RegisterFormClient`) with automatic verified email account linking and Bengali error translation.
+- [x] **PWA & Android TWA APK Packaging (ADR 017)**: Implemented Web Manifest (`src/app/manifest.ts`), maskable icons (`/icons/icon-192.png`, `/icons/icon-512.png`), Digital Asset Links (`.well-known/assetlinks.json`), `twa-manifest.json`, and automated GitHub Actions Bubblewrap workflow (`.github/workflows/build-apk.yml`).
 - [ ] **Signature Upload**: Add an option for users/admins to upload a handwritten signature image for PDF exports.
 - [ ] **Custom JWT Claims (Performance)**: Store `role` and `active` as custom claims in the Supabase JWT via database hooks.
 - [ ] **Realtime Pending Page Tracking**: Auto-refresh `/pending-approval` once an admin approves the account.
-- [ ] **Google One Tap & Magic Links**: Implement passwordless auth options.
 - [ ] **Enhanced Admin Charts & Audit Logs**: Add visual trend charts and audit tracking to the admin dashboard landing.
-- [ ] **Mobile App Native Wrapper**: Capacitor or React Native wrapper for mobile deployment.
 
 ## Phase 5: Long-Term Enterprise Scale & Hierarchical Aggregation (1,000+ Grassroots Users)
 

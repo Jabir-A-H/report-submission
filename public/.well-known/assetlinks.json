@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "org.talimulquran.report",
+      "sha256_cert_fingerprints": [
+        "6A:FA:D3:2C:D1:A6:7B:25:B4:07:48:0F:87:16:BD:70:97:1A:34:4B:00:86:2B:43:E4:9B:0B:4F:16:2B:B3:9F"
+      ]
+    }
+  }
+]

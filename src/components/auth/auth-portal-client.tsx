@@ -9,6 +9,8 @@ import Link from 'next/link'
 import { useLanguage } from '@/components/providers/language-provider'
 import { createClient } from '@/utils/supabase/client'
 
+import { GoogleSignInButton } from './google-sign-in-button'
+
 export function AuthPortalClient({
   zones,
   initialMode = 'login',
@@ -20,6 +22,7 @@ export function AuthPortalClient({
 }) {
   const [activeTab, setActiveTab] = useState<'login' | 'register'>(initialMode)
   const [loading, setLoading] = useState(false)
+  const [googleErrorMessage, setGoogleErrorMessage] = useState<string | null>(null)
   const { t, language } = useLanguage()
   const router = useRouter()
 
@@ -128,6 +131,24 @@ export function AuthPortalClient({
               )}
             </button>
 
+            {/* Divider */}
+            <div className="relative my-1">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border/60" />
+              </div>
+              <div className="relative flex justify-center text-[10px] uppercase">
+                <span className="bg-card px-2.5 text-muted-foreground font-bold tracking-wider">
+                  {language === 'bn' ? 'অথবা' : 'OR'}
+                </span>
+              </div>
+            </div>
+
+            {/* Google Sign-In */}
+            <GoogleSignInButton
+              onError={(msg) => setGoogleErrorMessage(msg)}
+              disabled={loading}
+            />
+
             <div className="flex items-center justify-center pt-3 text-xs text-muted-foreground font-medium border-t border-border/40 mt-1">
               <span>{language === 'bn' ? 'অ্যাকাউন্ট নেই?' : 'Don’t have an account?'}</span>
               <button
@@ -140,11 +161,12 @@ export function AuthPortalClient({
               </button>
             </div>
 
-            {errorMessage && activeTab === 'login' && (
+            {(googleErrorMessage || errorMessage) && activeTab === 'login' && (
               <div className="p-2.5 bg-red-500/10 border border-red-500/20 text-red-600 rounded-xl text-center font-bold text-xs animate-in zoom-in duration-300">
-                {errorMessage === 'Could not authenticate user' || errorMessage === 'Invalid login credentials'
-                  ? 'ভুল আইডি অথবা পাসওয়ার্ড প্রদান করেছেন।'
-                  : errorMessage}
+                {googleErrorMessage ||
+                  (errorMessage === 'Could not authenticate user' || errorMessage === 'Invalid login credentials'
+                    ? 'ভুল আইডি অথবা পাসওয়ার্ড প্রদান করেছেন।'
+                    : errorMessage)}
               </div>
             )}
           </form>

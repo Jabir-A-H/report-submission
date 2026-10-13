@@ -41,6 +41,18 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ## Resolved Historical Issues
 
+### Google OAuth Integration & Android TWA Digital Asset Links Setup (ADR 017)
+- **Date**: 2026-10-12
+- **Resolution Date**: 2026-10-12
+- **Description**: Users required Google Sign-In alongside existing Email/User ID/Password authentication, and mobile app distribution via Android APK without heavy native dependencies or dual-identity conflicts from Firebase. Additionally, static prerendering failed when Supabase environment variables were absent.
+- **Fix**:
+  1. Integrated native Supabase Google OAuth via reusable `GoogleSignInButton` in `src/components/auth/google-sign-in-button.tsx`, allowing Google accounts to link seamlessly to existing email accounts in `auth.users` and `people`.
+  2. Implemented Web Manifest (`src/app/manifest.ts`), standalone icons (`public/icons/icon-192.png`, `public/icons/icon-512.png`), and Digital Asset Links (`public/.well-known/assetlinks.json`).
+  3. Created `.github/workflows/build-apk.yml` and `twa-manifest.json` for automated Google Bubblewrap TWA APK packaging via GitHub Actions.
+  4. Added build-safe fallbacks in `src/utils/supabase/server.ts` and `src/utils/supabase/client.ts` for clean static prerendering.
+
+---
+
 ### Database RPC String Alignment, View Security, Constraints & Auth Error Localization (ADR 016, KI-007, KI-010, KI-011, KI-016)
 - **Date**: 2026-09-20
 - **Resolution Date**: 2026-09-20
