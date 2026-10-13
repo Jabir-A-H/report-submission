@@ -26,6 +26,9 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -33,6 +36,11 @@ jobs:
 
       - name: Install Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
+
+      - name: Configure Bubblewrap Environment
+        run: |
+          bubblewrap config set --key=jdkPath --value="$JAVA_HOME"
+          bubblewrap config set --key=androidSdkPath --value="$ANDROID_HOME"
 
       - name: Configure Host URL
         run: |
@@ -49,43 +57,33 @@ jobs:
             fs.writeFileSync('twa-manifest.json', JSON.stringify(manifest, null, 2));
           "
 
-      - name: Prepare Signing Keystore
+      - name: Decode Signing Keystore from GitHub Secrets
         env:
-          CUSTOM_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          CUSTOM_KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
-          CUSTOM_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          CUSTOM_KEY_PASS: ${{ secrets.KEY_PASSWORD }}
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASSWORD || 'talimulreport' }}
+          KEY_PASS: ${{ secrets.KEY_PASSWORD || 'talimulreport' }}
         run: |
-          mkdir -p android-keystore
-          if [ -n "$CUSTOM_KEYSTORE_BASE64" ]; then
-            echo "Using custom GitHub Secret release keystore..."
-            echo "$CUSTOM_KEYSTORE_BASE64" | base64 --decode > android-keystore/release.keystore
-            echo "KEYSTORE_PATH=$PWD/android-keystore/release.keystore" >> $GITHUB_ENV
-            echo "KEYSTORE_PASSWORD=$CUSTOM_KEYSTORE_PASS" >> $GITHUB_ENV
-            echo "KEY_ALIAS=$CUSTOM_KEY_ALIAS" >> $GITHUB_ENV
-            echo "KEY_PASSWORD=$CUSTOM_KEY_PASS" >> $GITHUB_ENV
-          else
-            echo "Using default project release keystore (matching assetlinks.json SHA-256 fingerprint)..."
-            cat << 'EOF' | base64 --decode > android-keystore/release.keystore
-          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
-          EOF
-            echo "KEYSTORE_PATH=$PWD/android-keystore/release.keystore" >> $GITHUB_ENV
-            echo "KEYSTORE_PASSWORD=talimulreport" >> $GITHUB_ENV
-            echo "KEY_ALIAS=talimul_report" >> $GITHUB_ENV
-            echo "KEY_PASSWORD=talimulreport" >> $GITHUB_ENV
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::Missing ANDROID_KEYSTORE_BASE64 secret! Please add it in GitHub Settings -> Secrets and variables -> Actions."
+            exit 1
           fi
+          mkdir -p android-keystore
+          node -e "
+            const fs = require('fs');
+            const raw = process.env.KEYSTORE_BASE64.replace(/\s+/g, '');
+            fs.writeFileSync('android-keystore/release.keystore', Buffer.from(raw, 'base64'));
+          "
+          echo "BUBBLEWRAP_KEYSTORE_PASSWORD=${KEYSTORE_PASS}" >> $GITHUB_ENV
+          echo "BUBBLEWRAP_KEY_PASSWORD=${KEY_PASS}" >> $GITHUB_ENV
 
+      - name: Verify Signing Fingerprint
+        run: |
           echo "=== VERIFYING FINGERPRINT IN WORKFLOW ==="
-          keytool -list -v -keystore "$KEYSTORE_PATH" -alias "${KEY_ALIAS}" -storepass "${KEYSTORE_PASSWORD}" | grep -i "SHA256:"
+          keytool -list -v -keystore android-keystore/release.keystore -alias "${{ secrets.KEY_ALIAS || 'talimul_report' }}" -storepass "${{ env.BUBBLEWRAP_KEYSTORE_PASSWORD }}"
 
       - name: Build Android APK with Bubblewrap
         run: |
-          bubblewrap build \
-            --skipPwaValidation \
-            --signing.keyStorePath="$KEYSTORE_PATH" \
-            --signing.keyStorePassword="$KEYSTORE_PASSWORD" \
-            --signing.keyAlias="$KEY_ALIAS" \
-            --signing.keyPassword="$KEY_PASSWORD"
+          bubblewrap build --skipPwaValidation
 
       - name: Upload APK and AAB Artifacts
         uses: actions/upload-artifact@v4
@@ -94,3 +92,5 @@ jobs:
           path: |
             *.apk
             *.aab
+            app/build/outputs/apk/**/*.apk
+            app/build/outputs/bundle/**/*.aab

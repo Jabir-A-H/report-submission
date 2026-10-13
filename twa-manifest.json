@@ -13,6 +13,10 @@
   "maskableIconUrl": "https://talimul-report.vercel.app/icons/icon-512.png",
   "appVersionName": "1.0.0",
   "appVersionCode": 1,
+  "signingKey": {
+    "path": "./android-keystore/release.keystore",
+    "alias": "talimul_report"
+  },
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://talimul-report.vercel.app/manifest.webmanifest",

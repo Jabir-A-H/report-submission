@@ -23,7 +23,7 @@ tsconfig.tsbuildinfo
 .env.test.local
 .env.production.local
 
-# Android Signing Keys & Keystores (Kept local or in CI secrets)
+# Android Keystores & Signing Keys (Never commit to Git - use GitHub Secrets)
 android-keystore/
 *.keystore
 *.jks
