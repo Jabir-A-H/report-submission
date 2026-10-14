@@ -47,7 +47,16 @@ export async function middleware(request: NextRequest) {
   }
 
   // Public routes that don't require authentication
-  const publicPaths = ['/home', '/auth', '/pending-approval', '/forgot-password', '/update-password']
+  const publicPaths = [
+    '/home',
+    '/auth',
+    '/pending-approval',
+    '/forgot-password',
+    '/update-password',
+    '/manifest.webmanifest',
+    '/manifest.json',
+    '/.well-known',
+  ]
   const isPublicRoute = publicPaths.some(
     (path) => request.nextUrl.pathname === path || request.nextUrl.pathname.startsWith(`${path}/`)
   )
@@ -105,8 +114,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - images, svg, etc
+     * - images, svg, webmanifest, json static assets, etc
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|json|webmanifest)$).*)',
   ],
 }

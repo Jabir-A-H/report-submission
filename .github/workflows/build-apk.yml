@@ -98,12 +98,86 @@ jobs:
           BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ env.BUBBLEWRAP_KEYSTORE_PASSWORD }}
           BUBBLEWRAP_KEY_PASSWORD: ${{ env.BUBBLEWRAP_KEY_PASSWORD }}
         run: |
-          # Generate Android project structure and manifest-checksum.txt non-interactively
+          # 1. Start local manifest & icon server to eliminate external network dependencies during generation
+          node -e "
+            const http = require('http');
+            const fs = require('fs');
+            const path = require('path');
+            const server = http.createServer((req, res) => {
+              if (req.url === '/manifest.webmanifest') {
+                res.writeHead(200, { 'Content-Type': 'application/manifest+json; charset=utf-8' });
+                const manifest = {
+                  name: \"তা'লীমুল কুরআন রিপোর্ট\",
+                  short_name: \"তা'লীমুল কুরআন রিপোর্ট\",
+                  description: \"Talimul Quran Report - সাংগঠনিক রিপোর্ট সাবমিশন ও মনিটরিং পোর্টাল\",
+                  start_url: \"/home\",
+                  display: \"standalone\",
+                  orientation: \"portrait\",
+                  background_color: \"#ffffff\",
+                  theme_color: \"#0da2b8\",
+                  icons: [
+                    { src: \"/icons/icon-192.png\", sizes: \"192x192\", type: \"image/png\", purpose: \"maskable\" },
+                    { src: \"/icons/icon-512.png\", sizes: \"512x512\", type: \"image/png\", purpose: \"maskable\" }
+                  ]
+                };
+                res.end(JSON.stringify(manifest));
+                return;
+              }
+              if (req.url.startsWith('/icons/')) {
+                const file = path.join(process.cwd(), 'public', req.url);
+                if (fs.existsSync(file)) {
+                  res.writeHead(200, { 'Content-Type': 'image/png' });
+                  fs.createReadStream(file).pipe(res);
+                  return;
+                }
+              }
+              res.writeHead(404);
+              res.end('Not Found');
+            });
+            server.listen(8080, '127.0.0.1', () => console.log('Local manifest server ready on port 8080'));
+          " &
+          SERVER_PID=$!
+          sleep 2
+
+          # 2. Point twa-manifest.json to local endpoints for project generation
+          node -e "
+            const fs = require('fs');
+            const m = JSON.parse(fs.readFileSync('twa-manifest.json', 'utf8'));
+            m.webManifestUrl = 'http://127.0.0.1:8080/manifest.webmanifest';
+            m.iconUrl = 'http://127.0.0.1:8080/icons/icon-512.png';
+            m.maskableIconUrl = 'http://127.0.0.1:8080/icons/icon-512.png';
+            fs.writeFileSync('twa-manifest.json', JSON.stringify(m, null, 2));
+          "
+
+          # 3. Generate Android project structure non-interactively
           yes | bubblewrap update --skipVersionUpgrade
-          if [ -f manifest-checksum.txt ]; then
-            echo "Manifest checksum generated: $(cat manifest-checksum.txt)"
+
+          # 4. Stop local server
+          kill $SERVER_PID || true
+
+          # 5. Restore production URLs in generated project and twa-manifest.json
+          SITE_URL="${{ github.event.inputs.site_url || 'https://talimul-report.vercel.app' }}"
+          if [ -f app/src/main/res/values/strings.xml ]; then
+            sed -i "s|http://127.0.0.1:8080/manifest.webmanifest|$SITE_URL/manifest.webmanifest|g" app/src/main/res/values/strings.xml
           fi
-          # Build signed APK and App Bundle (non-interactive)
+
+          node -e "
+            const fs = require('fs');
+            const crypto = require('crypto');
+            const m = JSON.parse(fs.readFileSync('twa-manifest.json', 'utf8'));
+            m.webManifestUrl = '$SITE_URL/manifest.webmanifest';
+            m.iconUrl = '$SITE_URL/icons/icon-512.png';
+            m.maskableIconUrl = '$SITE_URL/icons/icon-512.png';
+            fs.writeFileSync('twa-manifest.json', JSON.stringify(m, null, 2));
+            const sum = crypto.createHash('sha1').update(fs.readFileSync('twa-manifest.json')).digest('hex');
+            fs.writeFileSync('manifest-checksum.txt', sum);
+          "
+
+          if [ -f manifest-checksum.txt ]; then
+            echo "Manifest checksum synchronized: $(cat manifest-checksum.txt)"
+          fi
+
+          # 6. Build signed APK and App Bundle (non-interactive)
           yes | bubblewrap build
 
       - name: Upload APK and AAB Artifacts
