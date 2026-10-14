@@ -41,8 +41,13 @@ jobs:
 
       - name: Configure Bubblewrap Environment
         run: |
-          bubblewrap config set --key=jdkPath --value="$JAVA_HOME"
-          bubblewrap config set --key=androidSdkPath --value="$ANDROID_HOME"
+          mkdir -p ~/.bubblewrap
+          cat << EOF > ~/.bubblewrap/config.json
+          {
+            "jdkPath": "$JAVA_HOME",
+            "androidSdkPath": "$ANDROID_HOME"
+          }
+          EOF
 
       - name: Configure Host URL
         run: |
