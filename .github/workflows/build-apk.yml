@@ -41,6 +41,11 @@ jobs:
 
       - name: Configure Bubblewrap Environment
         run: |
+          # Bubblewrap expects legacy $ANDROID_HOME/tools/bin/sdkmanager or $ANDROID_HOME/bin/sdkmanager
+          if [ -d "$ANDROID_HOME/cmdline-tools/latest" ]; then
+            sudo ln -sf "$ANDROID_HOME/cmdline-tools/latest" "$ANDROID_HOME/tools"
+            sudo ln -sf "$ANDROID_HOME/cmdline-tools/latest/bin" "$ANDROID_HOME/bin"
+          fi
           mkdir -p ~/.bubblewrap
           cat << EOF > ~/.bubblewrap/config.json
           {
