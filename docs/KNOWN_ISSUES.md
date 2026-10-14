@@ -41,17 +41,19 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ## Resolved Historical Issues
 
-### Bubblewrap CLI CI Non-Interactive Checksum Prompt & Manifest Redirect Resolution (ADR 017)
+### Bubblewrap CLI CI Checksum, Manifest Redirect & Gradle Template Syntax Resolution (ADR 017)
 - **Date**: 2026-10-14
 - **Resolution Date**: 2026-10-14
 - **Description**:
   1. `bubblewrap build` failed in GitHub Actions runner with exit code 130 on an Inquirer prompt: `"No checksum file was found to verify the state of the twa-manifest.json file. To make sure your project is up-to-date, would you like to regenerate your project? (Y/n)"`. In headless CI environments (no TTY), Inquirer prompts cause an immediate exit code 130 because clean git checkouts only track `twa-manifest.json` and lack generated Android Gradle project files and `manifest-checksum.txt`.
   2. Running `bubblewrap update --skipVersionUpgrade` in CI subsequently threw `cli ERROR Unexpected token '<', "<!DOCTYPE "... is not valid JSON`. Investigation revealed that Next.js `middleware.ts` treated `/manifest.webmanifest` and `/.well-known/assetlinks.json` as protected routes for unauthenticated clients, issuing a `307 Temporary Redirect` to `/home` (HTML). Bubblewrap's internal `fetchUtils.fetch()` followed the redirect and received HTML instead of JSON.
-  3. Bubblewrap's `AndroidSdkTools.validatePath` strictly expects legacy `$ANDROID_HOME/tools` or `$ANDROID_HOME/bin`, which modern `setup-android@v4` provides under `$ANDROID_HOME/cmdline-tools/latest/bin`.
+  3. When compiling `assembleRelease`, Gradle failed with Groovy syntax error `build file 'app/build.gradle': 44: Unexpected input: ',' @ line 44, column 34. splashScreenFadeOutDuration: ,`. Bubblewrap's `app/build.gradle` template directly interpolates `splashScreenFadeOutDuration: <%= splashScreenFadeOutDuration %>,`. When omitted from `twa-manifest.json`, it emitted an empty comma, breaking Groovy syntax.
+  4. Bubblewrap's `AndroidSdkTools.validatePath` strictly expects legacy `$ANDROID_HOME/tools` or `$ANDROID_HOME/bin`, which modern `setup-android@v4` provides under `$ANDROID_HOME/cmdline-tools/latest/bin`.
 - **Fix**:
   1. **Middleware Whitelisting**: Added `/manifest.webmanifest`, `/manifest.json`, and `/.well-known` to `publicPaths` in `middleware.ts`, and updated `config.matcher` to bypass `.*\\.(?:svg|png|jpg|jpeg|gif|webp|json|webmanifest)$`, allowing unauthenticated browsers, Bubblewrap, and Google/Android Digital Asset Link crawlers to access these assets with HTTP 200 JSON directly.
   2. **CI Self-Contained Generation**: In `.github/workflows/build-apk.yml`, spun up an in-job background Node.js HTTP server on port 8080 during project generation to serve the local manifest and icon assets directly. This completely decouples APK generation from external network availability or deployment lag, afterwards synchronizing production URLs and `manifest-checksum.txt` for `bubblewrap build`.
-  3. **SDK Compatibility Symlinks**: Added legacy compatibility symlinks in the runner (`tools` and `bin` -> `cmdline-tools/latest/bin`) and pre-seeded `~/.bubblewrap/config.json`.
+  3. **TWA Manifest Completeness & Gradle Safety**: Added `"splashScreenFadeOutDuration": 300`, `"orientation": "portrait"`, and dark color definitions into `twa-manifest.json`. Added fallback injection in the CI generation script and a defensive `sed` substitution on `app/build.gradle` ensuring `splashScreenFadeOutDuration: 300,` is guaranteed.
+  4. **SDK Compatibility Symlinks**: Added legacy compatibility symlinks in the runner (`tools` and `bin` -> `cmdline-tools/latest/bin`) and pre-seeded `~/.bubblewrap/config.json`.
 
 ### Google OAuth Integration & Android TWA Digital Asset Links Setup (ADR 017)
 - **Date**: 2026-10-12

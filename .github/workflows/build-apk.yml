@@ -146,6 +146,7 @@ jobs:
             m.webManifestUrl = 'http://127.0.0.1:8080/manifest.webmanifest';
             m.iconUrl = 'http://127.0.0.1:8080/icons/icon-512.png';
             m.maskableIconUrl = 'http://127.0.0.1:8080/icons/icon-512.png';
+            m.splashScreenFadeOutDuration = m.splashScreenFadeOutDuration || 300;
             fs.writeFileSync('twa-manifest.json', JSON.stringify(m, null, 2));
           "
 
@@ -155,10 +156,13 @@ jobs:
           # 4. Stop local server
           kill $SERVER_PID || true
 
-          # 5. Restore production URLs in generated project and twa-manifest.json
+          # 5. Restore production URLs and fix any build.gradle template syntax edge cases
           SITE_URL="${{ github.event.inputs.site_url || 'https://talimul-report.vercel.app' }}"
           if [ -f app/src/main/res/values/strings.xml ]; then
             sed -i "s|http://127.0.0.1:8080/manifest.webmanifest|$SITE_URL/manifest.webmanifest|g" app/src/main/res/values/strings.xml
+          fi
+          if [ -f app/build.gradle ]; then
+            sed -i 's/splashScreenFadeOutDuration: ,/splashScreenFadeOutDuration: 300,/g' app/build.gradle
           fi
 
           node -e "
@@ -168,6 +172,7 @@ jobs:
             m.webManifestUrl = '$SITE_URL/manifest.webmanifest';
             m.iconUrl = '$SITE_URL/icons/icon-512.png';
             m.maskableIconUrl = '$SITE_URL/icons/icon-512.png';
+            m.splashScreenFadeOutDuration = m.splashScreenFadeOutDuration || 300;
             fs.writeFileSync('twa-manifest.json', JSON.stringify(m, null, 2));
             const sum = crypto.createHash('sha1').update(fs.readFileSync('twa-manifest.json')).digest('hex');
             fs.writeFileSync('manifest-checksum.txt', sum);
