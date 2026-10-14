@@ -41,6 +41,17 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ## Resolved Historical Issues
 
+### Bubblewrap CLI CI Non-Interactive Checksum Prompt & SDK Path Resolution (ADR 017)
+- **Date**: 2026-10-14
+- **Resolution Date**: 2026-10-14
+- **Description**: `bubblewrap build` failed in GitHub Actions runner with exit code 130 on an Inquirer prompt: `"No checksum file was found to verify the state of the twa-manifest.json file. To make sure your project is up-to-date, would you like to regenerate your project? (Y/n)"`. In headless CI environments (no TTY), Inquirer prompts cause an immediate exit code 130 because clean git checkouts only track `twa-manifest.json` and lack generated Android Gradle project files and `manifest-checksum.txt`. Additionally, Bubblewrap's `AndroidSdkTools.validatePath` strictly expects legacy `$ANDROID_HOME/tools` or `$ANDROID_HOME/bin`, which modern `setup-android@v4` provides under `$ANDROID_HOME/cmdline-tools/latest/bin`.
+- **Fix**:
+  1. Configured legacy compatibility symlinks in the GitHub Actions runner:
+     `sudo ln -sf "$ANDROID_HOME/cmdline-tools/latest" "$ANDROID_HOME/tools"`
+     `sudo ln -sf "$ANDROID_HOME/cmdline-tools/latest/bin" "$ANDROID_HOME/bin"`
+     and pre-seeded `~/.bubblewrap/config.json` with `jdkPath` and `androidSdkPath`.
+  2. Executed `yes | bubblewrap update --skipVersionUpgrade` immediately before `bubblewrap build`. `update --skipVersionUpgrade` generates the Android project structure and writes `manifest-checksum.txt` non-interactively without prompting for version upgrades, allowing subsequent `bubblewrap build` to verify the checksum and compile/sign the release APK without any interactive prompts.
+
 ### Google OAuth Integration & Android TWA Digital Asset Links Setup (ADR 017)
 - **Date**: 2026-10-12
 - **Resolution Date**: 2026-10-12

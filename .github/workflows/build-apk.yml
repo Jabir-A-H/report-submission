@@ -93,9 +93,18 @@ jobs:
           echo "=== VERIFYING FINGERPRINT IN WORKFLOW ==="
           keytool -list -v -keystore android-keystore/release.keystore -alias "${{ secrets.KEY_ALIAS || 'talimul_report' }}" -storepass "${{ env.BUBBLEWRAP_KEYSTORE_PASSWORD }}"
 
-      - name: Build Android APK with Bubblewrap
+      - name: Generate Android Project & Build APK
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ env.BUBBLEWRAP_KEYSTORE_PASSWORD }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ env.BUBBLEWRAP_KEY_PASSWORD }}
         run: |
-          bubblewrap build --skipPwaValidation
+          # Generate Android project structure and manifest-checksum.txt non-interactively
+          yes | bubblewrap update --skipVersionUpgrade
+          if [ -f manifest-checksum.txt ]; then
+            echo "Manifest checksum generated: $(cat manifest-checksum.txt)"
+          fi
+          # Build signed APK and App Bundle (non-interactive)
+          yes | bubblewrap build
 
       - name: Upload APK and AAB Artifacts
         uses: actions/upload-artifact@v4

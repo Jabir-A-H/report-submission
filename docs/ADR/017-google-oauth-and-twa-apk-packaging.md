@@ -31,7 +31,7 @@ Two architectural options were evaluated:
 4. **TWA APK CI/CD Pipeline via GitHub Actions**:
    - Configured `twa-manifest.json` targeting live deployment `talimul-report.vercel.app` with package `org.talimulquran.report` and app name `Talimul Quran Report`.
    - Generated permanent PKCS12 release keystore and configured exact SHA-256 fingerprint `6A:FA:D3:2C:D1:A6:7B:25:B4:07:48:0F:87:16:BD:70:97:1A:34:4B:00:86:2B:43:E4:9B:0B:4F:16:2B:B3:9F` directly into `public/.well-known/assetlinks.json`.
-   - Configured `.github/workflows/build-apk.yml` to compile, sign with this exact keystore, and upload release APKs automatically via GitHub Actions.
+   - Configured `.github/workflows/build-apk.yml` with secure keystore injection via GitHub Secrets (`ANDROID_KEYSTORE_BASE64`), legacy SDK symlinks (`$ANDROID_HOME/cmdline-tools/latest/bin` -> `$ANDROID_HOME/tools` and `$ANDROID_HOME/bin`), and non-interactive `yes | bubblewrap update --skipVersionUpgrade` followed by `yes | bubblewrap build` to guarantee headless compilation without Inquirer checksum prompts (exit code 130).
 5. **Prerender Resilience**:
    - Enhanced `src/utils/supabase/server.ts` and `src/utils/supabase/client.ts` with safe fallback placeholders during static prerendering when environment variables are omitted in local/CI environments.
 

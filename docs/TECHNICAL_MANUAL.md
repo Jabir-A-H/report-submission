@@ -281,7 +281,12 @@ Historical documentation describing the migration from the legacy Python/Flask s
 - `src/components/report/sections/extras-form.tsx` — Split Maktab/Safar cards with dedicated category groups.
 - `src/components/report/sections/comments-form.tsx` — Flat comment card aligned to section UI architecture.
 - `src/components/auth/session-cleaner.tsx` — Client component enforcing force purge (`sessionStorage.removeItem`) on `/home` mount (ADR 005).
+- `src/components/auth/google-sign-in-button.tsx` — Reusable Google OAuth button integrated with Supabase Auth (ADR 017).
+- `src/app/manifest.ts` — Dynamic Next.js App Router Web App Manifest (`/manifest.webmanifest`) supporting PWA and TWA packaging (ADR 017).
+- `public/.well-known/assetlinks.json` — Digital Asset Links declaration binding the production domain to the Android TWA release keystore SHA-256 fingerprint (ADR 017).
+- `twa-manifest.json` — Google Bubblewrap CLI configuration defining package ID, launch activity, host domain, and keystore settings (ADR 017).
+- `.github/workflows/build-apk.yml` — Automated headless CI/CD pipeline building signed Android APK and AAB bundles via Google Bubblewrap CLI (ADR 017).
 - `src/app/globals.css` — Global semantic tokens and reusable card/input utility classes.
 - `docs/ROADMAP.md` — Active engineering tracking & sprint sequencing.
 - `docs/KNOWN_ISSUES.md` — Living technical debt & bug repository.
-- `docs/ADR/` — Formal Architecture Decision Records (`001` through `012`).
+- `docs/ADR/` — Formal Architecture Decision Records (`001` through `017`).
