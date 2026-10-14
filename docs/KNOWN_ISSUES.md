@@ -41,19 +41,20 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ## Resolved Historical Issues
 
-### Bubblewrap CLI CI Checksum, Manifest Redirect & Gradle Template Syntax Resolution (ADR 017)
+### Bubblewrap CLI CI Checksum, Manifest Redirect, Gradle Syntax & MinSdk Resolution (ADR 017)
 - **Date**: 2026-10-14
 - **Resolution Date**: 2026-10-14
 - **Description**:
   1. `bubblewrap build` failed in GitHub Actions runner with exit code 130 on an Inquirer prompt: `"No checksum file was found to verify the state of the twa-manifest.json file. To make sure your project is up-to-date, would you like to regenerate your project? (Y/n)"`. In headless CI environments (no TTY), Inquirer prompts cause an immediate exit code 130 because clean git checkouts only track `twa-manifest.json` and lack generated Android Gradle project files and `manifest-checksum.txt`.
   2. Running `bubblewrap update --skipVersionUpgrade` in CI subsequently threw `cli ERROR Unexpected token '<', "<!DOCTYPE "... is not valid JSON`. Investigation revealed that Next.js `middleware.ts` treated `/manifest.webmanifest` and `/.well-known/assetlinks.json` as protected routes for unauthenticated clients, issuing a `307 Temporary Redirect` to `/home` (HTML). Bubblewrap's internal `fetchUtils.fetch()` followed the redirect and received HTML instead of JSON.
   3. When compiling `assembleRelease`, Gradle failed with Groovy syntax error `build file 'app/build.gradle': 44: Unexpected input: ',' @ line 44, column 34. splashScreenFadeOutDuration: ,`. Bubblewrap's `app/build.gradle` template directly interpolates `splashScreenFadeOutDuration: <%= splashScreenFadeOutDuration %>,`. When omitted from `twa-manifest.json`, it emitted an empty comma, breaking Groovy syntax.
-  4. Bubblewrap's `AndroidSdkTools.validatePath` strictly expects legacy `$ANDROID_HOME/tools` or `$ANDROID_HOME/bin`, which modern `setup-android@v4` provides under `$ANDROID_HOME/cmdline-tools/latest/bin`.
+  4. Manifest merger failed with `uses-sdk:minSdkVersion 21 cannot be smaller than version 24 declared in library [com.google.androidbrowserhelper:androidbrowserhelper:2.7.4]`. The default fallback minSdkVersion in Bubblewrap is 21, but modern `androidbrowserhelper` (v2.7.4) requires Android 7.0 (API 24) or higher.
+  5. Bubblewrap's `AndroidSdkTools` strictly expects legacy `$ANDROID_HOME/tools` or `$ANDROID_HOME/bin`, while modern `setup-android@v4` provides command-line tools under `$ANDROID_HOME/cmdline-tools/latest/bin`. Furthermore, `@bubblewrap/core@1.27.0` hardcodes `BUILD_TOOLS_VERSION = '36.1.0'` when invoking `zipalign` and `apksigner`.
 - **Fix**:
   1. **Middleware Whitelisting**: Added `/manifest.webmanifest`, `/manifest.json`, and `/.well-known` to `publicPaths` in `middleware.ts`, and updated `config.matcher` to bypass `.*\\.(?:svg|png|jpg|jpeg|gif|webp|json|webmanifest)$`, allowing unauthenticated browsers, Bubblewrap, and Google/Android Digital Asset Link crawlers to access these assets with HTTP 200 JSON directly.
   2. **CI Self-Contained Generation**: In `.github/workflows/build-apk.yml`, spun up an in-job background Node.js HTTP server on port 8080 during project generation to serve the local manifest and icon assets directly. This completely decouples APK generation from external network availability or deployment lag, afterwards synchronizing production URLs and `manifest-checksum.txt` for `bubblewrap build`.
-  3. **TWA Manifest Completeness & Gradle Safety**: Added `"splashScreenFadeOutDuration": 300`, `"orientation": "portrait"`, and dark color definitions into `twa-manifest.json`. Added fallback injection in the CI generation script and a defensive `sed` substitution on `app/build.gradle` ensuring `splashScreenFadeOutDuration: 300,` is guaranteed.
-  4. **SDK Compatibility Symlinks**: Added legacy compatibility symlinks in the runner (`tools` and `bin` -> `cmdline-tools/latest/bin`) and pre-seeded `~/.bubblewrap/config.json`.
+  3. **TWA Manifest Completeness & MinSdk 24**: Added `"splashScreenFadeOutDuration": 300`, `"minSdkVersion": 24`, `"orientation": "portrait"`, and dark color definitions into `twa-manifest.json`. Added fallback injection in the CI generation script and defensive `sed` substitutions across `app/build.gradle` and `app/src/main/AndroidManifest.xml` ensuring `splashScreenFadeOutDuration: 300,` and `minSdkVersion 24` are guaranteed.
+  4. **SDK Compatibility, Build-Tools 36.1.0 & Non-Interactive Licenses**: Added legacy compatibility symlinks in the runner (`tools` and `bin` -> `cmdline-tools/*/bin`), configured automatic fallback symlinks for `build-tools/36.1.0`, accepted all Android SDK licenses non-interactively (`yes | sdkmanager --licenses`), pre-seeded `~/.bubblewrap/config.json`, and added `--skipPwaValidation` to `bubblewrap build`.
 
 ### Google OAuth Integration & Android TWA Digital Asset Links Setup (ADR 017)
 - **Date**: 2026-10-12

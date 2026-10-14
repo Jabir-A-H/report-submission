@@ -17,6 +17,7 @@
   "maskableIconUrl": "https://talimul-report.vercel.app/icons/icon-512.png",
   "splashScreenFadeOutDuration": 300,
   "orientation": "portrait",
+  "minSdkVersion": 24,
   "appVersionName": "1.0.0",
   "appVersionCode": 1,
   "signingKey": {
