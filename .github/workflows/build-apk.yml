@@ -18,10 +18,10 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Java JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -32,9 +32,9 @@ jobs:
           packages: 'platforms;android-36 platforms;android-34 build-tools;36.1.0 build-tools;34.0.0'
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Install Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
@@ -219,7 +219,7 @@ jobs:
           yes | bubblewrap build --skipPwaValidation
 
       - name: Upload APK and AAB Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: Talimul-Quran-Report-Android
           path: |

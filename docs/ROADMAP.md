@@ -99,7 +99,7 @@
 
 ## Phase 4: Post-Stabilization Feature Expansion
 - [x] **Google OAuth Sign-In (ADR 017)**: Integrated Supabase Google OAuth into `/home` (`AuthPortalClient`, `RegisterFormClient`) with automatic verified email account linking and Bengali error translation.
-- [x] **PWA & Android TWA APK Packaging (ADR 017)**: Implemented Web Manifest (`src/app/manifest.ts`), maskable icons (`/icons/icon-192.png`, `/icons/icon-512.png`), Digital Asset Links (`.well-known/assetlinks.json`), `twa-manifest.json`, and automated GitHub Actions Bubblewrap workflow (`.github/workflows/build-apk.yml`) with non-interactive `update --skipVersionUpgrade` checksum generation and legacy SDK symlinks.
+- [x] **PWA & Android TWA APK Packaging (ADR 017)**: Implemented Web Manifest (`src/app/manifest.ts`), maskable icons (`/icons/icon-192.png`, `/icons/icon-512.png`), Digital Asset Links (`.well-known/assetlinks.json`), `twa-manifest.json` (`minSdkVersion 24`), and fully verified headless GitHub Actions Bubblewrap workflow (`.github/workflows/build-apk.yml`) with local generation mock server, build-tools 36.1.0 symlinking, non-interactive license acceptance, and automated release APK/AAB artifact generation.
 - [ ] **Signature Upload**: Add an option for users/admins to upload a handwritten signature image for PDF exports.
 - [ ] **Custom JWT Claims (Performance)**: Store `role` and `active` as custom claims in the Supabase JWT via database hooks.
 - [ ] **Realtime Pending Page Tracking**: Auto-refresh `/pending-approval` once an admin approves the account.
