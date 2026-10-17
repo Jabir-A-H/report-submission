@@ -41,7 +41,7 @@ From the repo's `AGENTS.md` and the owner's feedback during the review:
 
 | ID | Title | Sev | Status |
 |---|---|---|---|
-| RS-01 | Overrides on non-monthly city views saved under the wrong month key | High | OPEN-BUG |
+| RS-01 | Overrides on non-monthly city views saved under the wrong month key | High | RESOLVED (ADR 018) |
 | RS-02 | Empty override value silently becomes 0 | Med | OPEN-BUG |
 | RS-03 | Per-zone multi-month header snapshot may pick an arbitrary row | High | VERIFY-FIRST |
 | RS-04 | City snapshot uses the latest month's partial data, with no coverage indicator | Med | VERIFY-FIRST |
@@ -55,11 +55,11 @@ From the repo's `AGENTS.md` and the owner's feedback during the review:
 | RS-12 | Reassigning a zone mid-month orphans the in-progress report | Med | OPEN-DECISION |
 | RS-13 | Submission state is cosmetic and self-reported | Med | OPEN-DECISION |
 | RS-14 | Admin dashboard zone-scoping logic is unreachable | Low | OPEN-DECISION |
-| RS-20 | Global `saveError` is cleared by any later success; no rollback | High | OPEN-BUG |
+| RS-20 | Global `saveError` is cleared by any later success; no rollback | High | RESOLVED (ADR 018) |
 | RS-21 | `.select('id')` save check may false-fail if RLS SELECT differs from UPDATE | High | VERIFY-FIRST |
-| RS-22 | `loadReport` swallows errors and shows an empty form | High | OPEN-BUG |
-| RS-23 | Nested `ReportProvider` per section page; remount per navigation | Med | VERIFY-FIRST |
-| RS-24 | Autosave "retry" button only dismisses the error | Low | OPEN-BUG |
+| RS-22 | `loadReport` swallows errors and shows an empty form | High | RESOLVED (ADR 018) |
+| RS-23 | Nested `ReportProvider` per section page; remount per navigation | Med | RESOLVED (ADR 018) |
+| RS-24 | Autosave "retry" button only dismisses the error | Low | RESOLVED (ADR 018) |
 | RS-25 | `beforeunload` flush is best-effort on mobile | Low | PARTIAL |
 | RS-26 | `.eq('category')` appended after `.select()` | Low | VERIFY-FIRST |
 | RS-27 | Category lists live in both code and DB seed (drift risk) | Med | OPEN-DECISION |
@@ -99,7 +99,8 @@ From the repo's `AGENTS.md` and the owner's feedback during the review:
 ### A. Data correctness and integrity
 
 #### RS-01: Overrides on non-monthly city views saved under the wrong month key
-- **Status/Sev/Conf:** OPEN-BUG · High · code-verified
+- **Status/Sev/Conf:** RESOLVED (ADR 018) · High · code-verified
+- **Resolution:** Implemented `getOverrideMonthForPeriod(reportType, selectedMonth)` in `src/lib/report-utils.ts` and normalized `correction-button.tsx` and `(admin)/city-report/page.tsx` to save and read non-monthly overrides under `monthsRange[0]` (`1`). Existing `.in("month", monthsRange)` query filters now match writes seamlessly with zero DB schema changes. 12 unit tests in `report-utils.test.ts`. See `docs/ADR/018-high-severity-reliability-hardening-rs01-rs20-rs22.md`.
 - **Where:** `src/app/(admin)/city-report/page.tsx` (month state defaults to the current month; the month `<select>` is `disabled` when `reportType !== "মাসিক"`; the override fetch uses `.in("month", getMonthsForPeriod(reportType, month))`), `src/components/admin/correction-button.tsx` (`handleSave` looks up and writes with the page's `month`), `src/app/api/export/pdf/route.tsx` and `src/app/api/export/excel/route.ts` (same `.in("month", months)` override query).
 - **Evidence:** `getMonthsForPeriod` returns the fixed ranges Jan-Mar, Jan-Jun, Jan-Sep and Jan-Dec for non-monthly types (see RS-05). The page sends the current month, which the user cannot change for non-monthly types.
 - **Impact:** in October, an override on a quarterly, half-yearly or nine-month view is saved but never displayed or exported. Yearly works only because its range includes October. If the month changes between edits, duplicate rows are created for the same logical cell, and `overrideMap` keeps whichever row is returned last.
@@ -206,7 +207,8 @@ From the repo's `AGENTS.md` and the owner's feedback during the review:
 ### B. Save reliability and state
 
 #### RS-20: Global `saveError` is cleared by any later success; no rollback
-- **Status/Sev/Conf:** OPEN-BUG · High · code-verified
+- **Status/Sev/Conf:** RESOLVED (ADR 018) · High · code-verified
+- **Resolution:** Replaced global `saveError` with per-field failure registry `failedFields` (`Record<string, FailedFieldInfo>` keyed by `table:category:name`) and atomic `pendingSavesCount` in `ReportContext`. In `AutoSaveField`, failed fields display non-destructive visual error rings (`border-destructive`) without wiping user-typed data. Added `retryFailedField` and `retryAllFailed`. See `docs/ADR/018-high-severity-reliability-hardening-rs01-rs20-rs22.md`.
 - **Where:** `src/components/report/report-context.tsx` `updateField`: the success branch calls `setSaveError(null)`. The error is a single global string, and the optimistic value stays in `data` after a failure.
 - **Impact:** field A fails (network blip), the error appears, field B then saves successfully, and the error disappears. A's value is still shown but unsaved, so the original silent-loss problem returns. `isSaving` is also a single boolean, so overlapping saves can show "saved" early.
 - **Fix:** track failures per field key (`table:category:name`), clear only that field on its own success, mark the field visibly, and roll back or flag the optimistic value. Consider a retry queue.
@@ -218,19 +220,22 @@ From the repo's `AGENTS.md` and the owner's feedback during the review:
 - **Verify:** edit one existing value in every section, including category-keyed ones, and confirm the saved state appears; compare policies per table.
 
 #### RS-22: `loadReport` swallows errors and shows an empty form
-- **Status/Sev/Conf:** OPEN-BUG · High · code-verified
+- **Status/Sev/Conf:** RESOLVED (ADR 018) · High · code-verified
+- **Resolution:** Updated `loadReport` in `ReportContext` to return `{ success: boolean; error?: any }` and track `loadError`. In `src/app/report/[section]/page.tsx`, gated form rendering so forms NEVER mount when data is uninitialized (`!data || Object.keys(data).length === 0`), and rendered an explicit Bengali error card with a Retry button upon load failure. See `docs/ADR/018-high-severity-reliability-hardening-rs01-rs20-rs22.md`.
 - **Where:** `report-context.tsx` `loadReport` only sets state on success and returns nothing. `src/app/report/[section]/page.tsx` calls `setReportId(repId)` first, then `await loadReport(repId)`, and does not check the outcome.
 - **Impact:** a transient failure in the select shows the section form with no data and no error. Users see blanks and may re-enter or panic. Edits still write to the real report id.
 - **Fix:** return success or failure from `loadReport`; show a retryable error; do not render forms until data loads.
 
 #### RS-23: Nested `ReportProvider` per section page; remount per navigation
-- **Status/Sev/Conf:** VERIFY-FIRST · Medium · code-verified structure, inferred behavior
+- **Status/Sev/Conf:** RESOLVED (ADR 018) · Medium · code-verified structure, inferred behavior
+- **Resolution:** Removed the redundant nested `<ReportProvider>` in `src/app/report/[section]/page.tsx` so the page inherits the root provider from `src/app/layout.tsx`. Added in-memory report check to bypass redundant 7-table fetches when navigating between section tabs, preserving background save operations. See `docs/ADR/018-high-severity-reliability-hardening-rs01-rs20-rs22.md`.
 - **Evidence:** `src/app/layout.tsx` already wraps the app in `ReportProvider`, and `report/[section]/page.tsx` wraps its own. The effect runs getUser, people, RPC and select sequentially (about four round trips) with a full-screen spinner. If the page remounts when the `[section]` param changes (very likely in the App Router), this repeats on every Next/Previous. A save failing after navigation sets state on an unmounted provider, so the error is never shown.
 - **Verify:** press Next and watch for the spinner and network calls.
 - **Fix options:** hoist report loading to a shared layout for `/report/[section]`; use one provider and a shared save queue; await pending saves before navigating.
 
 #### RS-24: Autosave "retry" button only dismisses the error
-- **Status/Sev/Conf:** OPEN-BUG · Low · code-verified
+- **Status/Sev/Conf:** RESOLVED (ADR 018) · Low · code-verified
+- **Resolution:** Updated `AutoSaveIndicator` to display active failure count and wired the Retry button to `retryAllFailed()` from `ReportContext` to trigger re-attempts on all unpersisted field values. See `docs/ADR/018-high-severity-reliability-hardening-rs01-rs20-rs22.md`.
 - **Where:** `auto-save-indicator.tsx` button calls `clearSaveError`, which only does `setSaveError(null)`. It does not retry the save.
 - **Fix:** retry the last failed write, or relabel the button as "dismiss".
 

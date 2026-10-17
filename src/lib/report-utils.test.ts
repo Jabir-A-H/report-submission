@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   toBn,
   getMonthsForPeriod,
+  getOverrideMonthForPeriod,
   sumRows,
   sumHeaderRows,
   DB_TYPE_MAP,
@@ -34,6 +35,23 @@ describe('report-utils', () => {
       assert.deepEqual(getMonthsForPeriod('halfYearly', 1), [1, 2, 3, 4, 5, 6]);
       assert.deepEqual(getMonthsForPeriod('nineMonth', 1), [1, 2, 3, 4, 5, 6, 7, 8, 9]);
       assert.deepEqual(getMonthsForPeriod('yearly', 1), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    });
+  });
+
+  describe('getOverrideMonthForPeriod (RS-01 Fix)', () => {
+    it('returns selected month for monthly reports', () => {
+      assert.equal(getOverrideMonthForPeriod('monthly', 10), 10);
+      assert.equal(getOverrideMonthForPeriod('মাসিক', 4), 4);
+    });
+
+    it('returns period start month for multi-month periods regardless of current month', () => {
+      // In October (10), Quarterly override must still resolve to start month 1
+      assert.equal(getOverrideMonthForPeriod('quarterly', 10), 1);
+      assert.equal(getOverrideMonthForPeriod('ত্রৈমাসিক', 10), 1);
+      assert.equal(getOverrideMonthForPeriod('halfYearly', 10), 1);
+      assert.equal(getOverrideMonthForPeriod('ষান্মাসিক', 10), 1);
+      assert.equal(getOverrideMonthForPeriod('nineMonth', 10), 1);
+      assert.equal(getOverrideMonthForPeriod('বার্ষিক', 10), 1);
     });
   });
 

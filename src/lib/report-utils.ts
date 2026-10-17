@@ -133,6 +133,20 @@ export function getMonthsForPeriod(
   }
 }
 
+/**
+ * Returns the canonical month key for storing/retrieving city report overrides.
+ * For monthly reports, returns the selected month.
+ * For non-monthly reports, returns the period start month (monthsRange[0]),
+ * ensuring overrides are naturally retrieved via `.in("month", getMonthsForPeriod(...))`.
+ */
+export function getOverrideMonthForPeriod(
+  reportType: string,
+  selectedMonth: number
+): number {
+  const months = getMonthsForPeriod(reportType, selectedMonth);
+  return months[0] || 1;
+}
+
 const ATTENDANCE_WEIGHT_PAIRS: Record<string, string> = {
   city_avg_attendance: "city_count",
   thana_avg_attendance: "thana_count",

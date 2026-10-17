@@ -93,9 +93,15 @@
 
 ### Tier 4: Code Quality & Zero Dead-Weight Policy (Completed — ADR 014, ADR 016)
 - [x] **Prune Unused Dependencies (KI-012, ADR 014)**: Removed unimported packages `zod`, `react-hook-form`, and `@hookform/resolvers` from `package.json`.
-- [x] **Automated Unit Tests for `report-utils.ts` (ADR 014)**: Added comprehensive test suite `src/lib/report-utils.test.ts` via `node --test` covering `toBn`, `getMonthsForPeriod`, `sumHeaderRows`, and `sumRows` (10/10 passing).
+- [x] **Automated Unit Tests for `report-utils.ts` (ADR 014, ADR 018)**: Comprehensive test suite `src/lib/report-utils.test.ts` via `node --test` covering `toBn`, `getMonthsForPeriod`, `getOverrideMonthForPeriod`, `sumHeaderRows`, and `sumRows` (12/12 passing).
 - [x] **App Router Error & Loading Boundaries (ADR 016)**: Added root `loading.tsx` and `error.tsx` under `src/app/`.
 - [x] **Auth Technical Error Translation (KI-016, ADR 016)**: Added `translateAuthError()` in `src/lib/i18n.ts` and wrapped all auth server actions.
+
+### Tier 5: High-Severity Reliability Hardening & Error Gating (Completed — ADR 018, RS-01, RS-20, RS-22, RS-23, RS-24)
+- [x] **Period-Start Override Keying (RS-01, ADR 018)**: Implemented `getOverrideMonthForPeriod()` in `src/lib/report-utils.ts`, ensuring non-monthly overrides are saved under `monthsRange[0]` and naturally queryable via `.in("month", monthsRange)`.
+- [x] **Granular Per-Field Error Tracking & True Retry (RS-20, RS-24, ADR 018)**: Replaced scalar `saveError` with `failedFields` dictionary in `ReportProvider`. Preserved typed input on failure and added inline visual warning indicators directly on `AutoSaveField`. Replaced inert retry with functional `retryAllFailed()` in `AutoSaveIndicator`. Added concurrent save counter (`pendingSavesCount`).
+- [x] **Load-Gated Error Screen with Retry (RS-22, ADR 018)**: Updated `loadReport` to return `{ success, error }` and gated `SectionSwitcher` to render a reassuring error card with a retry button instead of rendering blank forms with empty state, completely eliminating accidental zero-overwrites.
+- [x] **Root Provider Deduping & Section Transition Cache (RS-23, ADR 018)**: Removed redundant nested `<ReportProvider>` in `src/app/report/[section]/page.tsx` and cached loaded report state across section tab switches, eliminating redundant 7-table join queries and unmounted save drops.
 
 ## Phase 4: Post-Stabilization Feature Expansion
 - [x] **Google OAuth Sign-In (ADR 017)**: Integrated Supabase Google OAuth into `/home` (`AuthPortalClient`, `RegisterFormClient`) with automatic verified email account linking and Bengali error translation.

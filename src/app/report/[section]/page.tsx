@@ -13,7 +13,7 @@ import { MeetingsForm } from "@/components/report/sections/meetings-form";
 import { ExtrasForm } from "@/components/report/sections/extras-form";
 import { CommentsForm } from "@/components/report/sections/comments-form";
 import { createClient } from "@/utils/supabase/client";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 
 /** Returns true only when the param is a real value (not null, "null", undefined, "undefined") */
 function isValidParam(val: string | null): val is string {
@@ -25,7 +25,7 @@ function SectionSwitcher() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t, tc } = useLanguage();
-  const { reportId, setReportId, loadReport } = useReport();
+  const { reportId, setReportId, loadReport, data, loadError } = useReport();
   const supabase = useMemo(() => createClient(), []);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -157,9 +157,21 @@ function SectionSwitcher() {
       if (rpcErr || !repId) {
         console.error("Error initializing report:", rpcErr);
         setError(t.reportLoadError);
-      } else {
-        setReportId(repId);
-        await loadReport(repId);
+        setIsLoading(false);
+        return;
+      }
+
+      // RS-23 Fix: If report is already in memory for this exact ID and has data, skip redundant re-fetch on section tab changes
+      if (reportId === repId && data && Object.keys(data).length > 0 && !loadError) {
+        if (!ignore) setIsLoading(false);
+        return;
+      }
+
+      setReportId(repId);
+      const res = await loadReport(repId);
+      if (ignore) return;
+      if (!res.success) {
+        setError(t.reportLoadError || "রিপোর্ট ডেটা লোড করতে সমস্যা হয়েছে। অনুগ্রহ করে পেজটি রিফ্রেশ করুন।");
       }
       if (!ignore) {
         setIsLoading(false);
@@ -171,23 +183,51 @@ function SectionSwitcher() {
     return () => {
       ignore = true;
     };
-  }, [typeParam, monthParam, yearParam, hasValidParams, supabase, router, setReportId, loadReport, t]);
+  }, [typeParam, monthParam, yearParam, hasValidParams, supabase, router, setReportId, loadReport, reportId, data, loadError, t]);
 
-  if (!hasValidParams || isLoading) {
+  const activeError = error || loadError;
+
+  if (activeError) {
     return (
       <SectionLayout title="">
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <div className="text-center py-16 text-destructive flex flex-col items-center gap-4 max-w-md mx-auto p-6 bg-destructive/5 rounded-2xl border border-destructive/20 shadow-sm animate-in fade-in">
+          <div className="flex items-center gap-2 text-lg font-bold">
+            <AlertCircle className="w-6 h-6 text-destructive shrink-0" />
+            <span>{activeError}</span>
+          </div>
+          <p className="text-sm font-normal text-muted-foreground">
+            আপনার পূর্বের ডেটা সুরক্ষিত আছে। ইন্টারনেট সংযোগ পরীক্ষা করে পুনরায় চেষ্টা করুন।
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setError(null);
+              setIsLoading(true);
+              if (reportId) {
+                loadReport(reportId).then((res) => {
+                  if (!res.success) {
+                    setError(t.reportLoadError || "রিপোর্ট ডেটা লোড করতে সমস্যা হয়েছে।");
+                  }
+                  setIsLoading(false);
+                });
+              } else {
+                router.refresh();
+              }
+            }}
+            className="modern-btn bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-2.5 rounded-xl font-bold text-sm shadow-md transition-all active:scale-95"
+          >
+            পুনরায় চেষ্টা করুন (Retry)
+          </button>
         </div>
       </SectionLayout>
     );
   }
 
-  if (error) {
+  if (!hasValidParams || isLoading || !data || Object.keys(data).length === 0) {
     return (
       <SectionLayout title="">
-        <div className="text-center py-20 text-destructive font-bold flex flex-col items-center gap-2">
-          <span>⚠️ {error}</span>
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       </SectionLayout>
     );
@@ -246,9 +286,5 @@ function SectionSwitcher() {
 }
 
 export default function ReportSectionPage() {
-  return (
-    <ReportProvider>
-      <SectionSwitcher />
-    </ReportProvider>
-  );
+  return <SectionSwitcher />;
 }

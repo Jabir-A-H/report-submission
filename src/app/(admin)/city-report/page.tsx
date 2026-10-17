@@ -27,6 +27,7 @@ import {
   MEETING_CATEGORIES,
   toBn,
   getMonthsForPeriod,
+  getOverrideMonthForPeriod,
   sumRows,
   sumHeaderRows,
 } from "@/lib/report-utils";
@@ -519,7 +520,7 @@ export default function CityReportPage() {
   }, [fetchData]);
 
   return (
-    <CityReportContext.Provider value={{ year, month, reportType, isEditing, getVal, refreshData }}>
+    <CityReportContext.Provider value={{ year, month: getOverrideMonthForPeriod(reportType, month), reportType, isEditing, getVal, refreshData }}>
     <div className="py-8 max-w-7xl mx-auto animate-in fade-in duration-500">
       {/* ── Page Header ─────────────────────────────────────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 p-6 bg-card border border-border/50 rounded-[2rem] shadow-sm">

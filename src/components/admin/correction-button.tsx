@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react'
 import { Edit2, X, Check, AlertTriangle, Trash2 } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
+import { getOverrideMonthForPeriod } from '@/lib/report-utils'
 
 interface CorrectionButtonProps {
   year: number
@@ -48,6 +49,7 @@ export function CorrectionButton({
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const supabase = useMemo(() => createClient(), [])
+  const overrideMonth = getOverrideMonthForPeriod(reportType, month)
 
   const handleSave = async () => {
     setIsSaving(true)
@@ -57,7 +59,7 @@ export function CorrectionButton({
         .from('city_report_override')
         .select('id')
         .eq('year', year)
-        .eq('month', month)
+        .eq('month', overrideMonth)
         .eq('report_type', reportType)
         .eq('section', section)
         .eq('field', field)
@@ -83,7 +85,7 @@ export function CorrectionButton({
           .from('city_report_override')
           .upsert({
             year,
-            month,
+            month: overrideMonth,
             section,
             field,
             category: category || null,
@@ -114,7 +116,7 @@ export function CorrectionButton({
         .from('city_report_override')
         .delete()
         .eq('year', year)
-        .eq('month', month)
+        .eq('month', overrideMonth)
         .eq('report_type', reportType)
         .eq('section', section)
         .eq('field', field)

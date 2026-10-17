@@ -41,6 +41,22 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ## Resolved Historical Issues
 
+### High-Severity Reliability Hardening: Override Period-Start Keying, Granular Autosave Failure Tracking & Load-Gated Error Recovery (ADR 018, RS-01, RS-20, RS-22, RS-23, RS-24)
+- **Date**: 2026-10-17
+- **Resolution Date**: 2026-10-17
+- **Description**:
+  1. **RS-01 (Non-Monthly Overrides Keyed to Current Calendar Month)**: Overrides saved on Quarterly, Half-Yearly, and 9-Month city reports were saved using the disabled calendar month (e.g., month 10 in October). Because `getMonthsForPeriod('ত্রৈমাসিক', 10)` returns `[1, 2, 3]`, overrides were omitted from table views and PDF/Excel exports.
+  2. **RS-20 (Global Autosave Error Overwrites & Silent Data Loss)**: `ReportProvider` stored `saveError` as a single global string and `isSaving` as a single boolean. When field A failed and field B succeeded 1 second later, field B cleared `saveError` globally, showing a green "Saved" status while field A was never persisted on the server.
+  3. **RS-22 (Swallowed `loadReport` Failures and Blank Form Renders)**: `loadReport` swallowed fetch errors and returned `void`. Network drops caused section pages to render with empty `data = {}`, causing field worker panic and enabling accidental destructive zero-overwrites.
+  4. **RS-23 (Nested Provider Remounts on Section Navigation)**: `report/[section]/page.tsx` rendered a redundant nested `<ReportProvider>`, tearing down and recreating provider state and 7-table join queries on every section tab change.
+  5. **RS-24 (Autosave Retry Button Only Dismissed Error)**: `auto-save-indicator.tsx` button called `clearSaveError`, which only reset the banner string without retrying failed writes.
+- **Fix**:
+  1. **Period-Start Keying (`getOverrideMonthForPeriod`)**: Added `getOverrideMonthForPeriod(reportType, selectedMonth)` returning `monthsRange[0]` (e.g. `1` for Q1, `4` for Q2). Updated `CorrectionButton` and `CityReportContext` to use period-start keying. Existing `.in("month", monthsRange)` queries in page and export routes naturally retrieve the overrides without schema alterations. Tested via `node --test src/lib/report-utils.test.ts`.
+  2. **Granular Per-Field Error Tracking**: Replaced scalar `saveError` with `failedFields: Record<string, FailedFieldInfo>`. Failed writes keep the user's typed value intact in the input and apply visual red/amber alert styling directly to the field. Added a concurrent save counter (`pendingSavesCount`) to prevent premature spinner termination.
+  3. **Load-Gated Error Screen & Retry Action**: Updated `loadReport` to return `{ success, error }` and expose `loadError`. Gated `SectionSwitcher` to render a reassuring Bengali error card with a retry button when loading fails, completely preventing forms from mounting with empty data.
+  4. **Root Provider De-duplication & Section Transition Cache**: Removed the redundant nested `<ReportProvider>` in `src/app/report/[section]/page.tsx`, letting the root `<ReportProvider>` in `layout.tsx` maintain state. Cached in-memory report data across section tab changes, making tab switching instantaneous.
+  5. **Functional Retry All Failed**: Updated `auto-save-indicator.tsx` to display failed field count and invoke `retryAllFailed()` to actually re-attempt writes across failed fields.
+
 ### Bubblewrap CLI CI Checksum, Manifest Redirect, Gradle Syntax & MinSdk Resolution (ADR 017)
 - **Date**: 2026-10-14
 - **Resolution Date**: 2026-10-14

@@ -2,9 +2,11 @@
 
 import { useReport } from "./report-context";
 import { Loader2, CheckCircle2, AlertCircle, XCircle } from "lucide-react";
+import { toBn } from "@/lib/report-utils";
 
 export function AutoSaveIndicator() {
-  const { isSaving, lastSaved, saveError, clearSaveError } = useReport();
+  const { isSaving, lastSaved, saveError, failedFields, retryAllFailed } = useReport();
+  const failedCount = Object.keys(failedFields || {}).length;
   
   if (isSaving) {
     return (
@@ -15,15 +17,18 @@ export function AutoSaveIndicator() {
     );
   }
 
-  if (saveError) {
+  if (saveError || failedCount > 0) {
     return (
-      <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-destructive">
-        <XCircle className="w-3 h-3 shrink-0" />
-        <span>{saveError} —</span>
+      <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-destructive animate-in fade-in">
+        <XCircle className="w-3.5 h-3.5 shrink-0" />
+        <span>
+          {failedCount > 1 ? `${toBn(failedCount)}টি ফিল্ড ` : ""}
+          {saveError || "সংরক্ষণ ব্যর্থ হয়েছে"} —
+        </span>
         <button
           type="button"
-          onClick={clearSaveError}
-          className="underline underline-offset-2 hover:text-destructive/80 transition-colors"
+          onClick={() => retryAllFailed()}
+          className="underline underline-offset-2 hover:text-destructive/80 transition-colors cursor-pointer"
         >
           আবার চেষ্টা করুন
         </button>
