@@ -18,11 +18,15 @@ export function BottomNav() {
   const [userInfo, setUserInfo] = useState<{name: string, role: string, zone: string} | null>(null);
   const supabase = useMemo(() => createClient(), []);
   const panelRef = useRef<HTMLDivElement>(null);
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
 
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setIsAuthChecked(true);
+        return;
+      }
       const { data: profile } = await supabase
         .from("people")
         .select("name, role, zone(name)")
@@ -45,11 +49,12 @@ export function BottomNav() {
           zone: "—",
         });
       }
+      setIsAuthChecked(true);
     })();
   }, [supabase]);
 
   const isAuthPage = ["/home", "/auth", "/pending-approval", "/forgot-password", "/update-password"].includes(pathname);
-  if (isAuthPage) return null;
+  if (isAuthPage || (isAuthChecked && !userInfo && pathname === "/help")) return null;
 
   // Build period param string from current URL params — carries period context across navigation
   const paramsStr = searchParams.toString();

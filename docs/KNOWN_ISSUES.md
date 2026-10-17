@@ -41,6 +41,22 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ## Resolved Historical Issues
 
+### Help Page AI Filler, Technical Jargon Leakage, Client FOIC & Illustrated Visual Manual (ADR 019)
+- **Date**: 2026-10-17
+- **Resolution Date**: 2026-10-18
+- **Description**:
+  1. `src/app/help/page.tsx` initially contained AI-generated placeholder filler (dummy support hotlines, fake email addresses, generic theme FAQs, and redundant 2-column category tabs).
+  2. First-pass revisions leaked developer-centric jargon into the user UI (cryptic route slugs `/api/export/pdf`, `/home → /pending-approval`, "Kalpurush font", and page counts) that confused non-technical Quran teachers.
+  3. A simple text list and breadcrumb ribbon lacked visual screen anchors, failing to show users what the interface actually looks like.
+  4. Non-authenticated visitors on `/home` clicking the footer "সাহায্য (Help)" link were bounced back to `/home` due to missing public path whitelisting.
+- **Fix Summary**:
+  1. Converted `src/app/help/page.tsx` into an async Server Component that evaluates auth and user role server-side via `createClient()`, passing `initialIsAdmin` to `HelpDiagramClient` to eliminate client-side FOIC and layout shifts.
+  2. Replaced the dry text list and breadcrumb ribbon with an **Illustrated Non-Technical Visual Manual** featuring 100% theme-adaptive SVG/CSS component mockups for both User and Admin workflows.
+  3. Equipped each step with numbered visual callout pins (`❶`, `❷`, `❸`), plain conversational Bengali/English action instructions, zero developer URLs, and dedicated "সাধারণ প্রশ্ন ও সমাধান" (Troubleshooting & Tips) callout boxes for common field hurdles (approval delays, offline auto-save retries, submit locks, and printer settings).
+  4. Added a sticky, touch-friendly 5-stage navigator for smooth-scrolling jumps to any stage across mobile and desktop.
+  5. Whitelisted `'/help'` in `publicPaths` (`middleware.ts`) and provided unauthenticated fallbacks in `user-dropdown.tsx` and `bottom-nav.tsx`.
+  6. Verified full production build, linting, unit tests, and type checking with 0 errors.
+
 ### High-Severity Reliability Hardening: Override Period-Start Keying, Granular Autosave Failure Tracking & Load-Gated Error Recovery (ADR 018, RS-01, RS-20, RS-22, RS-23, RS-24)
 - **Date**: 2026-10-17
 - **Resolution Date**: 2026-10-17

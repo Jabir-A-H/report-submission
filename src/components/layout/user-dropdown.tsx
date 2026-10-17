@@ -22,6 +22,8 @@ export function UserDropdown() {
   const paramsStr = searchParams.toString();
   const periodQuery = paramsStr ? `?${paramsStr}` : "";
 
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
+
   useEffect(() => {
     async function loadUser() {
       const { data: { user: authUser } } = await supabase.auth.getUser();
@@ -47,6 +49,7 @@ export function UserDropdown() {
           });
         }
       }
+      setIsAuthChecked(true);
     }
     loadUser();
   }, [supabase]);
@@ -60,6 +63,18 @@ export function UserDropdown() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  if (isAuthChecked && !user) {
+    return (
+      <Link
+        href="/home"
+        className="px-3 py-1.5 rounded-full hover:bg-muted flex items-center gap-2 border border-border text-xs font-bold text-foreground transition-all hover:border-primary/40"
+      >
+        <User className="w-4 h-4 text-primary" />
+        <span>{t.login}</span>
+      </Link>
+    );
+  }
 
   return (
     <div className="relative" ref={dropdownRef}>

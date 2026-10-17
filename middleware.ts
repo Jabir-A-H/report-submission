@@ -49,6 +49,7 @@ export async function middleware(request: NextRequest) {
   // Public routes that don't require authentication
   const publicPaths = [
     '/home',
+    '/help',
     '/auth',
     '/pending-approval',
     '/forgot-password',
