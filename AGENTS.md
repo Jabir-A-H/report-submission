@@ -101,3 +101,25 @@ Before completing any task or ending a work session, execute and verify all thre
 - Be concise, direct, and implementation-specific.
 - Prefer concrete file and path references (`file:///...`) over abstract descriptions.
 - Never leave partial documentation updates after code changes.
+
+---
+
+## ⚖️ RULE 6: Solution Alternatives, Adversarial Pre-Check & Docs Cross-Verification (Mandatory)
+
+Before proposing or implementing any bug fix, architectural change, or schema modification:
+
+1. **Formulate Competing Alternatives**:
+   - Never present a single, unchallenged local patch.
+   - For every non-trivial defect or design choice, formulate at least two distinct solution approaches (e.g. Minimal Patch vs. Structural/Root Solution vs. Zero-DDL Alignment).
+
+2. **Adversarial Stress-Testing ("Doubt Gate")**:
+   - Evaluate real-world edge cases: spotty/offline cellular connectivity (mobile field workers), concurrent tab/route navigation, unmount race conditions, memory leaks, form state resets, etc.
+   - Cross-examine the proposal against the question: *"Under what field conditions will this clean-looking code fail?"*
+
+3. **Cross-Check All Project Documentation**:
+   - Cross-examine assumptions across all relevant project documentation in `docs/` (including `TECHNICAL_MANUAL.md`, active `ADR/*` records, `ROADMAP.md`, `KNOWN_ISSUES.md`, and any active issue registers or planning documents).
+   - Verify that architectural invariants (e.g. zero DB migrations, singular table names, client memoization), historical regressions (preventing re-emergence of resolved `KI-xxx` issues), coupled subsystems, and scheduled roadmap phases are strictly respected.
+
+4. **Present Comparative Trade-offs**:
+   - Present the recommended solution alongside the rejected alternative(s), explicitly justifying why the alternative was rejected before asking for user approval.
+
