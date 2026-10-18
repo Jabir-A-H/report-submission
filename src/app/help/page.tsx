@@ -4,6 +4,7 @@ import { HelpDiagramClient } from "./help-diagram-client";
 
 export default async function HelpPage() {
   let isAdmin = false;
+  let isLoggedIn = false;
 
   try {
     const supabase = await createClient();
@@ -12,6 +13,7 @@ export default async function HelpPage() {
     } = await supabase.auth.getUser();
 
     if (user) {
+      isLoggedIn = true;
       const { data: profile } = await supabase
         .from("people")
         .select("role")
@@ -24,6 +26,7 @@ export default async function HelpPage() {
     }
   } catch {
     isAdmin = false;
+    isLoggedIn = false;
   }
 
   return (
@@ -37,7 +40,7 @@ export default async function HelpPage() {
         </div>
       }
     >
-      <HelpDiagramClient initialIsAdmin={isAdmin} />
+      <HelpDiagramClient initialIsAdmin={isAdmin} isLoggedIn={isLoggedIn} />
     </Suspense>
   );
 }

@@ -41,21 +41,21 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ## Resolved Historical Issues
 
-### Help Page AI Filler, Technical Jargon Leakage, Client FOIC & Illustrated Visual Manual (ADR 019)
+### Help Page AI Filler, Technical Jargon, Mockup Drift & Simple Text-First Manual (ADR 019)
 - **Date**: 2026-10-17
 - **Resolution Date**: 2026-10-18
 - **Description**:
-  1. `src/app/help/page.tsx` initially contained AI-generated placeholder filler (dummy support hotlines, fake email addresses, generic theme FAQs, and redundant 2-column category tabs).
-  2. First-pass revisions leaked developer-centric jargon into the user UI (cryptic route slugs `/api/export/pdf`, `/home → /pending-approval`, "Kalpurush font", and page counts) that confused non-technical Quran teachers.
-  3. A simple text list and breadcrumb ribbon lacked visual screen anchors, failing to show users what the interface actually looks like.
+  1. `src/app/help/page.tsx` initially contained AI-generated placeholder filler (dummy support hotlines, fake email addresses, generic theme FAQs).
+  2. Early revisions introduced route slugs (`/api/export/pdf`), font names, and described non-existent features (mandatory submit lock, top section tabs, mobile field on signup).
+  3. UI mockups drifted from real application code (wrong button names like "ফরম পূরণ করুন" instead of "যান", wrong section tabs instead of bottom nav buttons).
   4. Non-authenticated visitors on `/home` clicking the footer "সাহায্য (Help)" link were bounced back to `/home` due to missing public path whitelisting.
 - **Fix Summary**:
   1. Converted `src/app/help/page.tsx` into an async Server Component that evaluates auth and user role server-side via `createClient()`, passing `initialIsAdmin` to `HelpDiagramClient` to eliminate client-side FOIC and layout shifts.
-  2. Replaced the dry text list and breadcrumb ribbon with an **Illustrated Non-Technical Visual Manual** featuring 100% theme-adaptive SVG/CSS component mockups for both User and Admin workflows.
-  3. Equipped each step with numbered visual callout pins (`❶`, `❷`, `❸`), plain conversational Bengali/English action instructions, zero developer URLs, and dedicated "সাধারণ প্রশ্ন ও সমাধান" (Troubleshooting & Tips) callout boxes for common field hurdles (approval delays, offline auto-save retries, submit locks, and printer settings).
-  4. Added a sticky, touch-friendly 5-stage navigator for smooth-scrolling jumps to any stage across mobile and desktop.
-  5. Whitelisted `'/help'` in `publicPaths` (`middleware.ts`) and provided unauthenticated fallbacks in `user-dropdown.tsx` and `bottom-nav.tsx`.
-  6. Verified full production build, linting, unit tests, and type checking with 0 errors.
+  2. Purged all coded mockups in favor of a clean, text-first, zero-overhead manual.
+  3. Replaced inaccurate steps with an honest, code-verified 4-step user guide and 5-step admin guide using exact button labels in quotes (`“যান”`, `“সম্পাদনা করুন”`, `“রিপোর্ট জমা সম্পন্ন হয়েছে”`).
+  4. Added a dedicated 9-point "সাধারণ সমস্যা ও সমাধান" (Common Problems & Solutions) section covering real-world user questions (login keyboard caps, email verification, password recovery, autosave blur triggers, and report editing).
+  5. Added a WhatsApp coordinator assistance block and a sticky single-word stepper navigator (`১. সাইন আপ`, `২. মাস নির্বাচন`, `৩. তথ্য পূরণ`, `৪. PDF ডাউনলোড`, `সমস্যা`).
+  6. Whitelisted `'/help'` in `publicPaths` (`middleware.ts`) and verified full production build, linting, unit tests, and type checking with 0 errors.
 
 ### High-Severity Reliability Hardening: Override Period-Start Keying, Granular Autosave Failure Tracking & Load-Gated Error Recovery (ADR 018, RS-01, RS-20, RS-22, RS-23, RS-24)
 - **Date**: 2026-10-17

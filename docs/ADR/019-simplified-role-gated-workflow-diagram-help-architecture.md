@@ -1,57 +1,54 @@
-# ADR 019: Illustrated Non-Technical Visual Help Architecture with Theme-Adaptive UI Mockups
+# ADR 019: Simple Text-First Role-Gated Help Architecture with Exact Application Alignments
 
 - **Status**: Accepted and Implemented
 - **Date**: 2026-10-17 (Updated: 2026-10-18)
 
 ## Context
 
-The initial help center implementation (`src/app/help/page.tsx`) was an AI-generated placeholder containing generic filler:
-1. **Irrelevant Filler & Fake Contacts**: Hardcoded fake email (`support@talimulquran.org`), dummy telephone hotline (`+৮৮০ ১৭০০-০০০০০০`), fabricated support schedules (`সকাল ৯:০০ - রাত ৯:০০`), and generic FAQs explaining color themes and general philosophy.
-2. **Cluttered Layout**: A bulky 2-column sidebar category navigation with 10 generic accordion questions that failed to explain how the actual application works.
-3. **Broken Public Access**: The bottom footer on `/home` provided a "সাহায্য (Help)" link to `/help`, but `middleware.ts` lacked `/help` in `publicPaths`, causing unauthenticated visitors to be redirected straight back to `/home`.
-4. **Developer Jargon Leakage**: Initial revisions included route slugs (e.g., `/api/export/pdf`, `/home → /pending-approval`), font name specifications ("Kalpurush font"), and page counts that confused non-technical Quran teachers and field coordinators.
-5. **Lack of Visual Representation**: Pure text lists or breadcrumb pills lacked visual anchors showing what the interface actually looks like.
+1. **AI Placeholder Clutter**: The initial `/help` page contained generic AI-generated filler (fake support emails, fabricated telephone numbers, irrelevant theme FAQs).
+2. **First-Revision Drift & Jargon**: The initial rework introduced cryptic route slugs (`/api/export/pdf`, `/home → /pending-approval`) and described features the application does not possess:
+   - Claimed Step 1 had a mobile field (it asks for name, user ID, email, password twice, and zone).
+   - Claimed only admin approval was needed (Supabase email verification is required too).
+   - Claimed Step 2 allowed choosing quarterly/annual modes (regular users have `monthlyOnly={true}`).
+   - Claimed the launch button was "ফরম পূরণ করুন" (it is "যান").
+   - Claimed Step 3 had top tabs (navigation is bottom previous/next buttons and top-left `← ড্যাশবোর্ড`).
+   - Claimed Step 4 had an "এক নজরে" review page with a lock button preventing edits (no lock exists; submission is simply marked via the checkbox in the Comments section, and reports can always be edited).
+3. **Mockup Drift & Overhead**: Coded mockups proved to be a redundant UI surface that quickly drifted from actual application behavior and added visual clutter.
 
 ## Decision
 
-1. **Zero Dead-Weight AI Removal & Zero Jargon**:
-   - Completely deleted all placeholder FAQs, fake contact cards, accordion blocks, arbitrary tip boxes, and developer-centric URLs/font terms.
-   - Replaced all route slugs with conversational Bengali/English action buttons (e.g. `[ নিবন্ধন পেজে যান ]`, `[ ফরম পূরণে যান ]`).
+1. **Text-First, Zero-Mockup Architecture**:
+   - Completely removed all coded UI mockups and screenshots.
+   - Adopted a clean, readable, text-first manual with exact button and field labels in quotation marks (e.g. `“যান”`, `“সম্পাদনা করুন”`, `“রিপোর্ট জমা সম্পন্ন হয়েছে”`).
 
-2. **Server-Side Role Resolution (Zero FOIC)**:
-   - `src/app/help/page.tsx` is an async Server Component inspecting user session and role via `@/utils/supabase/server`.
-   - Passes `initialIsAdmin` directly to client component `HelpDiagramClient`, guaranteeing that administrators receive the Admin Workflow Diagram on first SSR render with zero flash of content (FOIC) or layout shifting.
+2. **Accurate 4-Step User Guide**:
+   - **ধাপ ০১: সাইন আপ ও অনুমোদন (Register & Get Approved)**: 6 form fields, email verification link, admin approval gate, and Google Sign-In notice.
+   - **ধাপ ০২: লগ-ইন ও মাস নির্বাচন (Log In & Choose Month)**: User ID/Email login caveats (avoiding keyboard auto-capitalization/spaces), Month/Year selection, and tapping “যান”.
+   - **ধাপ ০৩: সাতটি সেকশন পূরণ ও স্বয়ংক্রিয় সংরক্ষণ (Fill 7 Sections & Rely on Auto-Save)**: Bottom Previous/Next navigation, centered auto-save indicator, and the submission checkbox in the Comments section (emphasizing reports can be edited anytime).
+   - **ধাপ ০৪: PDF ডাউনলোড (Download PDF)**: Bottom menu "রিপোর্ট" tab, top-right "ডাউনলোড" dropdown, and A4 Landscape printing instructions.
 
-3. **Illustrated Step-by-Step Visual Walkthrough with Component Mockups**:
-   - Instead of static PNG images (which fail in Dark/Solarized themes, add 5–10MB load on spotty 3G, and cannot switch languages dynamically), designed **100% Theme-Adaptive SVG/CSS Component Mockups**:
-     - **For Users (`role = 'user'` or public visitors)**:
-       1. **ধাপ ০১: অ্যাকাউন্ট নিবন্ধন ও অনুমোদন**: Mockup of registration form + Zone dropdown (Pin ❶) + sign up button (Pin ❷) + Pending approval status card (Pin ❸). Includes callout: *"নিবন্ধনের পর সাথে সাথে কেন লগইন হয় না?"*
-       2. **ধাপ ০২: লগইন ও রিপোর্টের মাস নির্বাচন**: Mockup of period mode pills + year/month dropdowns (Pin ❶) + "ফরম পূরণ করুন" launch button (Pin ❷). Includes callout: *"ভুল মাস নির্বাচন করলে কী করবেন?"*
-       3. **ধাপ ০৩: ধাপে ধাপে ৭টি সেকশন পূরণ ও অটো-সেভ**: Mockup of 7 section tabs (Pin ❶) + numeric inputs (Pin ❷) + live cloud auto-save badge (Pin ❸: `[ ✓ সংরক্ষিত ]` vs `[ ⚠️ আবার চেষ্টা করুন ]`). Includes callout: *"কোনো সেভ বাটন নেই কেন? (অটো-সেভ কীভাবে কাজ করে)"*
-       4. **ধাপ ০৪: এক নজরে যাচাই ও চূড়ান্ত জমাদান**: Mockup of consolidated summary (Pin ❶) + "চূড়ান্ত রিপোর্ট জমা দিন" button (Pin ❷) + submission lock indicator (Pin ❸). Includes callout: *"জমা দেওয়ার পর ভুল সংশোধন করা যাবে কি?"*
-       5. **ধাপ ০৫: অফিসিয়াল PDF ও Excel ডাউনলোড**: Mockup of download buttons (Pin ❶) + 2-page print layout preview (Pin ❷) + print/share tips (Pin ❸). Includes callout: *"মোবাইল থেকে কীভাবে প্রিন্ট করবেন?"*
-     - **For Administrators (`role = 'admin' | 'superadmin'`)**:
-       1. **ধাপ ০১: কমান্ড সেন্টার ও অগ্রগতি পর্যবেক্ষণ**: Dashboard KPI card mockup (submitted vs pending zone progress).
-       2. **ধাপ ০২: ব্যবহারকারী অনুমোদন ও জোন নিয়ন্ত্রণ**: User management table mockup with 1-click approval (`[ ✅ অনুমোদন দিন ]`).
-       3. **ধাপ ০৩: জমাকৃত জোন রিপোর্ট অডিট**: Submitted reports table mockup with filter and audit view drawer.
-       4. **ধাপ ০৪: সমন্বিত সিটি রিপোর্ট ও সেল ওভাররাইড**: City aggregated data table with Edit Mode toggle and amber-highlighted cell override (`৭৫০ ✏️`).
-       5. **ধাপ ০৫: অফিসিয়াল মহানগরী PDF ও Excel এক্সপোর্ট**: Metropolitan executive export engine mockup.
-     - Role-gated switcher (`[ 🛡️ অ্যাডমিন গাইড | 👤 ব্যবহারকারী গাইড ]`) retained strictly for administrators.
+3. **Accurate 5-Step Admin Guide**:
+   - **ধাপ ০১: ড্যাশবোর্ডে চলতি মাসের অগ্রগতি**: Current-month-only KPI tracking and identifying pending zones.
+   - **ধাপ ০২: ব্যবহারকারী অনুমোদন ও ব্যবস্থাপনা**: Status filter for pending users, 1-click approval (`“অনুমোদন করুন”`), deactivation, and zone reassignment caveats.
+   - **ধাপ ০৩: জোনের রিপোর্ট পর্যালোচনা**: Filtering all zone submissions and auditing field remarks.
+   - **ধাপ ০৪: সিটি রিপোর্টে সংখ্যা সংশোধন (ওভাররাইড)**: View/Edit Mode, cell overrides, and restoring original sums via the “মুছুন” button.
+   - **ধাপ ০৫: সিটি রিপোর্ট PDF ও Excel**: Metropolitan executive exports with overrides included.
 
-4. **Interactive Stage Stepper Navigator**:
-   - Replaced redundant breadcrumb ribbon with a responsive sticky 5-stage navigator allowing instant smooth-scroll jumping to any step.
+4. **Dedicated Common Problems & Solutions (সাধারণ সমস্যা ও সমাধান)**:
+   - Covers 9 real-world obstacles: login failures, missing verification emails, password resets, wrong zone selection, red save failures, autosave blur triggers, absence of manual save buttons, editing existing submissions, and wrong month selections.
 
-5. **Public Path Whitelisting & Layout Resilience**:
-   - Whitelisted `'/help'` in `middleware.ts`.
-   - Provided graceful unauthenticated fallbacks in `UserDropdown` and `BottomNav`.
+5. **Human Contact, Scroll Observer & Institutional Footer**:
+   - Added a direct WhatsApp/Coordinator contact assistance card.
+   - Stepper provides clean, short, single-word labels (`১. সাইন আপ`, `২. মাস নির্বাচন`, `৩. তথ্য পূরণ`, `৪. PDF ডাউনলোড`, `সমস্যা`) with responsive sticky positioning (`top-2 sm:top-3 md:top-20`).
+   - Integrated an `IntersectionObserver` that automatically updates the active stepper highlight as the user scrolls naturally.
+   - Calculated exact scroll clearance offsets (`140px` desktop / `72px` mobile) to eliminate top clipping behind sticky headers.
+   - Standardized institutional footer at page bottom with `<AppearanceFooterToggle />` (Language & Theme toggles) and context-aware navigation (`[ ← মূল ড্যাশবোর্ডে ফিরুন ]` or `[ ← লগইন / নিবন্ধন পেজে ফিরুন ]`), ensuring full parity for signed-in and signed-out visitors.
+   - Retained server-side role resolution (`createClient()`) to prevent FOIC for administrators.
 
 ## Consequences
 
 ### Positive
-- **High-Density Usability for Non-Tech Users**: Clear visual recognition of screens, buttons, and badges with numbered pins.
-- **Zero Asset Overhead**: Component mockups load instantly (0ms network request) and adapt to Light, Dark, and Solarized themes dynamically.
-- **Bilingual & Responsive**: Seamless Bengali and English switching across all mockups and text.
-- **Proactive Troubleshooting**: Directly addresses real-world friction (approval delay, auto-save confusion, report locking).
-
-### Trade-offs
-- Mockups require maintaining Tailwind template elements rather than relying on external image files, but this ensures complete design system cohesion and zero network latency.
+- **100% Truthful Guidance**: Every label, button name, and navigation instruction matches the live code with zero discrepancies.
+- **Zero Maintenance Overhead**: Text-only layout will not drift from component visual updates or break across themes.
+- **Ultra-Lightweight & Fast**: Zero image downloads; loads instantly on 2G/3G mobile networks.
+- **Non-Technical Clarity**: Simple language with clear actionable numbered points and direct answers to real friction points.
