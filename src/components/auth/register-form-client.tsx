@@ -103,27 +103,30 @@ export function RegisterFormClient({
     >
       <div className="space-y-2.5">
         <div>
-          <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block" htmlFor="name">
+          <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block" htmlFor="register-name">
               পূর্ণ নাম
           </label>
           <div className="relative">
             <User className="w-4 h-4 text-muted-foreground/60 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
+              id="register-name"
               className="modern-input !pl-10 !pr-3.5 w-full h-10 text-sm bg-muted/40 focus:bg-background transition-colors rounded-xl border border-border"
               name="name"
               placeholder="আপনার পূর্ণ নাম"
+              autoComplete="name"
               required
             />
           </div>
         </div>
 
         <div>
-          <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block" htmlFor="user_id">
+          <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block" htmlFor="register-user-id">
               ইউজার আইডি (ইউনিক)
           </label>
           <div className="relative">
             <Tag className="w-4 h-4 text-muted-foreground/60 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
+              id="register-user-id"
               className={`modern-input !pl-10 !pr-3.5 w-full h-10 text-sm bg-muted/40 focus:bg-background transition-colors rounded-xl border ${
                 userIdStatus === 'taken' ? 'border-red-500' : userIdStatus === 'available' ? 'border-green-500' : 'border-border'
               }`}
@@ -131,6 +134,10 @@ export function RegisterFormClient({
               placeholder="যেমন: user123"
               pattern="^[a-zA-Z0-9_-]{3,20}$"
               title="ইউজার আইডি কমপক্ষে ৩ অক্ষরের হতে হবে এবং শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা বা _ - ব্যবহার করা যাবে।"
+              autoCapitalize="none"
+              autoCorrect="off"
+              autoComplete="username"
+              spellCheck={false}
               onBlur={handleUserIdBlur}
               onChange={() => setUserIdStatus('idle')}
               required
@@ -140,18 +147,23 @@ export function RegisterFormClient({
         </div>
 
         <div>
-          <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block" htmlFor="email">
+          <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block" htmlFor="register-email">
               ইমেইল এড্রেস
           </label>
           <div className="relative">
             <Mail className="w-4 h-4 text-muted-foreground/60 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
+              id="register-email"
               className={`modern-input !pl-10 !pr-3.5 w-full h-10 text-sm bg-muted/40 focus:bg-background transition-colors rounded-xl border ${
                 emailStatus === 'taken' ? 'border-red-500' : emailStatus === 'available' ? 'border-green-500' : 'border-border'
               }`}
               name="email"
               type="email"
               placeholder="name@example.com"
+              autoCapitalize="none"
+              autoCorrect="off"
+              autoComplete="email"
+              spellCheck={false}
               onBlur={handleEmailBlur}
               onChange={() => setEmailStatus('idle')}
               required
@@ -161,16 +173,18 @@ export function RegisterFormClient({
         </div>
 
         <div>
-          <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block" htmlFor="password">
+          <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block" htmlFor="register-password">
               পাসওয়ার্ড
           </label>
           <div className="relative">
             <Lock className="w-4 h-4 text-muted-foreground/60 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
+              id="register-password"
               className="modern-input !pl-10 !pr-3.5 w-full h-10 text-sm bg-muted/40 focus:bg-background transition-colors tracking-widest rounded-xl border border-border"
               type="password"
               name="password"
               placeholder="••••••••"
+              autoComplete="new-password"
               minLength={6}
               required
             />
@@ -178,16 +192,18 @@ export function RegisterFormClient({
         </div>
 
         <div>
-          <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block" htmlFor="confirmPassword">
+          <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block" htmlFor="register-confirm-password">
               পাসওয়ার্ড নিশ্চিত করুন
           </label>
           <div className="relative">
             <Lock className="w-4 h-4 text-muted-foreground/60 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
+              id="register-confirm-password"
               className="modern-input !pl-10 !pr-3.5 w-full h-10 text-sm bg-muted/40 focus:bg-background transition-colors tracking-widest rounded-xl border border-border"
               type="password"
               name="confirmPassword"
               placeholder="••••••••"
+              autoComplete="new-password"
               minLength={6}
               required
             />
@@ -195,12 +211,13 @@ export function RegisterFormClient({
         </div>
 
         <div>
-          <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block" htmlFor="zone_id">
+          <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block" htmlFor="register-zone-id">
               জোন নির্বাচন করুন
           </label>
           <div className="relative">
             <MapPin className="w-4 h-4 text-muted-foreground/60 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <select
+              id="register-zone-id"
               name="zone_id"
               required
               className="modern-input !pl-10 !pr-8 w-full h-10 text-sm bg-muted/40 focus:bg-background transition-colors rounded-xl border border-border cursor-pointer"

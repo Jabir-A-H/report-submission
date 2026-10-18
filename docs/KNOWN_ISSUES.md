@@ -41,6 +41,35 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ## Resolved Historical Issues
 
+### Track 1 Stabilization: Input Normalization, Numeral Ergonomics, Auth Hardening, & Export Parity (ADR 020, RS-02, RS-30, RS-31, RS-32, RS-42, RS-43, RS-46, RS-47, RS-61, RS-64, RS-66, RS-74)
+- **Date**: 2026-10-18
+- **Resolution Date**: 2026-10-19
+- **Description**:
+  1. **RS-42 (Login Input Normalization & Casing Lockout)**: Mobile soft keyboards auto-capitalize first characters and append trailing spaces upon autocomplete. Exact case-sensitive `user_id` matches failed, while naive `.ilike('user_id', rawIdOrEmail)` risked SQL wildcard collisions on usernames with underscores (`_`), crashing with `PGRST116`.
+  2. **RS-43 (City / DCS Entity Selectable on Registration)**: Registration dropdown allowed registering under Zone 1 (City/DCS), risking accidental administrative zone registrations.
+  3. **RS-46 (URL Message Parameter Phishing & Success Styling)**: `/home?message=` rendered untrusted query strings verbatim. Legitimate password reset redirects rendered success messages inside red error cards.
+  4. **RS-47 (Silent Password Reset Failure & Rate-Limit Copy)**: Untrimmed, mixed-case emails failed silently in `resetPasswordForEmail`. Users were unaware of Supabase Auth's 2 emails/hr rate limit.
+  5. **RS-66 (Registration Label Accessibility & DOM ID Collision)**: Form inputs in `RegisterFormClient` lacked IDs, and sharing generic IDs (`email`, `password`) with login caused password managers to cross-contaminate credentials and overwrite passwords.
+  6. **RS-74 (SessionCleaner Retention & WebViews)**: Retained `SessionCleaner` on `/home` per `AGENTS.md` Rule 2 and `TECHNICAL_MANUAL.md` §5.5, but required defensive sandbox wrapping to prevent errors in restricted WebViews.
+  7. **RS-30 (Bengali Numerals Flipping to ASCII & Active Typing Clobber)**: `AutoSaveField` lacked `language` dependency in `getInitialValue` and focus tracking (`isFocused`), causing background context saves from other fields to clobber active typing and flip Bengali digits to ASCII.
+  8. **RS-32 (Non-Digit Stripping Data Inflation Trap)**: Naive regex non-digit stripping (`/[^\d]/g`) removed decimal points (`.`), corrupting `12.5` to `125` (10x inflation) and `2,500.00` to `250000` (100x financial inflation!).
+  9. **RS-02 & RS-31 (Admin Overrides Bengali Digits & NaN Badges)**: `city-report/page.tsx:305` ran `Number(ov)`, which returned `NaN` on Bengali numerals and broke table badges. `CorrectionButton` lacked empty override protection when already overridden.
+  10. **RS-61 (Viewport Pinch-Zoom Disabled)**: `src/app/layout.tsx` had `maximumScale: 1, userScalable: false`, violating WCAG 1.4.4.
+  11. **RS-64 (Percent-Encoded Export Filenames & Single-Quote Delimiter Bug)**: Downloads used `filename="${encodeURIComponent(filename)}"`, which resulted in raw percent-encoded file names in browsers. JavaScript's `encodeURIComponent` also left single quotes (`'`) unescaped, breaking RFC 5987 delimiters.
+- **Fix Summary**:
+  1. **RS-42**: Added immediate trim on login input, exact `.eq('user_id', ...)` with safe wildcard-escaped `.ilike('user_id', escaped).limit(1)` fallback, and normalized email lowercasing.
+  2. **RS-43**: Filtered out Zone 1 (`id === 1 || zone_type === 'city'`) in UI with fallback for unmigrated environments, backed by server-side verification in `register()` action.
+  3. **RS-46**: Created `sanitizeAuthMessage()` in `src/lib/i18n.ts` whitelisting valid system messages. Unrecognized strings return `null` (rendering no banner). Password update success renders emerald green banner (`isSuccess: true`), and Bengali regex pass-through is preserved.
+  4. **RS-47**: Trimmed and lowercased email in `forgotPassword()` action. Bound accessible `id="forgot-email"`, added mobile keyboard attributes, copy clarifying registered email requirement, and 2 emails/hr rate-limit notice.
+  5. **RS-66**: Assigned unique prefixed IDs across tabs (`login-email`, `login-password` vs `register-name`, `register-user-id`, `register-email`, `register-password`, `register-confirm-password`, `register-zone-id`) with exact `autoComplete` tokens.
+  6. **RS-74**: Wrapped `SessionCleaner` execution in a `try...catch` block. Pruned inert `pattern="[০-৯0-9]*"` from `AutoSaveField`.
+  7. **RS-30**: Added `language` reactivity to `getInitialValue` (`toBn` for Bengali, `bnToEn` for English). Added `isFocused` tracking to shield active keystrokes from background context syncs. Localized `tableMode` placeholder (`language === 'bn' ? "০" : "0"`).
+  8. **RS-32**: Replaced regex digit stripping with float parsing and integer rounding: `const parsed = parseFloat(bnToEn(cleaned)); const valueToSave = isNaN(parsed) ? "0" : String(Math.max(0, Math.round(parsed)));`, eliminating decimal truncation inflation while guaranteeing non-negative integers for PostgreSQL `CHECK col >= 0`.
+  9. **RS-02 & RS-31**: Normalized override values via `Number(bnToEn(String(ov)))` in `city-report/page.tsx:305` with `0` fallback on `NaN`. Switched `CorrectionButton` input to `type="text" inputMode="numeric"`, initialized with `toBn()`, and blocked empty text overrides when already overridden.
+  10. **RS-61**: Removed `maximumScale: 1, userScalable: false` from `viewport` in `src/app/layout.tsx`. Verified `globals.css` maintains `font-size: 16px !important` to block iOS Safari auto-zoom on focus.
+  11. **RS-64**: Standardized RFC 6266 / RFC 5987 Content-Disposition header in `/api/export/pdf` and `/api/export/excel` with unquoted `filename*=UTF-8''${encodedFilename}`, explicit single-quote percent-escaping (`%27`), and ASCII fallback.
+  12. Verified all quality gates: 17/17 unit tests passing, 0 TypeScript errors, 0 ESLint errors, and clean Turbopack production build.
+
 ### Help Page AI Filler, Technical Jargon, Mockup Drift & Simple Text-First Manual (ADR 019)
 - **Date**: 2026-10-17
 - **Resolution Date**: 2026-10-18

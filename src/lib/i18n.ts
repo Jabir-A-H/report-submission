@@ -836,3 +836,57 @@ export function translateAuthError(rawMessage?: string | null): string {
 
   return "কিছু একটা সমস্যা হয়েছে, অনুগ্রহ করে আবার চেষ্টা করুন।";
 }
+
+export type SanitizedAuthMessage = {
+  message: string;
+  isSuccess: boolean;
+};
+
+const KNOWN_AUTH_SUCCESS_MESSAGES = new Set([
+  "পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে। নতুন পাসওয়ার্ড দিয়ে লগ-ইন করুন।",
+]);
+
+const KNOWN_AUTH_ERROR_MESSAGES = new Set([
+  "ইউজার আইডি বা ইমেইল এবং পাসওয়ার্ড দিন",
+  "ভুল আইডি অথবা পাসওয়ার্ড প্রদান করেছেন।",
+  "সকল তথ্য পূরণ করুন",
+  "ইউজার আইডি কমপক্ষে ৩ অক্ষরের হতে হবে এবং শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা, বা _ - ব্যবহার করা যাবে।",
+  "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে",
+  "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।",
+  "পাসওয়ার্ড মিলছে না।",
+  "এই ইউজার আইডিটি ইতিমধ্যে ব্যবহার করা হয়েছে। অন্য একটি নির্বাচন করুন।",
+  "এই ইমেইল দিয়ে আগেই নিবন্ধন করা হয়েছে।",
+  "অননুমোদিত জোন নির্বাচন করা হয়েছে।",
+  "লিঙ্কটি মেয়াদোত্তীর্ণ বা অবৈধ। আবার চেষ্টা করুন।",
+  "কিছু একটা সমস্যা হয়েছে, অনুগ্রহ করে আবার চেষ্টা করুন।",
+  "সঠিক ইমেইল প্রদান করুন।",
+  "নিবন্ধনের পর ইমেইল যাচাই এবং অ্যাডমিনের অনুমোদন সম্পন্ন হলে লগ-ইন করতে পারবেন।",
+  "অতিরিক্ত অনুরোধ করা হয়েছে। কিছুক্ষণ অপেক্ষা করে আবার চেষ্টা করুন।",
+  "অতিরিক্ত অনুরোধ করা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।",
+  "অতিরিক্ত ইমেইল অনুরোধ করা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।",
+  "ইন্টারনেট সংযোগে সমস্যা হয়েছে। আপনার নেটওয়ার্ক চেক করুন।",
+  "ব্যবহারকারী পাওয়া যায়নি।",
+  "সার্ভারে সমস্যা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।",
+  "একটি বৈধ পাসওয়ার্ড প্রদান করুন।",
+  "Could not authenticate user",
+  "Invalid login credentials",
+]);
+
+export function sanitizeAuthMessage(msg?: string | null): SanitizedAuthMessage | null {
+  if (!msg) return null;
+  const trimmed = msg.trim();
+  if (KNOWN_AUTH_SUCCESS_MESSAGES.has(trimmed)) {
+    return { message: trimmed, isSuccess: true };
+  }
+  if (KNOWN_AUTH_ERROR_MESSAGES.has(trimmed)) {
+    const translated = translateAuthError(trimmed);
+    return { message: translated, isSuccess: false };
+  }
+  for (const translated of Object.values(AUTH_ERROR_TRANSLATIONS)) {
+    if (trimmed === translated) {
+      return { message: trimmed, isSuccess: false };
+    }
+  }
+  return null;
+}
+

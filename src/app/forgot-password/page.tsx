@@ -44,12 +44,17 @@ export default async function ForgotPasswordPage({
 
           {resolvedParams?.success === 'true' ? (
              <div className="text-center space-y-6">
-                <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-20 h-20 bg-green-100 dark:bg-green-950/40 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <MailCheck className="w-10 h-10" />
                 </div>
                 <div>
                   <h2 className="text-3xl font-black text-foreground mb-2">ইমেইল পাঠানো হয়েছে!</h2>
-                  <p className="text-muted-foreground font-medium">আপনার ইমেইলের ইনবক্স চেক করুন এবং পাসওয়ার্ড রিসেট লিঙ্কে ক্লিক করুন।</p>
+                  <p className="text-muted-foreground font-medium text-sm leading-relaxed">
+                    আপনার ইমেইলের ইনবক্স এবং স্প্যাম/জাঙ্ক ফোল্ডার চেক করুন এবং পাসওয়ার্ড রিসেট লিঙ্কে ক্লিক করুন।
+                  </p>
+                  <p className="text-xs text-muted-foreground/80 mt-3 p-3 bg-muted/40 rounded-xl border border-border/50">
+                    সার্ভার সুরক্ষার জন্য প্রতি ঘণ্টায় সর্বোচ্চ ২টি রিসেট ইমেইল পাঠানো যায়, তাই বারবার চেষ্টা না করে কিছুক্ষণ অপেক্ষা করুন।
+                  </p>
                 </div>
                 <Link href="/home" className="modern-btn btn-primary h-14 text-lg font-bold w-full flex items-center justify-center bg-primary text-primary-foreground rounded-xl shadow-xl shadow-primary/20 mt-8 hover:opacity-90">
                   লগ-ইন পেজে ফিরে যান
@@ -59,23 +64,31 @@ export default async function ForgotPasswordPage({
              <>
                 <div>
                   <h2 className="text-3xl font-black text-foreground mb-2">পাসওয়ার্ড ভুলে গেছেন?</h2>
-                  <p className="text-muted-foreground font-medium">আপনার ইমেইল এড্রেস লিখুন</p>
+                  <p className="text-muted-foreground font-medium text-sm">আপনার অ্যাকাউন্টে নিবন্ধিত ইমেইল এড্রেস লিখুন</p>
                 </div>
 
                 <form action={forgotPassword} className="animate-in flex-1 flex flex-col w-full justify-center gap-6 text-foreground">
                   
                   <div className="space-y-4">
                      <div>
-                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block" htmlFor="email">
+                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block" htmlFor="forgot-email">
                            ইমেইল এড্রেস
                         </label>
                         <input
-                          className="modern-input w-full h-14 text-lg bg-muted/40 focus:bg-background transition-colors px-4 rounded-xl border border-border"
+                          id="forgot-email"
+                          className="modern-input w-full h-14 text-base sm:text-lg bg-muted/40 focus:bg-background transition-colors px-4 rounded-xl border border-border"
                           name="email"
                           type="email"
                           placeholder="name@example.com"
+                          autoCapitalize="none"
+                          autoCorrect="off"
+                          autoComplete="email"
+                          spellCheck={false}
                           required
                         />
+                        <p className="text-[11px] text-muted-foreground mt-2 leading-relaxed">
+                          পাসওয়ার্ড রিসেট শুধুমাত্র নিবন্ধিত ইমেইলের মাধ্যমে সম্ভব। আপনার ইমেইল জানা না থাকলে অ্যাডমিনের সাথে যোগাযোগ করুন।
+                        </p>
                      </div>
                   </div>
 

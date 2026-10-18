@@ -3,11 +3,7 @@
 import { useReport } from "./report-context";
 import { useState, useCallback, useEffect } from "react";
 import { useLanguage } from "@/components/providers/language-provider";
-
-/** Convert Bengali/Arabic-Indic digits (০-৯) to ASCII digits (0-9). */
-function bnToEn(val: string): string {
-  return val.replace(/[০-৯]/g, (d) => String(d.charCodeAt(0) - 0x09E6));
-}
+import { toBn, bnToEn } from "@/lib/report-utils";
 
 interface AutoSaveFieldProps {
   label: string;
@@ -30,13 +26,12 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
   const getInitialValue = useCallback(() => {
     if (!data) return "";
     
+    let raw: any = "";
     // Header
     if (table === "report_header" && data.header) {
-      return data.header[name] || "";
-    }
-    
-    // Arrays (courses, organizational, personal, meeting, extra)
-    if (category) {
+      raw = data.header[name];
+    } else if (category) {
+      // Arrays (courses, organizational, personal, meeting, extra)
       let arrayData = null;
       if (table === "report_course") arrayData = data.courses;
       else if (table === "report_organizational") arrayData = data.organizational;
@@ -46,37 +41,55 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
 
       if (Array.isArray(arrayData)) {
         const row = arrayData.find(item => item.category === category);
-        if (row) return row[name] || "";
+        if (row) raw = row[name];
       }
-    }
-    
-    // Comment
-    if (table === "report_comment" && data.comment) {
-      return data.comment[name] || "";
+    } else if (table === "report_comment" && data.comment) {
+      // Comment
+      raw = data.comment[name];
+    } else {
+      // Default root level (report table)
+      raw = data[name];
     }
 
-    // Default root level (report table)
-    return data[name] || "";
-  }, [data, name, table, category]);
+    if (raw === undefined || raw === null || raw === "") return "";
+
+    if (type === "number") {
+      return language === "en" ? bnToEn(String(raw)) : toBn(raw);
+    }
+
+    return String(raw);
+  }, [data, name, table, category, type, language]);
 
   const [localValue, setLocalValue] = useState(getInitialValue());
+  const [isFocused, setIsFocused] = useState(false);
 
-  // Update local value if data changes externally (e.g. on load)
+  // Update local value if data changes externally (e.g. on load) and user is not actively typing
   const currentVal = getInitialValue();
   useEffect(() => {
-    setLocalValue(currentVal);
-  }, [currentVal]);
+    if (!isFocused) {
+      setLocalValue(currentVal);
+    }
+  }, [currentVal, isFocused]);
 
-  /** Persist to DB — normalises Bengali digits to ASCII before saving. */
+  /** Persist to DB — normalises Bengali digits to ASCII and safely rounds numbers before saving. */
   const persist = useCallback(() => {
     const initial = getInitialValue();
     if (localValue !== initial) {
-      const normalised = type === "number" ? bnToEn(String(localValue)) : localValue;
-      updateField(name, normalised, section, table, category);
+      if (type === "number") {
+        const cleaned = String(localValue).replace(/[,\s]/g, "");
+        const enStr = bnToEn(cleaned);
+        const parsed = parseFloat(enStr);
+        // Safely round floats to non-negative integers for PostgreSQL CHECK col >= 0
+        const valueToSave = isNaN(parsed) ? "0" : String(Math.max(0, Math.round(parsed)));
+        updateField(name, valueToSave, section, table, category);
+      } else {
+        updateField(name, String(localValue).trim(), section, table, category);
+      }
     }
   }, [localValue, getInitialValue, name, section, table, category, updateField, type]);
 
   const handleBlur = useCallback(() => {
+    setIsFocused(false);
     persist();
   }, [persist]);
 
@@ -99,7 +112,6 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
   const isNumeric = type === "number";
   const inputType = isNumeric ? "text" : (type === "textarea" ? "textarea" : type);
   const inputMode = isNumeric ? "numeric" : undefined;
-  const inputPattern = isNumeric ? "[০-৯0-9]*" : undefined;
 
   const fieldKey = `${table || "report"}:${category || ""}:${name}`;
   const isFailed = Boolean(failedFields && failedFields[fieldKey]);
@@ -109,11 +121,11 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
       <input
         type={inputType}
         inputMode={inputMode}
-        pattern={inputPattern}
         value={localValue}
+        onFocus={() => setIsFocused(true)}
         onChange={(e) => setLocalValue(e.target.value)}
         onBlur={handleBlur}
-        placeholder={placeholder || "0"}
+        placeholder={placeholder || (language === "bn" ? "০" : "0")}
         title={isFailed ? "সংরক্ষণ ব্যর্থ হয়েছে — পুনরায় চেষ্টা করুন" : undefined}
         className={`w-full h-9 text-center bg-transparent hover:bg-muted/40 focus:bg-background border rounded-lg px-1 font-bold text-xs sm:text-sm outline-none transition-all ${
           isFailed
@@ -143,8 +155,8 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
         <input
           type={inputType}
           inputMode={inputMode}
-          pattern={inputPattern}
           value={localValue}
+          onFocus={() => setIsFocused(true)}
           onChange={(e) => setLocalValue(e.target.value)}
           onBlur={handleBlur}
           placeholder={placeholder}
@@ -179,6 +191,7 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
       {type === "textarea" ? (
         <textarea
           value={localValue}
+          onFocus={() => setIsFocused(true)}
           onChange={(e) => setLocalValue(e.target.value)}
           onBlur={handleBlur}
           placeholder={placeholder}
@@ -193,8 +206,8 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
         <input
           type={inputType}
           inputMode={inputMode}
-          pattern={inputPattern}
           value={localValue}
+          onFocus={() => setIsFocused(true)}
           onChange={(e) => setLocalValue(e.target.value)}
           onBlur={handleBlur}
           placeholder={placeholder}

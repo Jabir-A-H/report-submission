@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   toBn,
+  bnToEn,
   getMonthsForPeriod,
   getOverrideMonthForPeriod,
   sumRows,
@@ -21,6 +22,41 @@ describe('report-utils', () => {
     it('handles null and undefined gracefully', () => {
       assert.equal(toBn(null), '০');
       assert.equal(toBn(undefined), '০');
+    });
+  });
+
+  describe('bnToEn', () => {
+    it('converts Bengali digits to ASCII digits', () => {
+      assert.equal(bnToEn('০'), '0');
+      assert.equal(bnToEn('১২৩৪৫'), '12345');
+      assert.equal(bnToEn('৬৭৮৯'), '6789');
+    });
+
+    it('handles mixed characters, decimals, and commas without mangling', () => {
+      assert.equal(bnToEn('১০.৫'), '10.5');
+      assert.equal(bnToEn('২,৫০০'), '2,500');
+    });
+
+    it('handles null and undefined gracefully', () => {
+      assert.equal(bnToEn(null), '');
+      assert.equal(bnToEn(undefined), '');
+    });
+
+    it('performs exact roundtrip with toBn for integers', () => {
+      const numbers = [0, 1, 9, 42, 100, 9999];
+      for (const n of numbers) {
+        assert.equal(Number(bnToEn(toBn(n))), n);
+      }
+    });
+
+    it('safely rounds float strings avoiding digit stripping inflation (RS-32)', () => {
+      // 12.5 should parse to 12.5 and round to 13, NOT strip '.' and become 125 (10x inflation!)
+      const input = '১২.৫';
+      const cleaned = input.replace(/[,\s]/g, '');
+      const parsed = parseFloat(bnToEn(cleaned));
+      assert.equal(parsed, 12.5);
+      const rounded = Math.round(parsed);
+      assert.equal(rounded, 13);
     });
   });
 

@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 import { translateAuthError } from '@/lib/i18n'
 
 export async function forgotPassword(formData: FormData) {
-  const email = formData.get('email') as string
+  const email = (formData.get('email') as string)?.trim().toLowerCase() || ""
   
   if (!email || !email.includes('@')) {
     return redirect(`/forgot-password?message=${encodeURIComponent('সঠিক ইমেইল প্রদান করুন।')}`)

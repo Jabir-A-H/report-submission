@@ -114,6 +114,12 @@ export function toBn(n: number | string | null | undefined): string {
   return String(n).replace(/\d/g, (d) => BENGALI_DIGITS[parseInt(d)]);
 }
 
+/** Convert Bengali digits (০-৯) to ASCII digits (0-9). */
+export function bnToEn(val: string | number | null | undefined): string {
+  if (val === null || val === undefined) return "";
+  return String(val).replace(/[০-৯]/g, (d) => String(d.charCodeAt(0) - 0x09E6));
+}
+
 export function getMonthsForPeriod(
   reportType: string,
   selectedMonth: number

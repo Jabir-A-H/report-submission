@@ -42,7 +42,7 @@ From the repo's `AGENTS.md` and the owner's feedback during the review:
 | ID | Title | Sev | Status |
 |---|---|---|---|
 | RS-01 | Overrides on non-monthly city views saved under the wrong month key | High | RESOLVED (ADR 018) |
-| RS-02 | Empty override value silently becomes 0 | Med | OPEN-BUG |
+| RS-02 | Empty override value silently becomes 0 | Med | RESOLVED (ADR 020) |
 | RS-03 | Per-zone multi-month header snapshot may pick an arbitrary row | High | VERIFY-FIRST |
 | RS-04 | City snapshot uses the latest month's partial data, with no coverage indicator | Med | VERIFY-FIRST |
 | RS-05 | Non-monthly periods are hardcoded to start in January (KI-017) | Med | OPEN-DECISION |
@@ -63,36 +63,36 @@ From the repo's `AGENTS.md` and the owner's feedback during the review:
 | RS-25 | `beforeunload` flush is best-effort on mobile | Low | PARTIAL |
 | RS-26 | `.eq('category')` appended after `.select()` | Low | VERIFY-FIRST |
 | RS-27 | Category lists live in both code and DB seed (drift risk) | Med | OPEN-DECISION |
-| RS-30 | Digits typed in Bengali flip to ASCII after save | Med | OPEN-BUG |
-| RS-31 | Admin override input still `type="number"` (Bengali digits untouched) | Med | OPEN-BUG |
-| RS-32 | Non-digit characters are not sanitized before saving | Low | OPEN-BUG |
+| RS-30 | Digits typed in Bengali flip to ASCII after save | Med | RESOLVED (ADR 020) |
+| RS-31 | Admin override input still `type="number"` (Bengali digits untouched) | Med | RESOLVED (ADR 020) |
+| RS-32 | Non-digit characters are not sanitized before saving | Low | RESOLVED (ADR 020) |
 | RS-33 | Average-attendance fields may need decimal input | Low | VERIFY-FIRST |
 | RS-34 | No `enterKeyHint` on numeric fields | Low | OPEN-DECISION |
 | RS-40 | Email-verification flow gaps (resend, expiry, re-register) | Med | PARTIAL |
 | RS-41 | No recovery via `user_id`; admins cannot reset passwords | High | OPEN-DECISION |
-| RS-42 | Login input not normalized (trim, case, mobile keyboard attrs) | High | OPEN-BUG |
-| RS-43 | Registration dropdown offers the city/DCS zone | Med | OPEN-BUG |
+| RS-42 | Login input not normalized (trim, case, mobile keyboard attrs) | High | RESOLVED (ADR 020) |
+| RS-43 | Registration dropdown offers the city/DCS zone | Med | RESOLVED (ADR 020) |
 | RS-44 | Public availability checks allow account enumeration | Low | OPEN-BUG |
 | RS-45 | No in-app way to promote a second admin | Low | OPEN-DECISION |
-| RS-46 | `/home?message=` renders arbitrary text | Low | OPEN-BUG |
-| RS-47 | Forgot-password gives identical success for a mistyped email | Low | OPEN-BUG |
+| RS-46 | `/home?message=` renders arbitrary text | Low | RESOLVED (ADR 020) |
+| RS-47 | Forgot-password gives identical success for a mistyped email | Low | RESOLVED (ADR 020) |
 | RS-48 | Supabase cookie handling inconsistencies | Low | VERIFY-FIRST |
 | RS-50 | KI-015 timezone fix incomplete | Med | OPEN-BUG |
 | RS-51 | `<html lang>` and language flash | Low | OPEN-BUG |
 | RS-52 | Hard-coded Bengali strings on the admin dashboard | Low | OPEN-BUG |
 | RS-60 | Period/report state is fragile across three pages | Med | OPEN-DECISION |
-| RS-61 | Pinch-zoom disabled; very small text | Med | OPEN-BUG |
+| RS-61 | Pinch-zoom disabled; very small text | Med | RESOLVED (ADR 020) |
 | RS-62 | Dashboard section-completion badges | Low | DECIDED-NOT-DOING |
 | RS-63 | No in-app onboarding | Low | OPEN-DECISION |
-| RS-64 | Download filenames percent-encoded | Low | OPEN-BUG |
-| RS-65 | Help page content is placeholder and contains false claims | Med | DEFERRED |
-| RS-66 | Register form labels not bound to inputs | Low | OPEN-BUG |
+| RS-64 | Download filenames percent-encoded | Low | RESOLVED (ADR 020) |
+| RS-65 | Help page content is placeholder and contains false claims | Med | RESOLVED (ADR 019) |
+| RS-66 | Register form labels not bound to inputs | Low | RESOLVED (ADR 020) |
 | RS-67 | Redundant auth/profile calls and unpinned hosting region | Med | VERIFY-FIRST |
 | RS-70 | Backups are unencrypted plaintext dumps (KI-018) | High | DEFERRED |
 | RS-71 | No CI runs tests, lint or typecheck | Med | OPEN-DECISION |
 | RS-72 | No security headers configured | Low | OPEN-DECISION |
 | RS-73 | DB-side fixes cannot be verified from the repo | High | VERIFY-FIRST |
-| RS-74 | Leftover/dead code | Low | OPEN-BUG |
+| RS-74 | Leftover/dead code | Low | RESOLVED (ADR 020) |
 
 ## 3. Issues
 
@@ -111,7 +111,7 @@ From the repo's `AGENTS.md` and the owner's feedback during the review:
 - **Related:** RS-05, RS-06.
 
 #### RS-02: Empty override value silently becomes 0
-- **Status/Sev/Conf:** OPEN-BUG · Medium · code-verified
+- **Status/Sev/Conf:** RESOLVED (ADR 020) · Medium · code-verified
 - **Where:** `correction-button.tsx` `handleSave` (no validation), city-report `getVal` (`Number(ov)`).
 - **Impact:** clearing the numeric field and confirming stores `""`. `Number("")` is 0, so the real aggregate is replaced by 0 and marked overridden. Text overrides can similarly be stored as an empty overridden value.
 - **Fix:** block Confirm when a numeric value is empty or non-finite, and point the user to "delete override" for reverting.
@@ -255,18 +255,18 @@ From the repo's `AGENTS.md` and the owner's feedback during the review:
 ### C. Digits and inputs
 
 #### RS-30: Digits typed in Bengali flip to ASCII after save
-- **Status/Sev/Conf:** OPEN-BUG · Medium · code-verified
+- **Status/Sev/Conf:** RESOLVED (ADR 020) · Medium · code-verified
 - **Where:** `src/components/report/auto-save-field.tsx`. `getInitialValue()` returns the stored value unformatted. `persist()` normalizes with `bnToEn` before `updateField(name, normalised, …)`, which stores the ASCII value in context. The `useEffect(() => setLocalValue(currentVal), [currentVal])` sync then overwrites what the user typed.
 - **Impact:** typing "১৫" shows "১৫" until blur, then "15". Every editable number shows ASCII digits, while the rest of the app (dashboard, PDFs, labels) uses `toBn()`. It also reads as "did it save correctly?".
 - **Fix:** apply `toBn()` when reading numeric values into the input and keep `bnToEn` on the write path. Decide whether Bengali digits should depend on UI language, since `toBn` is applied unconditionally elsewhere.
 
 #### RS-31: Admin override input still `type="number"`
-- **Status/Sev/Conf:** OPEN-BUG · Medium · code-verified
+- **Status/Sev/Conf:** RESOLVED (ADR 020) · Medium · code-verified
 - **Where:** `correction-button.tsx` (numeric input around line 210). Its `toBn` only converts for display, and there is no input normalization. KI-014 touched only `AutoSaveField`.
 - **Fix:** reuse the same `bnToEn` plus text/`inputMode` approach and validate (see RS-02).
 
 #### RS-32: Non-digit characters are not sanitized before saving
-- **Status/Sev/Conf:** OPEN-BUG · Low · code-verified
+- **Status/Sev/Conf:** RESOLVED (ADR 020) · Low · code-verified
 - **Evidence:** inputs are now `type="text"`; `bnToEn` converts only Bengali digits. A pasted "1,234" or stray letters reach a numeric column and fail. Retrying the same value fails again with a generic message. The `pattern` attribute is inert because there is no form validation flow.
 - **Fix:** strip or validate to digits before persist and show a specific inline message.
 
@@ -302,14 +302,14 @@ From the repo's `AGENTS.md` and the owner's feedback during the review:
   - **D:** document the manual Supabase steps for a small pilot.
 
 #### RS-42: Login input not normalized
-- **Status/Sev/Conf:** OPEN-BUG · High · code-verified
+- **Status/Sev/Conf:** RESOLVED (ADR 020) · High · code-verified
 - **Where:** `src/app/home/actions.ts` `login` uses `formData.get('email')` untrimmed, and looks up `people.user_id` with an exact, case-sensitive match. The input in `auth-portal-client.tsx` has no `autoCapitalize="none"`, `autoCorrect="off"`, `autoComplete="username"` or `spellCheck={false}`. Registration trims the user ID, so the two paths disagree.
 - **Impact:** mobile keyboards commonly capitalize the first letter or append a space after a suggestion, and the user sees only "invalid credentials". The registration check uses exact equality, so "Karim" and "karim" can both register unless the DB has a case-insensitive unique index.
 - **Fix:** trim in login; normalize case (lowercase on register, or match with `ilike`); add the input attributes; consider a unique index on `lower(user_id)`.
 - **Note:** a legacy fallback maps an unknown ID to `<id>@report.local`.
 
 #### RS-43: Registration dropdown offers the city/DCS zone
-- **Status/Sev/Conf:** OPEN-BUG · Medium · code-verified
+- **Status/Sev/Conf:** RESOLVED (ADR 020) · Medium · code-verified
 - **Where:** `src/app/home/page.tsx` loads all zones (`select("id, name")`). The admin dashboard and reports page treat `id === 1` or `zone_type === 'city'` as non-reportable.
 - **Impact:** a user can register against the city entity, and the admin dashboard treats `zone_id === 1` as admin-like. Admin approval is the only guard.
 - **Fix:** exclude it from the registration list and optionally validate in `register`.
@@ -325,12 +325,12 @@ From the repo's `AGENTS.md` and the owner's feedback during the review:
 - **Options:** a superadmin-only promotion action, or document the manual procedure for a designated backup person.
 
 #### RS-46: `/home?message=` renders arbitrary text
-- **Status/Sev/Conf:** OPEN-BUG · Low-Med · code-verified
+- **Status/Sev/Conf:** RESOLVED (ADR 020) · Low-Med · code-verified
 - **Where:** `home/page.tsx` passes `message` to `auth-portal-client.tsx`, which renders it (only two values are translated). React escapes it, so this is not XSS, but a crafted link can show fake text such as "account suspended, call this number".
 - **Fix:** pass error codes and map them to known messages.
 
 #### RS-47: Forgot-password gives identical success for a mistyped email
-- **Status/Sev/Conf:** OPEN-BUG (copy) · Low · code-verified
+- **Status/Sev/Conf:** RESOLVED (ADR 020) · Low · code-verified
 - **Evidence:** `resetPasswordForEmail` hides whether an address exists (correct for security), so a mistyped address looks identical to success. Add guidance on the success screen to re-check the address and the spam folder.
 
 #### RS-48: Supabase cookie handling inconsistencies
@@ -373,8 +373,8 @@ From the repo's `AGENTS.md` and the owner's feedback during the review:
 - **Related:** RS-22, RS-23, RS-10, RS-50.
 
 #### RS-61: Pinch-zoom disabled; very small text
-- **Status/Sev/Conf:** OPEN-BUG · Medium · code-verified
-- **Where:** `src/app/layout.tsx` viewport has `maximumScale: 1, userScalable: false`.
+- **Status/Sev/Conf:** RESOLVED (ADR 020) · Medium · code-verified
+- **Where:** `src/app/layout.tsx` viewport had `maximumScale: 1, userScalable: false`.
 - **Evidence:** about 60 uses of `text-[9px]`, `text-[10px]` and `text-[11px]` (37, 22 and 1 respectively), and a courses table view with `min-w-[900px]`. `globals.css` already forces `font-size: 16px !important` on inputs, so the lock is not needed to prevent iOS auto-zoom. It conflicts with WCAG 1.4.4 and Lighthouse.
 - **Fix:** remove the zoom lock; raise the smallest text sizes where they carry meaning.
 
@@ -387,22 +387,16 @@ From the repo's `AGENTS.md` and the owner's feedback during the review:
 - **Evidence:** the only onboarding is the Help page (RS-65). At this scale human onboarding plus a help document is the industry norm. Options are a dismissible first-login tour or contextual hints. Optional.
 
 #### RS-64: Download filenames percent-encoded
-- **Status/Sev/Conf:** OPEN-BUG · Low · code-verified
+- **Status/Sev/Conf:** RESOLVED (ADR 020) · Low · code-verified
 - **Where:** PDF and Excel routes set `Content-Disposition: attachment; filename="${encodeURIComponent(filename)}"`. Some browsers show `%E0%A6…` names for Bengali zone names.
 - **Fix:** use `filename*=UTF-8''…` with an ASCII fallback.
 
 #### RS-65: Help page content is placeholder and contains false claims
-- **Status/Sev/Conf:** DEFERRED · Medium · code-verified
-- **Context:** the owner confirmed `src/app/help/page.tsx` is AI-generated placeholder content to be rewritten (or marked as demo) after production readiness.
-- **Known false or stale statements:**
-  - The auto-save FAQ says no data is lost if the connection drops, which contradicts real behavior (see RS-20, RS-22).
-  - The password FAQ says an admin can reset the account, but no such feature exists (RS-41).
-  - It references an "অনুমোদন (Approval)" tab that does not exist (approval is a toggle inside Management).
-  - The steps tell users to select a report type, but `monthlyOnly` hides that control.
-  - It tells users to watch for the green saved signal, which is only reliable once RS-20 is fixed.
+- **Status/Sev/Conf:** RESOLVED (ADR 019) · Medium · code-verified
+- **Context:** `src/app/help/page.tsx` was rewritten in ADR 019 into an authoritative text-first manual matching live labels with 4-step user guide, 5-step admin guide, 9-point troubleshooting, and WhatsApp coordinator contact.
 
 #### RS-66: Register form labels not bound to inputs
-- **Status/Sev/Conf:** OPEN-BUG · Low · code-verified
+- **Status/Sev/Conf:** RESOLVED (ADR 020) · Low · code-verified
 - **Where:** `register-form-client.tsx`: every label has `htmlFor`, but the inputs have no matching `id` (pre-existing; the new confirm-password field inherited it). Tapping a label does not focus the field.
 
 #### RS-67: Redundant auth/profile calls and unpinned hosting region
@@ -422,7 +416,7 @@ From the repo's `AGENTS.md` and the owner's feedback during the review:
   - **A:** add symmetric encryption (`gpg --symmetric` or `age`) before commit, with the passphrase in a secret.
   - **B:** use an encrypted storage destination or Supabase PITR.
   - **C:** fix the README now.
-- **Note:** encrypting going forward does not remove earlier plaintext dumps from git history, so consider purging history and rotating credentials.
+  - **Note:** encrypting going forward does not remove earlier plaintext dumps from git history, so consider purging history and rotating credentials.
 
 #### RS-71: No CI runs tests, lint or typecheck
 - **Status/Sev/Conf:** OPEN-DECISION · Medium · code-verified
@@ -438,7 +432,7 @@ From the repo's `AGENTS.md` and the owner's feedback during the review:
 - **Evidence:** KI-007 (RPC string alignment), KI-010 (`security_invoker` on city views) and KI-011 (`CHECK >= 0`) were described in ADR 016 but there are no SQL files in the repo. Confirm in the Supabase dashboard (see section 7).
 
 #### RS-74: Leftover and dead code
-- **Status/Sev/Conf:** OPEN-BUG · Low · code-verified
+- **Status/Sev/Conf:** RESOLVED (ADR 020) · Low · code-verified
 - **Evidence:** `SessionCleaner` (used in `home/page.tsx`) removes a `sessionStorage` key (`dashboard-period-params`) left over from the ADR-006 era; the Bengali pass-through branch in `translateAuthError` is unreachable for Supabase's English errors; the `pattern` attribute on numeric inputs is inert (RS-32); the admin dashboard's non-admin scoping branch is unreachable (RS-14).
 
 ## 4. Previously tracked items (`docs/KNOWN_ISSUES.md`) and current status

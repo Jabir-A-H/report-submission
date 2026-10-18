@@ -10,21 +10,26 @@ import { useLanguage } from '@/components/providers/language-provider'
 import { createClient } from '@/utils/supabase/client'
 
 import { GoogleSignInButton } from './google-sign-in-button'
+import { SanitizedAuthMessage } from '@/lib/i18n'
 
 export function AuthPortalClient({
   zones,
   initialMode = 'login',
   errorMessage,
+  authMessage,
 }: {
   zones: { id: number; name: string }[] | null
   initialMode?: 'login' | 'register'
   errorMessage?: string
+  authMessage?: SanitizedAuthMessage | null
 }) {
   const [activeTab, setActiveTab] = useState<'login' | 'register'>(initialMode)
   const [loading, setLoading] = useState(false)
   const [googleErrorMessage, setGoogleErrorMessage] = useState<string | null>(null)
   const { t, language } = useLanguage()
   const router = useRouter()
+
+  const activeAuthMessage = authMessage || (errorMessage ? { message: errorMessage, isSuccess: false } : null)
 
   // Ensure logged-in users navigating via client router or cached history are redirected
   const supabase = useMemo(() => createClient(), [])
@@ -69,17 +74,23 @@ export function AuthPortalClient({
               <div>
                 <label
                   className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block"
-                  htmlFor="email"
+                  htmlFor="login-email"
                 >
                   {language === 'bn' ? 'ইউজার আইডি / ইমেইল' : 'User ID / Email'}
                 </label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-muted-foreground/60 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
+                    id="login-email"
+                    type="text"
                     className="modern-input !pl-10 !pr-3.5 w-full h-10 text-sm bg-muted/40 focus:bg-background transition-colors rounded-xl border border-border"
                     name="email"
                     tabIndex={1}
                     placeholder="user123 or name@example.com"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    autoComplete="username"
+                    spellCheck={false}
                     required
                   />
                 </div>
@@ -88,18 +99,20 @@ export function AuthPortalClient({
               <div>
                 <label
                   className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block"
-                  htmlFor="password"
+                  htmlFor="login-password"
                 >
                   {language === 'bn' ? 'পাসওয়ার্ড' : 'Password'}
                 </label>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-muted-foreground/60 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
+                    id="login-password"
                     className="modern-input !pl-10 !pr-3.5 w-full h-10 text-sm bg-muted/40 focus:bg-background transition-colors tracking-widest rounded-xl border border-border"
                     type="password"
                     name="password"
                     tabIndex={2}
                     placeholder="••••••••"
+                    autoComplete="current-password"
                     required
                   />
                 </div>
@@ -161,12 +174,18 @@ export function AuthPortalClient({
               </button>
             </div>
 
-            {(googleErrorMessage || errorMessage) && activeTab === 'login' && (
-              <div className="p-2.5 bg-red-500/10 border border-red-500/20 text-red-600 rounded-xl text-center font-bold text-xs animate-in zoom-in duration-300">
+            {(googleErrorMessage || (activeAuthMessage && activeTab === 'login')) && (
+              <div
+                className={`p-2.5 rounded-xl text-center font-bold text-xs animate-in zoom-in duration-300 border ${
+                  activeAuthMessage?.isSuccess && !googleErrorMessage
+                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                    : 'bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400'
+                }`}
+              >
                 {googleErrorMessage ||
-                  (errorMessage === 'Could not authenticate user' || errorMessage === 'Invalid login credentials'
+                  (activeAuthMessage?.message === 'Could not authenticate user' || activeAuthMessage?.message === 'Invalid login credentials'
                     ? 'ভুল আইডি অথবা পাসওয়ার্ড প্রদান করেছেন।'
-                    : errorMessage)}
+                    : activeAuthMessage?.message)}
               </div>
             )}
           </form>
@@ -185,7 +204,7 @@ export function AuthPortalClient({
 
             <RegisterFormClient
               zones={zones}
-              errorMessage={activeTab === 'register' ? errorMessage : undefined}
+              errorMessage={activeTab === 'register' && !activeAuthMessage?.isSuccess ? activeAuthMessage?.message : undefined}
               onSwitchToLogin={() => setActiveTab('login')}
             />
           </div>

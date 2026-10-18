@@ -808,9 +808,15 @@ export async function GET(request: Request) {
     // Generate buffer
     const buffer = await workbook.xlsx.writeBuffer();
 
+    const encodedFilename = encodeURIComponent(filename).replace(
+      /['()!*]/g,
+      (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`
+    );
+    const asciiFallback = filename.replace(/[^\x20-\x7E]/g, "").trim() || "report.xlsx";
+
     return new NextResponse(buffer, {
       headers: {
-        "Content-Disposition": `attachment; filename="${encodeURIComponent(filename)}"`,
+        "Content-Disposition": `attachment; filename="${asciiFallback}"; filename*=UTF-8''${encodedFilename}`,
         "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       },
     });

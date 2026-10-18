@@ -26,6 +26,7 @@ import {
   PERSONAL_METRICS_ROWS,
   MEETING_CATEGORIES,
   toBn,
+  bnToEn,
   getMonthsForPeriod,
   getOverrideMonthForPeriod,
   sumRows,
@@ -302,7 +303,11 @@ export default function CityReportPage() {
     const key = `${section}:${field}:${category || ""}`;
     const ov = overrideMap.get(key);
     if (ov !== undefined) {
-      return { value: isText ? ov : Number(ov), isOverridden: true };
+      const numVal = Number(bnToEn(String(ov)));
+      return {
+        value: isText ? ov : (isNaN(numVal) ? 0 : numVal),
+        isOverridden: true
+      };
     }
     return { value: computedValue ?? (isText ? "" : 0), isOverridden: false };
   }

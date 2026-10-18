@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react'
 import { Edit2, X, Check, AlertTriangle, Trash2 } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
-import { getOverrideMonthForPeriod } from '@/lib/report-utils'
+import { getOverrideMonthForPeriod, toBn, bnToEn } from '@/lib/report-utils'
 
 interface CorrectionButtonProps {
   year: number
@@ -18,16 +18,6 @@ interface CorrectionButtonProps {
   customTrigger?: React.ReactNode
   isText?: boolean
   onSuccess?: () => void
-}
-
-const BENGALI_DIGITS = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
-function toBn(num: number | string | undefined | null): string {
-  if (num === undefined || num === null) return "০";
-  return num
-    .toString()
-    .split("")
-    .map((c) => (/\d/.test(c) ? BENGALI_DIGITS[parseInt(c, 10)] : c))
-    .join("");
 }
 
 export function CorrectionButton({
@@ -45,13 +35,35 @@ export function CorrectionButton({
   onSuccess,
 }: CorrectionButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [newValue, setNewValue] = useState(currentValue.toString())
+  const [newValue, setNewValue] = useState(
+    isText ? currentValue.toString() : toBn(currentValue)
+  )
+  const [error, setError] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const supabase = useMemo(() => createClient(), [])
   const overrideMonth = getOverrideMonthForPeriod(reportType, month)
 
   const handleSave = async () => {
+    setError(null)
+    let valueToSave = newValue.trim()
+    if (isText) {
+      if (valueToSave === "") {
+        if (isOverridden) {
+          setError("মন্তব্য মুছে ফেলতে 'মুছুন' বোতাম ব্যবহার করুন।")
+          return
+        }
+      }
+    } else {
+      const normalized = bnToEn(valueToSave).replace(/[,\s]/g, "")
+      const num = parseFloat(normalized)
+      if (isNaN(num) || num < 0) {
+        setError("সংশোধিত মান অবশ্যই শূন্য বা ধনাত্মক সংখ্যা হতে হবে। পূর্বের মানে ফিরতে 'মুছুন' চাপুন।")
+        return
+      }
+      valueToSave = String(Math.round(num))
+    }
+
     setIsSaving(true)
     try {
       // Step 1: Explicitly check if an override already exists for this exact combination
@@ -77,7 +89,7 @@ export function CorrectionButton({
       if (existing) {
         const { error } = await supabase
           .from('city_report_override')
-          .update({ value: newValue })
+          .update({ value: valueToSave })
           .eq('id', existing.id)
         saveError = error
       } else {
@@ -89,7 +101,7 @@ export function CorrectionButton({
             section,
             field,
             category: category || null,
-            value: newValue,
+            value: valueToSave,
             report_type: reportType
           }, { onConflict: 'year,month,report_type,section,field,category' })
         saveError = error
@@ -144,7 +156,8 @@ export function CorrectionButton({
       return (
         <span 
           onClick={() => {
-            setNewValue(currentValue.toString())
+            setNewValue(isText ? currentValue.toString() : toBn(currentValue))
+            setError(null)
             setIsOpen(true)
           }}
           className="inline-flex items-center cursor-pointer group/cb"
@@ -156,7 +169,8 @@ export function CorrectionButton({
     return (
       <button 
         onClick={() => {
-          setNewValue(currentValue.toString())
+          setNewValue(isText ? currentValue.toString() : toBn(currentValue))
+          setError(null)
           setIsOpen(true)
         }}
         className="opacity-60 group-hover:opacity-100 ml-1 min-h-[32px] min-w-[32px] inline-flex items-center justify-center hover:bg-primary/10 rounded-lg text-primary transition-all active:scale-95"
@@ -197,21 +211,34 @@ export function CorrectionButton({
             </p>
           </div>
 
+          {error && (
+            <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-600 rounded-xl text-xs font-bold animate-in fade-in">
+              {error}
+            </div>
+          )}
+
           <div className="space-y-2">
             <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">সংশোধিত মান / মন্তব্য</label>
             {isText || (typeof currentValue === "string" && isNaN(Number(currentValue)) && currentValue !== "") ? (
               <textarea
                 value={newValue}
-                onChange={(e) => setNewValue(e.target.value)}
+                onChange={(e) => {
+                  setError(null)
+                  setNewValue(e.target.value)
+                }}
                 rows={4}
                 placeholder="আপনার মন্তব্য বা বিস্তারিত এখানে লিখুন..."
                 className="w-full text-base font-medium p-4 bg-muted border-2 border-transparent focus:border-primary focus:bg-card text-foreground rounded-2xl outline-none transition-all resize-y"
               />
             ) : (
               <input 
-                type="number"
+                type="text"
+                inputMode="numeric"
                 value={newValue}
-                onChange={(e) => setNewValue(e.target.value)}
+                onChange={(e) => {
+                  setError(null)
+                  setNewValue(e.target.value)
+                }}
                 className="w-full text-2xl font-black p-5 bg-muted border-2 border-transparent focus:border-primary focus:bg-card text-foreground rounded-2xl outline-none transition-all"
               />
             )}

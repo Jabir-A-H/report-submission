@@ -4,7 +4,9 @@ import { useEffect } from "react";
 
 export function SessionCleaner() {
   useEffect(() => {
-    sessionStorage.removeItem("dashboard-period-params");
+    try {
+      sessionStorage.removeItem("dashboard-period-params");
+    } catch {}
   }, []);
 
   return null;

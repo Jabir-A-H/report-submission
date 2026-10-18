@@ -32,7 +32,12 @@ export async function login(formData: FormData) {
   )
 
   // Support user IDs by resolving them to their registered email dynamically
-  const rawIdOrEmail = formData.get('email') as string
+  const rawIdOrEmail = (formData.get('email') as string)?.trim() || ""
+
+  if (!rawIdOrEmail) {
+    return redirect(`/home?mode=login&message=${encodeURIComponent('ইউজার আইডি বা ইমেইল এবং পাসওয়ার্ড দিন')}`)
+  }
+
   let email = rawIdOrEmail
 
   if (!rawIdOrEmail.includes('@')) {
@@ -41,17 +46,29 @@ export async function login(formData: FormData) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
     
-    const { data: profile, error: profileError } = await adminSupabase
+    // Try exact match first
+    let { data: profile } = await adminSupabase
       .from('people')
       .select('email')
       .eq('user_id', rawIdOrEmail)
       .maybeSingle()
 
-    if (!profileError && profile?.email) {
+    // Fallback to safe case-insensitive lookup (escaping wildcards and capping at 1)
+    if (!profile) {
+      const escaped = rawIdOrEmail.replace(/[%_]/g, '\\$&')
+      const { data: profiles } = await adminSupabase
+        .from('people')
+        .select('email')
+        .ilike('user_id', escaped)
+        .limit(1)
+      if (profiles && profiles.length > 0) profile = profiles[0]
+    }
+
+    if (profile?.email) {
       email = profile.email
     } else {
       // Fallback for custom or legacy local fallback accounts
-      email = `${rawIdOrEmail}@report.local`
+      email = `${rawIdOrEmail.toLowerCase()}@report.local`
     }
   }
 
@@ -95,15 +112,20 @@ export async function register(formData: FormData) {
     }
   )
 
-  const name = formData.get('name') as string
-  const email = formData.get('email') as string
-  const password = formData.get('password') as string
-  const confirmPassword = formData.get('confirmPassword') as string
-  const zoneId = formData.get('zone_id') as string
-  const userId = (formData.get('user_id') as string)?.trim()
+  const name = (formData.get('name') as string)?.trim() || ""
+  const email = (formData.get('email') as string)?.trim().toLowerCase() || ""
+  const password = (formData.get('password') as string) || ""
+  const confirmPassword = (formData.get('confirmPassword') as string) || ""
+  const zoneId = (formData.get('zone_id') as string)?.trim() || ""
+  const userId = (formData.get('user_id') as string)?.trim().toLowerCase() || ""
 
   if (!name || !email || !password || !confirmPassword || !zoneId || !userId) {
     return redirect(`/home?mode=register&message=${encodeURIComponent('সকল তথ্য পূরণ করুন')}`)
+  }
+
+  const parsedZoneId = parseInt(zoneId, 10)
+  if (isNaN(parsedZoneId) || parsedZoneId === 1) {
+    return redirect(`/home?mode=register&message=${encodeURIComponent('অননুমোদিত জোন নির্বাচন করা হয়েছে।')}`)
   }
 
   // Enforce simple username rules (alphanumeric, underscores, hyphens, min 3 chars)
@@ -120,19 +142,31 @@ export async function register(formData: FormData) {
     return redirect(`/home?mode=register&message=${encodeURIComponent('পাসওয়ার্ড মিলছে না।')}`)
   }
 
-  // Check if User ID is already taken
   const adminSupabase = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
-  
-  const { data: existingUser } = await adminSupabase
-    .from('people')
-    .select('id')
-    .eq('user_id', userId)
+
+  // Verify that the requested zone is an active reportable entity (not administrative city entity)
+  const { data: targetZone } = await adminSupabase
+    .from('zone')
+    .select('id, zone_type')
+    .eq('id', parsedZoneId)
     .maybeSingle()
 
-  if (existingUser) {
+  if (!targetZone || targetZone.id === 1 || targetZone.zone_type === 'city') {
+    return redirect(`/home?mode=register&message=${encodeURIComponent('অননুমোদিত জোন নির্বাচন করা হয়েছে।')}`)
+  }
+  
+  // Check if User ID is already taken (case-insensitively with wildcard escaping)
+  const escapedUserId = userId.replace(/[%_]/g, '\\$&')
+  const { data: existingUsers } = await adminSupabase
+    .from('people')
+    .select('id')
+    .ilike('user_id', escapedUserId)
+    .limit(1)
+
+  if (existingUsers && existingUsers.length > 0) {
     return redirect(`/home?mode=register&message=${encodeURIComponent('এই ইউজার আইডিটি ইতিমধ্যে ব্যবহার করা হয়েছে। অন্য একটি নির্বাচন করুন।')}`)
   }
 
@@ -143,7 +177,7 @@ export async function register(formData: FormData) {
     options: {
       data: { 
         name, 
-        zone_id: parseInt(zoneId),
+        zone_id: parsedZoneId,
         user_id: userId,
       },
     },
@@ -173,8 +207,9 @@ export async function register(formData: FormData) {
  * Check whether an email is already taken in the synchronized people table.
  */
 export async function checkEmailAvailability(
-  email: string
+  rawEmail: string
 ): Promise<{ available: boolean; message?: string }> {
+  const email = rawEmail?.trim().toLowerCase()
   if (!email || !email.includes('@')) return { available: true }
 
   const adminSupabase = createAdminClient(
@@ -199,8 +234,9 @@ export async function checkEmailAvailability(
  * Check whether a user_id (username) is already taken in the people table.
  */
 export async function checkUserIdAvailability(
-  userId: string
+  rawUserId: string
 ): Promise<{ available: boolean; message?: string }> {
+  const userId = rawUserId?.trim().toLowerCase()
   if (!userId || userId.length < 3) return { available: true }
 
   const adminSupabase = createAdminClient(
@@ -208,15 +244,17 @@ export async function checkUserIdAvailability(
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const { data: existingUser } = await adminSupabase
+  const escaped = userId.replace(/[%_]/g, '\\$&')
+  const { data: existingUsers } = await adminSupabase
     .from('people')
     .select('id')
-    .eq('user_id', userId)
-    .maybeSingle()
+    .ilike('user_id', escaped)
+    .limit(1)
 
-  if (existingUser) {
+  if (existingUsers && existingUsers.length > 0) {
     return { available: false, message: 'এই ইউজার আইডিটি ইতিমধ্যে ব্যবহার করা হয়েছে।' }
   }
 
   return { available: true }
 }
+

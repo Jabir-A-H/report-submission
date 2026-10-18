@@ -1088,9 +1088,15 @@ export async function GET(request: Request) {
       />
     );
 
+    const encodedFilename = encodeURIComponent(filename).replace(
+      /['()!*]/g,
+      (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`
+    );
+    const asciiFallback = filename.replace(/[^\x20-\x7E]/g, "").trim() || "report.pdf";
+
     return new NextResponse(pdfBuffer as any, {
       headers: {
-        "Content-Disposition": `attachment; filename="${encodeURIComponent(filename)}"`,
+        "Content-Disposition": `attachment; filename="${asciiFallback}"; filename*=UTF-8''${encodedFilename}`,
         "Content-Type": "application/pdf",
       },
     });

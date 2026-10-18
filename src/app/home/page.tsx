@@ -5,7 +5,7 @@ import { createClient } from "@/utils/supabase/server";
 import { AuthPortalClient } from "@/components/auth/auth-portal-client";
 import { SessionCleaner } from "@/components/auth/session-cleaner";
 import { AppearanceFooterToggle } from "@/components/layout/appearance-footer-toggle";
-import { getServerLanguage } from "@/lib/i18n";
+import { getServerLanguage, sanitizeAuthMessage } from "@/lib/i18n";
 
 export default async function HomePage({
   searchParams,
@@ -31,10 +31,30 @@ export default async function HomePage({
     }
   }
 
-  // Fetch zones for the registration tab
-  const { data: zones } = await supabase.from("zone").select("id, name").order("name");
+  // Fetch zones for the registration tab with defensive fallback if zone_type column is missing
+  let rawZones: { id: number; name: string; zone_type?: string | null }[] | null = null;
+  const { data: zonesWithType, error: zoneTypeError } = await supabase
+    .from("zone")
+    .select("id, name, zone_type")
+    .order("name");
+
+  if (zoneTypeError) {
+    const { data: legacyZones } = await supabase
+      .from("zone")
+      .select("id, name")
+      .order("name");
+    rawZones = legacyZones;
+  } else {
+    rawZones = zonesWithType;
+  }
+
+  // Filter out administrative city entity (id=1 or zone_type='city')
+  const zones = (rawZones || []).filter(
+    (z) => z.id !== 1 && z.zone_type !== "city"
+  );
 
   const initialMode = resolvedParams?.mode === "register" ? "register" : "login";
+  const authMessage = sanitizeAuthMessage(resolvedParams?.message);
 
   return (
     <div className="flex-1 flex flex-col justify-between bg-background text-foreground relative selection:bg-primary/20">
@@ -70,7 +90,7 @@ export default async function HomePage({
           <AuthPortalClient
             zones={zones}
             initialMode={initialMode}
-            errorMessage={resolvedParams?.message}
+            authMessage={authMessage}
           />
         </div>
       </main>
