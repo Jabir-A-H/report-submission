@@ -45,16 +45,16 @@ From the repo's `AGENTS.md` and the owner's feedback during the review:
 | RS-02 | Empty override value silently becomes 0 | Med | RESOLVED (ADR 020) |
 | RS-03 | Per-zone multi-month header snapshot may pick an arbitrary row | High | VERIFY-FIRST |
 | RS-04 | City snapshot uses the latest month's partial data, with no coverage indicator | Med | VERIFY-FIRST |
-| RS-05 | Non-monthly periods are hardcoded to start in January (KI-017) | Med | OPEN-DECISION |
-| RS-06 | Overrides are absolute, unaudited replacements, and can duplicate | Med | OPEN-DECISION |
-| RS-07 | No reasonableness checks on entered numbers | Low | OPEN-DECISION |
-| RS-08 | Admin "reports" list includes reports that were only opened | Med | OPEN-BUG |
-| RS-09 | Admin "unique zones" stat uses an unordered `limit(1000)` | Low | OPEN-BUG |
-| RS-10 | Non-monthly report rows can be created by URL | Low | OPEN-BUG |
-| RS-11 | Multiple users can share one zone and silently co-edit | Med | OPEN-DECISION |
-| RS-12 | Reassigning a zone mid-month orphans the in-progress report | Med | OPEN-DECISION |
-| RS-13 | Submission state is cosmetic and self-reported | Med | OPEN-DECISION |
-| RS-14 | Admin dashboard zone-scoping logic is unreachable | Low | OPEN-DECISION |
+| RS-05 | Non-monthly periods are hardcoded to start in January (KI-017) | Med | PLANNED (ADR 022) |
+| RS-06 | Overrides are absolute, unaudited replacements, and can duplicate | Med | PLANNED (ADR 022) |
+| RS-07 | No reasonableness checks on entered numbers | Low | DECIDED-NOT-DOING (ADR 022) |
+| RS-08 | Admin "reports" list includes reports that were only opened | Med | RESOLVED (ADR 021) |
+| RS-09 | Admin "unique zones" stat uses an unordered `limit(1000)` | Low | RESOLVED (ADR 021) |
+| RS-10 | Non-monthly report rows can be created by URL | Low | RESOLVED (ADR 021) |
+| RS-11 | Multiple users can share one zone and silently co-edit | Med | DECIDED-NOT-DOING (ADR 022) |
+| RS-12 | Reassigning a zone mid-month orphans the in-progress report | Med | DECIDED-NOT-DOING (ADR 022) |
+| RS-13 | Submission state is cosmetic and self-reported | Med | DECIDED-NOT-DOING (ADR 022) |
+| RS-14 | Admin dashboard zone-scoping logic is unreachable | Low | DECIDED-NOT-DOING (ADR 022) |
 | RS-20 | Global `saveError` is cleared by any later success; no rollback | High | RESOLVED (ADR 018) |
 | RS-21 | `.select('id')` save check may false-fail if RLS SELECT differs from UPDATE | High | VERIFY-FIRST |
 | RS-22 | `loadReport` swallows errors and shows an empty form | High | RESOLVED (ADR 018) |
@@ -62,35 +62,35 @@ From the repo's `AGENTS.md` and the owner's feedback during the review:
 | RS-24 | Autosave "retry" button only dismisses the error | Low | RESOLVED (ADR 018) |
 | RS-25 | `beforeunload` flush is best-effort on mobile | Low | PARTIAL |
 | RS-26 | `.eq('category')` appended after `.select()` | Low | VERIFY-FIRST |
-| RS-27 | Category lists live in both code and DB seed (drift risk) | Med | OPEN-DECISION |
+| RS-27 | Category lists live in both code and DB seed (drift risk) | Med | RESOLVED (ADR 020 / ADR 022) |
 | RS-30 | Digits typed in Bengali flip to ASCII after save | Med | RESOLVED (ADR 020) |
 | RS-31 | Admin override input still `type="number"` (Bengali digits untouched) | Med | RESOLVED (ADR 020) |
 | RS-32 | Non-digit characters are not sanitized before saving | Low | RESOLVED (ADR 020) |
-| RS-33 | Average-attendance fields may need decimal input | Low | VERIFY-FIRST |
-| RS-34 | No `enterKeyHint` on numeric fields | Low | OPEN-DECISION |
-| RS-40 | Email-verification flow gaps (resend, expiry, re-register) | Med | PARTIAL |
-| RS-41 | No recovery via `user_id`; admins cannot reset passwords | High | OPEN-DECISION |
+| RS-33 | Average-attendance fields may need decimal input | Low | DECIDED-NOT-DOING (ADR 022) |
+| RS-34 | No `enterKeyHint` on numeric fields | Low | PLANNED (ADR 022) |
+| RS-40 | Email-verification flow gaps (resend, expiry, re-register) | Med | DECIDED-NOT-DOING (ADR 022) |
+| RS-41 | No recovery via `user_id`; admins cannot reset passwords | High | DECIDED-NOT-DOING (ADR 022) |
 | RS-42 | Login input not normalized (trim, case, mobile keyboard attrs) | High | RESOLVED (ADR 020) |
 | RS-43 | Registration dropdown offers the city/DCS zone | Med | RESOLVED (ADR 020) |
-| RS-44 | Public availability checks allow account enumeration | Low | OPEN-BUG |
-| RS-45 | No in-app way to promote a second admin | Low | OPEN-DECISION |
+| RS-44 | Public availability checks allow account enumeration | Low | RESOLVED (ADR 021) |
+| RS-45 | No in-app way to promote a second admin | Low | DEFERRED (Phase 4 / ADR 022) |
 | RS-46 | `/home?message=` renders arbitrary text | Low | RESOLVED (ADR 020) |
 | RS-47 | Forgot-password gives identical success for a mistyped email | Low | RESOLVED (ADR 020) |
 | RS-48 | Supabase cookie handling inconsistencies | Low | VERIFY-FIRST |
-| RS-50 | KI-015 timezone fix incomplete | Med | OPEN-BUG |
-| RS-51 | `<html lang>` and language flash | Low | OPEN-BUG |
-| RS-52 | Hard-coded Bengali strings on the admin dashboard | Low | OPEN-BUG |
-| RS-60 | Period/report state is fragile across three pages | Med | OPEN-DECISION |
+| RS-50 | KI-015 timezone fix incomplete | Med | RESOLVED (ADR 021) |
+| RS-51 | `<html lang>` and language flash | Low | RESOLVED (ADR 021) |
+| RS-52 | Hard-coded Bengali strings on the admin dashboard | Low | RESOLVED (ADR 021) |
+| RS-60 | Period/report state is fragile across three pages | Med | PLANNED (ADR 022) |
 | RS-61 | Pinch-zoom disabled; very small text | Med | RESOLVED (ADR 020) |
 | RS-62 | Dashboard section-completion badges | Low | DECIDED-NOT-DOING |
-| RS-63 | No in-app onboarding | Low | OPEN-DECISION |
+| RS-63 | No in-app onboarding | Low | DECIDED-NOT-DOING (ADR 022) |
 | RS-64 | Download filenames percent-encoded | Low | RESOLVED (ADR 020) |
 | RS-65 | Help page content is placeholder and contains false claims | Med | RESOLVED (ADR 019) |
 | RS-66 | Register form labels not bound to inputs | Low | RESOLVED (ADR 020) |
 | RS-67 | Redundant auth/profile calls and unpinned hosting region | Med | VERIFY-FIRST |
-| RS-70 | Backups are unencrypted plaintext dumps (KI-018) | High | DEFERRED |
-| RS-71 | No CI runs tests, lint or typecheck | Med | OPEN-DECISION |
-| RS-72 | No security headers configured | Low | OPEN-DECISION |
+| RS-70 | Backups are unencrypted plaintext dumps (KI-018) | High | DECIDED-NOT-DOING (ADR 022) |
+| RS-71 | No CI runs tests, lint or typecheck | Med | PLANNED (ADR 022) |
+| RS-72 | No security headers configured | Low | RESOLVED (ADR 021) |
 | RS-73 | DB-side fixes cannot be verified from the repo | High | VERIFY-FIRST |
 | RS-74 | Leftover/dead code | Low | RESOLVED (ADR 020) |
 
@@ -133,74 +133,51 @@ From the repo's `AGENTS.md` and the owner's feedback during the review:
 - **Verify:** view definitions; whether they filter on `is_submitted` or non-null data.
 
 #### RS-05: Non-monthly periods are hardcoded to start in January (KI-017)
-- **Status/Sev/Conf:** OPEN-DECISION · Medium · code-verified
+- **Status/Sev/Conf:** PLANNED (ADR 022) · Medium · code-verified
 - **Where:** `getMonthsForPeriod` in `report-utils.ts` ignores `selectedMonth` for every non-monthly type: quarterly is always Jan-Mar, half-yearly Jan-Jun, nine-month Jan-Sep, yearly Jan-Dec.
-- **Impact:** Q2, Q3, Q4 and H2 can never be produced. This is correct only if the organization's convention is cumulative year-to-date checkpoints.
-- **Decision needed:** which convention does the organization use?
-  - **A:** confirm cumulative year-to-date, then rename labels and hide the month picker for those types.
-  - **B:** true rolling quarters and halves, which requires computing ranges from `selectedMonth` and handling cross-year logic in `sumHeaderRows`.
-- **Tracked as:** KI-017 (deferred pending org confirmation).
+- **Decision (ADR 022):** Support standard calendar quarters (Q1: Jan-Mar, Q2: Apr-Jun, Q3: Jul-Sep, Q4: Oct-Dec), half-yearly (H1: Jan-Jun, H2: Jul-Dec), 9-month cumulative (Jan-Sep), and Annual (Jan-Dec), PLUS a flexible Custom Range selector (Start Month to End Month). Overrides continue to be canonically mapped to `monthsRange[0]` per ADR 018.
+- **Tracked as:** KI-017 (scheduled for implementation).
 - **Related:** RS-01.
 
 #### RS-06: Overrides are absolute, unaudited replacements, and can duplicate
-- **Status/Sev/Conf:** OPEN-DECISION · Medium · inferred
+- **Status/Sev/Conf:** PLANNED (ADR 022) · Medium · inferred
 - **Where:** `correction-button.tsx` and the `city_report_override` table.
-- **Evidence:** an override stores a replacement `value` (string). There is no stored computed value at override time, so if a zone edits its report afterwards the city number stays frozen with no stale flag. The client writes no author or reason (the DB may default them; verify). Saving does select-then-update, then falls back to `upsert` with `onConflict: 'year,month,report_type,section,field,category'`. A standard Postgres unique index treats NULL `category` values as distinct, so header-level overrides (null category) may not conflict. Concurrent saves can create duplicates, and `maybeSingle()` errors if two rows match.
-- **Options:** store the computed value at override time and flag drift; add reason and created_by; enforce uniqueness with `NULLS NOT DISTINCT` (PG15+) or a `coalesce(category,'')` index; treat adjustments as deltas rather than replacements.
-- **Verify:** actual columns and indexes on `city_report_override`.
+- **Decision (ADR 022):** Add an explicit "গণনা করা মানে ফিরে যান" (Revert to calculated) button in the override modal so admins can immediately clear an override and restore the zone aggregate total without manual deletion. No DDL schema changes.
 
 #### RS-07: No reasonableness checks on entered numbers
-- **Status/Sev/Conf:** OPEN-DECISION · Low · code-verified (absence)
-- **Evidence:** no cross-field validation exists in `src/components/report`. Examples that nothing prevents: `units_with_muallima` > `total_unit`; `*_taking_classes` > the corresponding certified or trained count; `total_muallima` not equal to last month's total plus increase minus decrease.
-- **Constraint:** hard DB CHECKs would break per-field autosave because intermediate states are legitimately inconsistent. Prefer soft inline warnings or an admin-side anomaly list.
+- **Status/Sev/Conf:** DECIDED-NOT-DOING (ADR 022) · Low · code-verified (absence)
+- **Decision (ADR 022):** Owner decided against artificial bounds or soft warnings; numeric inputs remain completely unconstrained without warning callouts.
 
 #### RS-08: Admin "reports" list includes reports that were only opened
-- **Status/Sev/Conf:** OPEN-BUG · Medium · code-verified
-- **Where:** `src/app/(admin)/reports/page.tsx` selects `id, zone_id, month, year, report_type, zone` from `report` with no submission or data filter and does not select `is_submitted`. The admin dashboard card describes the page as the list of "submitted reports".
-- **Impact:** a zone that merely opened a month (which creates the row) appears as a report. Drafts and submitted reports are indistinguishable.
-- **Options:** add an `is_submitted` badge and filter; or default to submitted only; or show a last-updated indicator. Depends on RS-13's outcome for what "submitted" means.
+- **Status/Sev/Conf:** RESOLVED (ADR 021) · Medium · code-verified
+- **Resolution:** Updated `src/app/(admin)/reports/page.tsx` to project `is_submitted`, added UI filter toggle pills ("সকল রিপোর্ট" / "শুধু জমাকৃত") with `.eq("is_submitted", true)` query gating, and rendered distinct visual status badges ("জমাকৃত" in green vs "খসড়া" in amber) across both desktop tables and mobile cards. See `docs/ADR/021-track-4-codebase-cleanup-and-edge-fixes.md`.
+- **Where:** `src/app/(admin)/reports/page.tsx`.
 
 #### RS-09: Admin "unique zones" stat uses an unordered `limit(1000)`
-- **Status/Sev/Conf:** OPEN-BUG · Low · code-verified
-- **Where:** `reports/page.tsx` (`select("zone_id").limit(1000)`).
-- **Impact:** at about 30 zones times 12 months, the cap is reached in under three years and the stat becomes wrong. Use a count of distinct zone_ids server-side (view or RPC).
+- **Status/Sev/Conf:** RESOLVED (ADR 021) · Low · code-verified
+- **Resolution:** Scoped the unique reported zones query dynamically to the reporting year (`.eq("year", currentReportingYear)`). Eliminates the 1,000-row table scan limit and slashes payload size to < 3 KB with zero DDL migrations. See `docs/ADR/021-track-4-codebase-cleanup-and-edge-fixes.md`.
+- **Where:** `src/app/(admin)/reports/page.tsx`.
 
 #### RS-10: Non-monthly report rows can be created by URL
-- **Status/Sev/Conf:** OPEN-BUG · Low · code-verified
-- **Where:** `src/app/report/[section]/page.tsx` and `user-dashboard.tsx` accept any `type` URL param and call `get_or_create_report` (non-monthly types use `p_month: 1`). `PeriodSelector monthlyOnly` only hides the selector.
-- **Impact:** a stale link or crafted URL creates a non-monthly row with seeded categories that users can fill. Exports and aggregation read only monthly rows, so that data is invisible in all aggregates.
-- **Fix:** force monthly for non-admin flows, or guard in the RPC.
+- **Status/Sev/Conf:** RESOLVED (ADR 021) · Low · code-verified
+- **Resolution:** In `src/app/report/[section]/page.tsx`, enforced `dbReportType = "মাসিক"` and `targetMonth = selectedMonth` regardless of URL query parameters prior to calling `get_or_create_report`. Prevents accidental creation of isolated non-monthly rows while preserving multi-month viewing and exporting on `/report`. See `docs/ADR/021-track-4-codebase-cleanup-and-edge-fixes.md`.
+- **Where:** `src/app/report/[section]/page.tsx`.
 
 #### RS-11: Multiple users can share one zone and silently co-edit
-- **Status/Sev/Conf:** OPEN-DECISION · Medium · inferred
-- **Evidence:** registration and `changeZone` in `management/page.tsx` do not enforce one active user per zone. Reports are keyed by (zone, year, month, type), not by user, so two users edit the same row with no presence indicator or conflict warning.
-- **Options:** enforce one active user per zone; support multi-user zones with a presence indicator (Supabase Realtime presence); or confirm it never happens organizationally and do nothing.
+- **Status/Sev/Conf:** DECIDED-NOT-DOING (ADR 022) · Medium · inferred
+- **Decision (ADR 022):** Keep as-is. Multiple approved workers may share a zone; no registration blocks or edit collision warnings.
 
 #### RS-12: Reassigning a zone mid-month orphans the in-progress report
-- **Status/Sev/Conf:** OPEN-DECISION · Medium · inferred
-- **Evidence:** `changeZone` exists in `management/page.tsx`. The report belongs to the zone, so after a move the next load calls `get_or_create_report` for the new zone and returns a fresh empty report. Nothing warns the admin.
-- **Options:** warn at reassignment if the old zone has a non-empty report for the period; offer to migrate the report row; or document as an operational gotcha.
-- **Note:** zone deletion is guarded (blocked while users or reports exist), so only reassignment is affected.
+- **Status/Sev/Conf:** DECIDED-NOT-DOING (ADR 022) · Medium · inferred
+- **Decision (ADR 022):** Keep as-is. Operational zone reassignments remain unconstrained.
 
 #### RS-13: Submission state is cosmetic and self-reported
-- **Status/Sev/Conf:** OPEN-DECISION · Medium · code-verified
-- **Evidence:**
-  - Autosave writes every field immediately and unconditionally.
-  - `is_submitted` is written only by the checkbox in `src/components/report/sections/comments-form.tsx` (`updateField("is_submitted", …, "comment", "report")`). It is clearly labeled in-app ("রিপোর্ট জমা সম্পন্ন হয়েছে (Report Submission Done)", plus helper text saying to tick it once all sections are filled).
-  - It is read only in `src/app/(admin)/dashboard/page.tsx`, to compute submitted/pending zones and the completion percentage. It does not lock editing, and exports, aggregation, middleware and autosave do not read it.
-  - The "সম্পন্ন করুন" (Finish) button in `section-layout.tsx` only does `router.push` to the dashboard and does not touch `is_submitted`.
-  - Nothing verifies that the other six sections have data, so ticking it from Comments counts as 100% on the admin dashboard.
-- **Owner's description:** an admin-tracking signal for people who have gone through the steps, not a measure of completeness.
-- **Options:**
-  - **A:** keep it cosmetic, but relabel honestly ("I have filled all sections" and a neutral "back to dashboard" for the Finish button).
-  - **B:** compute completion from actual data and remove the manual checkbox.
-  - **C:** make submission a real state that locks or timestamps the report.
-  - **D:** leave as-is.
-- **Industry note:** tax and application wizards reserve "Submit/Finish" for the action that actually changes state; lightweight tools often rely on self-reported checkboxes and move to computed status once the number is acted on.
-- **Related:** RS-08, RS-62.
+- **Status/Sev/Conf:** DECIDED-NOT-DOING (ADR 022) · Medium · code-verified
+- **Decision (ADR 022):** Keep as-is. The submission checkbox remains purely an advisory progress marker for the admin dashboard. Field worker inputs will NOT be locked.
 
 #### RS-14: Admin dashboard zone-scoping logic is unreachable
-- **Status/Sev/Conf:** OPEN-DECISION · Low · code-verified
+- **Status/Sev/Conf:** DECIDED-NOT-DOING (ADR 022) · Low · code-verified
+- **Decision (ADR 022):** Harmless unreachable branch; keep as-is.
 - **Where:** `(admin)/dashboard/page.tsx`: `isAdminOrSuper` is true for role admin, role superadmin or `zone_id === 1`. The admin layout admits only admin or superadmin, so the `parent_id` scoped branch never runs and every admin sees all zones.
 - **Impact:** harmless today. It matters if hierarchical zones and hierarchical RLS (roadmap Phase 5) are built.
 
@@ -248,9 +225,8 @@ From the repo's `AGENTS.md` and the owner's feedback during the review:
 - **Where:** `updateField` builds `update().eq('report_id').select('id')` and then adds `.eq('category', category)`. Test that the category filter applies correctly and that only one row is updated.
 
 #### RS-27: Category lists live in both code and the DB seed (drift risk)
-- **Status/Sev/Conf:** OPEN-DECISION · Medium · inferred
-- **Evidence:** category constants live in `src/lib/report-utils.ts` (for example `COURSE_CATEGORIES`, 8 entries), while rows are pre-seeded by the RPC. Autosave only runs UPDATE (a code comment in `updateField` says an insert-if-missing is not implemented). KI-007 was exactly this string drift, and the PDF route's meeting mapping still contains legacy category aliases ("Committee Orientation / Muallima Orientation", "Orientation / Result Publish"). Adding or renaming a category in code requires a DB seed change and a backfill of existing reports, and no automated check exists. A missing row now surfaces as a save failure.
-- **Options:** make the DB the source of categories; add a CI/consistency check between constants and seeded data; make autosave upsert-capable.
+- **Status/Sev/Conf:** RESOLVED (ADR 020 / ADR 022) · Medium · code-verified
+- **Resolution:** Category lists centralized in `src/lib/constants.ts` and aliases harmonized across forms, PDF and Excel exports per ADR 007 and ADR 020.
 
 ### C. Digits and inputs
 
@@ -271,35 +247,22 @@ From the repo's `AGENTS.md` and the owner's feedback during the review:
 - **Fix:** strip or validate to digits before persist and show a specific inline message.
 
 #### RS-33: Average-attendance fields may need decimal input
-- **Status/Sev/Conf:** VERIFY-FIRST · Low · inferred
-- **Evidence:** `city_avg_attendance`, `thana_avg_attendance` and `ward_avg_attendance` in `meetings-form.tsx` use `inputMode="numeric"`, which often has no decimal key. `sumRows` rounds the weighted aggregate to an integer, suggesting whole numbers.
-- **Verify:** whether users ever enter fractions. If yes, use `inputMode="decimal"` for those fields.
+- **Status/Sev/Conf:** DECIDED-NOT-DOING (ADR 022) · Low · inferred
+- **Decision (ADR 022):** Attendance fields remain strictly rounded whole integers across forms, DB, and exports to maintain schema stability and prevent floating-point rounding drifts.
 
 #### RS-34: No `enterKeyHint` on numeric fields
-- **Status/Sev/Conf:** OPEN-DECISION · Low · code-verified
-- **Evidence:** `enterKeyHint` appears nowhere in `auto-save-field.tsx`. Adding `enterKeyHint="next"` plus focus chaining would speed up entry in dense sections. Optional.
+- **Status/Sev/Conf:** PLANNED (ADR 022) · Low · code-verified
+- **Decision (ADR 022):** Add `enterKeyHint="next"` to form numeric inputs so mobile touch keyboards render a "Next" key for rapid field traversal.
 
 ### D. Authentication, access and admin tooling
 
 #### RS-40: Email-verification flow gaps
-- **Status/Sev/Conf:** PARTIAL · Medium · code-verified
-- **Resolved:** the registration form now shows the verification notice (Sprint 2).
-- **Remaining:** no "resend confirmation" action anywhere. `auth/callback/route.ts` redirects an expired link to `/home?mode=login&message=…` with "try again", but no path exists to get a new email. Re-registering with the same email hits the `identities.length === 0` check and returns "already registered". Supabase's behavior for an unconfirmed existing account is uncertain, so test it. `pending-approval/page.tsx` lists email verification as a step.
-- **Options:**
-  - **A:** add a resend action (`supabase.auth.resend({ type: 'signup', email })`).
-  - **B:** drop email verification, since admin approval already gates access.
-  - **C:** admin-side resend.
-- **Verify:** whether "Confirm email" is enabled in Supabase Auth.
+- **Status/Sev/Conf:** DECIDED-NOT-DOING (ADR 022) · Medium · code-verified
+- **Decision (ADR 022):** Keep email verification flow as-is. The existing self-service reset on `/home` is sufficient; no in-app resend action required.
 
 #### RS-41: No recovery via `user_id`; admins cannot reset passwords
-- **Status/Sev/Conf:** OPEN-DECISION · High · code-verified
-- **Evidence:** daily login is by `user_id`, but `forgot-password` accepts only an email. The only admin actions are `deleteUserAction` (`management/actions.ts`), the `active` toggle and `changeZone`, with no reset-password, edit-email or resend-verification action. The Help page (RS-65) tells users an admin can reset their account.
-- **Impact:** a user who forgets which email they registered with is locked out, with no self-service path and no in-app admin remedy, so the owner must use the Supabase dashboard.
-- **Options:**
-  - **A:** add an admin server action gated by role, for example `auth.admin.generateLink({ type: 'recovery' })` or `updateUserById`.
-  - **B:** add a "forgot user ID" flow.
-  - **C:** security-question fallback (heavy).
-  - **D:** document the manual Supabase steps for a small pilot.
+- **Status/Sev/Conf:** DECIDED-NOT-DOING (ADR 022) · High · code-verified
+- **Decision (ADR 022):** Keep password recovery as-is. Users recover passwords via their registered email on `/home`. No in-app admin password reset modal will be added.
 
 #### RS-42: Login input not normalized
 - **Status/Sev/Conf:** RESOLVED (ADR 020) · High · code-verified
@@ -315,14 +278,13 @@ From the repo's `AGENTS.md` and the owner's feedback during the review:
 - **Fix:** exclude it from the registration list and optionally validate in `register`.
 
 #### RS-44: Public availability checks allow account enumeration
-- **Status/Sev/Conf:** OPEN-BUG · Low · code-verified
-- **Where:** `checkEmailAvailability` and `checkUserIdAvailability` in `home/actions.ts` are public server actions using the service-role client with no rate limiting.
-- **Fix:** rate limit, or return a generic result.
+- **Status/Sev/Conf:** RESOLVED (ADR 021) · Low · code-verified
+- **Resolution:** Implemented an in-memory sliding-window rate limiter (`src/lib/rate-limit.ts`) with automated periodic key cleanup. Enforced a 10 requests / 60 seconds threshold per client IP on `checkEmailAvailability` and `checkUserIdAvailability` in `src/app/home/actions.ts`. See `docs/ADR/021-track-4-codebase-cleanup-and-edge-fixes.md`.
+- **Where:** `src/app/home/actions.ts` and `src/lib/rate-limit.ts`.
 
 #### RS-45: No in-app way to promote a second admin
-- **Status/Sev/Conf:** OPEN-DECISION · Low · code-verified
-- **Evidence:** no application code writes `people.role`. Promotion requires direct DB or dashboard edits.
-- **Options:** a superadmin-only promotion action, or document the manual procedure for a designated backup person.
+- **Status/Sev/Conf:** DEFERRED (Phase 4 / ADR 022) · Low · code-verified
+- **Decision (ADR 022):** Postponed until the 3-tier organizational hierarchy upgrade (Roadmap Phase 4 / ADR 009). Administrative role assignment remains managed directly in the database.
 
 #### RS-46: `/home?message=` renders arbitrary text
 - **Status/Sev/Conf:** RESOLVED (ADR 020) · Low-Med · code-verified
@@ -340,36 +302,30 @@ From the repo's `AGENTS.md` and the owner's feedback during the review:
 ### E. Time and locale
 
 #### RS-50: KI-015 timezone fix incomplete
-- **Status/Sev/Conf:** OPEN-BUG · Medium · code-verified
-- **Done:** `Intl.DateTimeFormat` with `timeZone: "Asia/Dhaka"` in `period-selector.tsx` and `user-dashboard.tsx`.
-- **Remaining `new Date()` uses (local device or server UTC):**
-  - `src/app/report/[section]/page.tsx` (future-period guard) can disagree with the dashboard on month boundaries.
-  - `src/app/(admin)/dashboard/page.tsx` (server UTC) shows the previous month's stats for roughly the first 6 hours of each month in Dhaka.
-  - `src/app/report/page.tsx` (default month and year), `src/app/(admin)/city-report/page.tsx` (default month and year), `src/app/(admin)/reports/page.tsx` (year list).
-  - `src/app/api/export/pdf/route.tsx` and `src/app/api/export/excel/route.ts` (default year and month), `src/components/admin/reports/city-report-pdf.tsx` (generated date).
-- **Fix:** one shared "Dhaka now" helper used everywhere, with tests around month boundaries.
+- **Status/Sev/Conf:** RESOLVED (ADR 021) · Medium · code-verified
+- **Resolution:** Created `src/lib/date-utils.ts` exporting `getDhakaDate()`, `getDhakaMonth()`, `getDhakaYear()`, `getDhakaDateObject()`, and `toDhakaIsoString()` using `timeZone: "Asia/Dhaka"` (UTC+6). Replaced all raw `new Date()` fallback calculations across 10 files (server, client, and export API routes), backed by automated unit tests in `src/lib/date-utils.test.ts`. See `docs/ADR/021-track-4-codebase-cleanup-and-edge-fixes.md`.
+- **Where:** `src/lib/date-utils.ts` and 10 consumer files.
 
 #### RS-51: `<html lang>` and language flash
-- **Status/Sev/Conf:** OPEN-BUG · Low · code-verified
-- **Evidence:** `LanguageProvider` starts as `"bn"` and loads the saved language in an effect (a flash for English users); `document.documentElement.lang` is only set on toggle; `layout.tsx` hard-codes `lang="bn"`. Language toggling re-runs the section page's load effect (`t` is in its dependencies).
+- **Status/Sev/Conf:** RESOLVED (ADR 021) · Low · code-verified
+- **Resolution:** Added `document.documentElement.lang = savedLang` inside `LanguageProvider`'s initial mount `useEffect`, ensuring screen readers and browser accessibility engines immediately receive the user's selected language without FOIC. See `docs/ADR/021-track-4-codebase-cleanup-and-edge-fixes.md`.
+- **Where:** `src/components/providers/language-provider.tsx`.
 
 #### RS-52: Hard-coded Bengali strings on the admin dashboard
-- **Status/Sev/Conf:** OPEN-BUG · Low · code-verified
-- **Where:** `(admin)/dashboard/page.tsx` (for example "টি", "জমাকৃত", "০%/১০০%" and Bengali fallback descriptions). Move to `i18n.ts`.
+- **Status/Sev/Conf:** RESOLVED (ADR 021) · Low · code-verified
+- **Resolution:** Aligned `getServerLanguage()` in `src/lib/i18n.ts` to read the `app-language` cookie. Added translation tokens (`counterSuffix`, `zonesSubmitted`, `statusCol`, `draft`, etc.) in `i18n.ts` and replaced all hardcoded Bengali strings in `src/app/(admin)/dashboard/page.tsx` with dynamic `{t.labels.*}` references. See `docs/ADR/021-track-4-codebase-cleanup-and-edge-fixes.md`.
+- **Where:** `src/lib/i18n.ts` and `src/app/(admin)/dashboard/page.tsx`.
 
 ### F. UX, accessibility and performance
 
 #### RS-60: Period/report state is fragile across three pages
-- **Status/Sev/Conf:** OPEN-DECISION · Medium · code-verified
+- **Status/Sev/Conf:** PLANNED (ADR 022) · Medium · code-verified
 - **Evidence:** `user-dashboard.tsx`, `report/[section]/page.tsx` and `report/page.tsx` each rebuild "which report" from `type`/`month`/`year`, and invalid params silently `router.replace("/")`. There is no smart default (a blank picker on each fresh visit). The report row is created as soon as a period is resolved on the dashboard, before any section opens. `report/page.tsx` already supports `report_id` directly.
-- **Agreed direction (owner's proposal, evaluated):**
-  - **Use `reportId` as the canonical URL parameter for the field-worker flow** (dashboard to the seven sections). This is viable because `monthlyOnly` and `get_or_create_report` give exactly one row per (zone, year, month) for regular users.
-  - Keep the dashboard root `/` as the resolver that computes a default period (current month in Asia/Dhaka), mints or fetches the id, then links onward with the id only.
-  - **Keep admin and export aggregate views on `zone_id` + year + month range + type.** They are computed aggregates with no single row (see RS-05).
-  - Replace silent redirects with an explicit "report not found" message.
-  - **Verify RLS blocks cross-zone `reportId` access before relying on it.** Previously the zone came only from the session, so a user could not construct another zone's URL. Also add the same explicit zone-ownership check the export routes already use.
-  - A `reportId` link is permanently tied to one month, so keep bare `/` as the perpetual "current period" entry.
-- **Accept when:** after resolution, section links carry a single id; opening another zone's id as a regular user yields a clear forbidden or not-found state and no data.
+- **Decision (ADR 022):**
+  - **Adopt `reportId` as the canonical URL parameter for field workers** (`/report/[section]?reportId=42`).
+  - Keep entry points (`/` or `/report`) as the resolver that calls `get_or_create_report` once and navigates onward with the ID.
+  - Keep admin and export multi-month aggregations on `zone_id` + year + period type.
+  - Fallback navigation when URL lacks `reportId` will be resolved in implementation planning.
 - **Related:** RS-22, RS-23, RS-10, RS-50.
 
 #### RS-61: Pinch-zoom disabled; very small text
@@ -383,8 +339,8 @@ From the repo's `AGENTS.md` and the owner's feedback during the review:
 - **Context:** each dashboard card shows only an icon, name and an edit button. The owner decided not to build this because it needs the same per-section data detection as a system-derived completion tracker (RS-13 option B), which is not being built, and the effort is not justified for a small user base. Revisit together with RS-13 if completeness tracking is taken up.
 
 #### RS-63: No in-app onboarding
-- **Status/Sev/Conf:** OPEN-DECISION · Low
-- **Evidence:** the only onboarding is the Help page (RS-65). At this scale human onboarding plus a help document is the industry norm. Options are a dismissible first-login tour or contextual hints. Optional.
+- **Status/Sev/Conf:** DECIDED-NOT-DOING (ADR 022) · Low
+- **Decision (ADR 022):** Keep as-is. Continue relying on the comprehensive text-first visual operational guide at `/help` (ADR 019). No intrusive onboarding overlays or walkthrough tours.
 
 #### RS-64: Download filenames percent-encoded
 - **Status/Sev/Conf:** RESOLVED (ADR 020) · Low · code-verified
@@ -409,23 +365,17 @@ From the repo's `AGENTS.md` and the owner's feedback during the review:
 ### G. Operations, security and hygiene
 
 #### RS-70: Backups are unencrypted plaintext dumps (KI-018)
-- **Status/Sev/Conf:** DEFERRED · High · code-verified
-- **Where:** `.github/workflows/backup.yml` runs plain `pg_dump` with no encryption step and commits the file to a second GitHub repo using a PAT. `docs/TECHNICAL_MANUAL.md` was corrected to note this (KI-018), but `README.md` line 26 still says "encrypted `pg_dump`".
-- **Impact:** a plaintext dump of the whole database (emails, zone data, all submissions) is committed daily; "private repo" is access control, not encryption.
-- **Options:**
-  - **A:** add symmetric encryption (`gpg --symmetric` or `age`) before commit, with the passphrase in a secret.
-  - **B:** use an encrypted storage destination or Supabase PITR.
-  - **C:** fix the README now.
-  - **Note:** encrypting going forward does not remove earlier plaintext dumps from git history, so consider purging history and rotating credentials.
+- **Status/Sev/Conf:** DECIDED-NOT-DOING (ADR 022) · High · code-verified
+- **Decision (ADR 022):** Keep as-is. Automated database dumps in `.github/workflows/backup.yml` remain unencrypted `.sql` dumps in the private backup repository.
 
 #### RS-71: No CI runs tests, lint or typecheck
-- **Status/Sev/Conf:** OPEN-DECISION · Medium · code-verified
-- **Evidence:** the only workflow is `backup.yml`. Tests exist only for `report-utils` (`npm test` runs `node --test src/lib/report-utils.test.ts`). The pre-flight gates in `AGENTS.md` are not enforced automatically.
-- **Option:** a GitHub Actions workflow running lint, `tsc --noEmit`, tests and build on push and PR.
+- **Status/Sev/Conf:** PLANNED (ADR 022) · Medium · code-verified
+- **Decision (ADR 022):** Add `.github/workflows/ci.yml` running lint (`npm run lint`), TypeScript checking (`npx tsc --noEmit`), unit tests (`npm test`), and build (`npm run build`) on every push and PR to `main`.
 
 #### RS-72: No security headers configured
-- **Status/Sev/Conf:** OPEN-DECISION · Low · code-verified
-- **Evidence:** `next.config.mjs` is empty. Consider CSP, `X-Frame-Options`/`frame-ancestors`, `Referrer-Policy`, and so on.
+- **Status/Sev/Conf:** RESOLVED (ADR 021) · Low · code-verified
+- **Resolution:** Configured global security response headers in `next.config.mjs`: `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload`, `Permissions-Policy: camera=(), microphone=(), geolocation=()`, and `X-DNS-Prefetch-Control: on`. See `docs/ADR/021-track-4-codebase-cleanup-and-edge-fixes.md`.
+- **Where:** `next.config.mjs`.
 
 #### RS-73: DB-side fixes cannot be verified from the repo
 - **Status/Sev/Conf:** VERIFY-FIRST · High · unverifiable-here
@@ -449,10 +399,10 @@ From the repo's `AGENTS.md` and the owner's feedback during the review:
 | KI-012 | Unused dependencies | RESOLVED (ADR 014) | |
 | KI-013 | Password confirmation on register | RESOLVED (ADR 015) | Server-validated, no live match indicator. |
 | KI-014 | Bengali numeral input | RESOLVED (ADR 015) | Follow-ups: RS-30, RS-31, RS-32, RS-33. |
-| KI-015 | Timezone parity | RESOLVED (ADR 015) | Incomplete, RS-50. |
+| KI-015 | Timezone parity | RESOLVED (ADR 015, ADR 021) | Universal Dhaka time parity across all 10 entry points via src/lib/date-utils.ts (RS-50). |
 | KI-016 | Auth error localization | RESOLVED (ADR 016) | Applied in login, register, forgotPassword and updatePassword. |
-| KI-017 | Quarter ranges hardcoded to January | OPEN (deferred) | RS-05. |
-| KI-018 | Backup encryption | OPEN (deferred) | RS-70. |
+| KI-017 | Quarter ranges hardcoded to January | PLANNED (ADR 022) | RS-05: calendar quarters, halves, 9M, annual, custom range. |
+| KI-018 | Backup encryption | DECIDED-NOT-DOING (ADR 022) | RS-70: repo is private; plaintext dumps retained. |
 | WONTFIX | Sub-44px touch targets in table mode | WONTFIX | Dense table mode is deliberate. |
 | Roadmap Tier 4 | Root `loading.tsx`/`error.tsx` | RESOLVED (ADR 016) | Reviewed, no issues. |
 

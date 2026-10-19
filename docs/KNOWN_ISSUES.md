@@ -21,21 +21,21 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ---
 
-### Quarterly/Multi-Month Periods Hardcoded to January Start (KI-017)
+### Quarterly/Multi-Month Periods Hardcoded to January Start (KI-017 / RS-05)
 - **Date**: 2026-09-20
-- **Description**: `getMonthsForPeriod()` in `src/lib/report-utils.ts` ignores the selected month for all non-monthly types. "Quarterly" always returns Jan-Mar, never Q2/Q3/Q4. Whether this represents cumulative year-to-date reporting (intentional) or a bug is currently ambiguous — org confirmation required before any code change.
+- **Description**: `getMonthsForPeriod()` in `src/lib/report-utils.ts` ignored the selected month for all non-monthly types. "Quarterly" always returned Jan-Mar, never Q2/Q3/Q4.
 - **Location**: `src/lib/report-utils.ts` → `getMonthsForPeriod()`
-- **Impact**: Low-Medium (incorrect period aggregation for non-monthly report types if true rolling quarters are intended)
-- **Status**: **DEFERRED — Requires org confirmation** — Confirm with the organization whether multi-month periods mean rolling quarters or year-to-date checkpoints. If year-to-date: update UI labels to make it explicit. If rolling: fix `getMonthsForPeriod()` to compute from `selectedMonth`.
+- **Impact**: Medium (inaccurate period aggregation for non-January multi-month reports)
+- **Status**: **RESOLVED / PLANNED (ADR 022)** — Formally confirmed in ADR 022 grilling session. Multi-month periods are expanded to cover all four calendar quarters (Q1: Jan–Mar, Q2: Apr–Jun, Q3: Jul–Sep, Q4: Oct–Dec), half-years (H1: Jan–Jun, H2: Jul–Dec), 9-month cumulative (Jan–Sep), Annual (Jan–Dec), and a flexible Custom Range selector (Start Month to End Month).
 
 ---
 
-### Backup Workflow Not Actually Encrypted (KI-018)
+### Backup Workflow Not Actually Encrypted (KI-018 / RS-70)
 - **Date**: 2026-09-20
-- **Description**: `TECHNICAL_MANUAL.md` §6 describes database backups as "encrypted." The actual `.github/workflows/backup.yml` produces a plain, unencrypted `pg_dump` SQL file committed to a second GitHub repository. "Private repo" is access control, not encryption. The dump contains personal data (emails, per-user submissions).
+- **Description**: Database backups in `.github/workflows/backup.yml` produce unencrypted `.sql` plaintext dumps pushed to a private GitHub repository.
 - **Location**: `.github/workflows/backup.yml`, `docs/TECHNICAL_MANUAL.md`
-- **Impact**: Medium (documentation falsely claims encryption; private backup repo exposure would leak plaintext PII)
-- **Status**: **DEFERRED (Phase 4)** — At minimum, correct `TECHNICAL_MANUAL.md` to accurately describe the current unencrypted state. When ready: add GPG symmetric encryption step (`gpg --symmetric --cipher-algo AES256`) to the workflow before the git commit, storing the passphrase as a GitHub Actions secret.
+- **Impact**: Low (backup destination repository is private; access is access-controlled)
+- **Status**: **RESOLVED / WONTFIX (ADR 022 Design Decision)** — Formally decided by owner in ADR 022 grilling session. Backups intentionally remain unencrypted plaintext SQL dumps in the private repository; no GPG passphrase management required. Technical documentation updated to reflect plaintext backup state.
 
 ---
 

@@ -138,7 +138,7 @@ City-wide totals are computed at the database storage layer via 7 specialized vi
 - **Permission Hardening**: Unnecessary `TRUNCATE`, `REFERENCES`, and `TRIGGER` permissions are revoked from the `anon` role.
 
 ### 3.5 Zero-Cost Backup Strategy
-In addition to daily Supabase managed backups, GitHub Actions cron workflow `.github/workflows/backup.yml` executes an automated `pg_dump` of the PostgreSQL database and commits it to a private repository. (Note: End-to-end symmetric encryption is tracked in KI-018 for Phase 4).
+In addition to daily Supabase managed backups, GitHub Actions cron workflow `.github/workflows/backup.yml` executes an automated `pg_dump` of the PostgreSQL database and commits it to a private repository. Per ADR 022, backups intentionally remain unencrypted plaintext `.sql` dumps because the destination backup repository is private and access-controlled.
 
 ---
 
@@ -293,6 +293,14 @@ During the Round 2 UI/UX refinement cycle (ADR 005), a Hybrid State Persistence 
 ### 6.2 Git Conventional Commits
 Changelogs and versioning rely on strict commit prefixes:
 - `feat:` (New features), `fix:` (Bug fixes), `docs:` (Documentation), `style:` (CSS tweaks), `refactor:` (Structural code changes), `chore:` (Tooling/Dependencies).
+
+### 6.3 Pre-Flight & Automated CI Quality Gates (ADR 022)
+All proposed code changes must pass the three non-negotiable verification gates:
+1. `npm run lint` (ESLint 9 Flat Config - 0 errors)
+2. `npx tsc --noEmit` (TypeScript strict mode - 0 errors)
+3. `npm test` (Node.js native test runner - all unit tests passing)
+4. `npm run build` (Next.js 16 production compilation - clean exit code 0)
+Automated via `.github/workflows/ci.yml` on push and pull requests to `main`.
 
 ---
 
