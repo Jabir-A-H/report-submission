@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
+import { getDhakaDate } from "@/lib/date-utils";
 import * as ExcelJS from "exceljs";
 
 import {
@@ -483,8 +484,8 @@ export async function GET(request: Request) {
         return new NextResponse("Forbidden", { status: 403 });
       }
 
-      const year = yearParam ? Number(yearParam) : new Date().getFullYear();
-      const month = monthParam ? Number(monthParam) : new Date().getMonth() + 1;
+      const year = yearParam ? Number(yearParam) : getDhakaDate().year;
+      const month = monthParam ? Number(monthParam) : getDhakaDate().month;
       const reportType = reportTypeParam || "মাসিক";
 
       const months = getMonthsForPeriod(reportType, month);

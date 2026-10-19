@@ -327,6 +327,12 @@ export const translations = {
       display: "প্রদর্শন:",
       entries: "এন্ট্রি",
       maktabReport: "মক্তব রিপোর্ট",
+      counterSuffix: "টি",
+      zonesSubmitted: "জোন জমাকৃত",
+      statusCol: "অবস্থা",
+      draft: "খসড়া",
+      allReportsToggle: "সকল রিপোর্ট",
+      submittedOnlyToggle: "শুধু জমাকৃত",
     },
 
     // Categories (Raw strings as keys)
@@ -713,6 +719,12 @@ export const translations = {
       display: "Display:",
       entries: "Entries",
       maktabReport: "Maktab Report",
+      counterSuffix: "",
+      zonesSubmitted: "zones submitted",
+      statusCol: "Status",
+      draft: "Draft",
+      allReportsToggle: "All Reports",
+      submittedOnlyToggle: "Submitted Only",
     },
 
     // Categories (Raw strings as keys)
@@ -783,7 +795,7 @@ export type Translations = typeof translations.bn;
 export async function getServerLanguage() {
   const { cookies } = await import("next/headers");
   const cookieStore = await cookies();
-  const lang = (cookieStore.get("NEXT_LOCALE")?.value as Language) || "bn";
+  const lang = (cookieStore.get("app-language")?.value as Language) || "bn";
   const safeLang = translations[lang] ? lang : "bn";
   const t = translations[safeLang];
   

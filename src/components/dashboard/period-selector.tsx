@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
+import { getDhakaDate } from "@/lib/date-utils";
 import { 
   Calendar, 
   ChevronRight, 
@@ -31,13 +32,11 @@ export function PeriodSelector({ monthlyOnly = false }: { monthlyOnly?: boolean 
   });
   const [month, setMonth] = useState(() => {
     if (searchParams?.get("month")) return searchParams.get("month")!;
-    const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dhaka", month: "2-digit" }).formatToParts(new Date());
-    return parts.find((p) => p.type === "month")?.value ?? String(new Date().getMonth() + 1);
+    return String(getDhakaDate().month);
   });
   const [year, setYear] = useState(() => {
     if (searchParams?.get("year")) return searchParams.get("year")!;
-    const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dhaka", year: "numeric" }).formatToParts(new Date());
-    return parts.find((p) => p.type === "year")?.value ?? String(new Date().getFullYear());
+    return String(getDhakaDate().year);
   });
   const [validationError, setValidationError] = useState<string | null>(null);
 
@@ -81,10 +80,7 @@ export function PeriodSelector({ monthlyOnly = false }: { monthlyOnly?: boolean 
     const selMonth = parseInt(month);
     const selYear = parseInt(year);
     // Use Bangladesh local time (UTC+6) to avoid false future-period block in early morning hours
-    const dhakaYear = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dhaka", year: "numeric" }).format(new Date());
-    const dhakaMonth = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dhaka", month: "2-digit" }).format(new Date());
-    const currentYear = parseInt(dhakaYear);
-    const currentMonth = parseInt(dhakaMonth);
+    const { month: currentMonth, year: currentYear } = getDhakaDate();
 
     const isMonthly = type === "monthly" || type === "মাসিক";
     const endingMonth = isMonthly ? selMonth : getEndingMonthForPeriod(type);

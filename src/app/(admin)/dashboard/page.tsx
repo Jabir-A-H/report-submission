@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getDhakaDate } from "@/lib/date-utils";
 import { cookies } from "next/headers";
 import { translations, Language } from "@/lib/i18n";
 import { createClient } from "@/utils/supabase/server";
@@ -75,9 +76,7 @@ export default async function AdminDashboardPage() {
   } = await supabase.auth.getUser();
 
   // Get current date context
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1; // 1-indexed (e.g. 7 = July)
+  const { month: currentMonth, year: currentYear } = getDhakaDate();
   const monthNameBn = BN_MONTHS[currentMonth - 1] || `${toBn(currentMonth)}ম মাস`;
 
   // Fetch admin profile, all zones, and current month's monthly reports in parallel
@@ -192,7 +191,7 @@ export default async function AdminDashboardPage() {
               </p>
               <p className="text-3xl font-black text-blue-600 mt-1">
                 {toBn(totalZonesCount)}
-                <span className="text-sm font-bold text-muted-foreground ml-1">টি</span>
+                <span className="text-sm font-bold text-muted-foreground ml-1">{t.labels.counterSuffix}</span>
               </p>
             </div>
             <div className="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center">
@@ -207,7 +206,7 @@ export default async function AdminDashboardPage() {
               </p>
               <p className="text-3xl font-black text-green-600 mt-1">
                 {toBn(submittedCount)}
-                <span className="text-sm font-bold text-muted-foreground ml-1">টি</span>
+                <span className="text-sm font-bold text-muted-foreground ml-1">{t.labels.counterSuffix}</span>
               </p>
             </div>
             <div className="w-12 h-12 rounded-xl bg-green-500/10 text-green-600 flex items-center justify-center">
@@ -222,7 +221,7 @@ export default async function AdminDashboardPage() {
               </p>
               <p className="text-3xl font-black text-amber-600 mt-1">
                 {toBn(pendingCount)}
-                <span className="text-sm font-bold text-muted-foreground ml-1">টি</span>
+                <span className="text-sm font-bold text-muted-foreground ml-1">{t.labels.counterSuffix}</span>
               </p>
             </div>
             <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
@@ -240,9 +239,9 @@ export default async function AdminDashboardPage() {
             />
           </div>
           <div className="flex justify-between text-xs font-bold text-muted-foreground">
-            <span>০%</span>
-            <span>{toBn(submittedCount)} টি জোন জমাকৃত ({toBn(completionPercentage)}%)</span>
-            <span>১০০%</span>
+            <span>{toBn(0)}%</span>
+            <span>{toBn(submittedCount)} {t.labels.counterSuffix} {t.labels.zonesSubmitted} ({toBn(completionPercentage)}%)</span>
+            <span>{toBn(100)}%</span>
           </div>
         </div>
 

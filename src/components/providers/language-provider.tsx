@@ -20,6 +20,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     const savedLang = localStorage.getItem("app-language") as Language;
     if (savedLang && (savedLang === "bn" || savedLang === "en")) {
       setLanguage(savedLang);
+      // RS-51: Sync <html lang> on initial load from localStorage
+      document.documentElement.lang = savedLang;
     }
   }, []);
 

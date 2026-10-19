@@ -41,6 +41,25 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ## Resolved Historical Issues
 
+### Track 4 Stabilization: Timezone Parity, Admin Report Filtering, Rate Limiting & Edge Fixes (ADR 021, RS-08, RS-09, RS-10, RS-44, RS-50, RS-51, RS-52, RS-72)
+- **Date**: 2026-10-19
+- **Resolution Date**: 2026-10-19
+- **Description**:
+  1. **RS-50 / KI-015 (Timezone Boundary Desynchronization across 10 Entry Points)**: Multiple server components, client dashboards, and API route handlers relied on `new Date()`, which resolves to UTC in Vercel/Node.js serverless runtimes. During the first 6 hours of every calendar month (12:00 AM – 05:59 AM BST, `Asia/Dhaka`), UTC lags on the previous month, causing server dashboards (`(admin)/dashboard`, `(admin)/reports`, `/api/export/*`) to calculate statistics and period defaults for the wrong month.
+  2. **RS-08 & RS-09 (Admin Reports Draft Filter & 1,000-Row Scan Limit)**: In `src/app/(admin)/reports/page.tsx`, all reports were displayed identically without distinguishing draft rows from submitted reports (`is_submitted`). Furthermore, the reported zones KPI card executed an unbounded `.select("zone_id").limit(1000)` scan and aggregated with in-memory `new Set()`, which broke once total records exceeded 1,000 and created unnecessary payload bloat.
+  3. **RS-10 (Non-Monthly Data Entry Mutation Risk)**: Direct URL navigation on `/report/[section]` with non-monthly types (e.g. `?type=quarterly`) invoked `get_or_create_report`, creating unintended non-monthly rows in the database.
+  4. **RS-44 (Account Enumeration on Public Availability Actions)**: `checkEmailAvailability` and `checkUserIdAvailability` in `src/app/home/actions.ts` ran without rate limiting, allowing unauthenticated attackers to scrape user existence.
+  5. **RS-51 & RS-52 (Locale Mismatch & Admin Dashboard Hardcoded Strings)**: `LanguageProvider` saved language to `app-language`, but `getServerLanguage()` in `i18n.ts` read `NEXT_LOCALE`, leaving `document.documentElement.lang` desynchronized on SSR. Admin dashboard KPI cards contained hardcoded Bengali characters that did not translate when switching to English.
+  6. **RS-72 (Missing Defense-in-Depth HTTP Security Headers)**: `next.config.mjs` was an empty configuration, omitting foundational HTTP headers against clickjacking (`X-Frame-Options`), MIME sniffing (`X-Content-Type-Options`), and insecure transports (`HSTS`).
+- **Fix Summary**:
+  1. **RS-50**: Created centralized `src/lib/date-utils.ts` exporting `getDhakaDate()` (`timeZone: "Asia/Dhaka"`), `getDhakaMonth()`, `getDhakaYear()`, `getDhakaDateObject()`, and `toDhakaIsoString()`. Replaced all raw `new Date()` fallback calculations across 10 files. Added automated unit tests `src/lib/date-utils.test.ts`.
+  2. **RS-08 & RS-09**: Added `is_submitted` to `ReportRow`, added filter toggle pills ("সকল রিপোর্ট" / "শুধু জমাকৃত") with `.eq("is_submitted", true)` query gating, and added visual status badges ("জমাকৃত" in green vs "খসড়া" in amber). Scoped reported zones query to the reporting year (`.eq("year", currentReportingYear)`), reducing payload to < 3 KB and solving the 1,000-row limit with zero DDL.
+  3. **RS-10**: In `src/app/report/[section]/page.tsx`, hardcoded `dbReportType = "মাসিক"` and `targetMonth = selectedMonth` for `get_or_create_report`, keeping multi-month aggregation strictly within `src/app/report/page.tsx` and export endpoints.
+  4. **RS-44**: Created `src/lib/rate-limit.ts` implementing an in-memory sliding-window limiter with automated garbage collection. Bound 10 req/min per IP on `checkEmailAvailability` and `checkUserIdAvailability`.
+  5. **RS-51 & RS-52**: Set `document.documentElement.lang = savedLang` on mount in `LanguageProvider`. Aligned cookie key to `app-language` in `src/lib/i18n.ts`. Added translation dictionary tokens and replaced hardcoded strings on the admin dashboard with `{t.labels.*}`.
+  6. **RS-72**: Configured `headers()` in `next.config.mjs` injecting `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Strict-Transport-Security`, `Permissions-Policy`, and DNS prefetch.
+  7. Verified all quality gates: 19/19 unit tests passing, 0 TypeScript errors, 0 ESLint errors, and clean Turbopack production build.
+
 ### Track 1 Stabilization: Input Normalization, Numeral Ergonomics, Auth Hardening, & Export Parity (ADR 020, RS-02, RS-30, RS-31, RS-32, RS-42, RS-43, RS-46, RS-47, RS-61, RS-64, RS-66, RS-74)
 - **Date**: 2026-10-18
 - **Resolution Date**: 2026-10-19

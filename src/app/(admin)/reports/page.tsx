@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { getDhakaDate } from "@/lib/date-utils";
 import {
   Search,
   Filter,
@@ -26,6 +27,7 @@ type ReportRow = {
   month: number;
   year: number;
   report_type: string;
+  is_submitted: boolean;
   zone: { name: string } | null;
 };
 
@@ -82,6 +84,7 @@ export default function ZoneReportsPage() {
   const [filterMonth, setFilterMonth] = useState<number>(0); // 0 = all
   const [filterYear, setFilterYear] = useState<number>(0); // 0 = all
   const [searchQuery, setSearchQuery] = useState("");
+  const [showSubmittedOnly, setShowSubmittedOnly] = useState(false);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -99,7 +102,7 @@ export default function ZoneReportsPage() {
 
   // Year options — current year and a few preceding ones
   const yearOptions = useMemo(() => {
-    const now = new Date().getFullYear();
+    const now = getDhakaDate().year;
     return Array.from({ length: 5 }, (_, i) => now - i);
   }, []);
 
@@ -112,7 +115,7 @@ export default function ZoneReportsPage() {
       // Build the query for the current page
       let query = supabase
         .from("report")
-        .select("id, zone_id, month, year, report_type, zone:zone_id(name)", {
+        .select("id, zone_id, month, year, report_type, is_submitted, zone:zone_id(name)", {
           count: "exact",
         })
         .order("year", { ascending: false })
@@ -129,6 +132,9 @@ export default function ZoneReportsPage() {
       if (filterYear > 0) {
         query = query.eq("year", filterYear);
       }
+      if (showSubmittedOnly) {
+        query = query.eq("is_submitted", true);
+      }
 
       // Pagination range
       const from = (currentPage - 1) * perPage;
@@ -142,19 +148,21 @@ export default function ZoneReportsPage() {
       setReports((data as unknown as ReportRow[]) ?? []);
       setTotalCount(count ?? 0);
 
-      // Stats: total reports (unfiltered) and unique zones
+      // Stats: total reports (unfiltered) and unique reporting zones
       const { count: allCount } = await supabase
         .from("report")
         .select("*", { count: "exact", head: true });
       setTotalReports(allCount ?? 0);
 
-      const { data: zoneData } = await supabase
+      // RS-09: Count unique active reporting zones this year (avoids limit(1000) cap & unbounded scans)
+      const currentReportingYear = filterYear > 0 ? filterYear : getDhakaDate().year;
+      const { data: yearReports } = await supabase
         .from("report")
         .select("zone_id")
-        .limit(1000);
+        .eq("year", currentReportingYear);
 
-      if (zoneData) {
-        const unique = new Set(zoneData.map((r: { zone_id: number }) => r.zone_id));
+      if (yearReports) {
+        const unique = new Set(yearReports.map((r: { zone_id: number }) => r.zone_id));
         setUniqueZones(unique.size);
       }
     } catch (err) {
@@ -163,7 +171,7 @@ export default function ZoneReportsPage() {
     } finally {
       setLoading(false);
     }
-  }, [supabase, reportType, filterMonth, filterYear, currentPage, perPage]);
+  }, [supabase, reportType, filterMonth, filterYear, showSubmittedOnly, currentPage, perPage]);
 
   useEffect(() => {
     fetchReports();
@@ -172,7 +180,7 @@ export default function ZoneReportsPage() {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [reportType, filterMonth, filterYear, perPage]);
+  }, [reportType, filterMonth, filterYear, showSubmittedOnly, perPage]);
 
   // ── Client-side zone name search ────────────────────────────────
   const filteredReports = useMemo(() => {
@@ -332,6 +340,33 @@ export default function ZoneReportsPage() {
             </button>
           </div>
         </div>
+
+        {/* Submission Status Toggle (RS-08) */}
+        <div className="flex items-center gap-2 mt-5 pt-4 border-t border-border/40 text-xs font-bold">
+          <span className="text-muted-foreground mr-1">{t.labels.statusCol}:</span>
+          <button
+            type="button"
+            onClick={() => setShowSubmittedOnly(false)}
+            className={`px-3 py-1.5 rounded-xl border transition-all ${
+              !showSubmittedOnly
+                ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                : "bg-muted/40 border-border text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {t.labels.allReportsToggle}
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowSubmittedOnly(true)}
+            className={`px-3 py-1.5 rounded-xl border transition-all ${
+              showSubmittedOnly
+                ? "bg-green-600 text-white border-green-600 shadow-sm"
+                : "bg-muted/40 border-border text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {t.labels.submittedOnlyToggle}
+          </button>
+        </div>
       </div>
 
       {/* ── Stats Row ───────────────────────────────────────────── */}
@@ -410,6 +445,7 @@ export default function ZoneReportsPage() {
               <tr>
                 <th className="px-6 py-4 font-bold border-b border-border">{t.labels.zoneCol}</th>
                 <th className="px-6 py-4 font-bold border-b border-border">{t.labels.typeCol}</th>
+                <th className="px-6 py-4 font-bold border-b border-border">{t.labels.statusCol}</th>
                 <th className="px-6 py-4 font-bold border-b border-border">{t.labels.monthYearCol}</th>
                 <th className="px-6 py-4 font-bold border-b border-border text-right">
                   {t.labels.actionCol}
@@ -419,7 +455,7 @@ export default function ZoneReportsPage() {
             <tbody className="divide-y divide-border">
               {filteredReports.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-16 text-center">
+                  <td colSpan={5} className="px-6 py-16 text-center">
                     <div className="flex flex-col items-center gap-3 text-muted-foreground">
                       <FileSpreadsheet className="w-10 h-10 opacity-40" />
                       <p className="font-bold text-lg">{t.labels.noReportsFound}</p>
@@ -447,6 +483,17 @@ export default function ZoneReportsPage() {
                         }`}
                       >
                         {REPORT_TYPE_LABELS[report.report_type] ?? report.report_type}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-xs font-bold ring-1 ${
+                          report.is_submitted
+                            ? "bg-green-500/10 text-green-700 dark:text-green-400 ring-green-500/20"
+                            : "bg-amber-500/10 text-amber-700 dark:text-amber-400 ring-amber-500/20"
+                        }`}
+                      >
+                        {report.is_submitted ? (t.labels.submitted || "জমাকৃত") : t.labels.draft}
                       </span>
                     </td>
                     <td className="px-6 py-4 font-medium">
@@ -496,14 +543,25 @@ export default function ZoneReportsPage() {
                   <MapPin className="w-5 h-5 text-primary" />
                   {report.zone?.name ?? "—"}
                 </div>
-                <span
-                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold ring-1 uppercase tracking-wider ${
-                    REPORT_TYPE_COLORS[report.report_type] ??
-                    "bg-muted text-muted-foreground ring-border"
-                  }`}
-                >
-                  {REPORT_TYPE_LABELS[report.report_type] ?? report.report_type}
-                </span>
+                <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                  <span
+                    className={`px-2 py-0.5 rounded-md text-[10px] font-bold ring-1 uppercase tracking-wider ${
+                      report.is_submitted
+                        ? "bg-green-500/10 text-green-700 dark:text-green-400 ring-green-500/20"
+                        : "bg-amber-500/10 text-amber-700 dark:text-amber-400 ring-amber-500/20"
+                    }`}
+                  >
+                    {report.is_submitted ? (t.labels.submitted || "জমাকৃত") : t.labels.draft}
+                  </span>
+                  <span
+                    className={`px-2 py-0.5 rounded-md text-[10px] font-bold ring-1 uppercase tracking-wider ${
+                      REPORT_TYPE_COLORS[report.report_type] ??
+                      "bg-muted text-muted-foreground ring-border"
+                    }`}
+                  >
+                    {REPORT_TYPE_LABELS[report.report_type] ?? report.report_type}
+                  </span>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-sm">

@@ -6,6 +6,8 @@ import { createServerClient } from '@supabase/ssr'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { translateAuthError } from '@/lib/i18n'
+import { headers } from 'next/headers'
+import { rateLimit } from '@/lib/rate-limit'
 
 export async function login(formData: FormData) {
   const cookieStore = await cookies()
@@ -209,6 +211,13 @@ export async function register(formData: FormData) {
 export async function checkEmailAvailability(
   rawEmail: string
 ): Promise<{ available: boolean; message?: string }> {
+  // RS-44: Rate-limit public availability checks to prevent account enumeration
+  const headersList = await headers();
+  const clientIp = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+  if (!rateLimit(`email-check:${clientIp}`, 10, 60_000)) {
+    return { available: false, message: 'অনেক বেশি চেষ্টা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।' };
+  }
+
   const email = rawEmail?.trim().toLowerCase()
   if (!email || !email.includes('@')) return { available: true }
 
@@ -236,6 +245,13 @@ export async function checkEmailAvailability(
 export async function checkUserIdAvailability(
   rawUserId: string
 ): Promise<{ available: boolean; message?: string }> {
+  // RS-44: Rate-limit public availability checks to prevent account enumeration
+  const headersList = await headers();
+  const clientIp = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+  if (!rateLimit(`userid-check:${clientIp}`, 10, 60_000)) {
+    return { available: false, message: 'অনেক বেশি চেষ্টা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।' };
+  }
+
   const userId = rawUserId?.trim().toLowerCase()
   if (!userId || userId.length < 3) return { available: true }
 

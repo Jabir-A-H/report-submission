@@ -13,6 +13,7 @@ import { MeetingsForm } from "@/components/report/sections/meetings-form";
 import { ExtrasForm } from "@/components/report/sections/extras-form";
 import { CommentsForm } from "@/components/report/sections/comments-form";
 import { createClient } from "@/utils/supabase/client";
+import { getDhakaDate } from "@/lib/date-utils";
 import { Loader2, AlertCircle } from "lucide-react";
 
 /** Returns true only when the param is a real value (not null, "null", undefined, "undefined") */
@@ -62,34 +63,14 @@ function SectionSwitcher() {
       setIsLoading(true);
       setError(null);
 
-      // Validate future periods
-      const now = new Date();
-      const currentMonth = now.getMonth() + 1;
-      const currentYear = now.getFullYear();
+      // RS-50: Validate future periods using centralized Asia/Dhaka time
+      const { month: currentMonth, year: currentYear } = getDhakaDate();
 
-      const getEndingMonthForPeriod = (reportType: string): number => {
-        switch (reportType) {
-          case "quarterly":
-          case "ত্রৈমাসিক":
-            return 3;
-          case "halfYearly":
-          case "ষান্মাসিক":
-            return 6;
-          case "nineMonth":
-          case "নয়-মাসিক":
-            return 9;
-          case "yearly":
-          case "বার্ষিক":
-            return 12;
-          default:
-            return 1;
-        }
-      };
+      // RS-10: Data entry forms are strictly monthly. Field workers cannot create or edit non-monthly report rows.
+      const targetMonth = selectedMonth;
+      const dbReportType = "মাসিক";
 
-      const isMonthly = selectedType === "monthly" || selectedType === "মাসিক";
-      const endingMonth = isMonthly ? selectedMonth : getEndingMonthForPeriod(selectedType);
-
-      if (selectedYear > currentYear || (selectedYear === currentYear && endingMonth > currentMonth)) {
+      if (selectedYear > currentYear || (selectedYear === currentYear && targetMonth > currentMonth)) {
         if (!ignore) {
           setError(t.futureReportError);
           setIsLoading(false);
@@ -125,31 +106,11 @@ function SectionSwitcher() {
         return;
       }
 
-      // Map dynamic URL types to Bangla report types
-      const REPORT_TYPE_MAP: Record<string, string> = {
-        monthly: t.reportTypes.monthly,
-        quarterly: t.reportTypes.quarterly,
-        halfYearly: t.reportTypes.halfYearly,
-        nineMonth: t.reportTypes.nineMonth,
-        yearly: t.reportTypes.yearly,
-        [t.reportTypes.monthly]: t.reportTypes.monthly,
-        [t.reportTypes.quarterly]: t.reportTypes.quarterly,
-        [t.reportTypes.halfYearly]: t.reportTypes.halfYearly,
-        [t.reportTypes.nineMonth]: t.reportTypes.nineMonth,
-        [t.reportTypes.yearly]: t.reportTypes.yearly,
-        "মাসিক": "মাসিক",
-        "ত্রৈমাসিক": "ত্রৈমাসিক",
-        "ষান্মাসিক": "ষান্মাসিক",
-        "নয়-মাসিক": "নয়-মাসিক",
-        "বার্ষিক": "বার্ষিক",
-      };
-      const dbReportType = REPORT_TYPE_MAP[selectedType] || "মাসিক";
-
-      // Call database RPC to get or create report
+      // Call database RPC to get or create report (enforcing monthly for zone workers)
       const { data: repId, error: rpcErr } = await supabase.rpc("get_or_create_report", {
         p_zone_id: person.zone_id,
         p_year: selectedYear,
-        p_month: dbReportType !== "মাসিক" ? 1 : selectedMonth,
+        p_month: targetMonth,
         p_report_type: dbReportType,
       });
 

@@ -28,7 +28,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint src",
-    "test": "node --test src/lib/report-utils.test.ts"
+    "test": "node --test src/lib/report-utils.test.ts src/lib/date-utils.test.ts"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.3.2",

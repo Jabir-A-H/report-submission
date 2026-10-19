@@ -141,7 +141,7 @@ export const CityReportPDF = ({ data, period }: CityReportPDFProps) => (
       </View>
 
       <Text style={styles.footer}>
-        Generated on {new Date().toLocaleDateString()} • System Confidential
+        Generated on {new Date().toLocaleDateString("en-US", { timeZone: "Asia/Dhaka" })} • System Confidential
       </Text>
     </Page>
   </Document>

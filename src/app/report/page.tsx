@@ -36,6 +36,7 @@ import {
 } from "@/lib/report-utils";
 
 import { useLanguage } from "@/components/providers/language-provider";
+import { getDhakaDate } from "@/lib/date-utils";
 
 // ─── Main Viewer Component ────────────────────────────────────────────────────
 
@@ -63,8 +64,8 @@ function ReportViewer() {
 
   // Filter state
   const [selectedZone, setSelectedZone] = useState<string>("");
-  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState<number>(() => getDhakaDate().month);
+  const [selectedYear, setSelectedYear] = useState<number>(() => getDhakaDate().year);
   const [selectedReportType, setSelectedReportType] = useState<string>("monthly");
   const [isFilterExpanded, setIsFilterExpanded] = useState<boolean>(false);
   const [isDownloadOpen, setIsDownloadOpen] = useState<boolean>(false);
@@ -150,8 +151,8 @@ function ReportViewer() {
 
   // Active/Applied filter parameters derived directly from URL searchParams (sole source of truth for database querying)
   const appliedZoneId = zoneIdParam ? Number(zoneIdParam) : (userZoneId ? Number(userZoneId) : (selectedZone ? Number(selectedZone) : null));
-  const appliedMonth = monthParam ? Number(monthParam) : (new Date().getMonth() + 1);
-  const appliedYear = yearParam ? Number(yearParam) : (new Date().getFullYear());
+  const appliedMonth = monthParam ? Number(monthParam) : getDhakaDate().month;
+  const appliedYear = yearParam ? Number(yearParam) : getDhakaDate().year;
   const rawTypeParam = searchParams.get("type") || searchParams.get("report_type");
   const appliedReportType = rawTypeParam ? (URL_TO_ENGLISH_MAP[rawTypeParam] || rawTypeParam) : "monthly";
 

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, createContext, useContext } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { getDhakaDate } from "@/lib/date-utils";
 import { CorrectionButton } from "@/components/admin/correction-button";
 import {
   Building2,
@@ -264,8 +265,8 @@ export default function CityReportPage() {
 
   // Period selection state
   const [reportType, setReportType] = useState("মাসিক");
-  const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const [year, setYear] = useState(new Date().getFullYear());
+  const [month, setMonth] = useState(() => getDhakaDate().month);
+  const [year, setYear] = useState(() => getDhakaDate().year);
 
   // Data state
   const [headerData, setHeaderData] = useState<HeaderRow | null>(null);
