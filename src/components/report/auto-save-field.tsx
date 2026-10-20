@@ -121,6 +121,7 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
       <input
         type={inputType}
         inputMode={inputMode}
+        enterKeyHint="next"
         value={localValue}
         onFocus={() => setIsFocused(true)}
         onChange={(e) => setLocalValue(e.target.value)}
@@ -155,6 +156,7 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
         <input
           type={inputType}
           inputMode={inputMode}
+          enterKeyHint="next"
           value={localValue}
           onFocus={() => setIsFocused(true)}
           onChange={(e) => setLocalValue(e.target.value)}
@@ -206,6 +208,7 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
         <input
           type={inputType}
           inputMode={inputMode}
+          enterKeyHint="next"
           value={localValue}
           onFocus={() => setIsFocused(true)}
           onChange={(e) => setLocalValue(e.target.value)}

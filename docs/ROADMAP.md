@@ -128,11 +128,11 @@
 
 ### Tier 8: Canonical Routing, Period Expansion & CI Automation (Planned / Approved — ADR 022, RS-05, RS-06, RS-34, RS-60, RS-71)
 - [ ] **Canonical `reportId` URL Navigation (RS-60, ADR 022)**: Transition section links to `/report/[section]?reportId=42`, resolving the database row at dashboard/entry to eliminate tab desynchronization and parameter drops.
-- [ ] **Multi-Month Period Expansion & Custom Range Selector (RS-05, KI-017, ADR 022)**: Expand `getMonthsForPeriod()` to support standard quarters (Q1–Q4), halves (H1/H2), 9-month cumulative (Jan–Sep), Annual (Jan–Dec), and a Start-Month to End-Month custom range selector.
-- [ ] **City Report Override Revert Action (RS-06, ADR 022)**: Add explicit *"গণনা করা মানে ফিরে যান"* (Revert to calculated) button in the override modal to restore the zone-calculated aggregate without manual deletion.
-- [ ] **Mobile Keyboard Navigation Traversal (RS-34, ADR 022)**: Add `enterKeyHint="next"` to form numeric inputs so mobile touch keyboards display a "Next" key for rapid field jumping.
-- [ ] **Automated GitHub Actions CI Quality Gate (RS-71, ADR 022)**: Implement `.github/workflows/ci.yml` running lint, typecheck, tests, and build on every push and PR to `main`.
-- [ ] **Website UI Version Synchronization `v2.1.0` (ADR 022)**: Establish `src/lib/version.ts`, update `package.json` to `"2.1.0"`, and surface version badges in the web UI while keeping `twa-manifest.json` completely untouched.
+- [x] **Multi-Month Period Expansion & Custom Range Selector (RS-05, KI-017, ADR 022)**: Expanded `getMonthsForPeriod()` and created `resolvePeriodConfig()` supporting calendar quarters (Q1–Q4), halves (H1/H2), 9-month cumulative (Jan–Sep), Annual (Jan–Dec), and Start-Month to End-Month custom range selector, governed by Start-Month Future Lockout rule and canonical start-month override keying (`months[0]`).
+- [x] **City Report Override Revert Action (RS-06, ADR 022)**: Added explicit *"গণনা করা মানে ফিরে যান"* (Revert to calculated aggregate) button with `RotateCcw` icon in `CorrectionButton` to delete `city_report_override` records and instantly recalculate zone totals.
+- [x] **Mobile Keyboard Navigation Traversal (RS-34, ADR 022)**: Added `enterKeyHint="next"` to form numeric inputs so mobile touch keyboards display a "Next" key for rapid field jumping.
+- [x] **Automated GitHub Actions CI Quality Gate (RS-71, ADR 022)**: Implemented `.github/workflows/ci.yml` running lint, typecheck, tests, and build on every push and PR to `main`.
+- [x] **Website UI Version Synchronization `v2.1.0` (ADR 022)**: Established `src/lib/version.ts`, updated `package.json` to `"2.1.0"`, and surfaced version badges in `/home` and `/help` footers while keeping `twa-manifest.json` completely untouched.
 - [x] **Owner Decision Closure on Register Items (ADR 022)**: Formally closed RS-13 (advisory submission without input locks), RS-11/12 (multi-worker zones permitted), RS-40/41 (self-service password reset on `/home` sufficient), RS-07 (unconstrained inputs without outlier warnings), RS-33 (strict integer attendance), RS-45 (role promotion deferred to Phase 4), RS-63 (text `/help` guide retained), RS-70 (unencrypted plaintext backups retained in private repo).
 
 ## Phase 4: Post-Stabilization Feature Expansion

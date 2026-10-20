@@ -33,6 +33,9 @@ import {
   sumHeaderRows,
   sumRows,
   getMonthsForPeriod,
+  resolvePeriodConfig,
+  QUARTERS_BN,
+  HALVES_BN,
 } from "@/lib/report-utils";
 
 import { useLanguage } from "@/components/providers/language-provider";
@@ -436,12 +439,19 @@ function ReportViewer() {
   const displayPeriodLabel = useMemo(() => {
     const month = reportInfo?.month || appliedMonth || selectedMonth;
     const year = reportInfo?.year || appliedYear || selectedYear;
-    const dbType = activeReportTypeBn;
-    if (dbType === "মাসিক") {
-return `${MONTHS_BN[month - 1]} ${toBn(year)}`;
-    }
-    return `${dbType} ${toBn(year)}`;
-  }, [reportInfo, appliedMonth, selectedMonth, appliedYear, selectedYear, activeReportTypeBn]);
+    const endMonthParam = searchParams.get("endMonth") || searchParams.get("end_month");
+    const quarterParam = searchParams.get("quarter");
+    const halfParam = searchParams.get("half");
+    const config = resolvePeriodConfig({
+      type: reportInfo?.report_type || appliedReportType || selectedReportType,
+      month,
+      quarter: quarterParam,
+      half: halfParam,
+      endMonth: endMonthParam,
+      year,
+    });
+    return config.labelBn;
+  }, [reportInfo, appliedMonth, selectedMonth, appliedYear, selectedYear, appliedReportType, selectedReportType, searchParams]);
 
   // ─── Render View ───────────────────────────────────────────────────────────
 

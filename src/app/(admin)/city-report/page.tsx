@@ -30,6 +30,9 @@ import {
   bnToEn,
   getMonthsForPeriod,
   getOverrideMonthForPeriod,
+  QUARTERS_BN,
+  HALVES_BN,
+  resolvePeriodConfig,
   sumRows,
   sumHeaderRows,
 } from "@/lib/report-utils";
@@ -267,6 +270,22 @@ export default function CityReportPage() {
   const [reportType, setReportType] = useState("মাসিক");
   const [month, setMonth] = useState(() => getDhakaDate().month);
   const [year, setYear] = useState(() => getDhakaDate().year);
+  const [quarter, setQuarter] = useState(() => String(Math.ceil(getDhakaDate().month / 3)));
+  const [half, setHalf] = useState(() => (getDhakaDate().month <= 6 ? "1" : "2"));
+  const [startMonth, setStartMonth] = useState(1);
+  const [endMonth, setEndMonth] = useState(() => getDhakaDate().month);
+
+  const activePeriod = useMemo(() => {
+    return resolvePeriodConfig({
+      type: reportType,
+      year,
+      month,
+      quarter: Number(quarter),
+      half: Number(half),
+      startMonth,
+      endMonth,
+    });
+  }, [reportType, year, month, quarter, half, startMonth, endMonth]);
 
   // Data state
   const [headerData, setHeaderData] = useState<HeaderRow | null>(null);
@@ -320,8 +339,8 @@ export default function CityReportPage() {
     setHasFetched(true);
     setError(null);
 
-    const months = getMonthsForPeriod(reportType, month);
-    const isMultiMonth = months.length > 1;
+    if (activePeriod.isFuture) return;
+    const { months, isMultiMonth, overrideMonth, dbType } = activePeriod;
 
     try {
       // Build filters — always query as মাসিক and aggregate client-side
@@ -340,44 +359,45 @@ export default function CityReportPage() {
         supabase
           .from("view_city_header_agg")
           .select("*")
-          .eq("year", year)
+          .eq("year", activePeriod.year)
           .in("month", months)
           .eq("report_type", queryReportType),
         supabase
           .from("view_city_course_agg")
           .select("*")
-          .eq("year", year)
+          .eq("year", activePeriod.year)
           .in("month", months)
           .eq("report_type", queryReportType),
         supabase
           .from("view_city_organizational_agg")
           .select("*")
-          .eq("year", year)
+          .eq("year", activePeriod.year)
           .in("month", months)
           .eq("report_type", queryReportType),
         supabase
           .from("view_city_personal_agg")
           .select("*")
-          .eq("year", year)
+          .eq("year", activePeriod.year)
           .in("month", months)
           .eq("report_type", queryReportType),
         supabase
           .from("view_city_meeting_agg")
           .select("*")
-          .eq("year", year)
+          .eq("year", activePeriod.year)
           .in("month", months)
           .eq("report_type", queryReportType),
         supabase
           .from("view_city_extra_agg")
           .select("*")
-          .eq("year", year)
+          .eq("year", activePeriod.year)
           .in("month", months)
           .eq("report_type", queryReportType),
         supabase
           .from("city_report_override")
           .select("*")
-          .eq("year", year)
-          .eq("report_type", reportType)
+          .eq("year", activePeriod.year)
+          .eq("report_type", dbType)
+          .eq("month", overrideMonth)
           .in("month", months),
       ]);
 
@@ -466,7 +486,7 @@ export default function CityReportPage() {
         setIsLoading(false);
       }
     }
-  }, [supabase, reportType, month, year]);
+  }, [supabase, activePeriod]);
 
   // Fetch on mount
   useEffect(() => {
@@ -481,18 +501,20 @@ export default function CityReportPage() {
 
   const handleDownloadPDF = () => {
     const params = new URLSearchParams({
-      year: String(year),
-      month: String(month),
-      report_type: reportType,
+      year: String(activePeriod.year),
+      month: String(activePeriod.startMonth),
+      endMonth: String(activePeriod.endMonth),
+      report_type: activePeriod.dbType,
     });
     window.open(`/api/export/pdf?${params.toString()}`, "_blank");
   };
 
   const handleDownloadExcel = () => {
     const params = new URLSearchParams({
-      year: String(year),
-      month: String(month),
-      report_type: reportType,
+      year: String(activePeriod.year),
+      month: String(activePeriod.startMonth),
+      endMonth: String(activePeriod.endMonth),
+      report_type: activePeriod.dbType,
     });
     window.open(`/api/export/excel?${params.toString()}`, "_blank");
   };
@@ -511,13 +533,7 @@ export default function CityReportPage() {
 
   // ─── Period Label ───────────────────────────────────────────────────────────
 
-  const periodLabel = useMemo(() => {
-    const monthsRange = getMonthsForPeriod(reportType, month);
-    if (monthsRange.length === 1) {
-      return `${MONTHS_BN[month - 1]} ${toBn(year)}`;
-    }
-    return `${MONTHS_BN[monthsRange[0] - 1]} - ${MONTHS_BN[monthsRange[monthsRange.length - 1] - 1]} ${toBn(year)}`;
-  }, [reportType, month, year]);
+  const periodLabel = activePeriod.labelBn;
 
   // ─── Render ─────────────────────────────────────────────────────────────────
 
@@ -526,7 +542,7 @@ export default function CityReportPage() {
   }, [fetchData]);
 
   return (
-    <CityReportContext.Provider value={{ year, month: getOverrideMonthForPeriod(reportType, month), reportType, isEditing, getVal, refreshData }}>
+    <CityReportContext.Provider value={{ year: activePeriod.year, month: activePeriod.overrideMonth, reportType: activePeriod.dbType, isEditing, getVal, refreshData }}>
     <div className="py-8 max-w-7xl mx-auto animate-in fade-in duration-500">
       {/* ── Page Header ─────────────────────────────────────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 p-6 bg-card border border-border/50 rounded-[2rem] shadow-sm">
@@ -608,24 +624,111 @@ export default function CityReportPage() {
             </select>
           </div>
 
-          {/* Month — only meaningful for মাসিক */}
-          <div className="flex-1 space-y-2 w-full">
-            <label className="text-sm font-bold text-muted-foreground">
-              {t.labels.monthLabel} {reportType !== "মাসিক" && <span className="text-xs text-muted-foreground/60">({t.labels.notApplicable})</span>}
-            </label>
-            <select
-              value={month}
-              onChange={(e) => setMonth(Number(e.target.value))}
-              disabled={reportType !== "মাসিক"}
-              className="modern-input w-full bg-muted/50 focus:bg-background transition-colors disabled:opacity-50"
-            >
-              {MONTHS_BN.map((m, i) => (
-                <option key={i + 1} value={i + 1}>
-                  {m}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Dynamic Month / Quarter / Half / Custom Range */}
+          {reportType === "মাসিক" && (
+            <div className="flex-1 space-y-2 w-full">
+              <label className="text-sm font-bold text-muted-foreground">
+                {t.labels.monthLabel}
+              </label>
+              <select
+                value={month}
+                onChange={(e) => setMonth(Number(e.target.value))}
+                className="modern-input w-full bg-muted/50 focus:bg-background transition-colors"
+              >
+                {MONTHS_BN.map((m, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {m}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {reportType === "ত্রৈমাসিক" && (
+            <div className="flex-1 space-y-2 w-full">
+              <label className="text-sm font-bold text-muted-foreground">
+                কোয়ার্টার
+              </label>
+              <select
+                value={quarter}
+                onChange={(e) => setQuarter(e.target.value)}
+                className="modern-input w-full bg-muted/50 focus:bg-background transition-colors"
+              >
+                {QUARTERS_BN.map((q) => (
+                  <option key={q.quarter} value={q.quarter}>
+                    {q.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {reportType === "ষান্মাসিক" && (
+            <div className="flex-1 space-y-2 w-full">
+              <label className="text-sm font-bold text-muted-foreground">
+                ষান্মাসিক
+              </label>
+              <select
+                value={half}
+                onChange={(e) => setHalf(e.target.value)}
+                className="modern-input w-full bg-muted/50 focus:bg-background transition-colors"
+              >
+                {HALVES_BN.map((h) => (
+                  <option key={h.half} value={h.half}>
+                    {h.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {reportType === "কাস্টম" && (
+            <>
+              <div className="flex-1 space-y-2 w-full">
+                <label className="text-sm font-bold text-muted-foreground">
+                  শুরু মাস
+                </label>
+                <select
+                  value={startMonth}
+                  onChange={(e) => setStartMonth(Number(e.target.value))}
+                  className="modern-input w-full bg-muted/50 focus:bg-background transition-colors"
+                >
+                  {MONTHS_BN.map((m, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex-1 space-y-2 w-full">
+                <label className="text-sm font-bold text-muted-foreground">
+                  শেষ মাস
+                </label>
+                <select
+                  value={endMonth}
+                  onChange={(e) => setEndMonth(Number(e.target.value))}
+                  className="modern-input w-full bg-muted/50 focus:bg-background transition-colors"
+                >
+                  {MONTHS_BN.map((m, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
+          )}
+
+          {(reportType === "নয়-মাসিক" || reportType === "বার্ষিক") && (
+            <div className="flex-1 space-y-2 w-full">
+              <label className="text-sm font-bold text-muted-foreground">
+                সময়সীমা
+              </label>
+              <div className="h-[48px] px-4 flex items-center bg-muted/30 border border-border/50 rounded-xl text-sm font-semibold text-muted-foreground">
+                {reportType === "নয়-মাসিক" ? "জানুয়ারি – সেপ্টেম্বর" : "জানুয়ারি – ডিসেম্বর"}
+              </div>
+            </div>
+          )}
 
           {/* Year */}
           <div className="flex-1 space-y-2 w-full">
@@ -648,7 +751,7 @@ export default function CityReportPage() {
           {/* Go */}
           <button
             onClick={() => fetchData({ current: false })}
-            disabled={isLoading}
+            disabled={isLoading || activePeriod.isFuture || (reportType === "কাস্টম" && startMonth > endMonth)}
             className="modern-btn btn-primary h-[48px] px-8 flex items-center gap-2 group w-full md:w-auto justify-center disabled:opacity-60"
           >
             {isLoading ? (
@@ -662,6 +765,19 @@ export default function CityReportPage() {
           </button>
         </div>
 
+        {/* Validation & Period badge */}
+        {activePeriod.isFuture && (
+          <div className="mt-4 flex items-center gap-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs font-bold text-amber-700 dark:text-amber-400">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>ভবিষ্যতের মেয়াদের তথ্য এখনও তৈরি হয়নি। অনুগ্রহ করে চলমান বা অতীত মেয়াদ নির্বাচন করুন।</span>
+          </div>
+        )}
+        {reportType === "কাস্টম" && startMonth > endMonth && (
+          <div className="mt-4 flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-xs font-bold text-red-600 dark:text-red-400">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>শুরু মাস শেষ মাসের চেয়ে পরে হতে পারে না।</span>
+          </div>
+        )}
         {/* Period badge */}
         {hasFetched && !isLoading && (
           <div className="mt-4 text-xs font-bold text-muted-foreground">

@@ -178,7 +178,8 @@ export async function GET(request: Request) {
           : `${targetReportType} (${targetYear})`;
         filename = `${zoneName}_Report_${targetMonth}_${targetYear}.xlsx`;
 
-        const monthsRange = getMonthsForPeriod(targetReportType, targetMonth);
+        const endMonthParam = searchParams.get("endMonth") || searchParams.get("end_month");
+        const monthsRange = getMonthsForPeriod(targetReportType, targetMonth, endMonthParam ? Number(endMonthParam) : undefined);
         
         // Query monthly reports for the target zone, year, and months range
         const { data: monthlyReports } = await supabase

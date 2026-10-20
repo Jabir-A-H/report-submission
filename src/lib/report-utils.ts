@@ -1,3 +1,5 @@
+import { getDhakaDate } from "./date-utils.ts";
+
 export const BENGALI_DIGITS = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
 
 export const MONTHS_BN = [
@@ -21,6 +23,19 @@ export const REPORT_TYPES = [
   { value: "halfYearly", label: "ষান্মাসিক" },
   { value: "nineMonth", label: "নয়-মাসিক" },
   { value: "yearly", label: "বার্ষিক" },
+  { value: "custom", label: "কাস্টম রেঞ্জ" },
+];
+
+export const QUARTERS_BN = [
+  { quarter: 1, label: "১ম ত্রৈমাসিক (জানুয়ারি – মার্চ)", startMonth: 1, endMonth: 3 },
+  { quarter: 2, label: "২য় ত্রৈমাসিক (এপ্রিল – জুন)", startMonth: 4, endMonth: 6 },
+  { quarter: 3, label: "৩য় ত্রৈমাসিক (জুলাই – সেপ্টেম্বর)", startMonth: 7, endMonth: 9 },
+  { quarter: 4, label: "৪র্থ ত্রৈমাসিক (অক্টোবর – ডিসেম্বর)", startMonth: 10, endMonth: 12 },
+];
+
+export const HALVES_BN = [
+  { half: 1, label: "১ম ষান্মাসিক (জানুয়ারি – জুন)", startMonth: 1, endMonth: 6 },
+  { half: 2, label: "২য় ষান্মাসিক (জুলাই – ডিসেম্বর)", startMonth: 7, endMonth: 12 },
 ];
 
 export const DB_TYPE_MAP: Record<string, string> = {
@@ -34,6 +49,9 @@ export const DB_TYPE_MAP: Record<string, string> = {
   "ষান্মাসিক": "ষান্মাসিক",
   "নয়-মাসিক": "নয়-মাসিক",
   "বার্ষিক": "বার্ষিক",
+  custom: "কাস্টম",
+  "কাস্টম": "কাস্টম",
+  "কাস্টম রেঞ্জ": "কাস্টম",
 };
 
 export const URL_TO_ENGLISH_MAP: Record<string, string> = {
@@ -47,6 +65,9 @@ export const URL_TO_ENGLISH_MAP: Record<string, string> = {
   halfYearly: "halfYearly",
   nineMonth: "nineMonth",
   yearly: "yearly",
+  custom: "custom",
+  "কাস্টম": "custom",
+  "কাস্টম রেঞ্জ": "custom",
 };
 
 export const COURSE_CATEGORIES = [
@@ -122,20 +143,36 @@ export function bnToEn(val: string | number | null | undefined): string {
 
 export function getMonthsForPeriod(
   reportType: string,
-  selectedMonth: number
+  selectedMonth: number,
+  endMonth?: number
 ): number[] {
   const dbType = DB_TYPE_MAP[reportType] || reportType;
+  const m = Math.max(1, Math.min(12, Number(selectedMonth) || 1));
+
   switch (dbType) {
-    case "ত্রৈমাসিক":
-      return [1, 2, 3];
-    case "ষান্মাসিক":
-      return [1, 2, 3, 4, 5, 6];
+    case "ত্রৈমাসিক": {
+      const quarter = Math.ceil(m / 3);
+      const start = (quarter - 1) * 3 + 1;
+      return [start, start + 1, start + 2];
+    }
+    case "ষান্মাসিক": {
+      return m <= 6 ? [1, 2, 3, 4, 5, 6] : [7, 8, 9, 10, 11, 12];
+    }
     case "নয়-মাসিক":
       return [1, 2, 3, 4, 5, 6, 7, 8, 9];
     case "বার্ষিক":
       return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    case "কাস্টম": {
+      const start = m;
+      const end = Math.max(start, Math.min(12, Number(endMonth) || start));
+      const range: number[] = [];
+      for (let i = start; i <= end; i++) {
+        range.push(i);
+      }
+      return range;
+    }
     default: // মাসিক
-      return [selectedMonth];
+      return [m];
   }
 }
 
@@ -147,10 +184,118 @@ export function getMonthsForPeriod(
  */
 export function getOverrideMonthForPeriod(
   reportType: string,
-  selectedMonth: number
+  selectedMonth: number,
+  endMonth?: number
 ): number {
-  const months = getMonthsForPeriod(reportType, selectedMonth);
+  const months = getMonthsForPeriod(reportType, selectedMonth, endMonth);
   return months[0] || 1;
+}
+
+export interface PeriodConfig {
+  type: string;
+  dbType: string;
+  year: number;
+  startMonth: number;
+  endMonth: number;
+  months: number[];
+  overrideMonth: number;
+  labelBn: string;
+  isMultiMonth: boolean;
+  isFuture: boolean;
+}
+
+export function resolvePeriodConfig(input: {
+  type?: string | null;
+  report_type?: string | null;
+  month?: number | string | null;
+  quarter?: number | string | null;
+  half?: number | string | null;
+  startMonth?: number | string | null;
+  endMonth?: number | string | null;
+  year?: number | string | null;
+  currentDhakaDate?: { month: number; year: number };
+}): PeriodConfig {
+  const rawType = input.type || input.report_type || "monthly";
+  const englishType = URL_TO_ENGLISH_MAP[rawType] || rawType || "monthly";
+  const dbType = DB_TYPE_MAP[rawType] || "মাসিক";
+
+  const dhaka = input.currentDhakaDate || getDhakaDate();
+  const year = input.year ? Number(input.year) : dhaka.year;
+
+  let startMonth = 1;
+  let endMonth = 1;
+
+  if (englishType === "monthly") {
+    startMonth = input.month ? Number(input.month) : dhaka.month;
+    endMonth = startMonth;
+  } else if (englishType === "quarterly") {
+    let q = 1;
+    if (input.quarter) {
+      q = Math.max(1, Math.min(4, Number(input.quarter)));
+    } else if (input.month) {
+      q = Math.ceil(Math.max(1, Math.min(12, Number(input.month))) / 3);
+    }
+    startMonth = (q - 1) * 3 + 1;
+    endMonth = startMonth + 2;
+  } else if (englishType === "halfYearly") {
+    let h = 1;
+    if (input.half) {
+      h = Math.max(1, Math.min(2, Number(input.half)));
+    } else if (input.month) {
+      h = Number(input.month) <= 6 ? 1 : 2;
+    }
+    startMonth = h === 2 ? 7 : 1;
+    endMonth = h === 2 ? 12 : 6;
+  } else if (englishType === "nineMonth") {
+    startMonth = 1;
+    endMonth = 9;
+  } else if (englishType === "yearly") {
+    startMonth = 1;
+    endMonth = 12;
+  } else if (englishType === "custom") {
+    startMonth = Math.max(1, Math.min(12, Number(input.startMonth || input.month || 1)));
+    endMonth = Math.max(startMonth, Math.min(12, Number(input.endMonth || startMonth)));
+  }
+
+  const months = getMonthsForPeriod(englishType, startMonth, endMonth);
+  const overrideMonth = months[0] || 1;
+  const isMultiMonth = months.length > 1;
+
+  // Start-Month Future Lockout rule: Period is in the future ONLY IF its startMonth has not occurred yet
+  const isFuture =
+    year > dhaka.year || (year === dhaka.year && startMonth > dhaka.month);
+
+  // Bengali Period Label
+  let labelBn = "";
+  if (!isMultiMonth) {
+    labelBn = `${MONTHS_BN[startMonth - 1]} ${toBn(year)}`;
+  } else if (englishType === "quarterly") {
+    const q = Math.ceil(startMonth / 3);
+    const qBn = ["১ম", "২য়", "৩য়", "৪র্থ"][q - 1];
+    labelBn = `${qBn} ত্রৈমাসিক (${MONTHS_BN[startMonth - 1]} – ${MONTHS_BN[endMonth - 1]} ${toBn(year)})`;
+  } else if (englishType === "halfYearly") {
+    const h = startMonth <= 6 ? "১ম" : "২য়";
+    labelBn = `${h} ষান্মাসিক (${MONTHS_BN[startMonth - 1]} – ${MONTHS_BN[endMonth - 1]} ${toBn(year)})`;
+  } else if (englishType === "nineMonth") {
+    labelBn = `নয়-মাসিক (জানুয়ারি – সেপ্টেম্বর ${toBn(year)})`;
+  } else if (englishType === "yearly") {
+    labelBn = `বার্ষিক (জানুয়ারি – ডিসেম্বর ${toBn(year)})`;
+  } else {
+    labelBn = `কাস্টম (${MONTHS_BN[startMonth - 1]} – ${MONTHS_BN[endMonth - 1]} ${toBn(year)})`;
+  }
+
+  return {
+    type: englishType,
+    dbType,
+    year,
+    startMonth,
+    endMonth,
+    months,
+    overrideMonth,
+    labelBn,
+    isMultiMonth,
+    isFuture,
+  };
 }
 
 const ATTENDANCE_WEIGHT_PAIRS: Record<string, string> = {

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
 import { AppearanceFooterToggle } from "@/components/layout/appearance-footer-toggle";
+import { APP_VERSION_LABEL } from "@/lib/version";
 import {
   UserPlus,
   Calendar,
@@ -793,6 +794,10 @@ export function HelpDiagramClient({
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-medium text-muted-foreground">
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
             <p>© {new Date().getFullYear()} {t.copyrightText}</p>
+            <span className="hidden sm:inline text-border">|</span>
+            <span className="px-1.5 py-0.5 rounded-md bg-muted text-[10px] font-mono font-semibold text-muted-foreground tracking-wide">
+              {APP_VERSION_LABEL}
+            </span>
             <span className="hidden sm:inline text-border">|</span>
             <Link
               href={isLoggedIn ? `/${periodQuery}` : "/home"}

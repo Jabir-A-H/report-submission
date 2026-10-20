@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useMemo } from 'react'
-import { Edit2, X, Check, AlertTriangle, Trash2 } from 'lucide-react'
+import { Edit2, X, Check, AlertTriangle, RotateCcw } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { getOverrideMonthForPeriod, toBn, bnToEn } from '@/lib/report-utils'
 
@@ -119,7 +119,7 @@ export function CorrectionButton({
   }
 
   const handleDelete = async () => {
-    if (!confirm('আপনি কি নিশ্চিত যে এই ওভাররাইডটি মুছে মূল সমষ্টিগত মান ফিরে পেতে চান?')) {
+    if (!confirm('আপনি কি নিশ্চিত যে এই ফিল্ডের ওভাররাইড মুছে সরাসরি মূল জোন-ভিত্তিক গণনা করা মানে ফিরে যেতে চান?')) {
       return
     }
     setIsDeleting(true)
@@ -254,11 +254,11 @@ export function CorrectionButton({
             <button
               onClick={handleDelete}
               disabled={isDeleting || isSaving}
-              className="px-4 py-4 text-sm font-bold text-red-600 hover:bg-red-500/10 rounded-2xl transition-all flex items-center justify-center gap-1.5 shrink-0"
+              className="px-4 py-3.5 text-xs sm:text-sm font-bold text-destructive hover:bg-destructive/10 border border-destructive/20 rounded-2xl transition-all flex items-center justify-center gap-1.5 shrink-0"
               title="ওভাররাইড মুছে মূল মান ফেরত আনুন"
             >
-              <Trash2 size={16} />
-              <span className="hidden sm:inline">মুছুন</span>
+              <RotateCcw size={15} />
+              <span>গণনা করা মানে ফিরে যান</span>
             </button>
           )}
           <button 

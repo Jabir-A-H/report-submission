@@ -21,14 +21,6 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ---
 
-### Quarterly/Multi-Month Periods Hardcoded to January Start (KI-017 / RS-05)
-- **Date**: 2026-09-20
-- **Description**: `getMonthsForPeriod()` in `src/lib/report-utils.ts` ignored the selected month for all non-monthly types. "Quarterly" always returned Jan-Mar, never Q2/Q3/Q4.
-- **Location**: `src/lib/report-utils.ts` → `getMonthsForPeriod()`
-- **Impact**: Medium (inaccurate period aggregation for non-January multi-month reports)
-- **Status**: **RESOLVED / PLANNED (ADR 022)** — Formally confirmed in ADR 022 grilling session. Multi-month periods are expanded to cover all four calendar quarters (Q1: Jan–Mar, Q2: Apr–Jun, Q3: Jul–Sep, Q4: Oct–Dec), half-years (H1: Jan–Jun, H2: Jul–Dec), 9-month cumulative (Jan–Sep), Annual (Jan–Dec), and a flexible Custom Range selector (Start Month to End Month).
-
----
 
 ### Backup Workflow Not Actually Encrypted (KI-018 / RS-70)
 - **Date**: 2026-09-20
@@ -40,6 +32,20 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 ---
 
 ## Resolved Historical Issues
+
+### Multi-Month Period Expansion, Custom Range Selector & Start-Month Future Lockout (ADR 022, RS-05, RS-06, KI-017)
+- **Date**: 2026-09-20
+- **Resolution Date**: 2026-10-21
+- **Description**:
+  1. `getMonthsForPeriod()` in `src/lib/report-utils.ts` originally ignored month parameters for multi-month types, locking "quarterly" to Q1 (Jan–Mar) and "halfYearly" to H1 (Jan–Jun).
+  2. Multi-month city report overrides lacked an explicit revert button in `CorrectionButton`, requiring manual data manipulation to restore computed aggregates.
+  3. City report period selectors lacked dynamic quarter, half, and custom range inputs.
+- **Fix Summary**:
+  1. **RS-05 / KI-017**: Refactored `getMonthsForPeriod()` and created `resolvePeriodConfig()` in `src/lib/report-utils.ts` supporting Q1–Q4, H1/H2, 9M, Annual, and custom `[startMonth..endMonth]` ranges. Implemented the user-approved **Start-Month Future Lockout Rule**: active in-progress periods whose start month has arrived (e.g. viewing H2 in August where July has passed) are allowed, while periods whose start month is in the future (e.g. Q4 in August) are blocked.
+  2. Overrides for multi-month periods are stored canonically under `month = months[0]` (`getOverrideMonthForPeriod`), ensuring zero database migrations (zero DDL) and queryable via `.in("month", monthsRange)`.
+  3. **RS-06**: Added *"গণনা করা মানে ফিরে যান"* button (`RotateCcw` icon) in `CorrectionButton` that deletes the record from `city_report_override` and triggers `onSuccess()` to instantly refresh calculated aggregates.
+  4. Dynamic selectors wired across `src/components/dashboard/period-selector.tsx`, `src/app/(admin)/city-report/page.tsx`, `src/app/report/page.tsx`, and export APIs (`/api/export/excel`, `/api/export/pdf`).
+  5. Added comprehensive unit tests in `src/lib/report-utils.test.ts` verifying all 4 quarters, halves, custom ranges, start-month future gating (24 tests passing).
 
 ### Track 4 Stabilization: Timezone Parity, Admin Report Filtering, Rate Limiting & Edge Fixes (ADR 021, RS-08, RS-09, RS-10, RS-44, RS-50, RS-51, RS-52, RS-72)
 - **Date**: 2026-10-19

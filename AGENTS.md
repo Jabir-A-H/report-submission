@@ -123,3 +123,12 @@ Before proposing or implementing any bug fix, architectural change, or schema mo
 4. **Present Comparative Trade-offs**:
    - Present the recommended solution alongside the rejected alternative(s), explicitly justifying why the alternative was rejected before asking for user approval.
 
+---
+
+## 🚫 RULE 7: Zero Backward-Compatibility Overhead (Pre-Production Phase)
+
+The platform is in active pre-production development and has NOT yet launched to live field workers.
+- **Never compromise architecture for backward compatibility**: Do NOT maintain legacy shims, fallback polyfills, redundant param mappings, or dead data migrations solely to support outdated URLs, old test rows, or past schemas.
+- **Prioritize Clean, Direct, Modern Design**: Choose the cleanest, most robust, and highest-density implementation without backward-compatibility overhead.
+- When the site officially launches into live production, the project owner will explicitly notify you to activate production backward-compatibility constraints. Until that notice, treat the system as pre-production.
+

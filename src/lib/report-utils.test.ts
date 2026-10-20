@@ -5,6 +5,9 @@ import {
   bnToEn,
   getMonthsForPeriod,
   getOverrideMonthForPeriod,
+  resolvePeriodConfig,
+  QUARTERS_BN,
+  HALVES_BN,
   sumRows,
   sumHeaderRows,
   DB_TYPE_MAP,
@@ -60,34 +63,118 @@ describe('report-utils', () => {
     });
   });
 
-  describe('getMonthsForPeriod', () => {
+  describe('getMonthsForPeriod (RS-05)', () => {
     it('returns single month for monthly reports', () => {
       assert.deepEqual(getMonthsForPeriod('monthly', 5), [5]);
       assert.deepEqual(getMonthsForPeriod('মাসিক', 7), [7]);
     });
 
-    it('returns correct month ranges for multi-month periods', () => {
+    it('resolves all 4 calendar quarters dynamically', () => {
+      // Q1: Jan–Mar
       assert.deepEqual(getMonthsForPeriod('quarterly', 1), [1, 2, 3]);
+      assert.deepEqual(getMonthsForPeriod('ত্রৈমাসিক', 2), [1, 2, 3]);
+      assert.deepEqual(getMonthsForPeriod('quarterly', 3), [1, 2, 3]);
+      // Q2: Apr–Jun
+      assert.deepEqual(getMonthsForPeriod('quarterly', 4), [4, 5, 6]);
+      assert.deepEqual(getMonthsForPeriod('ত্রৈমাসিক', 5), [4, 5, 6]);
+      assert.deepEqual(getMonthsForPeriod('quarterly', 6), [4, 5, 6]);
+      // Q3: Jul–Sep
+      assert.deepEqual(getMonthsForPeriod('quarterly', 7), [7, 8, 9]);
+      assert.deepEqual(getMonthsForPeriod('ত্রৈমাসিক', 8), [7, 8, 9]);
+      assert.deepEqual(getMonthsForPeriod('quarterly', 9), [7, 8, 9]);
+      // Q4: Oct–Dec
+      assert.deepEqual(getMonthsForPeriod('quarterly', 10), [10, 11, 12]);
+      assert.deepEqual(getMonthsForPeriod('ত্রৈমাসিক', 11), [10, 11, 12]);
+      assert.deepEqual(getMonthsForPeriod('quarterly', 12), [10, 11, 12]);
+    });
+
+    it('resolves both calendar halves dynamically', () => {
+      // H1: Jan–Jun
       assert.deepEqual(getMonthsForPeriod('halfYearly', 1), [1, 2, 3, 4, 5, 6]);
+      assert.deepEqual(getMonthsForPeriod('ষান্মাসিক', 5), [1, 2, 3, 4, 5, 6]);
+      // H2: Jul–Dec
+      assert.deepEqual(getMonthsForPeriod('halfYearly', 7), [7, 8, 9, 10, 11, 12]);
+      assert.deepEqual(getMonthsForPeriod('ষান্মাসিক', 10), [7, 8, 9, 10, 11, 12]);
+    });
+
+    it('resolves 9-month and yearly intervals', () => {
       assert.deepEqual(getMonthsForPeriod('nineMonth', 1), [1, 2, 3, 4, 5, 6, 7, 8, 9]);
       assert.deepEqual(getMonthsForPeriod('yearly', 1), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
     });
+
+    it('resolves custom ranges from start to end month', () => {
+      assert.deepEqual(getMonthsForPeriod('custom', 2, 5), [2, 3, 4, 5]);
+      assert.deepEqual(getMonthsForPeriod('কাস্টম', 7, 10), [7, 8, 9, 10]);
+      assert.deepEqual(getMonthsForPeriod('custom', 8, 8), [8]);
+      // Defensively clamps end < start to single start month
+      assert.deepEqual(getMonthsForPeriod('custom', 9, 3), [9]);
+    });
   });
 
-  describe('getOverrideMonthForPeriod (RS-01 Fix)', () => {
+  describe('getOverrideMonthForPeriod (RS-01 & RS-05 Fix)', () => {
     it('returns selected month for monthly reports', () => {
       assert.equal(getOverrideMonthForPeriod('monthly', 10), 10);
       assert.equal(getOverrideMonthForPeriod('মাসিক', 4), 4);
     });
 
-    it('returns period start month for multi-month periods regardless of current month', () => {
-      // In October (10), Quarterly override must still resolve to start month 1
-      assert.equal(getOverrideMonthForPeriod('quarterly', 10), 1);
-      assert.equal(getOverrideMonthForPeriod('ত্রৈমাসিক', 10), 1);
-      assert.equal(getOverrideMonthForPeriod('halfYearly', 10), 1);
-      assert.equal(getOverrideMonthForPeriod('ষান্মাসিক', 10), 1);
-      assert.equal(getOverrideMonthForPeriod('nineMonth', 10), 1);
-      assert.equal(getOverrideMonthForPeriod('বার্ষিক', 10), 1);
+    it('returns period start month for dynamic quarters and halves', () => {
+      // Q1 -> 1, Q2 -> 4, Q3 -> 7, Q4 -> 10
+      assert.equal(getOverrideMonthForPeriod('quarterly', 2), 1);
+      assert.equal(getOverrideMonthForPeriod('ত্রৈমাসিক', 5), 4);
+      assert.equal(getOverrideMonthForPeriod('quarterly', 8), 7);
+      assert.equal(getOverrideMonthForPeriod('quarterly', 11), 10);
+
+      // H1 -> 1, H2 -> 7
+      assert.equal(getOverrideMonthForPeriod('halfYearly', 3), 1);
+      assert.equal(getOverrideMonthForPeriod('ষান্মাসিক', 9), 7);
+
+      // Custom range -> startMonth
+      assert.equal(getOverrideMonthForPeriod('custom', 3, 7), 3);
+      assert.equal(getOverrideMonthForPeriod('কাস্টম', 8, 11), 8);
+    });
+  });
+
+  describe('resolvePeriodConfig & Start-Month Future Lockout', () => {
+    const augustDhaka = { year: 2026, month: 8 };
+
+    it('permits active in-progress periods whose startMonth has already occurred (August test cases)', () => {
+      // H2 (July–Dec): startMonth 7 <= August (8) -> accessible!
+      const h2 = resolvePeriodConfig({ type: 'halfYearly', half: 2, year: 2026, currentDhakaDate: augustDhaka });
+      assert.equal(h2.isFuture, false);
+      assert.deepEqual(h2.months, [7, 8, 9, 10, 11, 12]);
+      assert.equal(h2.startMonth, 7);
+      assert.equal(h2.overrideMonth, 7);
+
+      // Q3 (July–Sept): startMonth 7 <= August (8) -> accessible!
+      const q3 = resolvePeriodConfig({ type: 'quarterly', quarter: 3, year: 2026, currentDhakaDate: augustDhaka });
+      assert.equal(q3.isFuture, false);
+      assert.deepEqual(q3.months, [7, 8, 9]);
+
+      // Yearly (Jan–Dec): startMonth 1 <= August (8) -> accessible!
+      const yearly = resolvePeriodConfig({ type: 'yearly', year: 2026, currentDhakaDate: augustDhaka });
+      assert.equal(yearly.isFuture, false);
+
+      // 9M (Jan–Sept): startMonth 1 <= August (8) -> accessible!
+      const nineM = resolvePeriodConfig({ type: 'nineMonth', year: 2026, currentDhakaDate: augustDhaka });
+      assert.equal(nineM.isFuture, false);
+    });
+
+    it('blocks periods whose startMonth has NOT yet occurred in current year (August test cases)', () => {
+      // Q4 (Oct–Dec): startMonth 10 > August (8) -> future / blocked!
+      const q4 = resolvePeriodConfig({ type: 'quarterly', quarter: 4, year: 2026, currentDhakaDate: augustDhaka });
+      assert.equal(q4.isFuture, true);
+
+      // Custom range Sept–Nov: startMonth 9 > August (8) -> future / blocked!
+      const customFuture = resolvePeriodConfig({ type: 'custom', startMonth: 9, endMonth: 11, year: 2026, currentDhakaDate: augustDhaka });
+      assert.equal(customFuture.isFuture, true);
+
+      // Future year 2027 -> future / blocked!
+      const futureYear = resolvePeriodConfig({ type: 'monthly', month: 1, year: 2027, currentDhakaDate: augustDhaka });
+      assert.equal(futureYear.isFuture, true);
+
+      // Past year 2025 -> accessible!
+      const pastYear = resolvePeriodConfig({ type: 'quarterly', quarter: 4, year: 2025, currentDhakaDate: augustDhaka });
+      assert.equal(pastYear.isFuture, false);
     });
   });
 

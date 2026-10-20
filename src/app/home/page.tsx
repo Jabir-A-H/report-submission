@@ -6,6 +6,7 @@ import { AuthPortalClient } from "@/components/auth/auth-portal-client";
 import { SessionCleaner } from "@/components/auth/session-cleaner";
 import { AppearanceFooterToggle } from "@/components/layout/appearance-footer-toggle";
 import { getServerLanguage, sanitizeAuthMessage } from "@/lib/i18n";
+import { APP_VERSION_LABEL } from "@/lib/version";
 
 export default async function HomePage({
   searchParams,
@@ -100,6 +101,10 @@ export default async function HomePage({
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-medium text-muted-foreground">
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4">
             <p>© {new Date().getFullYear()} {t.copyrightText}</p>
+            <span className="hidden sm:inline text-border">|</span>
+            <span className="px-1.5 py-0.5 rounded-md bg-muted text-[10px] font-mono font-semibold text-muted-foreground tracking-wide">
+              {APP_VERSION_LABEL}
+            </span>
             <span className="hidden sm:inline text-border">|</span>
             <Link
               href="/help"
