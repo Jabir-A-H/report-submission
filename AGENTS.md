@@ -3,7 +3,7 @@
 This document defines mandatory operational rules and protocols for all AI agents and developers contributing to the **Report Submission System** (`report-submission`).
 
 ## 🎯 Mission
-Treat this project as a production reporting system where correctness, stability, and data integrity are higher priority than rapid feature output.
+Treat this project as a high-integrity, high-efficiency reporting system where correctness, architectural cleanliness, database performance, and data integrity are higher priority than rapid feature output.
 
 ---
 
@@ -59,14 +59,16 @@ If documentation and code conflict, do not guess. Flag the drift and align docs 
 - **Singular Table Naming**: All Supabase database tables use exact singular naming: `people`, `zone`, `report`, `report_header`, `report_course`, `report_organizational`, `report_personal`, `report_meeting`, `report_extra`, `report_comment`, `city_report_override`. Plural table names are strictly prohibited.
 - **Client Memoization**: All browser Supabase clients must be strictly memoized with `useMemo(() => createClient(), [])` to prevent infinite re-renders and connection thrashing.
 - **Auth & Approval Gating**: `src/middleware.ts` is the single source of truth for route protection. All authenticated users must have `active = true` in `people`; unapproved users are routed to `/pending-approval`. Unauthenticated visitors to protected routes are uniformly redirected to `/home`.
-- **Atomic Report Initialization**: All report access must go through the atomic PostgreSQL RPC `get_or_create_report` to eliminate race conditions and missing row states.
-- **Hybrid State Persistence**: Preserve period query parameters (`?type=...&month=...&year=...`) across navigation, with explicit session cache clearing on `/auth/logout` and `/home` login.
+- **Canonical Entity Routing & Initialization**: Sub-section navigation uses canonical database pointers (`/report/[section]?reportId=42`). The entry point initializes via `get_or_create_report` once; sub-sections load by `reportId` directly from context or database without re-invoking the RPC on every tab switch.
+- **Unified Auth & Profile Context**: Never invoke duplicate `getUser()` or `people` queries across sibling layout components (`Navbar`, `BottomNav`, `UserDropdown`). Consume a single, memoized `UserProvider`.
+- **Modern Supabase SSR**: Use `getAll()` / `setAll()` cookie methods exclusively across middleware and server clients.
+- **Serverless Compute Proximity**: Pin Vercel serverless function regions (`vercel.json`) to match the Supabase database hosting region (`syd1` for `ap-southeast-2`) to avoid cross-continental network latency cascades.
 
 ---
 
 ## 🛡️ RULE 3: Pre-Flight Verification & Quality Gates
 
-Before completing any task or ending a work session, execute and verify all three gates:
+Before completing any task or ending a work session, execute and verify all four gates:
 
 1. **Linting Check**:
    ```bash
@@ -80,7 +82,13 @@ Before completing any task or ending a work session, execute and verify all thre
    ```
    Must pass with 0 errors.
 
-3. **Production Build Verification**:
+3. **Unit & Integration Test Suite**:
+   ```bash
+   npm test
+   ```
+   Must pass with 0 test failures.
+
+4. **Production Build Verification**:
    ```bash
    npm run build
    ```
@@ -104,13 +112,13 @@ Before completing any task or ending a work session, execute and verify all thre
 
 ---
 
-## ⚖️ RULE 6: Solution Alternatives, Adversarial Pre-Check & Docs Cross-Verification (Mandatory)
+## ⚖️ RULE 6: Solution Alternatives, Adversarial Pre-Check & Clean Code Standard (Mandatory)
 
 Before proposing or implementing any bug fix, architectural change, or schema modification:
 
 1. **Formulate Competing Alternatives**:
    - Never present a single, unchallenged local patch.
-   - For every non-trivial defect or design choice, formulate at least two distinct solution approaches (e.g. Minimal Patch vs. Structural/Root Solution vs. Zero-DDL Alignment).
+   - For every non-trivial defect or design choice, formulate at least two distinct solution approaches (e.g. Minimal Application Patch vs. Clean Database Schema / DDL Migration vs. Architectural Consolidation).
 
 2. **Adversarial Stress-Testing ("Doubt Gate")**:
    - Evaluate real-world edge cases: spotty/offline cellular connectivity (mobile field workers), concurrent tab/route navigation, unmount race conditions, memory leaks, form state resets, etc.
@@ -118,17 +126,18 @@ Before proposing or implementing any bug fix, architectural change, or schema mo
 
 3. **Cross-Check All Project Documentation**:
    - Cross-examine assumptions across all relevant project documentation in `docs/` (including `TECHNICAL_MANUAL.md`, active `ADR/*` records, `ROADMAP.md`, `KNOWN_ISSUES.md`, and any active issue registers or planning documents).
-   - Verify that architectural invariants (e.g. zero DB migrations, singular table names, client memoization), historical regressions (preventing re-emergence of resolved `KI-xxx` issues), coupled subsystems, and scheduled roadmap phases are strictly respected.
+   - Verify that architectural invariants (e.g. singular table names, client memoization, canonical routing), historical regressions (preventing re-emergence of resolved `KI-xxx` issues), coupled subsystems, and scheduled roadmap phases are strictly respected.
 
 4. **Present Comparative Trade-offs**:
    - Present the recommended solution alongside the rejected alternative(s), explicitly justifying why the alternative was rejected before asking for user approval.
 
 ---
 
-## 🚫 RULE 7: Zero Backward-Compatibility Overhead (Pre-Production Phase)
+## 🚫 RULE 7: Clean Architecture & Pre-Production Database Agility
 
 The platform is in active pre-production development and has NOT yet launched to live field workers.
+- **Schema & DDL Authority**: When a defect or feature requires a database schema change, index addition, or RLS rewrite, **implement the clean DDL directly in Supabase**. Never invent complex application-layer shims, redundant query loops, or data-packing hacks to bypass a needed schema change.
+- **Zero Dead-Weight**: Immediately DROP dead tables (`legacy_people`), orphaned functions (`handle_new_auth_user`), and obsolete views (`view_city_course_final`). Delete obsolete client components (`session-cleaner.tsx`) and unimported dependencies (`package.json`).
 - **Never compromise architecture for backward compatibility**: Do NOT maintain legacy shims, fallback polyfills, redundant param mappings, or dead data migrations solely to support outdated URLs, old test rows, or past schemas.
 - **Prioritize Clean, Direct, Modern Design**: Choose the cleanest, most robust, and highest-density implementation without backward-compatibility overhead.
 - When the site officially launches into live production, the project owner will explicitly notify you to activate production backward-compatibility constraints. Until that notice, treat the system as pre-production.
-
