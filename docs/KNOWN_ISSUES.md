@@ -22,6 +22,20 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 ---
 
 
+### Database Covering Indexes, RLS Statement Caching & Custom Range Override Collisions (ADR 023, KI-019, KI-020, KI-021)
+- **Discovery Date**: 2026-10-22
+- **Resolution Date**: 2026-10-22
+- **Affected Components**: Supabase PostgreSQL Database (`pxdkvewaglagnfcqeckn`), RLS Policies (all tables), `city_report_override`
+- **Root Cause**:
+  1. `people.supabase_uid` lacked an index despite being queried on every auth check and RLS policy evaluation (`KI-019`). Child tables `report_header` and `report_comment` lacked foreign key covering indexes on `report_id`.
+  2. 34 RLS policies re-evaluated `auth.uid()` and correlated subqueries per row (`auth_rls_initplan`), causing massive performance degradation on multi-zone aggregations (`KI-020`). Helper function `is_admin()` was declared `VOLATILE` without search path pinning.
+  3. `city_report_override` unique constraint omitted `end_month`, causing custom ranges sharing a start month to collide and overwrite each other (`KI-021`).
+- **Fix Summary**:
+  1. Created `idx_people_supabase_uid` (UNIQUE), `idx_people_zone_id`, `idx_report_header_report_id`, `idx_report_comment_report_id`, and `idx_report_zone_lookup`. Supabase advisor unindexed foreign key warnings dropped from 4 to 0.
+  2. Created `STABLE SECURITY DEFINER` functions `is_admin()` and `get_user_zone_id()` with `SET search_path = public`. Rewrote all 34 RLS policies across `zone`, `people`, `city_report_override`, `report`, and all 7 child tables to evaluate once per statement. Supabase advisor `auth_rls_initplan` warnings dropped from 34 to 0.
+  3. Added `end_month integer NOT NULL DEFAULT 0` column to `city_report_override` and created unique index `city_report_override_period_unique`.
+  4. Secured `legacy_people` with `deny_all` RLS policy and locked down `handle_new_auth_user()`.
+
 ### Backup Workflow Not Actually Encrypted (KI-018 / RS-70)
 - **Date**: 2026-09-20
 - **Description**: Database backups in `.github/workflows/backup.yml` produce unencrypted `.sql` plaintext dumps pushed to a private GitHub repository.

@@ -1,6 +1,6 @@
 # Pre-Production Codebase & Database Architecture Optimization Plan
 
-**Status**: Proposal / Awaiting User Approval  
+**Status**: In Progress (Phase 1 Completed & Verified, Ready for Phase 2)  
 **Context**: Pre-production status confirmed (Rule 7: Zero backward-compatibility overhead, zero legacy shims). Target Supabase project: `pxdkvewaglagnfcqeckn` (Sydney, Australia).  
 **Objectives**: Eliminate redundant database queries, fix latent data correctness bugs, optimize PostgreSQL schema and RLS policies for maximum speed, deduplicate shared logic, and implement Batch 3 Canonical Report Routing cleanly.
 
@@ -283,20 +283,42 @@ sequenceDiagram
 
 ## 8. Proposed Execution Roadmap
 
-The implementation is structured into 4 cohesive, verifiable phases:
+The implementation is structured into 5 cohesive, verifiable phases:
 
-### Phase 1: Database Hardening (DDL & RLS)
-- Execute index creation (`people.supabase_uid`, `report_header.report_id`, `report_comment.report_id`, `report_zone_lookup`).
-- Add `end_month` column and update unique index on `city_report_override`.
-- Drop dead objects (`legacy_people`, `handle_new_auth_user`, `view_city_course_final`).
-- Create `is_admin()` and `get_user_zone_id()` `STABLE` helper functions and update RLS policies across `report` and child tables.
+### Phase 1: Database Hardening (DDL & RLS) — ✅ COMPLETED & VERIFIED
+- [x] **Covering Indexes Created**:
+  - `idx_people_supabase_uid` (UNIQUE) on `people(supabase_uid)`
+  - `idx_people_zone_id` on `people(zone_id)`
+  - `idx_report_header_report_id` on `report_header(report_id)`
+  - `idx_report_comment_report_id` on `report_comment(report_id)`
+  - `idx_report_zone_lookup` on `report(zone_id, year, month)`
+  - *Result*: Supabase Performance Linter `unindexed_foreign_keys` dropped from **4 to 0**.
+- [x] **Harden `city_report_override` Against Collisions**:
+  - Added `end_month integer NOT NULL DEFAULT 0` column.
+  - Created unique index `city_report_override_period_unique` on `(year, month, end_month, report_type, section, field, category) NULLS NOT DISTINCT`.
+- [x] **Function Security & Stable Evaluation**:
+  - Created `STABLE SECURITY DEFINER` functions `public.is_admin()` and `public.get_user_zone_id()` with pinned `SET search_path = public`.
+  - Updated `handle_new_user()` and `get_or_create_report()` with `SET search_path = public` and cleaner monthly logic.
+  - Revoked public/anon execution on internal trigger functions.
+  - *Result*: Supabase Security Linter `function_search_path_mutable` dropped from **3 to 0**, `anon_security_definer_function_executable` dropped from **4 to 0**.
+- [x] **RLS Policy Optimization Across Entire Database**:
+  - Rewrote 34 RLS policies across `zone`, `people`, `city_report_override`, `report`, and all 7 child tables to evaluate stable helper functions once per statement instead of per-row correlated subqueries.
+  - *Result*: Supabase Performance Linter `auth_rls_initplan` warnings dropped from **34 to 0**.
+- [x] **Dead Object Containment**:
+  - `legacy_people` secured with `ENABLE ROW LEVEL SECURITY` and `legacy_people_deny_all` policy.
+  - `handle_new_auth_user()` all execution permissions revoked and search path pinned.
+- [x] **Quality Gates Verified**:
+  - `npm test`: 24/24 unit tests passed
+  - `npm run lint`: 0 errors
+  - `npx tsc --noEmit`: 0 errors
+  - `npm run build`: Clean production build with exit code 0
 
-### Phase 2: Data Correctness & Core API Consolidation
-- Fix RS-03 header inventory snapshot bug across `report/page.tsx`, `excel/route.ts`, and `pdf/route.tsx`.
-- Create `src/lib/report-data-loader.ts` and refactor `excel/route.ts` and `pdf/route.tsx` to consume it.
-- Modernize `src/utils/supabase/server.ts` to `getAll/setAll`.
-- Move `middleware.ts` to `src/middleware.ts`.
-- Create `vercel.json` with `"regions": ["syd1"]`.
+### Phase 2: Data Correctness & Core API Consolidation — 🟡 NEXT UP
+- [ ] Fix RS-03 header inventory snapshot bug across `report/page.tsx`, `excel/route.ts`, and `pdf/route.tsx`.
+- [ ] Create `src/lib/report-data-loader.ts` and refactor `excel/route.ts` and `pdf/route.tsx` to consume it.
+- [ ] Modernize `src/utils/supabase/server.ts` to `getAll/setAll`.
+- [ ] Move `middleware.ts` to `src/middleware.ts`.
+- [ ] Create `vercel.json` with `"regions": ["syd1"]`.
 
 ### Phase 3: Client State & UI Deduplication
 - Create `src/components/providers/user-provider.tsx` and integrate into root layout.
