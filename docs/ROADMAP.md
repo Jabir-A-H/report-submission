@@ -141,6 +141,11 @@
 - [x] **RLS Statement-Level Caching & Function Hardening (ADR 023, KI-020)**: Replaced 34 per-row correlated subqueries across all tables with `STABLE SECURITY DEFINER` helper functions (`is_admin()`, `get_user_zone_id()`) with pinned `SET search_path = public`. Dropped Supabase Performance Advisor `auth_rls_initplan` warnings from 34 to 0 and eliminated mutable search path warnings.
 - [x] **Dead Object Lockdown (ADR 023)**: Secured `legacy_people` with `deny_all` RLS policy and revoked execution permissions on orphaned trigger function `handle_new_auth_user()`.
 
+### Tier 10: Multi-Agent Comprehensive Codebase Critique & Pre-Production Stabilization (Completed — 2026-10-27)
+- [x] **7-Segment Whole-Codebase Partitioning**: Divided the entire codebase (68 source files + root configs) into 7 distinct small, cohesive functional segments.
+- [x] **15-Agent Asymmetric Audit Pipeline**: Deployed a dedicated Master Prompt Architect, 7 Lead Investigators (Agent 1), and 7 Adversarial Reviewers (Agent 2) utilizing 5-layer behavioral audit, 14-bug taxonomy (`WEB-001`–`WEB-014`), Impeccable UI/UX ergonomics, and system-wide blast radius analysis.
+- [x] **Authoritative Critique Suite Generation (`docs/codebase-critique/`)**: Compiled exhaustive reports with line-level code citations, zero application code mutations, and established a prioritized 3-Track Remediation Roadmap in `docs/codebase-critique/SUMMARY.md`.
+
 ## Phase 4: Post-Stabilization Feature Expansion
 - [x] **Google OAuth Sign-In (ADR 017)**: Integrated Supabase Google OAuth into `/home` (`AuthPortalClient`, `RegisterFormClient`) with automatic verified email account linking and Bengali error translation.
 - [x] **PWA & Android TWA APK Packaging (ADR 017)**: Implemented Web Manifest (`src/app/manifest.ts`), maskable icons (`/icons/icon-192.png`, `/icons/icon-512.png`), Digital Asset Links (`.well-known/assetlinks.json`), `twa-manifest.json` (`minSdkVersion 24`), and fully verified headless GitHub Actions Bubblewrap workflow (`.github/workflows/build-apk.yml`) with local generation mock server, build-tools 36.1.0 symlinking, non-interactive license acceptance, and automated release APK/AAB artifact generation.

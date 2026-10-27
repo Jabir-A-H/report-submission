@@ -21,6 +21,14 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ---
 
+### Whole-Codebase Multi-Agent Pre-Production Audit Findings (KI-022)
+- **Discovery Date**: 2026-10-27
+- **Description**: An exhaustive 7-segment, 15-agent behavioral, architectural, and mobile ergonomics audit surfaced 10 critical pre-production blockers across state machine lifecycle loops, arithmetic casting in reducers, Unicode NFC/NFD normalization drift, and export page budgeting.
+- **Location**: Documented comprehensively in [`docs/codebase-critique/SUMMARY.md`](file:///d:/WebDev/report-submission/docs/codebase-critique/SUMMARY.md) and individual segment reports `segment-01` through `segment-07`.
+- **Status**: **ACTIVE (Categorized into 3-Track Remediation Roadmap)**. Core application code remains completely untouched and verified across all test, typecheck, lint, and build gates.
+
+---
+
 
 ### Database Covering Indexes, RLS Statement Caching & Custom Range Override Collisions (ADR 023, KI-019, KI-020, KI-021)
 - **Discovery Date**: 2026-10-22
