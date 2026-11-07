@@ -25,7 +25,7 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 - **Discovery Date**: 2026-10-27
 - **Description**: An exhaustive 7-segment, 15-agent behavioral, architectural, and mobile ergonomics audit surfaced 10 critical pre-production blockers across state machine lifecycle loops, arithmetic casting in reducers, Unicode NFC/NFD normalization drift, and export page budgeting.
 - **Location**: Documented comprehensively in [`docs/codebase-critique/SUMMARY.md`](file:///d:/WebDev/report-submission/docs/codebase-critique/SUMMARY.md) and individual segment reports `segment-01` through `segment-07`.
-- **Status**: **ACTIVE (Categorized into 3-Track Remediation Roadmap)**. Core application code remains completely untouched and verified across all test, typecheck, lint, and build gates.
+- **Status**: **ACTIVE (Categorized into 3-Track Remediation Roadmap; Architectural Decisions Formally Resolved in ADR 024)**. On 2026-11-07, an interactive confirmation and holistic code review established ADR 024, confirming all architectural directions (Canonical `reportId` routing, query-layer header snapshot month, PDF Page 1/2 budget rebalance, shared `report-data-loader.ts`, `vercel.json` `syd1` region pinning, strict 2-tier user deletion hierarchy, personal form live row totals, and RootLayout server cookie language sync). Deferred pre-production DDL items cataloged in [`docs/pre-production-schema-cleanup-backlog.md`](file:///d:/WebDev/report-submission/docs/pre-production-schema-cleanup-backlog.md). Core application code remains completely untouched and verified across all test, typecheck, lint, and build gates.
 
 ---
 
