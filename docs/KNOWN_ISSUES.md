@@ -25,7 +25,20 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 - **Discovery Date**: 2026-10-27
 - **Description**: An exhaustive 7-segment, 15-agent behavioral, architectural, and mobile ergonomics audit surfaced 10 critical pre-production blockers across state machine lifecycle loops, arithmetic casting in reducers, Unicode NFC/NFD normalization drift, and export page budgeting.
 - **Location**: Documented comprehensively in [`docs/codebase-critique/SUMMARY.md`](file:///d:/WebDev/report-submission/docs/codebase-critique/SUMMARY.md) and individual segment reports `segment-01` through `segment-07`.
-- **Status**: **ACTIVE (Categorized into 3-Track Remediation Roadmap; Architectural Decisions Formally Resolved in ADR 024)**. On 2026-11-07, an interactive confirmation and holistic code review established ADR 024, confirming all architectural directions (Canonical `reportId` routing, query-layer header snapshot month, PDF Page 1/2 budget rebalance, shared `report-data-loader.ts`, `vercel.json` `syd1` region pinning, strict 2-tier user deletion hierarchy, personal form live row totals, and RootLayout server cookie language sync). Deferred pre-production DDL items cataloged in [`docs/pre-production-schema-cleanup-backlog.md`](file:///d:/WebDev/report-submission/docs/pre-production-schema-cleanup-backlog.md). Core application code remains completely untouched and verified across all test, typecheck, lint, and build gates.
+- **Status**: **RESOLVED IN CRITIQUE & SYNTHESIS (ADR 024)**. Formally decided by user confirmation on 2026-11-07.
+
+---
+
+### Pre-Production Bloatware, Adversarial Doubt Gate & Schema Reconciliation (KI-023)
+- **Discovery Date**: 2026-11-07
+- **Description**: A comprehensive whole-codebase audit conducted by 15 specialized subagents across 7 decoupled segments scrutinized all existing fixes for **pre-production bloatware** (under `AGENTS.md` Rule 7). The adversarial "Doubt Gate" intercepted several critical implementation traps:
+  1. *Phantom Schema Fallacy*: Verified that `zone_type` does not yet exist in the live `zone` table; removing the application fallback in `home/page.tsx` without DDL first causes immediate runtime crashes.
+  2. *Duplicate Key DDL Crash*: An `UPDATE` query on split Mashq categories in `report_organizational` crashes on 21 reports that already have both rows; safe `DELETE` of orphaned rows is required.
+  3. *Carrier-Grade NAT Field Worker Lockout*: Rate-limiting registration by IP alone locks out Bangladeshi field workers sharing CGNAT mobile IP gateways (Grameenphone/Banglalink/Robi); requires compound key (`${ip}:${email}`).
+  4. *Typographical Math Proof on PDF*: Adding Maktab summary to Page 1 causes a +26.97 pt overflow; guaranteed 2-page fit requires coordinated vertical typography compression (padding 1.8 pt, section margins 4 pt, page padding 28 pt).
+  5. *Uncoordinated ReportProvider Eviction*: Moving `<ReportProvider>` exclusively to `report/layout.tsx` crashes the root dashboard (`user-dashboard.tsx`).
+- **Location**: Master summary in [`docs/critiques/SUMMARY.md`](file:///d:/WebDev/report-submission/docs/critiques/SUMMARY.md) and 14 individual segment reports (`docs/critiques/segment-01` through `segment-07`).
+- **Status**: **AUDIT COMPLETED & CATALOGED**. Comprehensive consolidated DDL migration script and 4-phase remediation roadmap formulated. Application code in `src/` remains completely unmodified and passes all verification gates (`tsc --noEmit`, `npm test` 24/24 pass, `npm run build` exit code 0).
 
 ---
 
