@@ -32,20 +32,6 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Handle legacy/removed /login and /register paths explicitly by redirecting to unified /home portal
-  if (request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/register')) {
-    const url = request.nextUrl.clone()
-    if (user && request.nextUrl.pathname.startsWith('/login')) {
-      url.pathname = '/'
-    } else {
-      url.pathname = '/home'
-      if (request.nextUrl.pathname.startsWith('/register')) {
-        url.searchParams.set('mode', 'register')
-      }
-    }
-    return NextResponse.redirect(url)
-  }
-
   // Public routes that don't require authentication
   const publicPaths = [
     '/home',

@@ -342,7 +342,7 @@ export async function GET(request: Request) {
       });
 
       ORG_CATEGORIES.forEach((cat) => {
-        const item = org.find((x) => x.category === cat || (cat === "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতটি" && x.category === "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)")) || {};
+        const item = org.find((x) => x.category === cat) || {};
         const r = worksheet.addRow([
           cat,
           item.number || 0,
@@ -420,7 +420,7 @@ export async function GET(request: Request) {
       });
 
       MEETING_CATEGORIES.forEach((cat) => {
-        const item = meetings.find((x) => x.category === cat || (cat === "Committee Orientation" && (x.category === "Committee Orientation / Muallima Orientation" || x.category === "Orientation / Result Publish")) || (cat === "Muallima Orientation" && (x.category === "Committee Orientation / Muallima Orientation" || x.category === "Orientation / Result Publish"))) || {};
+        const item = meetings.find((x) => x.category === cat) || {};
         const customTitle = (item as any).meeting_name?.trim() || (item.comments?.trim() && item.comments?.trim() !== "—" ? item.comments?.trim() : "");
         const displayLabel = cat === "অন্যান্য" && customTitle ? customTitle : cat;
         const r = worksheet.addRow([
@@ -659,7 +659,7 @@ export async function GET(request: Request) {
       });
 
       ORG_CATEGORIES.forEach((cat) => {
-        const item = orgData.find((x) => x.category === cat || (cat === "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতটি" && x.category === "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)")) || {};
+        const item = orgData.find((x) => x.category === cat) || {};
         const r = worksheet.addRow([
           cat,
           getVal("organizational", "number", item.number, cat),
@@ -737,7 +737,7 @@ export async function GET(request: Request) {
       });
 
       MEETING_CATEGORIES.forEach((cat) => {
-        const item = meetingData.find((x) => x.category === cat || (cat === "Committee Orientation" && (x.category === "Committee Orientation / Muallima Orientation" || x.category === "Orientation / Result Publish")) || (cat === "Muallima Orientation" && (x.category === "Committee Orientation / Muallima Orientation" || x.category === "Orientation / Result Publish"))) || {};
+        const item = meetingData.find((x) => x.category === cat) || {};
         const customTitle = (item as any).meeting_name?.trim() || (item.comments?.trim() && item.comments?.trim() !== "—" ? item.comments?.trim() : "");
         const displayLabel = cat === "অন্যান্য" && customTitle ? customTitle : cat;
         const r = worksheet.addRow([

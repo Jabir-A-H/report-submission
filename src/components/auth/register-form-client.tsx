@@ -288,7 +288,7 @@ export function RegisterFormClient({
             <span className="text-primary font-bold underline underline-offset-2 ml-1">লগ-ইন করুন</span>
           </button>
         ) : (
-          <Link href="/login" className="hover:text-primary transition-colors gap-1">
+          <Link href="/home?mode=login" className="hover:text-primary transition-colors gap-1">
             অ্যাকাউন্ট আছে?
             <span className="text-primary font-bold underline underline-offset-2 ml-1">লগ-ইন করুন</span>
           </Link>

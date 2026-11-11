@@ -2,12 +2,12 @@
 
 import { AutoSaveField } from "../auto-save-field";
 import { Users2 } from "lucide-react";
-import { ViewModeProvider, useViewModeContext } from "../view-mode-toggle";
+import { useViewModeContext } from "../view-mode-toggle";
 import { useLanguage } from "@/components/providers/language-provider";
 
 import { ORG_CATEGORIES } from "@/lib/report-utils";
 
-function OrganizationalFormContent() {
+export function OrganizationalForm() {
   const { t, tc } = useLanguage();
   const { viewMode } = useViewModeContext();
 
@@ -69,13 +69,5 @@ function OrganizationalFormContent() {
         </div>
       ))}
     </div>
-  );
-}
-
-export function OrganizationalForm() {
-  return (
-    <ViewModeProvider defaultMode="card">
-      <OrganizationalFormContent />
-    </ViewModeProvider>
   );
 }

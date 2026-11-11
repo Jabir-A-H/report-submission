@@ -1060,7 +1060,7 @@ export default function CityReportPage() {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {ORG_CATEGORIES.map((cat) => {
-                    const row = orgData.find((r) => r.category === cat || (cat === "সহযোগী হয়েছেন" && r.category === "সহযোগী হয়েছে") || (cat === "সহযোগী হয়েছে" && r.category === "সহযোগী হয়েছেন") || (cat === "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতটি" && r.category === "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)")) || {
+                    const row = orgData.find((r) => r.category === cat) || {
                       number: 0,
                       increase: 0,
                       amount: 0,
@@ -1156,7 +1156,7 @@ export default function CityReportPage() {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {MEETING_CATEGORIES.map((cat) => {
-                    const row = meetingData.find((r) => r.category === cat || (cat === "Committee Orientation" && (r.category === "Committee Orientation / Muallima Orientation" || r.category === "Orientation / Result Publish")) || (cat === "Muallima Orientation" && (r.category === "Committee Orientation / Muallima Orientation" || r.category === "Orientation / Result Publish"))) || {
+                    const row = meetingData.find((r) => r.category === cat) || {
                       city_count: 0,
                       city_avg_attendance: 0,
                       thana_count: 0,

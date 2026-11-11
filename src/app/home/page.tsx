@@ -3,7 +3,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { AuthPortalClient } from "@/components/auth/auth-portal-client";
-import { SessionCleaner } from "@/components/auth/session-cleaner";
 import { AppearanceFooterToggle } from "@/components/layout/appearance-footer-toggle";
 import { getServerLanguage, sanitizeAuthMessage } from "@/lib/i18n";
 import { APP_VERSION_LABEL } from "@/lib/version";
@@ -32,26 +31,16 @@ export default async function HomePage({
     }
   }
 
-  // Fetch zones for the registration tab with defensive fallback if zone_type column is missing
-  let rawZones: { id: number; name: string; zone_type?: string | null }[] | null = null;
-  const { data: zonesWithType, error: zoneTypeError } = await supabase
+  // Fetch zones for the registration tab (excluding administrative city entity id=1)
+  const { data: rawZones } = await supabase
     .from("zone")
     .select("id, name, zone_type")
+    .neq("id", 1) // exclude DCS
     .order("name");
 
-  if (zoneTypeError) {
-    const { data: legacyZones } = await supabase
-      .from("zone")
-      .select("id, name")
-      .order("name");
-    rawZones = legacyZones;
-  } else {
-    rawZones = zonesWithType;
-  }
-
-  // Filter out administrative city entity (id=1 or zone_type='city')
+  // Filter out administrative city entity (zone_type='city')
   const zones = (rawZones || []).filter(
-    (z) => z.id !== 1 && z.zone_type !== "city"
+    (z) => z.zone_type !== "city"
   );
 
   const initialMode = resolvedParams?.mode === "register" ? "register" : "login";
@@ -59,8 +48,6 @@ export default async function HomePage({
 
   return (
     <div className="flex-1 flex flex-col justify-between bg-background text-foreground relative selection:bg-primary/20">
-      <SessionCleaner />
-
       {/* Subtle Ambient Background Gradients (Lightweight blur-3xl on mobile, full blur-[130px] on desktop) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
         <div className="absolute -top-24 right-1/4 w-72 sm:w-[600px] h-72 sm:h-[600px] bg-primary/15 rounded-full blur-3xl sm:blur-[130px] transform-gpu" />

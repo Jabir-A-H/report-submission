@@ -170,6 +170,14 @@
 - [x] **Bengali Unicode Normalization**: Normalized decomposed Unicode strings (`ওয়ার্ড প্রতিনিধির সফর`, `স্থানীয়ভাবে পরিচালিত`) in `report_extra` to canonical forms and updated `get_or_create_report` RPC seeding.
 - [x] **OAuth-Resilient Auth Trigger**: Upgraded `handle_new_user()` trigger on `auth.users` with fallback `user_id` generation and `zone_id = 1` defaulting, preventing crashes on Google OAuth account creation.
 
+### Tier 14: Track 1 Bloatware & Dead-Weight Code Pruning (Completed — 2026-11-11)
+- [x] **Quarantine Obsolete SessionCleaner**: Quarantined `src/components/auth/session-cleaner.tsx` to `.discard/session-cleaner.tsx` and pruned its mount from `src/app/home/page.tsx`.
+- [x] **Prune Legacy URL Rewrites**: Removed legacy `/login` and `/register` rewrites from `middleware.ts`, eliminating 2-hop redirect ping-pongs and routing unauthenticated requests directly to `/home`. Replaced dead link in `register-form-client.tsx` with canonical `/home?mode=login`.
+- [x] **Direct Zone Query Optimization**: Pruned defensive `zone_type` existence check fallback in `src/app/home/page.tsx`, directly querying `id, name, zone_type` with DCS (`id = 1`) excluded.
+- [x] **Prune Quadruplicate ViewModeProvider Wrappers**: Removed redundant inner `<ViewModeProvider>` wrappers from `personal-form.tsx`, `courses-form.tsx`, `organizational-form.tsx`, and `meetings-form.tsx`, relying on the parent `SectionLayout` context.
+- [x] **Prune Dual-String Backward-Compatibility Matchers**: Replaced defensive multi-clause OR conditions across `report/page.tsx`, `city-report/page.tsx`, `pdf/route.tsx`, and `excel/route.ts` with strict canonical equality (`r.category === cat`).
+- [x] **Multi-Subagent Adversarial Validation**: Managed by Track 1 Lead Manager with two worker subagents, two adversarial critique agents, and a fixer agent. Verified 100% green across all 4 quality gates (`npm test`, `tsc`, `lint`, Turbopack `build`).
+
 ## Phase 4: Post-Stabilization Feature Expansion
 - [x] **Google OAuth Sign-In (ADR 017)**: Integrated Supabase Google OAuth into `/home` (`AuthPortalClient`, `RegisterFormClient`) with automatic verified email account linking and Bengali error translation.
 - [x] **PWA & Android TWA APK Packaging (ADR 017)**: Implemented Web Manifest (`src/app/manifest.ts`), maskable icons (`/icons/icon-192.png`, `/icons/icon-512.png`), Digital Asset Links (`.well-known/assetlinks.json`), `twa-manifest.json` (`minSdkVersion 24`), and fully verified headless GitHub Actions Bubblewrap workflow (`.github/workflows/build-apk.yml`) with local generation mock server, build-tools 36.1.0 symlinking, non-interactive license acceptance, and automated release APK/AAB artifact generation.

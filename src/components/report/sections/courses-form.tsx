@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { AutoSaveField } from "../auto-save-field";
 import { BookOpen, ChevronDown } from "lucide-react";
-import { ViewModeProvider, useViewModeContext } from "../view-mode-toggle";
+import { useViewModeContext } from "../view-mode-toggle";
 import { useLanguage } from "@/components/providers/language-provider";
 
 import { COURSE_CATEGORIES } from "@/lib/report-utils";
 
-function CoursesFormContent() {
+export function CoursesForm() {
   const { t, tc } = useLanguage();
   const { viewMode } = useViewModeContext();
   const [openCards, setOpenCards] = useState<Record<string, boolean>>({
@@ -160,13 +160,5 @@ function CoursesFormContent() {
         );
       })}
     </div>
-  );
-}
-
-export function CoursesForm() {
-  return (
-    <ViewModeProvider defaultMode="card">
-      <CoursesFormContent />
-    </ViewModeProvider>
   );
 }

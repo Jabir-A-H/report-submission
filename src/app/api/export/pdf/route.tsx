@@ -577,7 +577,7 @@ const ReportPDFDocument = ({
             </View>
             {/* Rows */}
             {ORG_CATEGORIES.map((cat) => {
-              const item = org.find((x) => x.category === cat || (cat === "সহযোগী হয়েছেন" && x.category === "সহযোগী হয়েছে") || (cat === "সহযোগী হয়েছে" && x.category === "সহযোগী হয়েছেন") || (cat === "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতটি" && x.category === "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)")) || {};
+              const item = org.find((x) => x.category === cat) || {};
               return (
                 <View key={cat} style={styles.tableRow}>
                   <Text style={[styles.tableCell, styles.textLeft, { width: "36%", fontWeight: "bold" }]}>{cat}</Text>
@@ -623,7 +623,7 @@ const ReportPDFDocument = ({
             </View>
             {/* Rows */}
             {MEETING_CATEGORIES.map((cat) => {
-              const item = meetings.find((x) => x.category === cat || (cat === "Committee Orientation" && (x.category === "Committee Orientation / Muallima Orientation" || x.category === "Orientation / Result Publish")) || (cat === "Muallima Orientation" && (x.category === "Committee Orientation / Muallima Orientation" || x.category === "Orientation / Result Publish"))) || {};
+              const item = meetings.find((x) => x.category === cat) || {};
               const customTitle = (item as any).meeting_name?.trim() || (item.comments?.trim() && item.comments?.trim() !== "—" ? item.comments?.trim() : "");
               const displayLabel = cat === "অন্যান্য" && customTitle ? customTitle : cat;
               return (
@@ -1025,7 +1025,7 @@ export async function GET(request: Request) {
       });
 
       org = ORG_CATEGORIES.map((cat) => {
-        const item = computedOrg.find((x) => x.category === cat || (cat === "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতটি" && x.category === "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক)")) || {};
+        const item = computedOrg.find((x) => x.category === cat) || {};
         return {
           category: cat,
           number: getVal("organizational", "number", item.number || 0, cat),
@@ -1050,7 +1050,7 @@ export async function GET(request: Request) {
       });
 
       meetings = MEETING_CATEGORIES.map((cat) => {
-        const item = computedMeeting.find((x) => x.category === cat || (cat === "Committee Orientation" && (x.category === "Committee Orientation / Muallima Orientation" || x.category === "Orientation / Result Publish")) || (cat === "Muallima Orientation" && (x.category === "Committee Orientation / Muallima Orientation" || x.category === "Orientation / Result Publish"))) || {};
+        const item = computedMeeting.find((x) => x.category === cat) || {};
         return {
           category: cat,
           city_count: getVal("meetings", "city_count", item.city_count || 0, cat),

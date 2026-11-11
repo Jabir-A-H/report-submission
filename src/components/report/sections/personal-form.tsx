@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { AutoSaveField } from "../auto-save-field";
 import { UserPlus, ChevronDown } from "lucide-react";
-import { ViewModeProvider, useViewModeContext } from "../view-mode-toggle";
+import { useViewModeContext } from "../view-mode-toggle";
 import { useLanguage } from "@/components/providers/language-provider";
 
 import { PERSONAL_CATEGORIES, PERSONAL_METRICS_ROWS } from "@/lib/report-utils";
 
-function PersonalFormContent() {
+export function PersonalForm() {
   const { t, tc, language } = useLanguage();
   const { viewMode } = useViewModeContext();
   const [openCards, setOpenCards] = useState<Record<string, boolean>>({
@@ -194,13 +194,5 @@ function PersonalFormContent() {
         );
       })}
     </div>
-  );
-}
-
-export function PersonalForm() {
-  return (
-    <ViewModeProvider defaultMode="card">
-      <PersonalFormContent />
-    </ViewModeProvider>
   );
 }
