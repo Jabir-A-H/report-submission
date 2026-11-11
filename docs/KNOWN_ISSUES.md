@@ -38,7 +38,7 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
   4. *Typographical Math Proof on PDF*: Adding Maktab summary to Page 1 causes a +26.97 pt overflow; guaranteed 2-page fit requires coordinated vertical typography compression (padding 1.8 pt, section margins 4 pt, page padding 28 pt).
   5. *Uncoordinated ReportProvider Eviction*: Moving `<ReportProvider>` exclusively to `report/layout.tsx` crashes the root dashboard (`user-dashboard.tsx`).
 - **Location**: Master summary in [`docs/critiques/SUMMARY.md`](file:///d:/WebDev/report-submission/docs/critiques/SUMMARY.md) and 14 individual segment reports (`docs/critiques/segment-01` through `segment-07`).
-- **Status**: **AUDIT COMPLETED & CATALOGED**. Comprehensive consolidated DDL migration script and 4-phase remediation roadmap formulated. Application code in `src/` remains completely unmodified and passes all verification gates (`tsc --noEmit`, `npm test` 24/24 pass, `npm run build` exit code 0).
+- **Status**: **RESOLVED & MIGRATED (2026-11-10)**. Live PostgreSQL schema reconciliation executed in Supabase project `pxdkvewaglagnfcqeckn` following full automated backup (`run #42719317185` and local gitignored backup `backups/db_backup_2026-11-10.json`). Added `zone_type` and `parent_id` with covering index `idx_zone_parent_id`; dropped dead-weight tables (`legacy_people`), views (`view_city_course_final`), and trigger functions (`handle_new_auth_user`); normalized `report_extra` Unicode and purged 21 duplicate legacy Mashq rows in `report_organizational`; hardened `handle_new_user()` trigger for Google OAuth resilience.
 
 ---
 
