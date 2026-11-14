@@ -28,17 +28,23 @@ export const viewport: Viewport = {
 };
 
 import { Suspense } from "react";
+import { cookies } from "next/headers";
+import { Language } from "@/lib/i18n";
 import { Navbar } from "@/components/layout/navbar";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { ReportProvider } from "@/components/report/report-context";
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const langCookie = cookieStore.get("app-language")?.value;
+  const initialLanguage: Language = langCookie === "en" || langCookie === "bn" ? langCookie : "bn";
+
   return (
-    <html lang="bn" suppressHydrationWarning data-scroll-behavior="smooth">
+    <html lang={initialLanguage} suppressHydrationWarning data-scroll-behavior="smooth">
       <body className={`${inter.variable} ${tiroBangla.variable} antialiased font-sans flex flex-col min-h-screen overscroll-none overflow-x-hidden`}>
         <ThemeProvider
           attribute="class"
@@ -47,7 +53,7 @@ export default function RootLayout({
           disableTransitionOnChange
           themes={["light", "dark", "solarized-light", "solarized-dark"]}
         >
-          <LanguageProvider>
+          <LanguageProvider initialLanguage={initialLanguage}>
             <ReportProvider>
               <Suspense fallback={<div className="h-16 w-full hidden md:block bg-background border-b shrink-0" />}>
                 <Navbar />

@@ -231,18 +231,18 @@ const styles = StyleSheet.create({
     borderColor: "#e2e8f0",
     borderRadius: 2,
     paddingVertical: 3,
-    paddingHorizontal: 4,
+    paddingHorizontal: 3,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
   inlineItemLabel: {
-    fontSize: 7.5,
+    fontSize: 7,
     color: "#64748b",
     fontWeight: "bold",
   },
   inlineItemValue: {
-    fontSize: 8,
+    fontSize: 7.5,
     fontWeight: "bold",
     color: "#0f172a",
   },
@@ -651,48 +651,51 @@ const ReportPDFDocument = ({
           </View>
         </View>
 
-        {/* Inline Maktab Stats Block (Page 2 Below Meetings Table) */}
-        <View style={styles.inlineBlock}>
-          <Text style={styles.inlineBlockTitle}>মক্তব রিপোর্ট:</Text>
-          <View style={styles.inlineGrid}>
-            <View style={styles.inlineItem}>
-              <Text style={styles.inlineItemLabel}>মক্তব সংখ্যা:</Text>
-              <Text style={styles.inlineItemValue}>{toBn(extras.find(e => e.category === "মক্তব সংখ্যা")?.number || 0)} টি</Text>
-            </View>
-            <View style={styles.inlineItem}>
-              <Text style={styles.inlineItemLabel}>মক্তব বৃদ্ধি:</Text>
-              <Text style={[styles.inlineItemValue, styles.textGreen]}>+{toBn(extras.find(e => e.category === "মক্তব বৃদ্ধি")?.number || 0)} টি</Text>
-            </View>
-            <View style={styles.inlineItem}>
-              <Text style={styles.inlineItemLabel}>মহানগরী পরিচালিত:</Text>
-              <Text style={styles.inlineItemValue}>{toBn(extras.find(e => e.category === "মহানগরী পরিচালিত")?.number || 0)} টি</Text>
-            </View>
-            <View style={styles.inlineItem}>
-              <Text style={styles.inlineItemLabel}>স্থানীয়ভাবে পরিচালিত:</Text>
-              <Text style={styles.inlineItemValue}>{toBn(extras.find(e => e.category === "স্থানীয়ভাবে পরিচালিত")?.number || 0)} টি</Text>
+        {/* Inline Maktab & Safar Summary Row (Page 2 Side-by-Side Flex Row) */}
+        <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 6 }}>
+          {/* Maktab Stats Block */}
+          <View style={[styles.inlineBlock, { width: "49.2%", marginBottom: 0 }]}>
+            <Text style={styles.inlineBlockTitle}>মক্তব রিপোর্ট:</Text>
+            <View style={styles.inlineGrid}>
+              <View style={styles.inlineItem}>
+                <Text style={styles.inlineItemLabel}>মক্তব সংখ্যা:</Text>
+                <Text style={styles.inlineItemValue}>{toBn(extras.find(e => e.category === "মক্তব সংখ্যা")?.number || 0)} টি</Text>
+              </View>
+              <View style={styles.inlineItem}>
+                <Text style={styles.inlineItemLabel}>মক্তব বৃদ্ধি:</Text>
+                <Text style={[styles.inlineItemValue, styles.textGreen]}>+{toBn(extras.find(e => e.category === "মক্তব বৃদ্ধি")?.number || 0)} টি</Text>
+              </View>
+              <View style={styles.inlineItem}>
+                <Text style={styles.inlineItemLabel}>মহানগরী পরিচালিত:</Text>
+                <Text style={styles.inlineItemValue}>{toBn(extras.find(e => e.category === "মহানগরী পরিচালিত")?.number || 0)} টি</Text>
+              </View>
+              <View style={styles.inlineItem}>
+                <Text style={styles.inlineItemLabel}>স্থানীয় পরিচালিত:</Text>
+                <Text style={styles.inlineItemValue}>{toBn(extras.find(e => e.category === "স্থানীয়ভাবে পরিচালিত")?.number || 0)} টি</Text>
+              </View>
             </View>
           </View>
-        </View>
 
-        {/* Inline Safar Stats Block (Page 2 Below Meetings Table) */}
-        <View style={styles.inlineBlock}>
-          <Text style={styles.inlineBlockTitle}>সফর রিপোর্ট:</Text>
-          <View style={styles.inlineGrid}>
-            <View style={styles.inlineItem}>
-              <Text style={styles.inlineItemLabel}>মহানগরীর সফর:</Text>
-              <Text style={styles.inlineItemValue}>{toBn(extras.find(e => e.category === "মহানগরীর সফর")?.number || 0)} টি</Text>
-            </View>
-            <View style={styles.inlineItem}>
-              <Text style={styles.inlineItemLabel}>থানা কমিটির সফর:</Text>
-              <Text style={styles.inlineItemValue}>{toBn(extras.find(e => e.category === "থানা কমিটির সফর")?.number || 0)} টি</Text>
-            </View>
-            <View style={styles.inlineItem}>
-              <Text style={styles.inlineItemLabel}>থানা প্রতিনিধির সফর:</Text>
-              <Text style={styles.inlineItemValue}>{toBn(extras.find(e => e.category === "থানা প্রতিনিধির সফর")?.number || 0)} টি</Text>
-            </View>
-            <View style={styles.inlineItem}>
-              <Text style={styles.inlineItemLabel}>ওয়ার্ড প্রতিনিধির সফর:</Text>
-              <Text style={styles.inlineItemValue}>{toBn(extras.find(e => e.category === "ওয়ার্ড প্রতিনিধির সফর")?.number || 0)} টি</Text>
+          {/* Safar Stats Block */}
+          <View style={[styles.inlineBlock, { width: "49.2%", marginBottom: 0 }]}>
+            <Text style={styles.inlineBlockTitle}>সফর রিপোর্ট:</Text>
+            <View style={styles.inlineGrid}>
+              <View style={styles.inlineItem}>
+                <Text style={styles.inlineItemLabel}>মহানগরীর সফর:</Text>
+                <Text style={styles.inlineItemValue}>{toBn(extras.find(e => e.category === "মহানগরীর সফর")?.number || 0)} টি</Text>
+              </View>
+              <View style={styles.inlineItem}>
+                <Text style={styles.inlineItemLabel}>থানা কমিটির সফর:</Text>
+                <Text style={styles.inlineItemValue}>{toBn(extras.find(e => e.category === "থানা কমিটির সফর")?.number || 0)} টি</Text>
+              </View>
+              <View style={styles.inlineItem}>
+                <Text style={styles.inlineItemLabel}>থানা প্রতিনিধি:</Text>
+                <Text style={styles.inlineItemValue}>{toBn(extras.find(e => e.category === "থানা প্রতিনিধির সফর")?.number || 0)} টি</Text>
+              </View>
+              <View style={styles.inlineItem}>
+                <Text style={styles.inlineItemLabel}>ওয়ার্ড প্রতিনিধি:</Text>
+                <Text style={styles.inlineItemValue}>{toBn(extras.find(e => e.category === "ওয়ার্ড প্রতিনিধির সফর")?.number || 0)} টি</Text>
+              </View>
             </View>
           </View>
         </View>

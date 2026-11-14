@@ -1,7 +1,7 @@
 "use client";
 
 import { useReport } from "./report-context";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useLanguage } from "@/components/providers/language-provider";
 import { toBn, bnToEn } from "@/lib/report-utils";
 
@@ -63,10 +63,22 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
   const [localValue, setLocalValue] = useState(getInitialValue());
   const [isFocused, setIsFocused] = useState(false);
 
+  const isMountedRef = useRef(true);
+  const dirtyRef = useRef(false);
+  const latestValueRef = useRef(localValue);
+  const persistRef = useRef<() => void>(() => {});
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   // Update local value if data changes externally (e.g. on load) and user is not actively typing
   const currentVal = getInitialValue();
   useEffect(() => {
-    if (!isFocused) {
+    if (!isFocused && isMountedRef.current) {
       setLocalValue(currentVal);
     }
   }, [currentVal, isFocused]);
@@ -74,39 +86,62 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
   /** Persist to DB — normalises Bengali digits to ASCII and safely rounds numbers before saving. */
   const persist = useCallback(() => {
     const initial = getInitialValue();
-    if (localValue !== initial) {
+    const val = latestValueRef.current;
+    if (val !== initial) {
+      dirtyRef.current = false;
       if (type === "number") {
-        const cleaned = String(localValue).replace(/[,\s]/g, "");
+        const cleaned = String(val).replace(/[,\s]/g, "");
         const enStr = bnToEn(cleaned);
         const parsed = parseFloat(enStr);
         // Safely round floats to non-negative integers for PostgreSQL CHECK col >= 0
         const valueToSave = isNaN(parsed) ? "0" : String(Math.max(0, Math.round(parsed)));
         updateField(name, valueToSave, section, table, category);
       } else {
-        updateField(name, String(localValue).trim(), section, table, category);
+        updateField(name, String(val).trim(), section, table, category);
       }
     }
-  }, [localValue, getInitialValue, name, section, table, category, updateField, type]);
+  }, [getInitialValue, name, section, table, category, updateField, type]);
+
+  useEffect(() => {
+    latestValueRef.current = localValue;
+    dirtyRef.current = localValue !== getInitialValue();
+    persistRef.current = persist;
+  }, [localValue, getInitialValue, persist]);
+
+  const handleChange = useCallback((val: string) => {
+    setLocalValue(val);
+    latestValueRef.current = val;
+    dirtyRef.current = val !== getInitialValue();
+  }, [getInitialValue]);
 
   const handleBlur = useCallback(() => {
     setIsFocused(false);
     persist();
   }, [persist]);
 
-  // Task 2: flush dirty value on tab-hide or page unload (mobile-safe exit flush)
+  // Flush dirty value on tab-hide, page unload, or unmount (e.g. section tab switch)
   useEffect(() => {
     const onVisibility = () => {
-      if (document.visibilityState === "hidden") persist();
+      if (document.visibilityState === "hidden" && dirtyRef.current) {
+        persistRef.current();
+      }
     };
-    const onBeforeUnload = () => persist();
+    const onBeforeUnload = () => {
+      if (dirtyRef.current) {
+        persistRef.current();
+      }
+    };
 
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("beforeunload", onBeforeUnload);
     return () => {
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("beforeunload", onBeforeUnload);
+      if (dirtyRef.current) {
+        persistRef.current();
+      }
     };
-  }, [persist]);
+  }, []);
 
   // Task 3: numeric fields use type="text" + inputMode="numeric" to accept Bengali digits
   const isNumeric = type === "number";
@@ -124,7 +159,7 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
         enterKeyHint="next"
         value={localValue}
         onFocus={() => setIsFocused(true)}
-        onChange={(e) => setLocalValue(e.target.value)}
+        onChange={(e) => handleChange(e.target.value)}
         onBlur={handleBlur}
         placeholder={placeholder || (language === "bn" ? "০" : "0")}
         title={isFailed ? "সংরক্ষণ ব্যর্থ হয়েছে — পুনরায় চেষ্টা করুন" : undefined}
@@ -159,7 +194,7 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
           enterKeyHint="next"
           value={localValue}
           onFocus={() => setIsFocused(true)}
-          onChange={(e) => setLocalValue(e.target.value)}
+          onChange={(e) => handleChange(e.target.value)}
           onBlur={handleBlur}
           placeholder={placeholder}
           title={isFailed ? "সংরক্ষণ ব্যর্থ হয়েছে — পুনরায় চেষ্টা করুন" : undefined}
@@ -194,7 +229,7 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
         <textarea
           value={localValue}
           onFocus={() => setIsFocused(true)}
-          onChange={(e) => setLocalValue(e.target.value)}
+          onChange={(e) => handleChange(e.target.value)}
           onBlur={handleBlur}
           placeholder={placeholder}
           title={isFailed ? "সংরক্ষণ ব্যর্থ হয়েছে — পুনরায় চেষ্টা করুন" : undefined}
@@ -211,7 +246,7 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
           enterKeyHint="next"
           value={localValue}
           onFocus={() => setIsFocused(true)}
-          onChange={(e) => setLocalValue(e.target.value)}
+          onChange={(e) => handleChange(e.target.value)}
           onBlur={handleBlur}
           placeholder={placeholder}
           title={isFailed ? "সংরক্ষণ ব্যর্থ হয়েছে — পুনরায় চেষ্টা করুন" : undefined}

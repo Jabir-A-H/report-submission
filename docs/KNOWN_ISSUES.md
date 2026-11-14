@@ -68,6 +68,26 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ## Resolved Historical Issues
 
+### Track 3 High-Priority Behavioral & Ergonomic Fixes (ADR 026, C03-01, C04-01, C05-01, C05-04, C06-01, C06-05, C02-02)
+- **Date**: 2026-10-27
+- **Resolution Date**: 2026-11-14
+- **Affected Components**: `src/app/report/[section]/page.tsx`, `src/components/report/auto-save-field.tsx`, `src/app/(admin)/city-report/page.tsx`, `src/app/(admin)/management/actions.ts`, `src/app/api/export/pdf/route.tsx`, `src/components/admin/reports/city-report-pdf.tsx`, `src/app/layout.tsx`, `src/components/providers/language-provider.tsx`
+- **Description**:
+  1. **C03-01 (Form Unmount & Keyboard Focus Loss on Keystroke Blur)**: `page.tsx` included `data` and `t` in `useEffect` dependencies. Every auto-save keystroke blur mutated `data`, re-triggering `fetchActiveReport()`, setting `isLoading(true)`, and unmounting the active form, which collapsed mobile virtual keyboards and dropped input focus.
+  2. **C04-01 (Unmount Dirty-State Loss in AutoSaveField)**: Navigating to another section tab or collapsing a card unmounted `AutoSaveField` before `handleBlur` could persist, silently discarding pending edits.
+  3. **C05-01 (City Report Inline Period Selector Disappearance)**: `<select>` emitted canonical English tokens (`"quarterly"`), but JSX checks evaluated raw Bengali strings (`reportType === "ত্রৈমাসিক"`), causing the period dropdowns to vanish upon selection.
+  4. **C05-04 (Privilege Escalation & Self-Deletion Vulnerability)**: `deleteUserAction` never inspected the target account's role, allowing standard admins to delete superadmins, and omitted `supabaseUid` bypassed self-deletion checks.
+  5. **C06-01 & C06-05 (PDF Page 2 Height Budget Overflow & Dead Prototype)**: Stacked Maktab and Safar blocks on Page 2 consumed ~76 pt, causing multiline Section 5 comments to push signatures onto an unwanted Page 3. Dead client prototype `city-report-pdf.tsx` lingered in the tree with unrenderable `Helvetica` font.
+  6. **C02-02 (Flash of Incorrect Content / FOIC)**: `RootLayout` hardcoded `<html lang="bn">`, and `LanguageProvider` switched to English on client mount via `localStorage`, causing a visible language jump and layout shift on page reload.
+- **Fix Summary**:
+  1. **C03-01**: Decoupled `data`, `reportId`, and `t` from `useEffect` dependencies, isolating re-fetches strictly to URL routing primitives. Synchronized mutable refs outside render, guaranteeing continuous mobile soft keyboard stability.
+  2. **C04-01**: Implemented `dirtyRef`, `latestValueRef`, and synchronous unmount cleanup in `AutoSaveField`, guaranteeing zero dropped keystrokes on tab switches.
+  3. **C05-01**: Standardized `reportType` state on canonical English tokens (`"monthly"`, `"quarterly"`, etc.) and aligned downstream JSX checks.
+  4. **C05-04**: Upgraded `deleteUserAction` with service-role server lookup of target profile: blocked admins from deleting admins/superadmins, blocked self-deletion via dual UID/ID verification, and blocked deleting the last remaining superadmin.
+  5. **C06-01 & C06-05**: Rebalanced Page 2 in `pdf/route.tsx` with side-by-side Maktab and Safar summary blocks (`width: 49.2%`), saving ~44 pt and preventing Page 3 spillover. Quarantined dead prototype `city-report-pdf.tsx` to `.discard/city-report-pdf.tsx` under Rule 4.
+  6. **C02-02**: Converted `RootLayout` into an async Server Component reading `app-language` cookie on the server and passing `initialLanguage` to `<html lang>` and `LanguageProvider`, achieving 0ms FOIC.
+  7. Verified 100% pass across all 4 quality gates (43/43 unit tests passing, clean typecheck, clean lint, clean Turbopack build).
+
 ### Track 2 Core Infrastructure, Performance & Shared Data Loader (ADR 025, C07-01, C06-02, RS-03)
 - **Date**: 2026-10-27
 - **Resolution Date**: 2026-11-14

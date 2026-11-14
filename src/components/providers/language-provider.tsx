@@ -12,24 +12,35 @@ type LanguageContextType = {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguage] = useState<Language>("bn");
+export function LanguageProvider({
+  children,
+  initialLanguage = "bn",
+}: {
+  children: React.ReactNode;
+  initialLanguage?: Language;
+}) {
+  const [language, setLanguage] = useState<Language>(initialLanguage);
 
   // Persist language preference
   useEffect(() => {
     const savedLang = localStorage.getItem("app-language") as Language;
     if (savedLang && (savedLang === "bn" || savedLang === "en")) {
-      setLanguage(savedLang);
-      // RS-51: Sync <html lang> on initial load from localStorage
-      document.documentElement.lang = savedLang;
+      if (savedLang !== language) {
+        setLanguage(savedLang);
+        document.documentElement.lang = savedLang;
+        document.cookie = `app-language=${savedLang}; path=/; max-age=31536000; SameSite=Lax`;
+      }
+    } else {
+      localStorage.setItem("app-language", language);
+      document.cookie = `app-language=${language}; path=/; max-age=31536000; SameSite=Lax`;
     }
-  }, []);
+  }, [language]);
 
   const handleSetLanguage = (lang: Language) => {
     setLanguage(lang);
     localStorage.setItem("app-language", lang);
     document.documentElement.lang = lang;
-    document.cookie = `app-language=${lang}; path=/; max-age=31536000`;
+    document.cookie = `app-language=${lang}; path=/; max-age=31536000; SameSite=Lax`;
   };
 
   const t = translations[language];

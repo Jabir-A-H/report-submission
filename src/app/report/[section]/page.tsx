@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
 import { useReport, ReportProvider } from "@/components/report/report-context";
@@ -31,6 +31,17 @@ function SectionSwitcher() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const lastLoadedKeyRef = useRef<string | null>(null);
+  const tRef = useRef(t);
+  const reportIdRef = useRef(reportId);
+  const dataRef = useRef(data);
+
+  useEffect(() => {
+    tRef.current = t;
+    reportIdRef.current = reportId;
+    dataRef.current = data;
+  });
+
   // Extract selected period from URL params
   const typeParam = searchParams.get("type");
   const monthParam = searchParams.get("month");
@@ -57,6 +68,20 @@ function SectionSwitcher() {
       return;
     }
 
+    const periodKey = `${selectedType}-${selectedYear}-${selectedMonth}`;
+
+    // If report is already loaded into memory for this exact period, skip redundant re-fetch
+    if (
+      lastLoadedKeyRef.current === periodKey &&
+      reportIdRef.current &&
+      dataRef.current &&
+      Object.keys(dataRef.current).length > 0 &&
+      !loadError
+    ) {
+      setIsLoading(false);
+      return;
+    }
+
     let ignore = false;
 
     const fetchActiveReport = async () => {
@@ -72,7 +97,7 @@ function SectionSwitcher() {
 
       if (selectedYear > currentYear || (selectedYear === currentYear && targetMonth > currentMonth)) {
         if (!ignore) {
-          setError(t.futureReportError);
+          setError(tRef.current.futureReportError);
           setIsLoading(false);
         }
         return;
@@ -101,7 +126,7 @@ function SectionSwitcher() {
       }
 
       if (!person || !person.zone_id) {
-        setError(t.zoneNotAssigned);
+        setError(tRef.current.zoneNotAssigned);
         setIsLoading(false);
         return;
       }
@@ -117,13 +142,14 @@ function SectionSwitcher() {
       if (ignore) return;
       if (rpcErr || !repId) {
         console.error("Error initializing report:", rpcErr);
-        setError(t.reportLoadError);
+        setError(tRef.current.reportLoadError);
         setIsLoading(false);
         return;
       }
 
       // RS-23 Fix: If report is already in memory for this exact ID and has data, skip redundant re-fetch on section tab changes
-      if (reportId === repId && data && Object.keys(data).length > 0 && !loadError) {
+      if (reportIdRef.current === repId && dataRef.current && Object.keys(dataRef.current).length > 0 && !loadError) {
+        lastLoadedKeyRef.current = periodKey;
         if (!ignore) setIsLoading(false);
         return;
       }
@@ -132,7 +158,9 @@ function SectionSwitcher() {
       const res = await loadReport(repId);
       if (ignore) return;
       if (!res.success) {
-        setError(t.reportLoadError || "রিপোর্ট ডেটা লোড করতে সমস্যা হয়েছে। অনুগ্রহ করে পেজটি রিফ্রেশ করুন।");
+        setError(tRef.current.reportLoadError || "রিপোর্ট ডেটা লোড করতে সমস্যা হয়েছে। অনুগ্রহ করে পেজটি রিফ্রেশ করুন।");
+      } else {
+        lastLoadedKeyRef.current = periodKey;
       }
       if (!ignore) {
         setIsLoading(false);
@@ -144,7 +172,7 @@ function SectionSwitcher() {
     return () => {
       ignore = true;
     };
-  }, [typeParam, monthParam, yearParam, hasValidParams, supabase, router, setReportId, loadReport, reportId, data, loadError, t]);
+  }, [typeParam, monthParam, yearParam, hasValidParams, supabase, router, setReportId, loadReport, loadError]);
 
   const activeError = error || loadError;
 

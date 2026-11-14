@@ -267,7 +267,7 @@ export default function CityReportPage() {
   const supabase = useMemo(() => createClient(), []);
 
   // Period selection state
-  const [reportType, setReportType] = useState("মাসিক");
+  const [reportType, setReportType] = useState("monthly");
   const [month, setMonth] = useState(() => getDhakaDate().month);
   const [year, setYear] = useState(() => getDhakaDate().year);
   const [quarter, setQuarter] = useState(() => String(Math.ceil(getDhakaDate().month / 3)));
@@ -625,7 +625,7 @@ export default function CityReportPage() {
           </div>
 
           {/* Dynamic Month / Quarter / Half / Custom Range */}
-          {reportType === "মাসিক" && (
+          {reportType === "monthly" && (
             <div className="flex-1 space-y-2 w-full">
               <label className="text-sm font-bold text-muted-foreground">
                 {t.labels.monthLabel}
@@ -644,7 +644,7 @@ export default function CityReportPage() {
             </div>
           )}
 
-          {reportType === "ত্রৈমাসিক" && (
+          {reportType === "quarterly" && (
             <div className="flex-1 space-y-2 w-full">
               <label className="text-sm font-bold text-muted-foreground">
                 কোয়ার্টার
@@ -663,7 +663,7 @@ export default function CityReportPage() {
             </div>
           )}
 
-          {reportType === "ষান্মাসিক" && (
+          {reportType === "halfYearly" && (
             <div className="flex-1 space-y-2 w-full">
               <label className="text-sm font-bold text-muted-foreground">
                 ষান্মাসিক
@@ -682,7 +682,7 @@ export default function CityReportPage() {
             </div>
           )}
 
-          {reportType === "কাস্টম" && (
+          {reportType === "custom" && (
             <>
               <div className="flex-1 space-y-2 w-full">
                 <label className="text-sm font-bold text-muted-foreground">
@@ -719,13 +719,13 @@ export default function CityReportPage() {
             </>
           )}
 
-          {(reportType === "নয়-মাসিক" || reportType === "বার্ষিক") && (
+          {(reportType === "nineMonth" || reportType === "yearly") && (
             <div className="flex-1 space-y-2 w-full">
               <label className="text-sm font-bold text-muted-foreground">
                 সময়সীমা
               </label>
               <div className="h-[48px] px-4 flex items-center bg-muted/30 border border-border/50 rounded-xl text-sm font-semibold text-muted-foreground">
-                {reportType === "নয়-মাসিক" ? "জানুয়ারি – সেপ্টেম্বর" : "জানুয়ারি – ডিসেম্বর"}
+                {reportType === "nineMonth" ? "জানুয়ারি – সেপ্টেম্বর" : "জানুয়ারি – ডিসেম্বর"}
               </div>
             </div>
           )}
@@ -751,7 +751,7 @@ export default function CityReportPage() {
           {/* Go */}
           <button
             onClick={() => fetchData({ current: false })}
-            disabled={isLoading || activePeriod.isFuture || (reportType === "কাস্টম" && startMonth > endMonth)}
+            disabled={isLoading || activePeriod.isFuture || (reportType === "custom" && startMonth > endMonth)}
             className="modern-btn btn-primary h-[48px] px-8 flex items-center gap-2 group w-full md:w-auto justify-center disabled:opacity-60"
           >
             {isLoading ? (
@@ -772,7 +772,7 @@ export default function CityReportPage() {
             <span>ভবিষ্যতের মেয়াদের তথ্য এখনও তৈরি হয়নি। অনুগ্রহ করে চলমান বা অতীত মেয়াদ নির্বাচন করুন।</span>
           </div>
         )}
-        {reportType === "কাস্টম" && startMonth > endMonth && (
+        {reportType === "custom" && startMonth > endMonth && (
           <div className="mt-4 flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-xs font-bold text-red-600 dark:text-red-400">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>শুরু মাস শেষ মাসের চেয়ে পরে হতে পারে না।</span>
@@ -783,7 +783,7 @@ export default function CityReportPage() {
           <div className="mt-4 text-xs font-bold text-muted-foreground">
             {t.labels.showingPeriod}{" "}
             <span className="text-foreground">{periodLabel}</span>{" "}
-            <span className="text-primary">({reportType})</span>
+            <span className="text-primary">({REPORT_TYPES.find((rt) => rt.value === reportType)?.label || reportType})</span>
           </div>
         )}
       </div>
