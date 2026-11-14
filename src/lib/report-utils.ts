@@ -298,6 +298,27 @@ export function resolvePeriodConfig(input: {
   };
 }
 
+export function toFiniteNumber(val: unknown): number {
+  if (typeof val === "boolean" || val === null || val === undefined) return 0;
+  const en = typeof val === "string" ? bnToEn(val.trim()) : val;
+  const num = typeof en === "number" ? en : Number(en);
+  return Number.isFinite(num) ? num : 0;
+}
+
+export const NON_NUMERIC_KEYS = new Set([
+  "category",
+  "meeting_name",
+  "comments",
+  "id",
+  "report_id",
+  "created_at",
+  "updated_at",
+  "month",
+  "year",
+  "report_type",
+  "is_submitted",
+]);
+
 const ATTENDANCE_WEIGHT_PAIRS: Record<string, string> = {
   city_avg_attendance: "city_count",
   thana_avg_attendance: "thana_count",
@@ -317,28 +338,52 @@ export function sumRows<T>(
     const cat = ((row as any).category as string) || "__header__";
 
     if (!grouped.has(cat)) {
-      grouped.set(cat, { ...row });
+      const initial = { ...row } as any;
+      for (const k of numericKeys) {
+        if (!isAvgKey(k) && !NON_NUMERIC_KEYS.has(k)) {
+          initial[k] = toFiniteNumber(initial[k]);
+        }
+      }
+      grouped.set(cat, initial);
       weights.set(cat, {});
     } else {
       const existing = grouped.get(cat)!;
 
       // Sum standard numeric keys (non-averages)
       for (const k of numericKeys) {
-        if (!isAvgKey(k)) {
+        if (!isAvgKey(k) && !NON_NUMERIC_KEYS.has(k)) {
           (existing as any)[k] =
-            ((existing as any)[k] || 0) + ((row as any)[k] || 0);
+            toFiniteNumber((existing as any)[k]) + toFiniteNumber((row as any)[k]);
         }
       }
 
-      if ((row as any).meeting_name && (row as any).meeting_name.trim() !== "") {
-        if (!((existing as any).meeting_name || "").includes((row as any).meeting_name.trim())) {
-          (existing as any).meeting_name = [(existing as any).meeting_name, (row as any).meeting_name.trim()].filter(Boolean).join(", ");
-        }
+      if ((row as any).meeting_name && String((row as any).meeting_name).trim() !== "") {
+        const existingNames = ((existing as any).meeting_name || "")
+          .split(/\r?\n|,\s*/)
+          .map((s: string) => s.trim())
+          .filter(Boolean);
+        const newNames = String((row as any).meeting_name)
+          .split(/\r?\n|,\s*/)
+          .map((s: string) => s.trim())
+          .filter(Boolean);
+        const merged = Array.from(new Set([...existingNames, ...newNames]));
+        (existing as any).meeting_name = merged.join(", ");
       }
-      if ((row as any).comments && (row as any).comments.trim() !== "" && (row as any).comments.trim() !== "—") {
-        if (!((existing as any).comments || "").includes((row as any).comments.trim())) {
-          (existing as any).comments = [(existing as any).comments, (row as any).comments.trim()].filter(Boolean).join(", ");
-        }
+      if (
+        (row as any).comments &&
+        String((row as any).comments).trim() !== "" &&
+        String((row as any).comments).trim() !== "—"
+      ) {
+        const existingComments = ((existing as any).comments || "")
+          .split(/\r?\n|,\s*/)
+          .map((s: string) => s.trim())
+          .filter((s: string) => s && s !== "—");
+        const newComments = String((row as any).comments)
+          .split(/\r?\n|,\s*/)
+          .map((s: string) => s.trim())
+          .filter((s: string) => s && s !== "—");
+        const merged = Array.from(new Set([...existingComments, ...newComments]));
+        (existing as any).comments = merged.join(", ");
       }
     }
 
@@ -350,8 +395,8 @@ export function sumRows<T>(
           catWeights[k] = { totalAttendees: 0, totalCount: 0, reportCount: 0, sumAvg: 0 };
         }
         const countKey = ATTENDANCE_WEIGHT_PAIRS[k];
-        const count = Number((row as any)[countKey]) || 0;
-        const avg = Number((row as any)[k]) || 0;
+        const count = toFiniteNumber((row as any)[countKey]);
+        const avg = toFiniteNumber((row as any)[k]);
 
         if (count > 0) {
           catWeights[k].totalAttendees += count * avg;
@@ -414,12 +459,12 @@ export function sumHeaderRows<T extends Record<string, any>>(rows: T[]): T | nul
 
   // Flow deltas: sum across the multi-month period
   for (const k of HEADER_DELTA_KEYS) {
-    base[k] = sorted.reduce((sum, r) => sum + (Number(r[k]) || 0), 0);
+    base[k] = sorted.reduce((sum, r) => sum + toFiniteNumber(r[k]), 0);
   }
 
   // Stock snapshots: take the latest month's stock value
   for (const k of HEADER_SNAPSHOT_KEYS) {
-    base[k] = Number(latest[k]) || 0;
+    base[k] = toFiniteNumber(latest[k]);
   }
 
   return base as T;

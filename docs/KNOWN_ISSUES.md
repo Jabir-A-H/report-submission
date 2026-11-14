@@ -68,6 +68,24 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ## Resolved Historical Issues
 
+### Track 2 Core Infrastructure, Performance & Shared Data Loader (ADR 025, C07-01, C06-02, RS-03)
+- **Date**: 2026-10-27
+- **Resolution Date**: 2026-11-14
+- **Affected Components**: `src/lib/report-utils.ts`, `vercel.json`, `next.config.mjs`, `src/lib/report-data-loader.ts`, `src/app/api/export/pdf/route.tsx`, `src/app/api/export/excel/route.ts`
+- **Description**:
+  1. **C07-01 (`sumRows` Arithmetic String Concatenation & Numeral Safety)**: `sumRows()` accumulated values with naive `+`, causing string digits to concatenate (`"5" + 3 = "53"`), truthy zero strings (`"0" || 0`) to produce `"00"`, and naive `Number()` coercion to silently wipe Bengali numerals (`"১২"`) to 0 or crash string methods on text fields (`meeting_name`, `comments`).
+  2. **Transatlantic Compute Latency Cascade**: Vercel defaulted serverless functions to Washington D.C. (`iad1`) while Supabase PostgreSQL is in Sydney (`ap-southeast-2`), adding ~1.5s round-trip delay to multi-query export/SSR operations from Bangladesh.
+  3. **Serverless Font Missing on PDF Export (`ENOENT`)**: Dynamic `process.cwd()` in `Font.register` prevented `@vercel/nft` from bundling `kalpurush.ttf` into the serverless Lambda container, causing runtime 500 errors in production.
+  4. **C06-02 & Export Route Query Duplication (~500 lines)**: `pdf/route.tsx` and `excel/route.ts` duplicated ~500 lines of identical query, authentication, and override merging logic. When callers requested exports with English tokens (e.g. `type=quarterly`), Case B override queries against `city_report_override` dropped 100% of admin corrections because the database stores canonical Bengali strings (`ত্রৈমাসিক`).
+  5. **RS-03 (Header Snapshot Chronological Month Resolution)**: In multi-month single-zone aggregation, `report_header` lacked a native `month` column, causing `sumHeaderRows` to sort by `0 - 0 = 0` and resolve inventory snapshots from arbitrary row order rather than the latest month.
+- **Fix Summary**:
+  1. **C07-01**: Created `toFiniteNumber(val)` with `bnToEn()`, boolean defense (`true`/`false` -> `0`), and `Number.isFinite()` guards. Guarded initial category cloning and accumulation against string concatenation, and protected text accumulators with regex token splitting and `Set` deduplication.
+  2. **Regional Proximity**: Created root `vercel.json` with `{"regions": ["syd1"]}`, co-locating serverless functions with Supabase Sydney and dropping database round-trip latency to < 2ms.
+  3. **Font Asset Tracing**: Configured `outputFileTracingIncludes: { "/api/export/pdf": ["./public/fonts/kalpurush.ttf"] }` in `next.config.mjs`.
+  4. **C06-02 & Shared Loader**: Extracted `src/lib/report-data-loader.ts` exporting `loadReportDataBundle()`, consolidating query pipelines, override mappings, and period token normalization via `resolvePeriodConfig()`. Refactored `pdf/route.tsx` and `excel/route.ts` to consume the loader, eliminating ~586 lines of redundant code.
+  5. **RS-03**: Updated `monthlyReports` query to select `id, month`, constructed a `monthMap`, and enriched `rawHeader` rows before calling `sumHeaderRows()`. Added unit tests in `report-data-loader.test.ts`.
+  6. Verified 100% pass across all 4 quality gates (43/43 unit tests passing, clean typecheck, clean lint, clean build).
+
 ### Multi-Month Period Expansion, Custom Range Selector & Start-Month Future Lockout (ADR 022, RS-05, RS-06, KI-017)
 - **Date**: 2026-09-20
 - **Resolution Date**: 2026-10-21

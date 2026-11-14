@@ -37,6 +37,7 @@ import {
   sumRows,
   sumHeaderRows,
 } from "@/lib/report-utils";
+import { loadReportDataBundle } from "@/lib/report-data-loader";
 
 const styles = StyleSheet.create({
   page: {
@@ -724,8 +725,8 @@ export async function GET(request: Request) {
     const yearParam = searchParams.get("year");
     const monthParam = searchParams.get("month");
     const reportTypeParam = searchParams.get("type") || searchParams.get("report_type");
-
     const zoneIdParam = searchParams.get("zone_id");
+    const endMonthParam = searchParams.get("endMonth") || searchParams.get("end_month");
 
     const supabase = await createClient();
 
@@ -745,360 +746,50 @@ export async function GET(request: Request) {
       return new NextResponse("Forbidden", { status: 403 });
     }
 
-    const isAdmin = requesterProfile.role === "admin" || requesterProfile.role === "superadmin";
+    const { data: bundle, error } = await loadReportDataBundle(
+      supabase,
+      {
+        reportId: reportIdParam,
+        zoneId: zoneIdParam,
+        year: yearParam,
+        month: monthParam,
+        reportType: reportTypeParam,
+        endMonth: endMonthParam,
+      },
+      requesterProfile
+    );
 
-    let reportType = "মাসিক";
-    let periodLabel = "";
-    let zoneName = "";
-    let header: any = null;
-    let courses: any[] = [];
-    let org: any[] = [];
-    let personal: any[] = [];
-    let meetings: any[] = [];
-    let extras: any[] = [];
-    let comment: any = null;
-    let isCityAgg = false;
-    let filename = "Report.pdf";
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // CASE A: Export Single Zone Report PDF (Or Zone Aggregated Report)
-    // ─────────────────────────────────────────────────────────────────────────
-    if (reportIdParam || zoneIdParam) {
-      if (reportIdParam) {
-        const repId = Number(reportIdParam);
-        if (!Number.isInteger(repId) || repId <= 0) {
-          return new NextResponse("Invalid report_id", { status: 400 });
-        }
-
-        // Fetch main report record with zone name
-        const { data: report, error: repError } = await supabase
-          .from("report")
-          .select("*, zone(name)")
-          .eq("id", repId)
-          .single();
-
-        if (repError || !report) {
-          return new NextResponse("Report not found", { status: 404 });
-        }
-
-        if (!isAdmin && report.zone_id !== requesterProfile.zone_id) {
-          return new NextResponse("Forbidden", { status: 403 });
-        }
-
-        zoneName = report.zone?.name || "—";
-        reportType = report.report_type;
-        periodLabel = report.report_type === "মাসিক" 
-          ? `${MONTHS_BN[report.month - 1]} ${report.year}`
-          : `${report.report_type} (${report.year})`;
-        filename = `${zoneName}_Report_${report.month}_${report.year}.pdf`;
-
-        // Fetch sections
-        const [
-          headerRes,
-          coursesRes,
-          orgRes,
-          personalRes,
-          meetingRes,
-          extraRes,
-          commentRes,
-        ] = await Promise.all([
-          supabase.from("report_header").select("*").eq("report_id", repId).maybeSingle(),
-          supabase.from("report_course").select("*").eq("report_id", repId),
-          supabase.from("report_organizational").select("*").eq("report_id", repId),
-          supabase.from("report_personal").select("*").eq("report_id", repId),
-          supabase.from("report_meeting").select("*").eq("report_id", repId),
-          supabase.from("report_extra").select("*").eq("report_id", repId),
-          supabase.from("report_comment").select("*").eq("report_id", repId).maybeSingle(),
-        ]);
-
-        header = headerRes.data;
-        courses = coursesRes.data || [];
-        org = orgRes.data || [];
-        personal = personalRes.data || [];
-        meetings = meetingRes.data || [];
-        extras = extraRes.data || [];
-        comment = commentRes.data;
-      } else {
-        const targetZoneId = Number(zoneIdParam);
-        const targetYear = Number(yearParam);
-        const targetMonth = Number(monthParam || 1);
-        const targetReportType = DB_TYPE_MAP[reportTypeParam || "monthly"] || "মাসিক";
-
-        if (!Number.isInteger(targetZoneId) || targetZoneId <= 0) {
-          return new NextResponse("Invalid zone_id", { status: 400 });
-        }
-        if (!Number.isInteger(targetYear) || targetYear < 2000) {
-          return new NextResponse("Invalid year", { status: 400 });
-        }
-        if (!Number.isInteger(targetMonth) || targetMonth < 1 || targetMonth > 12) {
-          return new NextResponse("Invalid month", { status: 400 });
-        }
-        if (!isAdmin && targetZoneId !== requesterProfile.zone_id) {
-          return new NextResponse("Forbidden", { status: 403 });
-        }
-
-        // Fetch zone name
-        const { data: zoneObj } = await supabase
-          .from("zone")
-          .select("name")
-          .eq("id", targetZoneId)
-          .single();
-        
-        zoneName = zoneObj?.name || "—";
-        reportType = targetReportType;
-
-        periodLabel = targetReportType === "মাসিক" 
-          ? `${MONTHS_BN[targetMonth - 1]} ${targetYear}`
-          : `${targetReportType} (${targetYear})`;
-        filename = `${zoneName}_Report_${targetMonth}_${targetYear}.pdf`;
-
-        const endMonthParam = searchParams.get("endMonth") || searchParams.get("end_month");
-        const monthsRange = getMonthsForPeriod(targetReportType, targetMonth, endMonthParam ? Number(endMonthParam) : undefined);
-        
-        // Query monthly reports for the target zone, year, and months range
-        const { data: monthlyReports } = await supabase
-          .from("report")
-          .select("id")
-          .eq("zone_id", targetZoneId)
-          .eq("year", targetYear)
-          .eq("report_type", "মাসিক")
-          .in("month", monthsRange);
-
-        if (monthlyReports && monthlyReports.length > 0) {
-          const reportIds = monthlyReports.map(r => r.id);
-
-          const [
-            headerRes,
-            coursesRes,
-            orgRes,
-            personalRes,
-            meetingRes,
-            extraRes,
-            commentRes,
-          ] = await Promise.all([
-            supabase.from("report_header").select("*").in("report_id", reportIds),
-            supabase.from("report_course").select("*").in("report_id", reportIds),
-            supabase.from("report_organizational").select("*").in("report_id", reportIds),
-            supabase.from("report_personal").select("*").in("report_id", reportIds),
-            supabase.from("report_meeting").select("*").in("report_id", reportIds),
-            supabase.from("report_extra").select("*").in("report_id", reportIds),
-            supabase.from("report_comment").select("*").in("report_id", reportIds),
-          ]);
-
-          const rawHeader = headerRes.data || [];
-          const rawCourse = coursesRes.data || [];
-          const rawOrg = orgRes.data || [];
-          const rawPersonal = personalRes.data || [];
-          const rawMeeting = meetingRes.data || [];
-          const rawExtra = extraRes.data || [];
-          const rawComment = commentRes.data || [];
-
-          header = sumHeaderRows(rawHeader) || {};
-          courses = sumRows(rawCourse, [
-            "number", "increase", "decrease", "sessions", "students",
-            "attendance", "status_board", "status_qayda", "status_ampara",
-            "status_quran", "completed", "correctly_learned"
-          ]);
-          org = sumRows(rawOrg, ["number", "increase", "amount"]);
-          personal = sumRows(rawPersonal, [
-            "teaching", "learning", "olama_invited", "became_shohojogi",
-            "became_sokrio_shohojogi", "became_kormi", "became_rukon"
-          ]);
-          meetings = sumRows(rawMeeting, [
-            "city_count", "city_avg_attendance", "thana_count",
-            "thana_avg_attendance", "ward_count", "ward_avg_attendance"
-          ]);
-          extras = sumRows(rawExtra, ["number"]);
-          comment = {
-            comment: rawComment.map(c => c.comment).filter(c => c && c.trim() !== "").join("\n")
-          };
-        }
-      }
-    } 
-    // ─────────────────────────────────────────────────────────────────────────
-    // CASE B: Export City Aggregated Report PDF
-    // ─────────────────────────────────────────────────────────────────────────
-    else {
-      if (!isAdmin) {
-        return new NextResponse("Forbidden", { status: 403 });
-      }
-
-      isCityAgg = true;
-      const year = yearParam ? Number(yearParam) : getDhakaDate().year;
-      const month = monthParam ? Number(monthParam) : getDhakaDate().month;
-      reportType = reportTypeParam || "মাসিক";
-
-      const months = getMonthsForPeriod(reportType, month);
-      const isMultiMonth = months.length > 1;
-      const queryReportType = "মাসিক";
-
-      filename = `City_Report_${reportType}_${month}_${year}.pdf`;
-
-      // Fetch views + overrides
-      const [
-        headerRes,
-        courseRes,
-        orgRes,
-        personalRes,
-        meetingRes,
-        extraRes,
-        overrideRes,
-      ] = await Promise.all([
-        supabase.from("view_city_header_agg").select("*").eq("year", year).in("month", months).eq("report_type", queryReportType),
-        supabase.from("view_city_course_agg").select("*").eq("year", year).in("month", months).eq("report_type", queryReportType),
-        supabase.from("view_city_organizational_agg").select("*").eq("year", year).in("month", months).eq("report_type", queryReportType),
-        supabase.from("view_city_personal_agg").select("*").eq("year", year).in("month", months).eq("report_type", queryReportType),
-        supabase.from("view_city_meeting_agg").select("*").eq("year", year).in("month", months).eq("report_type", queryReportType),
-        supabase.from("view_city_extra_agg").select("*").eq("year", year).in("month", months).eq("report_type", queryReportType),
-        supabase.from("city_report_override").select("*").eq("year", year).eq("report_type", reportType).in("month", months),
-      ]);
-
-      const rawHeader = headerRes.data || [];
-      const computedHeader = isMultiMonth ? sumHeaderRows(rawHeader) : rawHeader[0] || null;
-
-      const rawCourse = courseRes.data || [];
-      const computedCourse = isMultiMonth ? sumRows(rawCourse, [
-        "number", "increase", "decrease", "sessions", "students", "attendance",
-        "status_board", "status_qayda", "status_ampara", "status_quran", "completed", "correctly_learned"
-      ]) : rawCourse;
-
-      const rawOrg = orgRes.data || [];
-      const computedOrg = isMultiMonth ? sumRows(rawOrg, ["number", "increase", "amount"]) : rawOrg;
-
-      const rawPersonal = personalRes.data || [];
-      const computedPersonal = isMultiMonth ? sumRows(rawPersonal, [
-        "teaching", "learning", "olama_invited", "became_shohojogi", 
-        "became_sokrio_shohojogi", "became_kormi", "became_rukon"
-      ]) : rawPersonal;
-
-      const rawMeeting = meetingRes.data || [];
-      const computedMeeting = isMultiMonth ? sumRows(rawMeeting, [
-        "city_count", "city_avg_attendance", "thana_count", "thana_avg_attendance",
-        "ward_count", "ward_avg_attendance"
-      ]) : rawMeeting;
-
-      const rawExtra = extraRes.data || [];
-      const computedExtra = isMultiMonth ? sumRows(rawExtra, ["number"]) : rawExtra;
-
-      // Map overrides
-      const overrides = overrideRes.data || [];
-      const overrideMap = new Map<string, string>();
-      overrides.forEach((o) => {
-        const key = `${o.section}:${o.field}:${o.category || ""}`;
-        overrideMap.set(key, o.value);
-      });
-
-      const getVal = (section: string, field: string, computed: number, cat?: string) => {
-        const key = `${section}:${field}:${cat || ""}`;
-        const ov = overrideMap.get(key);
-        return ov !== undefined ? Number(ov) : (computed || 0);
-      };
-
-      periodLabel = isMultiMonth
-        ? `${MONTHS_BN[months[0] - 1]} - ${MONTHS_BN[months[months.length - 1] - 1]} ${year}`
-        : `${MONTHS_BN[month - 1]} ${year}`;
-
-      // Set aggregated data incorporating overrides
-      if (computedHeader) {
-        header = {};
-        const headerKeys = [
-          "total_muallima", "muallima_increase", "muallima_decrease", "certified_muallima",
-          "certified_muallima_taking_classes", "trained_muallima", "trained_muallima_taking_classes",
-          "total_unit", "units_with_muallima"
-        ];
-        headerKeys.forEach((k) => {
-          header[k] = getVal("header", k, computedHeader[k] || 0);
-        });
-      }
-
-      courses = COURSE_CATEGORIES.map((cat) => {
-        const item = computedCourse.find((x) => x.category === cat) || {};
-        const resolved: any = { category: cat };
-        const keys = [
-          "number", "increase", "decrease", "sessions", "students", "attendance",
-          "status_board", "status_qayda", "status_ampara", "status_quran", "completed", "correctly_learned"
-        ];
-        keys.forEach((k) => {
-          resolved[k] = getVal("courses", k, item[k] || 0, cat);
-        });
-        return resolved;
-      });
-
-      org = ORG_CATEGORIES.map((cat) => {
-        const item = computedOrg.find((x) => x.category === cat) || {};
-        return {
-          category: cat,
-          number: getVal("organizational", "number", item.number || 0, cat),
-          increase: getVal("organizational", "increase", item.increase || 0, cat),
-          amount: getVal("organizational", "amount", item.amount || 0, cat),
-          comments: item.comments || "",
-        };
-      });
-
-      personal = PERSONAL_CATEGORIES.map((cat) => {
-        const item = computedPersonal.find((x) => x.category === cat) || {};
-        return {
-          category: cat,
-          teaching: getVal("personal", "teaching", item.teaching || 0, cat),
-          learning: getVal("personal", "learning", item.learning || 0, cat),
-          olama_invited: getVal("personal", "olama_invited", item.olama_invited || 0, cat),
-          became_shohojogi: getVal("personal", "became_shohojogi", item.became_shohojogi || 0, cat),
-          became_sokrio_shohojogi: getVal("personal", "became_sokrio_shohojogi", item.became_sokrio_shohojogi || 0, cat),
-          became_kormi: getVal("personal", "became_kormi", item.became_kormi || 0, cat),
-          became_rukon: getVal("personal", "became_rukon", item.became_rukon || 0, cat),
-        };
-      });
-
-      meetings = MEETING_CATEGORIES.map((cat) => {
-        const item = computedMeeting.find((x) => x.category === cat) || {};
-        return {
-          category: cat,
-          city_count: getVal("meetings", "city_count", item.city_count || 0, cat),
-          city_avg_attendance: getVal("meetings", "city_avg_attendance", item.city_avg_attendance || 0, cat),
-          thana_count: getVal("meetings", "thana_count", item.thana_count || 0, cat),
-          thana_avg_attendance: getVal("meetings", "thana_avg_attendance", item.thana_avg_attendance || 0, cat),
-          ward_count: getVal("meetings", "ward_count", item.ward_count || 0, cat),
-          ward_avg_attendance: getVal("meetings", "ward_avg_attendance", item.ward_avg_attendance || 0, cat),
-          meeting_name: item.meeting_name || "",
-          comments: item.comments || "",
-        };
-      });
-
-      extras = EXTRA_CATEGORIES.map((cat) => {
-        const item = computedExtra.find((x) => x.category === cat) || {};
-        return {
-          category: cat,
-          number: getVal("extras", "number", item.number || 0, cat),
-        };
-      });
+    if (error || !bundle) {
+      return new NextResponse(error?.message || "Data loading failed", { status: error?.status || 400 });
     }
 
     // ── Generate PDF Buffer ──
     const pdfBuffer = await renderToBuffer(
       <ReportPDFDocument
-        reportType={reportType}
-        periodLabel={periodLabel}
-        zoneName={zoneName}
-        header={header}
-        courses={courses}
-        org={org}
-        personal={personal}
-        meetings={meetings}
-        extras={extras}
-        comment={comment}
-        isCityAgg={isCityAgg}
+        reportType={bundle.reportType}
+        periodLabel={bundle.periodLabel}
+        zoneName={bundle.zoneName}
+        header={bundle.header}
+        courses={bundle.courses}
+        org={bundle.org}
+        personal={bundle.personal}
+        meetings={bundle.meetings}
+        extras={bundle.extras}
+        comment={bundle.comment}
+        isCityAgg={bundle.isCityAgg}
       />
     );
 
+    const filename = String(bundle.filenameBase) + ".pdf";
     const encodedFilename = encodeURIComponent(filename).replace(
       /['()!*]/g,
-      (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`
+      (c) => "%" + c.charCodeAt(0).toString(16).toUpperCase()
     );
     const asciiFallback = filename.replace(/[^\x20-\x7E]/g, "").trim() || "report.pdf";
 
     return new NextResponse(pdfBuffer as any, {
       headers: {
-        "Content-Disposition": `attachment; filename="${asciiFallback}"; filename*=UTF-8''${encodedFilename}`,
+        "Content-Disposition": "attachment; filename=\"" + asciiFallback + "\"; filename*=UTF-8''" + encodedFilename,
         "Content-Type": "application/pdf",
       },
     });

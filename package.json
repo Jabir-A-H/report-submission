@@ -1,6 +1,6 @@
 {
   "name": "talimul-quran-report-submission",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "private": true,
   "description": "A dual-language (Bengali & English) organizational reporting platform. Replaces manual spreadsheets with instant auto-save forms, multi-period zone assessments, real-time city-wide aggregation, and print-ready PDF & Excel exports—effortlessly usable from mobile or desktop.",
   "author": "Jabir A.H <jabir@example.com>",
@@ -28,7 +28,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint src",
-    "test": "node --test src/lib/report-utils.test.ts src/lib/date-utils.test.ts"
+    "test": "node --test src/lib/report-utils.test.ts src/lib/date-utils.test.ts src/lib/report-data-loader.test.ts"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.3.2",

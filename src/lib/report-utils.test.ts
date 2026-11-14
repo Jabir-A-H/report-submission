@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   toBn,
   bnToEn,
+  toFiniteNumber,
   getMonthsForPeriod,
   getOverrideMonthForPeriod,
   resolvePeriodConfig,
@@ -60,6 +61,42 @@ describe('report-utils', () => {
       assert.equal(parsed, 12.5);
       const rounded = Math.round(parsed);
       assert.equal(rounded, 13);
+    });
+  });
+
+  describe('toFiniteNumber', () => {
+    it('converts numbers and numeric strings to finite numbers', () => {
+      assert.equal(toFiniteNumber(5), 5);
+      assert.equal(toFiniteNumber('5'), 5);
+      assert.equal(toFiniteNumber('12.5'), 12.5);
+      assert.equal(toFiniteNumber(0), 0);
+      assert.equal(toFiniteNumber('0'), 0);
+    });
+
+    it('converts Bengali digit strings to ASCII numbers', () => {
+      assert.equal(toFiniteNumber('১২'), 12);
+      assert.equal(toFiniteNumber('৩'), 3);
+      assert.equal(toFiniteNumber('১২.৫'), 12.5);
+      assert.equal(toFiniteNumber('০'), 0);
+    });
+
+    it('protects against boolean coercion (returns 0 for true/false)', () => {
+      assert.equal(toFiniteNumber(true), 0);
+      assert.equal(toFiniteNumber(false), 0);
+    });
+
+    it('handles null, undefined, empty strings, and whitespace', () => {
+      assert.equal(toFiniteNumber(null), 0);
+      assert.equal(toFiniteNumber(undefined), 0);
+      assert.equal(toFiniteNumber(''), 0);
+      assert.equal(toFiniteNumber('   '), 0);
+    });
+
+    it('returns 0 for non-numeric strings, NaN, and Infinity', () => {
+      assert.equal(toFiniteNumber('abc'), 0);
+      assert.equal(toFiniteNumber(NaN), 0);
+      assert.equal(toFiniteNumber(Infinity), 0);
+      assert.equal(toFiniteNumber(-Infinity), 0);
     });
   });
 
@@ -308,6 +345,71 @@ describe('report-utils', () => {
       const result = sumRows(rows, ['number']);
       assert.equal(result[0].number, 3);
       assert.equal(result[0].meeting_name, 'কুরআন সেমিনার, কুরআন প্রতিযোগিতা');
+    });
+
+    it('defends against string number concatenation ("5" + 3 -> 8, not "53")', () => {
+      const rows = [
+        { category: 'কর্মী', teaching: '5', learning: '10' },
+        { category: 'কর্মী', teaching: 3, learning: '15' },
+      ];
+      const result = sumRows(rows, ['teaching', 'learning']);
+      assert.equal(result.length, 1);
+      assert.equal(result[0].teaching, 8);
+      assert.equal(result[0].learning, 25);
+    });
+
+    it('sums Bengali digits properly ("১২" + "৩" -> 15)', () => {
+      const rows = [
+        { category: 'কর্মী', teaching: '১২', learning: '৫' },
+        { category: 'কর্মী', teaching: '৩', learning: '১৫' },
+      ];
+      const result = sumRows(rows, ['teaching', 'learning']);
+      assert.equal(result.length, 1);
+      assert.equal(result[0].teaching, 15);
+      assert.equal(result[0].learning, 20);
+    });
+
+    it('protects against boolean coercion (true/false becomes 0, not 1)', () => {
+      const rows = [
+        { category: 'কর্মী', teaching: true as any, learning: false as any },
+        { category: 'কর্মী', teaching: 5, learning: 10 },
+      ];
+      const result = sumRows(rows, ['teaching', 'learning']);
+      assert.equal(result.length, 1);
+      assert.equal(result[0].teaching, 5);
+      assert.equal(result[0].learning, 10);
+    });
+
+    it('handles null, undefined, and empty string without NaN or string concatenation', () => {
+      const rows = [
+        { category: 'কর্মী', teaching: null as any, learning: '' as any },
+        { category: 'কর্মী', teaching: undefined as any, learning: '   ' as any },
+        { category: 'কর্মী', teaching: 7, learning: 12 },
+      ];
+      const result = sumRows(rows, ['teaching', 'learning']);
+      assert.equal(result.length, 1);
+      assert.equal(result[0].teaching, 7);
+      assert.equal(result[0].learning, 12);
+    });
+
+    it('deduplicates meeting names without substring false-positives', () => {
+      const rows = [
+        { category: 'অন্যান্য', meeting_name: 'কুরআন সেমিনার' },
+        { category: 'অন্যান্য', meeting_name: 'সেমিনার' }, // Should NOT be dropped as a substring
+        { category: 'অন্যান্য', meeting_name: 'কুরআন সেমিনার' }, // Duplicate, should be dropped
+      ];
+      const result = sumRows(rows, []);
+      assert.equal(result[0].meeting_name, 'কুরআন সেমিনার, সেমিনার');
+    });
+
+    it('deduplicates multi-line and comma-separated comments', () => {
+      const rows = [
+        { category: 'কর্মী', comments: 'ভালো অগ্রগতি\nনিয়মিত তদারকি প্রয়োজন' },
+        { category: 'কর্মী', comments: 'নিয়মিত তদারকি প্রয়োজন\nনতুন উদ্যোগ গৃহীত' },
+        { category: 'কর্মী', comments: '—' },
+      ];
+      const result = sumRows(rows, []);
+      assert.equal(result[0].comments, 'ভালো অগ্রগতি, নিয়মিত তদারকি প্রয়োজন, নতুন উদ্যোগ গৃহীত');
     });
   });
 });

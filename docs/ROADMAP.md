@@ -148,10 +148,10 @@
 
 ### Tier 11: Architectural Confirmation & Pre-Production Reconciliation (Planned — ADR 024, 2026-11-07)
 - [ ] **Canonical `reportId` Sub-Section Navigation (RS-60, ADR 024)**: Transition `/report/[section]` links to canonical database ID pointers (`?reportId=42`) with automated fallback resolver for bare URLs, eliminating tab desync and redundant RPC re-queries.
-- [ ] **Query-Layer Header Snapshot Attachment (RS-03, ADR 024)**: Attach parent `report.month` during data-fetching in `report/page.tsx` and export routes so `sumHeaderRows` sorts chronologically for stock metrics.
+- [x] **Query-Layer Header Snapshot Attachment (RS-03, ADR 024, ADR 025)**: Attach parent `report.month` during data-fetching in `src/lib/report-data-loader.ts` so `sumHeaderRows` sorts chronologically for stock metrics.
 - [ ] **PDF Export 2-Page Print Budget Rebalance (C06-01, ADR 024)**: Move Maktab Summary block to bottom of Page 1 (~478 pt Page 1, ~513 pt Page 2) to eliminate unwanted 3rd page spillover per ADR 007.
-- [ ] **Unified Export Data Loader (ADR 024)**: Extract `src/lib/report-data-loader.ts` to deduplicate ~500 lines of query and override logic across PDF and Excel routes, guaranteeing format calculation parity.
-- [ ] **Vercel Compute Proximity Pinning (ADR 024)**: Add root `vercel.json` with `"regions": ["syd1"]` to co-locate serverless execution with Supabase Sydney (`ap-southeast-2`), dropping DB round-trip latency to < 2ms.
+- [x] **Unified Export Data Loader (ADR 024, ADR 025)**: Extract `src/lib/report-data-loader.ts` to deduplicate ~500 lines of query and override logic across PDF and Excel routes, guaranteeing format calculation parity.
+- [x] **Vercel Compute Proximity Pinning (ADR 024, ADR 025)**: Add root `vercel.json` with `"regions": ["syd1"]` to co-locate serverless execution with Supabase Sydney (`ap-southeast-2`), dropping DB round-trip latency to < 2ms.
 - [ ] **Strict 2-Tier Role Hierarchy Guard (C05-04, ADR 024)**: Enforce role-hierarchy checks in `deleteUserAction` (admins can only delete standard users, superadmins protected, self-deletion blocked).
 - [ ] **Section Forms Ergonomics (C04-02 / C04-04, ADR 024)**: Add live computed `মোট` (Total) badge column in `personal-form.tsx` table mode; preserve `organizational-form.tsx` existing 2 view modes (`table` and `card`) without forcing accordions.
 - [ ] **RootLayout Server Cookie Language Sync (C02-02, ADR 024)**: Read `app-language` cookie on server in `RootLayout` and pass `initialLanguage` to `LanguageProvider` and `<html lang={lang}>`, eliminating Flash of Incorrect Content (FOIC).
@@ -177,6 +177,14 @@
 - [x] **Prune Quadruplicate ViewModeProvider Wrappers**: Removed redundant inner `<ViewModeProvider>` wrappers from `personal-form.tsx`, `courses-form.tsx`, `organizational-form.tsx`, and `meetings-form.tsx`, relying on the parent `SectionLayout` context.
 - [x] **Prune Dual-String Backward-Compatibility Matchers**: Replaced defensive multi-clause OR conditions across `report/page.tsx`, `city-report/page.tsx`, `pdf/route.tsx`, and `excel/route.ts` with strict canonical equality (`r.category === cat`).
 - [x] **Multi-Subagent Adversarial Validation**: Managed by Track 1 Lead Manager with two worker subagents, two adversarial critique agents, and a fixer agent. Verified 100% green across all 4 quality gates (`npm test`, `tsc`, `lint`, Turbopack `build`).
+
+### Tier 15: Track 2 Core Infrastructure, Performance & Utilities (Completed — 2026-11-14 — ADR 025)
+- [x] **Hardened `sumRows` Arithmetic & Numeral Protection**: Added `toFiniteNumber(val)` with `bnToEn()`, boolean defense (`true`/`false` -> `0`), `Number.isFinite()` guards, and `NON_NUMERIC_KEYS` whitelist protection in `src/lib/report-utils.ts`. Completely eliminated string concatenation (`"5" + 3 = "53"`) and silent Bengali numeral erasure. Deduplicated meeting names and multi-line comments via regex tokenization and `Set`.
+- [x] **Serverless Compute Proximity Pinning (`syd1`)**: Created root `vercel.json` with `{"regions": ["syd1"]}`, co-locating serverless execution with Supabase Sydney (`ap-southeast-2`) and dropping function-to-database latency to < 2ms.
+- [x] **Serverless Font Asset Tracing (`kalpurush.ttf`)**: Added `outputFileTracingIncludes` for `/api/export/pdf` in `next.config.mjs`, ensuring `kalpurush.ttf` is bundled into the serverless container and eliminating production `ENOENT` crashes.
+- [x] **Unified Export Data Loader (`src/lib/report-data-loader.ts`)**: Extracted `loadReportDataBundle()`, consolidating single-zone and city-aggregation pipelines, override merging, and canonical Bengali period resolution. Pruned ~586 lines of duplicate query logic across `pdf/route.tsx` and `excel/route.ts`.
+- [x] **Adversarial Month Snapshot Remediation (RS-03)**: Spliced parent `report.month` into `rawHeader` before calling `sumHeaderRows()`, guaranteeing correct chronological sorting and latest-month inventory snapshot selection.
+- [x] **Automated Test Expansion & Quality Gates**: Expanded unit tests to 43/43 passing across 3 suites (`report-utils.test.ts`, `date-utils.test.ts`, `report-data-loader.test.ts`). All 4 gates verified green (`tsc`, `lint`, `test`, `build`).
 
 ## Phase 4: Post-Stabilization Feature Expansion
 - [x] **Google OAuth Sign-In (ADR 017)**: Integrated Supabase Google OAuth into `/home` (`AuthPortalClient`, `RegisterFormClient`) with automatic verified email account linking and Bengali error translation.

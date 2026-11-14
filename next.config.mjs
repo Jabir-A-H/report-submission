@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  outputFileTracingIncludes: {
+    "/api/export/pdf": ["./public/fonts/kalpurush.ttf"],
+  },
   async headers() {
     return [
       {
