@@ -135,6 +135,7 @@ export async function loadReportDataBundle(
         .select("*")
         .eq("year", year)
         .eq("report_type", dbType)
+        .eq("end_month", isMultiMonth ? (activePeriod?.endMonth || 0) : 0)
         .in("month", months),
     ]);
 

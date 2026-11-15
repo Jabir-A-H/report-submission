@@ -24,7 +24,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-import { deleteUserAction } from "./actions";
+import { deleteUserAction, toggleUserActiveAction, changeUserZoneAction } from "./actions";
 import { useLanguage } from "@/components/providers/language-provider";
 
 // ─── Types ───────────────────────────────────────────────────────────
@@ -35,8 +35,8 @@ type Person = {
   email: string;
   role: string;
   active: boolean | null;
-  zone_id: number;
-  zone?: { name: string };
+  zone_id: number | null;
+  zone?: { name: string } | null;
   supabase_uid: string | null;
 };
 
@@ -130,32 +130,34 @@ export default function ManagementPage() {
 
   // ── User actions ──
   async function toggleActive(user: Person) {
+    if (!user.active && !user.zone_id) {
+      alert("ইউজার সক্রিয় করার পূর্বে অনুগ্রহ করে জোন নির্ধারণ করুন।");
+      return;
+    }
     setUserActionLoading(user.id);
-    const { error } = await supabase
-      .from("people")
-      .update({ active: !user.active })
-      .eq("id", user.id);
-    if (!error) {
+    const res = await toggleUserActiveAction(user.id);
+    if (res.success && res.active !== undefined) {
       setUsers((prev) =>
-        prev.map((u) => (u.id === user.id ? { ...u, active: !u.active } : u))
+        prev.map((u) => (u.id === user.id ? { ...u, active: res.active! } : u))
       );
+    } else if (!res.success) {
+      alert("ইউজারের স্ট্যাটাস পরিবর্তন করতে ব্যর্থ হয়েছে: " + (res.error || "অজ্ঞাত ত্রুটি"));
     }
     setUserActionLoading(null);
   }
 
-  async function changeZone(userId: number, newZoneId: number) {
+  async function changeZone(userId: number, newZoneId: number | null) {
     setUserActionLoading(userId);
-    const { error } = await supabase
-      .from("people")
-      .update({ zone_id: newZoneId })
-      .eq("id", userId);
-    if (!error) {
-      const zoneName = userZones.find((z) => z.id === newZoneId)?.name || "";
+    const res = await changeUserZoneAction(userId, newZoneId);
+    if (res.success) {
+      const zoneName = newZoneId ? userZones.find((z) => z.id === newZoneId)?.name || "" : "";
       setUsers((prev) =>
         prev.map((u) =>
-          u.id === userId ? { ...u, zone_id: newZoneId, zone: { name: zoneName } } : u
+          u.id === userId ? { ...u, zone_id: newZoneId, zone: newZoneId ? { name: zoneName } : null } : u
         )
       );
+    } else {
+      alert("জোন পরিবর্তন করতে ব্যর্থ হয়েছে: " + (res.error || "অজ্ঞাত ত্রুটি"));
     }
     setUserActionLoading(null);
   }
@@ -572,11 +574,15 @@ export default function ManagementPage() {
                     <MapPin className="w-3 h-3" /> জোন
                   </p>
                   <select
-                    value={user.zone_id}
-                    onChange={(e) => changeZone(user.id, parseInt(e.target.value))}
+                    value={user.zone_id ?? ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      changeZone(user.id, val ? parseInt(val) : null);
+                    }}
                     disabled={userActionLoading === user.id}
                     className="w-full p-2 text-sm bg-muted/30 border border-border rounded-xl font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all appearance-none cursor-pointer disabled:opacity-50"
                   >
+                    <option value="">জোন নির্ধারণ করুন...</option>
                     {userZones.map((z) => (
                       <option key={z.id} value={z.id}>
                         {z.name}
@@ -602,9 +608,12 @@ export default function ManagementPage() {
                     <button
                       onClick={() => toggleActive(user)}
                       disabled={userActionLoading === user.id}
+                      title={!user.active && !user.zone_id ? "সক্রিয় করার আগে জোন নির্বাচন করুন" : ""}
                       className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all disabled:opacity-50 cursor-pointer ${
                         user.active
                           ? "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20"
+                          : !user.zone_id
+                          ? "bg-muted text-muted-foreground hover:bg-muted/80 cursor-not-allowed"
                           : "bg-green-500/10 text-green-600 hover:bg-green-500/20"
                       }`}
                     >

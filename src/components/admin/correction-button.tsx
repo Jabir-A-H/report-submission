@@ -8,6 +8,7 @@ import { getOverrideMonthForPeriod, toBn, bnToEn } from '@/lib/report-utils'
 interface CorrectionButtonProps {
   year: number
   month: number
+  endMonth?: number
   reportType?: string
   section: string
   field: string
@@ -23,6 +24,7 @@ interface CorrectionButtonProps {
 export function CorrectionButton({
   year,
   month,
+  endMonth = 0,
   reportType = 'মাসিক',
   section,
   field,
@@ -72,6 +74,7 @@ export function CorrectionButton({
         .select('id')
         .eq('year', year)
         .eq('month', overrideMonth)
+        .eq('end_month', endMonth || 0)
         .eq('report_type', reportType)
         .eq('section', section)
         .eq('field', field)
@@ -98,12 +101,13 @@ export function CorrectionButton({
           .upsert({
             year,
             month: overrideMonth,
+            end_month: endMonth || 0,
             section,
             field,
             category: category || null,
             value: valueToSave,
             report_type: reportType
-          }, { onConflict: 'year,month,report_type,section,field,category' })
+          }, { onConflict: 'year,month,end_month,report_type,section,field,category' })
         saveError = error
       }
 
@@ -129,6 +133,7 @@ export function CorrectionButton({
         .delete()
         .eq('year', year)
         .eq('month', overrideMonth)
+        .eq('end_month', endMonth || 0)
         .eq('report_type', reportType)
         .eq('section', section)
         .eq('field', field)

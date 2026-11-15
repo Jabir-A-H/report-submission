@@ -16,12 +16,13 @@ jobs:
           token: ${{ secrets.BACKUP_TOKEN }}
           path: backup-repo
       
-      - name: Perform pg_dump (Postgres 17 container)
+      - name: Perform pg_dump and compress (Postgres 17)
         env:
           PGPASSWORD: ${{ secrets.DB_PASSWORD }}
           PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
         run: |
-          DATE=$(date +%Y-%m-%d)
+          DATE=$(date +%Y-%m-%d_%H%M%S)
+          mkdir -p backup-repo/backups
           docker run --rm \
             -e PGPASSWORD="$PGPASSWORD" \
             -v "$PWD/backup-repo/backups:/backups" \
@@ -33,12 +34,71 @@ jobs:
               --dbname postgres \
               --no-password \
               --file "/backups/db_backup_${DATE}.sql"
+          
+          gzip -9 "backup-repo/backups/db_backup_${DATE}.sql"
+          echo "Created backup: db_backup_${DATE}.sql.gz"
+
+      - name: Prune old backups with retention policy
+        working-directory: backup-repo
+        run: |
+          python3 - << 'EOF'
+          import os
+          import re
+          from datetime import datetime, timezone, timedelta
+
+          backup_dir = "backups"
+          if not os.path.exists(backup_dir):
+              print(f"Directory {backup_dir} not found, skipping retention.")
+              exit(0)
+
+          now = datetime.now(timezone.utc)
+          retention_cutoff = now - timedelta(days=30)
+
+          parsed = []
+          for fname in os.listdir(backup_dir):
+              m = re.match(r'^db_backup_(\d{4})-(\d{2})-(\d{2})(?:_(\d{2})(\d{2})(\d{2}))?\.sql(?:\.gz)?$', fname)
+              if m:
+                  y, mo, d = int(m.group(1)), int(m.group(2)), int(m.group(3))
+                  h = int(m.group(4) or 0)
+                  mi = int(m.group(5) or 0)
+                  s = int(m.group(6) or 0)
+                  dt = datetime(y, mo, d, h, mi, s, tzinfo=timezone.utc)
+                  parsed.append((fname, dt, (y, mo)))
+
+          by_month = {}
+          for fname, dt, ym in parsed:
+              by_month.setdefault(ym, []).append((fname, dt))
+
+          deleted_count = 0
+          kept_count = 0
+
+          for ym, month_files in by_month.items():
+              month_files.sort(key=lambda x: x[1])
+              # Last backup of each month is kept persistently for historical records
+              last_fname, _ = month_files[-1]
+              kept_count += 1
+              print(f"[RETAIN - MONTHLY] {last_fname} (Month {ym[0]}-{ym[1]:02d})")
+
+              # Remaining intra-month backups
+              for fname, dt in month_files[:-1]:
+                  fpath = os.path.join(backup_dir, fname)
+                  if dt < retention_cutoff:
+                      os.remove(fpath)
+                      deleted_count += 1
+                      print(f"[DELETED - EXPIRED] {fname} (Older than 30 days)")
+                  else:
+                      kept_count += 1
+                      print(f"[RETAIN - RECENT]  {fname} (Within 30 days)")
+
+          print(f"Retention complete. Kept: {kept_count}, Deleted: {deleted_count}")
+          EOF
 
       - name: Commit and Push
         working-directory: backup-repo
         run: |
+          DATE=$(date +%Y-%m-%d_%H%M%S)
           git config --global user.name "Backup Bot"
           git config --global user.email "backup@bot.com"
           git add backups/
-          git commit -m "Automated backup for $(date +%Y-%m-%d)"
+          git commit -m "Automated backup: ${DATE}" || echo "No changes to commit"
           git push

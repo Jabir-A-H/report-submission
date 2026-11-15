@@ -68,6 +68,34 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ## Resolved Historical Issues
 
+### Track 1 Database DDL, RLS Hardening & Storage Hygiene (ADR 027, RS-10, RS-27, RS-43, RS-45, RS-73, KI-010, KI-011, Backlog Items 1–5)
+- **Date**: 2026-11-15
+- **Resolution Date**: 2026-11-15
+- **Affected Components**: Supabase PostgreSQL (`pxdkvewaglagnfcqeckn`), `src/utils/supabase/server.ts`, `src/components/admin/correction-button.tsx`, `src/app/(admin)/city-report/page.tsx`, `src/app/(admin)/management/actions.ts`, `src/app/(admin)/management/page.tsx`, `src/lib/report-data-loader.ts`, `.github/workflows/backup.yml`
+- **Description**:
+  1. **RS-10 (Report Type Invariant & Dirty Data)**: `report.report_type` had no CHECK constraint; row 37 contained `'Monthly'`.
+  2. **KI-011 (Missing Metric Non-Negative Checks)**: 7 numeric metric columns across `report_header` and `report_course` lacked `CHECK (col >= 0)`. `report_comment.comment` had no length limit.
+  3. **RS-27 / Backlog Item 4 (Bengali Nukta Decomposition & UAX #15 Composition Exclusion)**: Over 250 rows across `report_extra`, `report_organizational`, `report_personal`, and `report_meeting` contained decomposed Nukta bytes (`chr(2479)||chr(2492)`). Because Nukta is in Unicode `CompositionExclusions.txt`, generic NFC normalization failed. Client precomposed inputs failed binary equality, causing 0-row update drops and save failures.
+  4. **Backlog Item 5 / KI-021 (`city_report_override` Conflicting Unique Constraint & Upsert Failure)**: Dropping 6-column index failed in ADR 023 because it backed a table constraint. PostgREST upsert crashed with 42P10 on 7-column constraint, and queries in `city-report` and `report-data-loader` lacked `end_month` filtering.
+  5. **ADR 009 / KI-010 (Zone Hierarchy & Aggregation Views)**: Zones 2–14 had `parent_id = NULL`. Views used legacy `WHERE r.zone_id <> 1`.
+  6. **RS-43 (Google OAuth Zone 1 Contamination)**: `people.zone_id` had a `NOT NULL` constraint, forcing trigger `handle_new_user()` to default OAuth users to Zone 1 (DCS).
+  7. **RS-45 (Client RLS Privilege Escalation on `people`)**: Client write policies `people_update_admin` and `people_delete_admin` allowed standard admins to promote themselves or delete superadmins directly via PostgREST.
+  8. **`get_or_create_report` Zero-Auth & Ternary Logic Bypass**: `SECURITY DEFINER` function lacked caller checks; naive `IF NOT (is_admin() OR p_zone_id = get_user_zone_id())` evaluates to `NULL` for unassigned users, skipping the guard entirely.
+  9. **SSR Cookie API Deprecation**: `src/utils/supabase/server.ts` used deprecated `get`/`set`/`remove` cookie methods, failing on chunked cookies.
+  10. **Disaster Recovery Storage Inefficiency**: Backup workflow committed uncompressed plaintext `.sql` dumps into Git, risked unbounded repo bloat, crashed on unchanged same-day runs, and lacked persistent monthly snapshot retention.
+- **Fix Summary**:
+  1. Sanitized row 37 and added `CHECK (report_type = 'মাসিক')` on `report`. Added `CHECK (char_length(comment) <= 1500)` on `report_comment`.
+  2. Added 7 non-negative `CHECK (col >= 0)` constraints across `report_header` and `report_course`.
+  3. Replaced decomposed Nukta bytes with canonical precomposed NFC `chr(2527)` (`U+09DF` - 'য়') across all child tables. Added active `CHECK (position(chr(2492) in category) = 0)` on `report_extra`, `report_organizational`, `report_personal`, and `report_meeting`. Pinned NFC literals in `get_or_create_report`.
+  4. Dropped legacy 6-column constraint on `city_report_override`. Bound `city_report_override_period_unique` with 7 columns. Updated `CorrectionButton`, `city-report/page.tsx`, and `report-data-loader.ts` to pass and filter by `end_month`.
+  5. Linked zones 2–14 to parent city zone 1 (`parent_id = 1`) and enforced `zone_type NOT NULL`. Recreated all 6 aggregation views joining `zone` with `WHERE (z.zone_type IS DISTINCT FROM 'city')` and `WITH (security_invoker = true)`.
+  6. Made `people.zone_id` nullable (`DROP NOT NULL`), added `chk_people_active_requires_zone`, updated trigger `handle_new_user()` to set `zone_id = NULL` for OAuth, and added placeholder with activation button guard in `/management`.
+  7. Revoked client write policies on `people`, making direct PostgREST access strictly read-only (`people_select_own`). Routed user activations and zone changes through audited Server Actions using service-role client.
+  8. Hardened `get_or_create_report` with authentication check, credentials lookup, active account gate, city entity block, and null-safe `IS DISTINCT FROM` authorization.
+  9. Upgraded `src/utils/supabase/server.ts` to modern `@supabase/ssr` `getAll()`/`setAll()` with Server Component `try...catch`.
+  10. Updated `.github/workflows/backup.yml` with `gzip -9` compression, clean timestamping, commit idempotency, and an inline Python retention script that retains the last backup of each calendar month permanently while pruning intra-month daily backups older than 30 days.
+  11. Verified across all 4 quality gates (44/44 unit tests passing, clean typecheck, clean lint, clean Turbopack build).
+
 ### Track 3 High-Priority Behavioral & Ergonomic Fixes (ADR 026, C03-01, C04-01, C05-01, C05-04, C06-01, C06-05, C02-02)
 - **Date**: 2026-10-27
 - **Resolution Date**: 2026-11-14

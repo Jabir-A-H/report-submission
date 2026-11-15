@@ -156,6 +156,7 @@ const HEADER_FIELDS: { key: keyof HeaderRow; label: string; color?: string }[] =
 const CityReportContext = createContext<{
   year: number;
   month: number;
+  endMonth?: number;
   reportType: string;
   isEditing: boolean;
   getVal: (
@@ -185,7 +186,7 @@ function NumericCell({
 }) {
   const ctx = useContext(CityReportContext);
   if (!ctx) return null;
-  const { year, month, reportType, isEditing, getVal } = ctx;
+  const { year, month, endMonth, reportType, isEditing, getVal } = ctx;
   const { value, isOverridden } = getVal(
     section,
     field,
@@ -209,6 +210,7 @@ function NumericCell({
           <CorrectionButton
             year={year}
             month={month}
+            endMonth={endMonth}
             reportType={reportType}
             section={section}
             field={field}
@@ -244,6 +246,7 @@ function NumericCell({
         <CorrectionButton
           year={year}
           month={month}
+          endMonth={endMonth}
           reportType={reportType}
           section={section}
           field={field}
@@ -398,6 +401,7 @@ export default function CityReportPage() {
           .eq("year", activePeriod.year)
           .eq("report_type", dbType)
           .eq("month", overrideMonth)
+          .eq("end_month", activePeriod.isMultiMonth ? activePeriod.endMonth : 0)
           .in("month", months),
       ]);
 
@@ -542,7 +546,7 @@ export default function CityReportPage() {
   }, [fetchData]);
 
   return (
-    <CityReportContext.Provider value={{ year: activePeriod.year, month: activePeriod.overrideMonth, reportType: activePeriod.dbType, isEditing, getVal, refreshData }}>
+    <CityReportContext.Provider value={{ year: activePeriod.year, month: activePeriod.overrideMonth, endMonth: activePeriod.isMultiMonth ? activePeriod.endMonth : 0, reportType: activePeriod.dbType, isEditing, getVal, refreshData }}>
     <div className="py-8 max-w-7xl mx-auto animate-in fade-in duration-500">
       {/* ── Page Header ─────────────────────────────────────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 p-6 bg-card border border-border/50 rounded-[2rem] shadow-sm">

@@ -97,6 +97,7 @@ describe('report-data-loader', () => {
     it('normalizes English period token "quarterly" to Bengali "ত্রৈমাসিক" and loads overrides', async () => {
       let overrideQueryReportType = '';
       let overrideQueryMonths: number[] = [];
+      let overrideQueryEndMonth: number | undefined;
 
       const mockDb = createMockSupabase({
         view_city_header_agg: { data: [{ total_muallima: 50, month: 1 }] },
@@ -109,6 +110,7 @@ describe('report-data-loader', () => {
           exec: (q) => {
             overrideQueryReportType = q.filters.report_type;
             overrideQueryMonths = q.filters.month;
+            overrideQueryEndMonth = q.filters.end_month;
             return {
               data: [
                 {
@@ -147,6 +149,7 @@ describe('report-data-loader', () => {
       // Confirmed fix: query passed canonical Bengali string 'ত্রৈমাসিক', not 'quarterly'
       assert.equal(overrideQueryReportType, 'ত্রৈমাসিক');
       assert.deepEqual(overrideQueryMonths, [1, 2, 3]);
+      assert.equal(overrideQueryEndMonth, 3);
 
       // Overrides merged into course item
       const course = res.data.courses.find((c) => c.category === 'সাধারণদের');
@@ -158,6 +161,40 @@ describe('report-data-loader', () => {
         res.data.comment?.comment,
         'মহানগরীর সকল জোনের কার্যক্রম সন্তোষজনক।'
       );
+    });
+
+    it('queries city_report_override with end_month = 0 for single-month reports', async () => {
+      let overrideQueryEndMonth: number | undefined;
+
+      const mockDb = createMockSupabase({
+        view_city_header_agg: { data: [{ total_muallima: 50, month: 5 }] },
+        view_city_course_agg: { data: [] },
+        view_city_organizational_agg: { data: [] },
+        view_city_personal_agg: { data: [] },
+        view_city_meeting_agg: { data: [] },
+        view_city_extra_agg: { data: [] },
+        city_report_override: {
+          exec: (q) => {
+            overrideQueryEndMonth = q.filters.end_month;
+            return { data: [], error: null };
+          },
+        },
+      });
+
+      const res = await loadReportDataBundle(
+        mockDb,
+        {
+          cityReport: true,
+          reportType: 'monthly',
+          year: 2026,
+          month: 5,
+        },
+        adminRequester
+      );
+
+      assert.ok(res.data);
+      assert.equal(res.data.isCityAgg, true);
+      assert.equal(overrideQueryEndMonth, 0);
     });
 
     it('intercepts zone_id === 1 as DCS / City entity and routes to Case B', async () => {
