@@ -1,6 +1,7 @@
 import { forgotPassword } from './actions'
 import { Building2, KeyRound, MailCheck } from 'lucide-react'
 import Link from 'next/link'
+import { sanitizeAuthMessage } from '@/lib/i18n'
 
 export default async function ForgotPasswordPage({
   searchParams,
@@ -8,6 +9,7 @@ export default async function ForgotPasswordPage({
   searchParams: Promise<{ message?: string; success?: string }>
 }) {
   const resolvedParams = await searchParams;
+  const authMessage = sanitizeAuthMessage(resolvedParams?.message);
 
   return (
     <div className="flex-1 grid lg:grid-cols-2 relative bg-background">
@@ -103,9 +105,9 @@ export default async function ForgotPasswordPage({
                     </Link>
                   </div>
 
-                  {resolvedParams?.message && (
+                  {authMessage?.message && !authMessage?.isSuccess && (
                     <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-600 rounded-2xl text-center font-bold text-sm animate-in zoom-in duration-300">
-                      {resolvedParams.message}
+                      {authMessage.message}
                     </div>
                   )}
                   

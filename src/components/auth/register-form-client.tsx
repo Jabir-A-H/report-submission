@@ -2,11 +2,11 @@
 
 import { useState, useRef } from 'react'
 import { register, checkEmailAvailability, checkUserIdAvailability } from '@/app/home/actions'
-import { UserPlus, Loader2, CheckCircle2, XCircle, User, Tag, Mail, Lock, MapPin } from 'lucide-react'
+import { UserPlus, Loader2, CheckCircle2, XCircle, AlertCircle, User, Tag, Mail, Lock, MapPin } from 'lucide-react'
 import Link from 'next/link'
 import { GoogleSignInButton } from './google-sign-in-button'
 
-type FieldStatus = 'idle' | 'checking' | 'available' | 'taken'
+type FieldStatus = 'idle' | 'checking' | 'available' | 'taken' | 'unverified'
 
 function FieldBadge({ status, message }: { status: FieldStatus; message?: string }) {
   if (status === 'idle') return null
@@ -25,6 +25,15 @@ function FieldBadge({ status, message }: { status: FieldStatus; message?: string
       <span className="flex items-center gap-1 text-[10px] font-bold text-green-600 mt-1 animate-in fade-in duration-200">
         <CheckCircle2 className="w-3 h-3" />
         পাওয়া যাচ্ছে
+      </span>
+    )
+  }
+
+  if (status === 'unverified') {
+    return (
+      <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 mt-1 animate-in fade-in duration-200">
+        <AlertCircle className="w-3 h-3" />
+        {message || 'যাচাই সীমা অতিক্রান্ত'}
       </span>
     )
   }
@@ -69,8 +78,13 @@ export function RegisterFormClient({
     setEmailStatus('checking')
     const result = await checkEmailAvailability(value)
     if (emailRef.current !== value) return
-    setEmailStatus(result.available ? 'available' : 'taken')
-    setEmailMessage(result.message)
+    if (result.rateLimited) {
+      setEmailStatus('unverified')
+      setEmailMessage(result.message)
+    } else {
+      setEmailStatus(result.available ? 'available' : 'taken')
+      setEmailMessage(result.message)
+    }
   }
 
   async function handleUserIdBlur(e: React.FocusEvent<HTMLInputElement>) {
@@ -83,8 +97,13 @@ export function RegisterFormClient({
     setUserIdStatus('checking')
     const result = await checkUserIdAvailability(value)
     if (userIdRef.current !== value) return
-    setUserIdStatus(result.available ? 'available' : 'taken')
-    setUserIdMessage(result.message)
+    if (result.rateLimited) {
+      setUserIdStatus('unverified')
+      setUserIdMessage(result.message)
+    } else {
+      setUserIdStatus(result.available ? 'available' : 'taken')
+      setUserIdMessage(result.message)
+    }
   }
 
   const hasBlockingError = emailStatus === 'taken' || userIdStatus === 'taken'

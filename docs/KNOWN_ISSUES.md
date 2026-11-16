@@ -68,6 +68,24 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ## Resolved Historical Issues
 
+### Track 3 Auth Security, Middleware Cookie Forwarding & Server Actions (ADR 029, RS-42, RS-44, RS-45, RS-46, RS-48, KI-023)
+- **Date**: 2026-11-16
+- **Resolution Date**: 2026-11-16
+- **Affected Components**: `middleware.ts`, `src/lib/auth-utils.ts`, `src/app/home/actions.ts`, `src/components/auth/register-form-client.tsx`, `src/app/forgot-password/page.tsx`, `src/app/update-password/page.tsx`, `src/app/(admin)/management/actions.ts`, `src/app/(admin)/management/page.tsx`
+- **Description**:
+  1. **RS-48 (Supabase Cookie Loss on Middleware Redirects)**: In `middleware.ts`, `@supabase/ssr` `setAll` attached refreshed session tokens to `supabaseResponse.cookies`. Calls to `NextResponse.redirect()` and `NextResponse.json()` instantiated fresh detached responses, silently dropping rotated tokens and causing session dropouts and redirect loops on mobile.
+  2. **RS-44 / KI-023 (CGNAT Public Availability Rate Limiting Lockout)**: On-blur availability checks (`checkEmailAvailability`, `checkUserIdAvailability`) enforced a strict 10 req/min limit on `clientIp`. Mobile workers in Bangladesh sharing CGNAT gateways (Grameenphone, Banglalink, Robi) exhausted this limit rapidly. Returning `{ available: false }` marked the field `status = 'taken'` and set `hasBlockingError = true`, silently blocking registration. Meanwhile, `login()` had zero rate limiting.
+  3. **RS-42 (Login Input Normalization & Prototype Shim Leak)**: Emails were not lowercased in `login()`, failing on soft-keyboard auto-capitalization. Zero-width spaces (`\u200B-\u200D\uFEFF`) and non-breaking spaces (`\u00A0`) from messaging app paste buffers caused silent auth failures. User IDs executed sequential `ilike` table scans and fell back to the obsolete `${userId}@report.local` prototype shim.
+  4. **RS-46 (Open URL Message Reflection & Phishing Leak)**: In `/forgot-password` and `/update-password`, raw `resolvedParams.message` query parameters were rendered directly into the red error alert block, allowing attackers to construct deceptive phishing links under the official application domain.
+  5. **RS-45 (Zone Client PostgREST Mutations & Dead 42703 Shim)**: `/management` executed direct client PostgREST calls for `addZone` and `deleteZone`. `addZone` contained an obsolete application-layer fallback shim for error `42703` (missing columns). `deleteZone` checked counts against stale client state, lacked child-zone hierarchy guards, and had zero check protecting Central City Zone 1 (DCS).
+- **Fix Summary**:
+  1. Implemented `redirectWithCookies(url, sourceResponse)` and `jsonWithCookies(...)` in `middleware.ts`, forwarding 100% of rotated session tokens and cookie deletion instructions across all 5 redirect and API error exits.
+  2. Elevated availability check limit to 60 req/min. On limit breach, returned `{ available: true, rateLimited: true, message: ... }`. Added `'unverified'` status to `FieldStatus` in `register-form-client.tsx` with an amber info badge, neutral border, and exclusion from `hasBlockingError`. Added account-level brute force protection to `login()`.
+  3. Created `normalizeAuthIdentifier()` in `src/lib/auth-utils.ts` to strip zero-width characters and non-breaking spaces, trim, and lowercase inputs. Updated `login()` to execute a direct B-tree query on `people(user_id)` and replaced the `@report.local` prototype shim with a constant dummy auth sink `unregistered-auth-sink@report.internal`.
+  4. Wrapped `resolvedParams?.message` in `sanitizeAuthMessage()` across `/forgot-password` and `/update-password`, rendering alert cards strictly when messages match the security whitelist.
+  5. Created audited Server Actions `createZoneAction` and `deleteZoneAction` in `src/app/(admin)/management/actions.ts` with admin/superadmin verification. Protected Zone 1 (DCS) against deletion, executed live parallel dependency counts (`people`, `report`, child `zone`), and completely purged the dead `42703` fallback shim.
+  6. Added 12 automated unit tests in `src/lib/auth-utils.test.ts`. Verified across all 4 quality gates (70/70 tests passing).
+
 ### Track 2 Core Save Machine, Concurrency & Numeral Normalization (ADR 028, RS-20, RS-24, RS-25, RS-32, RS-50, RS-52, KI-008, KI-009, KI-014, KI-015)
 - **Date**: 2026-11-16
 - **Resolution Date**: 2026-11-16

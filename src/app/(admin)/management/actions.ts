@@ -1,5 +1,6 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/utils/supabase/server'
 
@@ -235,6 +236,156 @@ export async function changeUserZoneAction(peopleId: number, newZoneId: number |
   if (updateError) {
     return { success: false, error: updateError.message }
   }
+
+  return { success: true }
+}
+
+export async function createZoneAction(data: {
+  name: string
+  zone_type?: string
+  parent_id?: number | null
+}) {
+  const requesterSupabase = await createServerClient()
+  const {
+    data: { user },
+  } = await requesterSupabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, error: 'Unauthorized' }
+  }
+
+  const { data: requesterProfile, error: requesterProfileError } = await requesterSupabase
+    .from('people')
+    .select('id, role, active')
+    .eq('supabase_uid', user.id)
+    .maybeSingle()
+
+  if (requesterProfileError || !requesterProfile || !requesterProfile.active) {
+    return { success: false, error: 'Unauthorized' }
+  }
+
+  if (requesterProfile.role !== 'admin' && requesterProfile.role !== 'superadmin') {
+    return { success: false, error: 'Forbidden' }
+  }
+
+  const trimmedName = data.name?.trim() || ''
+  if (trimmedName.length < 2 || trimmedName.length > 50) {
+    return { success: false, error: 'জোনের নাম ২ থেকে ৫০ অক্ষরের মধ্যে হতে হবে।' }
+  }
+
+  const zoneType = data.zone_type || 'zone'
+  if (zoneType === 'city' && requesterProfile.role !== 'superadmin') {
+    return { success: false, error: 'শুধুমাত্র সুপারঅ্যাডমিন সিটি টাইপ জোন তৈরি করতে পারেন।' }
+  }
+
+  const adminSupabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  // Check duplicate zone name
+  const { data: existingZone } = await adminSupabase
+    .from('zone')
+    .select('id')
+    .ilike('name', trimmedName.replace(/[%_]/g, '\\$&'))
+    .maybeSingle()
+
+  if (existingZone) {
+    return { success: false, error: 'এই নামের একটি জোন ইতিমধ্যে রয়েছে।' }
+  }
+
+  const parentId =
+    data.parent_id !== undefined && data.parent_id !== null && (data.parent_id as any) !== ''
+      ? Number(data.parent_id)
+      : null
+
+  // Clean insert via service role client (no 42703 shims)
+  const { data: newZone, error: insertError } = await adminSupabase
+    .from('zone')
+    .insert({
+      name: trimmedName,
+      zone_type: zoneType,
+      parent_id: parentId,
+    })
+    .select()
+    .single()
+
+  if (insertError) {
+    return { success: false, error: insertError.message }
+  }
+
+  revalidatePath('/(admin)/management')
+  revalidatePath('/management')
+  revalidatePath('/home')
+
+  return { success: true, data: newZone }
+}
+
+export async function deleteZoneAction(zoneId: number) {
+  const requesterSupabase = await createServerClient()
+  const {
+    data: { user },
+  } = await requesterSupabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, error: 'Unauthorized' }
+  }
+
+  const { data: requesterProfile, error: requesterProfileError } = await requesterSupabase
+    .from('people')
+    .select('id, role, active')
+    .eq('supabase_uid', user.id)
+    .maybeSingle()
+
+  if (requesterProfileError || !requesterProfile || !requesterProfile.active) {
+    return { success: false, error: 'Unauthorized' }
+  }
+
+  if (requesterProfile.role !== 'admin' && requesterProfile.role !== 'superadmin') {
+    return { success: false, error: 'Forbidden' }
+  }
+
+  // DCS Protection Guard
+  if (zoneId === 1) {
+    return { success: false, error: 'কেন্দ্রীয় সিটি জোন (DCS) ডিলিট করা সম্ভব নয়।' }
+  }
+
+  const adminSupabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  // Live parallel dependency counts against PostgreSQL
+  const [usersRes, reportsRes, childZonesRes] = await Promise.all([
+    adminSupabase.from('people').select('*', { count: 'exact', head: true }).eq('zone_id', zoneId),
+    adminSupabase.from('report').select('*', { count: 'exact', head: true }).eq('zone_id', zoneId),
+    adminSupabase.from('zone').select('*', { count: 'exact', head: true }).eq('parent_id', zoneId),
+  ])
+
+  const childZonesCount = childZonesRes.count ?? 0
+  const usersCount = usersRes.count ?? 0
+  const reportsCount = reportsRes.count ?? 0
+
+  if (childZonesCount > 0) {
+    return { success: false, error: 'এই জোনের অধীনে অধীনস্থ জোন রয়েছে। আগে সেগুলো পরিবর্তন বা মুছে নিন।' }
+  }
+
+  if (usersCount > 0 || reportsCount > 0) {
+    return { success: false, error: 'এই জোনে ইউজার বা রিপোর্ট যুক্ত আছে। আগে সেগুলো সরিয়ে নিন।' }
+  }
+
+  const { error: deleteError } = await adminSupabase
+    .from('zone')
+    .delete()
+    .eq('id', zoneId)
+
+  if (deleteError) {
+    return { success: false, error: deleteError.message }
+  }
+
+  revalidatePath('/(admin)/management')
+  revalidatePath('/management')
+  revalidatePath('/home')
 
   return { success: true }
 }

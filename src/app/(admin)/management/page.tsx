@@ -24,7 +24,13 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-import { deleteUserAction, toggleUserActiveAction, changeUserZoneAction } from "./actions";
+import {
+  deleteUserAction,
+  toggleUserActiveAction,
+  changeUserZoneAction,
+  createZoneAction,
+  deleteZoneAction,
+} from "./actions";
 import { useLanguage } from "@/components/providers/language-provider";
 
 // ─── Types ───────────────────────────────────────────────────────────
@@ -183,32 +189,16 @@ export default function ManagementPage() {
     const parentIdVal = newZoneParentId !== "" ? Number(newZoneParentId) : null;
     const parentNameVal = zonesWithStats.find((z) => z.id === parentIdVal)?.name || null;
 
-    let { data, error } = await supabase
-      .from("zone")
-      .insert([
-        {
-          name: newZoneName.trim(),
-          zone_type: newZoneType || "zone",
-          parent_id: parentIdVal,
-        },
-      ])
-      .select()
-      .single();
+    const res = await createZoneAction({
+      name: newZoneName.trim(),
+      zone_type: newZoneType || "zone",
+      parent_id: parentIdVal,
+    });
 
-    // Fallback for unmigrated database schemas missing zone_type/parent_id columns
-    if (error && error.code === "42703") {
-      const res = await supabase
-        .from("zone")
-        .insert([{ name: newZoneName.trim() }])
-        .select()
-        .single();
-      data = res.data;
-      error = res.error;
-    }
-
-    if (error) {
-      setZoneError(error.message);
-    } else if (data) {
+    if (!res.success) {
+      setZoneError(res.error || "জোন তৈরি করতে ব্যর্থ হয়েছে।");
+    } else if (res.data) {
+      const data = res.data;
       setZonesWithStats((prev) => [
         ...prev,
         {
@@ -231,20 +221,15 @@ export default function ManagementPage() {
   }
 
   async function deleteZone(zoneId: number) {
-    const zone = zonesWithStats.find((z) => z.id === zoneId);
-    if (zone && (zone.user_count > 0 || zone.report_count > 0)) {
-      setZoneError(`এই জোনে ${zone.user_count} জন ইউজার ও ${zone.report_count} টি রিপোর্ট আছে। আগে এগুলো সরিয়ে নিন।`);
-      setConfirmDeleteZone(null);
-      return;
-    }
-
     setZoneActionLoading(zoneId);
-    const { error: delError } = await supabase.from("zone").delete().eq("id", zoneId);
-    if (!delError) {
+    setZoneError(null);
+
+    const res = await deleteZoneAction(zoneId);
+    if (res.success) {
       setZonesWithStats((prev) => prev.filter((z) => z.id !== zoneId));
       setUserZones((prev) => prev.filter((z) => z.id !== zoneId));
     } else {
-      setZoneError("মুছতে সমস্যা হয়েছে। এই জোনের সাথে রিপোর্ট বা অধীনস্থ জোন যুক্ত থাকতে পারে।");
+      setZoneError(res.error || "মুছতে সমস্যা হয়েছে।");
     }
     setZoneActionLoading(null);
     setConfirmDeleteZone(null);

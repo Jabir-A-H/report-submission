@@ -8,6 +8,7 @@ import { cookies } from 'next/headers'
 import { translateAuthError } from '@/lib/i18n'
 import { headers } from 'next/headers'
 import { rateLimit } from '@/lib/rate-limit'
+import { normalizeAuthIdentifier, type AvailabilityCheckResult } from '@/lib/auth-utils'
 
 export async function login(formData: FormData) {
   const cookieStore = await cookies()
@@ -33,44 +34,37 @@ export async function login(formData: FormData) {
     }
   )
 
-  // Support user IDs by resolving them to their registered email dynamically
-  const rawIdOrEmail = (formData.get('email') as string)?.trim() || ""
+  const normalized = normalizeAuthIdentifier(formData.get('email') as string)
 
-  if (!rawIdOrEmail) {
+  if (!normalized) {
     return redirect(`/home?mode=login&message=${encodeURIComponent('ইউজার আইডি বা ইমেইল এবং পাসওয়ার্ড দিন')}`)
   }
 
-  let email = rawIdOrEmail
+  // Account-level rate limiting on login() to defend against brute force
+  if (!rateLimit('login:account:' + normalized, 5, 300_000)) {
+    return redirect(`/home?mode=login&message=${encodeURIComponent('অতিরিক্ত লগইন চেষ্টা করা হয়েছে। ৫ মিনিট পর আবার চেষ্টা করুন।')}`)
+  }
 
-  if (!rawIdOrEmail.includes('@')) {
+  let email = normalized
+
+  if (!normalized.includes('@')) {
     const adminSupabase = createAdminClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
     
-    // Try exact match first
-    let { data: profile } = await adminSupabase
+    // Query people directly by normalized user_id
+    const { data: profile } = await adminSupabase
       .from('people')
       .select('email')
-      .eq('user_id', rawIdOrEmail)
+      .eq('user_id', normalized)
       .maybeSingle()
-
-    // Fallback to safe case-insensitive lookup (escaping wildcards and capping at 1)
-    if (!profile) {
-      const escaped = rawIdOrEmail.replace(/[%_]/g, '\\$&')
-      const { data: profiles } = await adminSupabase
-        .from('people')
-        .select('email')
-        .ilike('user_id', escaped)
-        .limit(1)
-      if (profiles && profiles.length > 0) profile = profiles[0]
-    }
 
     if (profile?.email) {
       email = profile.email
     } else {
-      // Fallback for custom or legacy local fallback accounts
-      email = `${rawIdOrEmail.toLowerCase()}@report.local`
+      // Constant dummy email to ensure GoTrue bcrypt timing is constant and timing enumeration attacks are prevented
+      email = 'unregistered-auth-sink@report.internal'
     }
   }
 
@@ -115,11 +109,11 @@ export async function register(formData: FormData) {
   )
 
   const name = (formData.get('name') as string)?.trim() || ""
-  const email = (formData.get('email') as string)?.trim().toLowerCase() || ""
+  const email = normalizeAuthIdentifier(formData.get('email') as string)
   const password = (formData.get('password') as string) || ""
   const confirmPassword = (formData.get('confirmPassword') as string) || ""
   const zoneId = (formData.get('zone_id') as string)?.trim() || ""
-  const userId = (formData.get('user_id') as string)?.trim().toLowerCase() || ""
+  const userId = normalizeAuthIdentifier(formData.get('user_id') as string)
 
   if (!name || !email || !password || !confirmPassword || !zoneId || !userId) {
     return redirect(`/home?mode=register&message=${encodeURIComponent('সকল তথ্য পূরণ করুন')}`)
@@ -210,15 +204,19 @@ export async function register(formData: FormData) {
  */
 export async function checkEmailAvailability(
   rawEmail: string
-): Promise<{ available: boolean; message?: string }> {
+): Promise<AvailabilityCheckResult> {
   // RS-44: Rate-limit public availability checks to prevent account enumeration
   const headersList = await headers();
   const clientIp = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-  if (!rateLimit(`email-check:${clientIp}`, 10, 60_000)) {
-    return { available: false, message: 'অনেক বেশি চেষ্টা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।' };
+  if (!rateLimit(`email-check:${clientIp}`, 60, 60_000)) {
+    return {
+      available: true,
+      rateLimited: true,
+      message: 'যাচাই সীমা অতিক্রান্ত। ফর্ম জমা দেওয়ার সময় চূড়ান্ত যাচাই করা হবে।',
+    };
   }
 
-  const email = rawEmail?.trim().toLowerCase()
+  const email = normalizeAuthIdentifier(rawEmail)
   if (!email || !email.includes('@')) return { available: true }
 
   const adminSupabase = createAdminClient(
@@ -244,15 +242,19 @@ export async function checkEmailAvailability(
  */
 export async function checkUserIdAvailability(
   rawUserId: string
-): Promise<{ available: boolean; message?: string }> {
+): Promise<AvailabilityCheckResult> {
   // RS-44: Rate-limit public availability checks to prevent account enumeration
   const headersList = await headers();
   const clientIp = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-  if (!rateLimit(`userid-check:${clientIp}`, 10, 60_000)) {
-    return { available: false, message: 'অনেক বেশি চেষ্টা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।' };
+  if (!rateLimit(`userid-check:${clientIp}`, 60, 60_000)) {
+    return {
+      available: true,
+      rateLimited: true,
+      message: 'যাচাই সীমা অতিক্রান্ত। ফর্ম জমা দেওয়ার সময় চূড়ান্ত যাচাই করা হবে।',
+    };
   }
 
-  const userId = rawUserId?.trim().toLowerCase()
+  const userId = normalizeAuthIdentifier(rawUserId)
   if (!userId || userId.length < 3) return { available: true }
 
   const adminSupabase = createAdminClient(

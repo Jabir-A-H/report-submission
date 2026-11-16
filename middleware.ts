@@ -1,6 +1,22 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+function redirectWithCookies(url: URL, sourceResponse: NextResponse, status = 307): NextResponse {
+  const redirectResponse = NextResponse.redirect(url, { status });
+  sourceResponse.cookies.getAll().forEach((cookie) => {
+    redirectResponse.cookies.set(cookie.name, cookie.value, cookie);
+  });
+  return redirectResponse;
+}
+
+function jsonWithCookies(body: any, init: ResponseInit, sourceResponse: NextResponse): NextResponse {
+  const jsonResponse = NextResponse.json(body, init);
+  sourceResponse.cookies.getAll().forEach((cookie) => {
+    jsonResponse.cookies.set(cookie.name, cookie.value, cookie);
+  });
+  return jsonResponse;
+}
+
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -54,12 +70,12 @@ export async function middleware(request: NextRequest) {
   if (!user && !isPublicRoute) {
     // For API routes, return 401 JSON instead of redirect
     if (isApiRoute) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return jsonWithCookies({ error: 'Unauthorized' }, { status: 401 }, supabaseResponse)
     }
     const url = request.nextUrl.clone()
     url.pathname = '/home'
     url.search = ""
-    return NextResponse.redirect(url)
+    return redirectWithCookies(url, supabaseResponse)
   }
 
   // If user is authenticated, check if they are active (approved)
@@ -74,12 +90,12 @@ export async function middleware(request: NextRequest) {
     // active !== true the same way
     if (!person || person.active !== true) {
       if (isApiRoute) {
-        return NextResponse.json({ error: 'Account pending approval or inactive' }, { status: 403 })
+        return jsonWithCookies({ error: 'Account pending approval or inactive' }, { status: 403 }, supabaseResponse)
       }
       const url = request.nextUrl.clone()
       url.pathname = '/pending-approval'
       url.search = ""
-      return NextResponse.redirect(url)
+      return redirectWithCookies(url, supabaseResponse)
     }
   }
 
@@ -88,7 +104,7 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/'
     url.search = ""
-    return NextResponse.redirect(url)
+    return redirectWithCookies(url, supabaseResponse)
   }
 
   return supabaseResponse

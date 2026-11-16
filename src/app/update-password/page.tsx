@@ -2,7 +2,7 @@ import { updatePassword } from './actions'
 import { Building2, Save } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import { getServerLanguage } from "@/lib/i18n";
+import { getServerLanguage, sanitizeAuthMessage } from "@/lib/i18n";
 
 export default async function UpdatePasswordPage({
   searchParams,
@@ -10,6 +10,7 @@ export default async function UpdatePasswordPage({
   searchParams: Promise<{ message?: string }>
 }) {
   const resolvedParams = await searchParams;
+  const authMessage = sanitizeAuthMessage(resolvedParams?.message);
   const supabase = await createClient();
   
   const { t } = await getServerLanguage();
@@ -97,9 +98,9 @@ export default async function UpdatePasswordPage({
                <Save className="w-5 h-5 group-hover:scale-110 transition-transform" />
             </button>
 
-            {resolvedParams?.message && (
+            {authMessage?.message && !authMessage?.isSuccess && (
               <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-600 rounded-2xl text-center font-bold text-sm animate-in zoom-in duration-300 mt-4">
-                {resolvedParams.message}
+                {authMessage.message}
               </div>
             )}
             
