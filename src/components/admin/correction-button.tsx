@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react'
 import { Edit2, X, Check, AlertTriangle, RotateCcw } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
-import { getOverrideMonthForPeriod, toBn, bnToEn } from '@/lib/report-utils'
+import { getOverrideMonthForPeriod, toBn, bnToEn, parseBangladeshiNumber } from '@/lib/report-utils'
 
 interface CorrectionButtonProps {
   year: number
@@ -57,13 +57,12 @@ export function CorrectionButton({
         }
       }
     } else {
-      const normalized = bnToEn(valueToSave).replace(/[,\s]/g, "")
-      const num = parseFloat(normalized)
-      if (isNaN(num) || num < 0) {
-        setError("সংশোধিত মান অবশ্যই শূন্য বা ধনাত্মক সংখ্যা হতে হবে। পূর্বের মানে ফিরতে 'মুছুন' চাপুন।")
+      const parsed = parseBangladeshiNumber(valueToSave)
+      if (!parsed.isValid) {
+        setError("সংশোধিত মান অবশ্যই একটি সঠিক সংখ্যা হতে হবে।")
         return
       }
-      valueToSave = String(Math.round(num))
+      valueToSave = String(parsed.value)
     }
 
     setIsSaving(true)

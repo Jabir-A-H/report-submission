@@ -3,7 +3,7 @@
 import { useReport } from "./report-context";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useLanguage } from "@/components/providers/language-provider";
-import { toBn, bnToEn } from "@/lib/report-utils";
+import { toBn, bnToEn, parseBangladeshiNumber } from "@/lib/report-utils";
 
 interface AutoSaveFieldProps {
   label: string;
@@ -18,9 +18,23 @@ interface AutoSaveFieldProps {
   tableMode?: boolean;
 }
 
-export function AutoSaveField({ label, name, type = "text", placeholder, section, table, category, inline = false, inputWidth, tableMode = false }: AutoSaveFieldProps) {
-  const { data, updateField, failedFields } = useReport();
+export function AutoSaveField({
+  label,
+  name,
+  type = "text",
+  placeholder,
+  section,
+  table = "report",
+  category,
+  inline = false,
+  inputWidth,
+  tableMode = false,
+}: AutoSaveFieldProps) {
+  const { data, updateField, failedFields, reportId } = useReport();
   const { language } = useLanguage();
+
+  const fieldKey = `${reportId || 0}:${table}:${category || ""}:${name}`;
+  const draftStorageKey = `draft:${reportId || 0}:${table}:${category || ""}:${name}`;
 
   // Helper to extract the initial value based on the nested structure
   const getInitialValue = useCallback(() => {
@@ -40,7 +54,12 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
       else if (table === "report_extra") arrayData = data.extra;
 
       if (Array.isArray(arrayData)) {
-        const row = arrayData.find(item => item.category === category);
+        const row = arrayData.find(
+          (item) =>
+            item.category === category ||
+            (table === "report_course" && item.course_name === category) ||
+            (table === "report_meeting" && item.meeting_type === category)
+        );
         if (row) raw = row[name];
       }
     } else if (table === "report_comment" && data.comment) {
@@ -67,6 +86,7 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
   const dirtyRef = useRef(false);
   const latestValueRef = useRef(localValue);
   const persistRef = useRef<() => void>(() => {});
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -75,32 +95,53 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
     };
   }, []);
 
-  // Update local value if data changes externally (e.g. on load) and user is not actively typing
+  // Update local value if data changes externally and user is not actively typing
   const currentVal = getInitialValue();
   useEffect(() => {
     if (!isFocused && isMountedRef.current) {
+      // Check if local draft exists
+      if (typeof window !== "undefined" && reportId) {
+        try {
+          const draft = localStorage.getItem(draftStorageKey);
+          if (draft !== null && draft !== currentVal) {
+            setLocalValue(draft);
+            latestValueRef.current = draft;
+            dirtyRef.current = true;
+            return;
+          }
+        } catch {}
+      }
       setLocalValue(currentVal);
     }
-  }, [currentVal, isFocused]);
+  }, [currentVal, isFocused, draftStorageKey, reportId]);
 
   /** Persist to DB — normalises Bengali digits to ASCII and safely rounds numbers before saving. */
-  const persist = useCallback(() => {
+  const persist = useCallback(async () => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+
     const initial = getInitialValue();
     const val = latestValueRef.current;
     if (val !== initial) {
       dirtyRef.current = false;
+      let res: { success: boolean; error?: any };
       if (type === "number") {
-        const cleaned = String(val).replace(/[,\s]/g, "");
-        const enStr = bnToEn(cleaned);
-        const parsed = parseFloat(enStr);
-        // Safely round floats to non-negative integers for PostgreSQL CHECK col >= 0
-        const valueToSave = isNaN(parsed) ? "0" : String(Math.max(0, Math.round(parsed)));
-        updateField(name, valueToSave, section, table, category);
+        const parsed = parseBangladeshiNumber(val);
+        const valueToSave = parsed.isValid ? String(parsed.value) : "0";
+        res = await updateField(name, valueToSave, section, table, category);
       } else {
-        updateField(name, String(val).trim(), section, table, category);
+        res = await updateField(name, String(val).trim(), section, table, category);
+      }
+
+      if (res?.success && typeof window !== "undefined" && reportId) {
+        try {
+          localStorage.removeItem(draftStorageKey);
+        } catch {}
       }
     }
-  }, [getInitialValue, name, section, table, category, updateField, type]);
+  }, [getInitialValue, name, section, table, category, updateField, type, reportId, draftStorageKey]);
 
   useEffect(() => {
     latestValueRef.current = localValue;
@@ -112,10 +153,29 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
     setLocalValue(val);
     latestValueRef.current = val;
     dirtyRef.current = val !== getInitialValue();
-  }, [getInitialValue]);
+
+    // Write-Ahead Buffer in localStorage
+    if (typeof window !== "undefined" && reportId) {
+      try {
+        localStorage.setItem(draftStorageKey, val);
+      } catch {}
+    }
+
+    // 1,000ms idle typing debounce timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      persistRef.current();
+    }, 1000);
+  }, [getInitialValue, reportId, draftStorageKey]);
 
   const handleBlur = useCallback(() => {
     setIsFocused(false);
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
     persist();
   }, [persist]);
 
@@ -137,18 +197,19 @@ export function AutoSaveField({ label, name, type = "text", placeholder, section
     return () => {
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("beforeunload", onBeforeUnload);
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
       if (dirtyRef.current) {
         persistRef.current();
       }
     };
   }, []);
 
-  // Task 3: numeric fields use type="text" + inputMode="numeric" to accept Bengali digits
   const isNumeric = type === "number";
   const inputType = isNumeric ? "text" : (type === "textarea" ? "textarea" : type);
   const inputMode = isNumeric ? "numeric" : undefined;
 
-  const fieldKey = `${table || "report"}:${category || ""}:${name}`;
   const isFailed = Boolean(failedFields && failedFields[fieldKey]);
 
   if (tableMode) {

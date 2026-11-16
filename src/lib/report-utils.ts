@@ -1,4 +1,7 @@
 import { getDhakaDate } from "./date-utils.ts";
+import { translations, type Language } from "./i18n.ts";
+
+export const UNICODE_SEPARATOR_REGEX = /[,،٬，_\s\u00A0\u202F]/g;
 
 export const BENGALI_DIGITS = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
 
@@ -139,6 +142,72 @@ export function toBn(n: number | string | null | undefined): string {
 export function bnToEn(val: string | number | null | undefined): string {
   if (val === null || val === undefined) return "";
   return String(val).replace(/[০-৯]/g, (d) => String(d.charCodeAt(0) - 0x09E6));
+}
+
+/**
+ * Parses numeric inputs in Bengali or English script from user typing or mobile voice-to-text.
+ * Defends against Arabic commas (،), Arabic thousand separators (٬), fullwidth commas (，),
+ * Unicode whitespace, and Bengali counting classifiers (e.g. জন, টি, খানা, etc.).
+ * Clamps result to non-negative integer for PostgreSQL `CHECK (col >= 0)` constraints.
+ */
+export function parseBangladeshiNumber(val: unknown): { value: number; raw: string; isValid: boolean } {
+  if (val === null || val === undefined || typeof val === "boolean") {
+    return { value: 0, raw: "", isValid: false };
+  }
+
+  const raw = String(val);
+  const normalized = raw.normalize("NFC").trim();
+  if (normalized === "") {
+    return { value: 0, raw, isValid: false };
+  }
+
+  const enConverted = bnToEn(normalized);
+  const separatorsStripped = enConverted.replace(UNICODE_SEPARATOR_REGEX, "");
+  const classifiersStripped = separatorsStripped.replace(/(জন|টি|টা|খানা|খানি|টিই|জনই|জনশক্তি|টি\s*করে)$/g, "");
+
+  const match = classifiersStripped.match(/-?\d+(?:\.\d+)?/);
+  if (!match) {
+    return { value: 0, raw, isValid: false };
+  }
+
+  const num = parseFloat(match[0]);
+  if (!Number.isFinite(num)) {
+    return { value: 0, raw, isValid: false };
+  }
+
+  const clamped = Math.max(0, Math.round(num));
+  return { value: clamped, raw, isValid: true };
+}
+
+/**
+ * Format a number or numeric string according to the selected language.
+ * In Bengali ('bn'), converts ASCII digits to Bengali digits ('০'-'৯').
+ * In English ('en'), converts Bengali digits to ASCII digits ('0'-'9').
+ */
+export function formatLocaleNumber(
+  val: number | string | null | undefined,
+  lang: Language = "bn"
+): string {
+  if (val === null || val === undefined || val === "") {
+    return lang === "bn" ? "০" : "0";
+  }
+  return lang === "bn" ? toBn(val) : bnToEn(String(val));
+}
+
+/**
+ * Returns localized Month and Year string according to the selected language.
+ * e.g., formatMonthYear(8, 2026, 'bn') -> 'আগস্ট ২০২৬'
+ *       formatMonthYear(8, 2026, 'en') -> 'August 2026'
+ */
+export function formatMonthYear(
+  month: number,
+  year: number,
+  lang: Language = "bn"
+): string {
+  const m = Math.max(1, Math.min(12, Number(month) || 1));
+  const monthName = translations[lang]?.months?.[m - 1] || `${month}`;
+  const yearFormatted = formatLocaleNumber(year, lang);
+  return `${monthName} ${yearFormatted}`;
 }
 
 export function getMonthsForPeriod(
@@ -300,9 +369,15 @@ export function resolvePeriodConfig(input: {
 
 export function toFiniteNumber(val: unknown): number {
   if (typeof val === "boolean" || val === null || val === undefined) return 0;
-  const en = typeof val === "string" ? bnToEn(val.trim()) : val;
-  const num = typeof en === "number" ? en : Number(en);
-  return Number.isFinite(num) ? num : 0;
+  if (typeof val === "number") return Number.isFinite(val) ? val : 0;
+  if (typeof val === "string") {
+    const cleaned = val.normalize("NFC").replace(UNICODE_SEPARATOR_REGEX, "");
+    const en = bnToEn(cleaned);
+    if (en === "") return 0;
+    const num = Number(en);
+    return Number.isFinite(num) ? num : 0;
+  }
+  return 0;
 }
 
 export const NON_NUMERIC_KEYS = new Set([

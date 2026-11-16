@@ -3,6 +3,10 @@ import assert from 'node:assert/strict';
 import {
   toBn,
   bnToEn,
+  parseBangladeshiNumber,
+  formatLocaleNumber,
+  formatMonthYear,
+  UNICODE_SEPARATOR_REGEX,
   toFiniteNumber,
   getMonthsForPeriod,
   getOverrideMonthForPeriod,
@@ -64,6 +68,107 @@ describe('report-utils', () => {
     });
   });
 
+  describe('parseBangladeshiNumber', () => {
+    it('defends against Arabic comma, Arabic thousands separator, fullwidth comma, and ASCII commas', () => {
+      // Arabic comma (، \u060C)
+      const res1 = parseBangladeshiNumber('১،৫০،০০০');
+      assert.equal(res1.isValid, true);
+      assert.equal(res1.value, 150000);
+
+      // Arabic thousands separator (٬ \u066C)
+      const res2 = parseBangladeshiNumber('1٬50٬000');
+      assert.equal(res2.isValid, true);
+      assert.equal(res2.value, 150000);
+
+      // Fullwidth comma (， \uFF0C)
+      const res3 = parseBangladeshiNumber('1，50，000');
+      assert.equal(res3.isValid, true);
+      assert.equal(res3.value, 150000);
+
+      // Standard ASCII comma
+      const res4 = parseBangladeshiNumber('1,50,000');
+      assert.equal(res4.isValid, true);
+      assert.equal(res4.value, 150000);
+    });
+
+    it('strips Bengali voice-typing counting classifiers', () => {
+      // ১২ জন -> 12
+      const res1 = parseBangladeshiNumber('১২ জন');
+      assert.equal(res1.isValid, true);
+      assert.equal(res1.value, 12);
+
+      // ১৫টি -> 15
+      const res2 = parseBangladeshiNumber('১৫টি');
+      assert.equal(res2.isValid, true);
+      assert.equal(res2.value, 15);
+
+      // ১০ খানা -> 10
+      const res3 = parseBangladeshiNumber('১০ খানা');
+      assert.equal(res3.isValid, true);
+      assert.equal(res3.value, 10);
+
+      // মোট ২৫ জন -> 25
+      const res4 = parseBangladeshiNumber('মোট ২৫ জন');
+      assert.equal(res4.isValid, true);
+      assert.equal(res4.value, 25);
+    });
+
+    it('clamps negative numbers to 0 for PostgreSQL CHECK (col >= 0) invariants', () => {
+      const res = parseBangladeshiNumber('-5');
+      assert.equal(res.isValid, true);
+      assert.equal(res.value, 0);
+    });
+
+    it('rounds floating point inputs to non-negative integers', () => {
+      const res = parseBangladeshiNumber('১২.৬');
+      assert.equal(res.isValid, true);
+      assert.equal(res.value, 13);
+    });
+
+    it('rejects invalid or non-numeric strings with isValid: false and value: 0', () => {
+      const res1 = parseBangladeshiNumber('বৃষ্টি');
+      assert.equal(res1.isValid, false);
+      assert.equal(res1.value, 0);
+
+      const res2 = parseBangladeshiNumber('xyz');
+      assert.equal(res2.isValid, false);
+      assert.equal(res2.value, 0);
+
+      const res3 = parseBangladeshiNumber('');
+      assert.equal(res3.isValid, false);
+      assert.equal(res3.value, 0);
+    });
+
+    it('handles booleans, null, and undefined defensively', () => {
+      assert.deepEqual(parseBangladeshiNumber(null), { value: 0, raw: '', isValid: false });
+      assert.deepEqual(parseBangladeshiNumber(undefined), { value: 0, raw: '', isValid: false });
+      assert.deepEqual(parseBangladeshiNumber(true), { value: 0, raw: '', isValid: false });
+      assert.deepEqual(parseBangladeshiNumber(false), { value: 0, raw: '', isValid: false });
+    });
+  });
+
+  describe('formatLocaleNumber', () => {
+    it('formats numbers and strings according to language', () => {
+      assert.equal(formatLocaleNumber(12, 'bn'), '১২');
+      assert.equal(formatLocaleNumber(12, 'en'), '12');
+      assert.equal(formatLocaleNumber('১২', 'en'), '12');
+      assert.equal(formatLocaleNumber('12', 'bn'), '১২');
+      assert.equal(formatLocaleNumber(0, 'bn'), '০');
+      assert.equal(formatLocaleNumber(0, 'en'), '0');
+      assert.equal(formatLocaleNumber(null, 'bn'), '০');
+      assert.equal(formatLocaleNumber(null, 'en'), '0');
+    });
+  });
+
+  describe('formatMonthYear', () => {
+    it('formats month and year in Bengali and English', () => {
+      assert.equal(formatMonthYear(8, 2026, 'bn'), 'আগস্ট ২০২৬');
+      assert.equal(formatMonthYear(8, 2026, 'en'), 'August 2026');
+      assert.equal(formatMonthYear(1, 2025, 'bn'), 'জানুয়ারি ২০২৫');
+      assert.equal(formatMonthYear(1, 2025, 'en'), 'January 2025');
+    });
+  });
+
   describe('toFiniteNumber', () => {
     it('converts numbers and numeric strings to finite numbers', () => {
       assert.equal(toFiniteNumber(5), 5);
@@ -71,6 +176,17 @@ describe('report-utils', () => {
       assert.equal(toFiniteNumber('12.5'), 12.5);
       assert.equal(toFiniteNumber(0), 0);
       assert.equal(toFiniteNumber('0'), 0);
+    });
+
+    it('handles commas and thousand separators without zero-wiping', () => {
+      assert.equal(toFiniteNumber('1,500'), 1500);
+      assert.equal(toFiniteNumber('১,৫০০'), 1500);
+      assert.equal(toFiniteNumber('1,50,000'), 150000);
+    });
+
+    it('preserves floating point precision for averages and rates', () => {
+      assert.equal(toFiniteNumber('12.5'), 12.5);
+      assert.equal(toFiniteNumber('১২.৫'), 12.5);
     });
 
     it('converts Bengali digit strings to ASCII numbers', () => {

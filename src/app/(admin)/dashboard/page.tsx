@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getDhakaDate } from "@/lib/date-utils";
 import { cookies } from "next/headers";
 import { translations, Language } from "@/lib/i18n";
+import { formatLocaleNumber, formatMonthYear } from "@/lib/report-utils";
 import { createClient } from "@/utils/supabase/server";
 import {
   ShieldCheck,
@@ -45,26 +46,6 @@ const getNavCards = (t: typeof translations[Language]) => [
   },
 ];
 
-const BN_MONTHS = [
-  "জানুয়ারি",
-  "ফেব্রুয়ারি",
-  "মার্চ",
-  "এপ্রিল",
-  "মে",
-  "জুন",
-  "জুলাই",
-  "আগস্ট",
-  "সেপ্টেম্বর",
-  "অক্টোবর",
-  "নভেম্বর",
-  "ডিসেম্বর",
-];
-
-function toBn(num: number | string): string {
-  const bnDigits = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
-  return String(num).replace(/[0-9]/g, (w) => bnDigits[Number(w)]);
-}
-
 export default async function AdminDashboardPage() {
   const cookieStore = await cookies();
   const lang = (cookieStore.get("app-language")?.value || "bn") as Language;
@@ -77,7 +58,7 @@ export default async function AdminDashboardPage() {
 
   // Get current date context
   const { month: currentMonth, year: currentYear } = getDhakaDate();
-  const monthNameBn = BN_MONTHS[currentMonth - 1] || `${toBn(currentMonth)}ম মাস`;
+  const monthYearFormatted = formatMonthYear(currentMonth, currentYear, lang);
 
   // Fetch admin profile, all zones, and current month's monthly reports in parallel
   const [{ data: person }, { data: allZones }, { data: currentReports }] =
@@ -150,9 +131,7 @@ export default async function AdminDashboardPage() {
 
         <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-muted/50 border border-border text-sm font-bold text-muted-foreground">
           <Calendar className="w-4 h-4 text-primary" />
-          <span>
-            {monthNameBn} {toBn(currentYear)}
-          </span>
+          <span>{monthYearFormatted}</span>
         </div>
       </div>
 
@@ -165,7 +144,7 @@ export default async function AdminDashboardPage() {
               <span>{t.labels.currentMonthUpdate}</span>
             </div>
             <h2 className="text-xl md:text-2xl font-black text-foreground">
-              {monthNameBn} {toBn(currentYear)} — {t.labels.reportCondition}
+              {monthYearFormatted} — {t.labels.reportCondition}
             </h2>
           </div>
 
@@ -176,7 +155,7 @@ export default async function AdminDashboardPage() {
                 {t.labels.submissionRate}
               </p>
               <p className="text-lg font-black text-primary leading-none">
-                {toBn(completionPercentage)}% {t.labels.completedPercentage}
+                {formatLocaleNumber(completionPercentage, lang)}% {t.labels.completedPercentage}
               </p>
             </div>
           </div>
@@ -190,8 +169,10 @@ export default async function AdminDashboardPage() {
                 {t.labels.totalZones}
               </p>
               <p className="text-3xl font-black text-blue-600 mt-1">
-                {toBn(totalZonesCount)}
-                <span className="text-sm font-bold text-muted-foreground ml-1">{t.labels.counterSuffix}</span>
+                {formatLocaleNumber(totalZonesCount, lang)}
+                {t.labels.counterSuffix && (
+                  <span className="text-sm font-bold text-muted-foreground ml-1">{t.labels.counterSuffix}</span>
+                )}
               </p>
             </div>
             <div className="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center">
@@ -205,8 +186,10 @@ export default async function AdminDashboardPage() {
                 {t.labels.submitted}
               </p>
               <p className="text-3xl font-black text-green-600 mt-1">
-                {toBn(submittedCount)}
-                <span className="text-sm font-bold text-muted-foreground ml-1">{t.labels.counterSuffix}</span>
+                {formatLocaleNumber(submittedCount, lang)}
+                {t.labels.counterSuffix && (
+                  <span className="text-sm font-bold text-muted-foreground ml-1">{t.labels.counterSuffix}</span>
+                )}
               </p>
             </div>
             <div className="w-12 h-12 rounded-xl bg-green-500/10 text-green-600 flex items-center justify-center">
@@ -220,8 +203,10 @@ export default async function AdminDashboardPage() {
                 {t.labels.pendingReports}
               </p>
               <p className="text-3xl font-black text-amber-600 mt-1">
-                {toBn(pendingCount)}
-                <span className="text-sm font-bold text-muted-foreground ml-1">{t.labels.counterSuffix}</span>
+                {formatLocaleNumber(pendingCount, lang)}
+                {t.labels.counterSuffix && (
+                  <span className="text-sm font-bold text-muted-foreground ml-1">{t.labels.counterSuffix}</span>
+                )}
               </p>
             </div>
             <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
@@ -239,9 +224,13 @@ export default async function AdminDashboardPage() {
             />
           </div>
           <div className="flex justify-between text-xs font-bold text-muted-foreground">
-            <span>{toBn(0)}%</span>
-            <span>{toBn(submittedCount)} {t.labels.counterSuffix} {t.labels.zonesSubmitted} ({toBn(completionPercentage)}%)</span>
-            <span>{toBn(100)}%</span>
+            <span>{formatLocaleNumber(0, lang)}%</span>
+            <span>
+              {formatLocaleNumber(submittedCount, lang)}
+              {t.labels.counterSuffix ? ` ${t.labels.counterSuffix}` : ""}{" "}
+              {t.labels.zonesSubmitted} ({formatLocaleNumber(completionPercentage, lang)}%)
+            </span>
+            <span>{formatLocaleNumber(100, lang)}%</span>
           </div>
         </div>
 
@@ -251,7 +240,10 @@ export default async function AdminDashboardPage() {
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-sm font-black text-green-600">
               <CheckCircle2 className="w-4 h-4" />
-              <span>{t.labels.submittedZonesList} ({toBn(submittedCount)}টি)</span>
+              <span>
+                {t.labels.submittedZonesList} ({formatLocaleNumber(submittedCount, lang)}
+                {t.labels.counterSuffix})
+              </span>
             </div>
             {submittedCount === 0 ? (
               <p className="text-xs text-muted-foreground font-bold bg-muted/30 p-3 rounded-xl border border-border/40">
@@ -276,7 +268,10 @@ export default async function AdminDashboardPage() {
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-sm font-black text-amber-600">
               <AlertCircle className="w-4 h-4" />
-              <span>{t.labels.pendingZonesList} ({toBn(pendingCount)}টি)</span>
+              <span>
+                {t.labels.pendingZonesList} ({formatLocaleNumber(pendingCount, lang)}
+                {t.labels.counterSuffix})
+              </span>
             </div>
             {pendingCount === 0 ? (
               <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-2xl text-green-700 dark:text-green-400 text-xs font-black flex items-center gap-2.5">

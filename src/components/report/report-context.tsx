@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { createClient } from '@/utils/supabase/client'
 
 export interface FailedFieldInfo {
@@ -10,6 +10,7 @@ export interface FailedFieldInfo {
   table: string
   category?: string
   error: string
+  reportId: number
 }
 
 interface ReportContextType {
@@ -17,6 +18,7 @@ interface ReportContextType {
   setReportId: (id: number) => void
   data: Record<string, any>
   isSaving: boolean
+  pendingSavesCount: number
   lastSaved: Date | null
   saveError: string | null
   loadError: string | null
@@ -26,6 +28,7 @@ interface ReportContextType {
   loadReport: (id: number) => Promise<{ success: boolean; error?: any }>
   retryFailedField: (key: string) => Promise<void>
   retryAllFailed: () => Promise<void>
+  drainPendingSaves: (timeoutMs?: number) => Promise<boolean>
 }
 
 const ReportContext = createContext<ReportContextType | undefined>(undefined)
@@ -37,7 +40,11 @@ export function ReportProvider({ children }: { children: React.ReactNode }) {
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [failedFields, setFailedFields] = useState<Record<string, FailedFieldInfo>>({})
-  
+
+  const activeReportIdRef = useRef<number | null>(null)
+  const pendingSavesCountRef = useRef<number>(0)
+  const fieldSequenceRef = useRef<Record<string, number>>({})
+
   const supabase = useMemo(() => createClient(), [])
 
   const isSaving = pendingSavesCount > 0
@@ -48,9 +55,26 @@ export function ReportProvider({ children }: { children: React.ReactNode }) {
 
   const clearSaveError = useCallback(() => setFailedFields({}), [])
 
+  const drainPendingSaves = useCallback(async (timeoutMs = 2500): Promise<boolean> => {
+    const start = Date.now()
+    while (pendingSavesCountRef.current > 0 && Date.now() - start < timeoutMs) {
+      await new Promise((res) => setTimeout(res, 50))
+    }
+    return pendingSavesCountRef.current === 0
+  }, [])
+
   const loadReport = useCallback(async (id: number): Promise<{ success: boolean; error?: any }> => {
-    setPendingSavesCount(c => c + 1)
+    activeReportIdRef.current = id
+    setReportId(id)
+    setFailedFields({})
+    setPendingSavesCount(0)
+    pendingSavesCountRef.current = 0
+    fieldSequenceRef.current = {}
     setLoadError(null)
+
+    pendingSavesCountRef.current += 1
+    setPendingSavesCount(pendingSavesCountRef.current)
+
     try {
       const { data: reportData, error } = await supabase
         .from('report')
@@ -67,9 +91,12 @@ export function ReportProvider({ children }: { children: React.ReactNode }) {
         .eq('id', id)
         .single()
       
+      if (activeReportIdRef.current !== id) {
+        return { success: false, error: new Error('Report superseded while loading') }
+      }
+
       if (reportData && !error) {
         setData(reportData)
-        setReportId(id)
         setLoadError(null)
         return { success: true }
       } else {
@@ -79,7 +106,8 @@ export function ReportProvider({ children }: { children: React.ReactNode }) {
         return { success: false, error: error || new Error(errMessage) }
       }
     } finally {
-      setPendingSavesCount(c => Math.max(0, c - 1))
+      pendingSavesCountRef.current = Math.max(0, pendingSavesCountRef.current - 1)
+      setPendingSavesCount(pendingSavesCountRef.current)
     }
   }, [supabase])
 
@@ -90,48 +118,65 @@ export function ReportProvider({ children }: { children: React.ReactNode }) {
     table: string = 'report',
     category?: string
   ): Promise<{ success: boolean; error?: any }> => {
-    if (!reportId) return { success: false, error: new Error('No active reportId') }
+    const targetReportId = activeReportIdRef.current || reportId
+    if (!targetReportId) return { success: false, error: new Error('No active reportId') }
 
-    const fieldKey = `${table}:${category || ''}:${name}`
-    setPendingSavesCount(c => c + 1)
+    const fieldKey = `${targetReportId}:${table}:${category || ''}:${name}`
+    fieldSequenceRef.current[fieldKey] = (fieldSequenceRef.current[fieldKey] || 0) + 1
+    const seq = fieldSequenceRef.current[fieldKey]
+
+    pendingSavesCountRef.current += 1
+    setPendingSavesCount(pendingSavesCountRef.current)
 
     // Optimistic update for the main data object
     setData(prev => {
-      const nextData = { ...prev };
+      const nextData = { ...prev }
       
       if (table === 'report') {
-        nextData[name] = value;
+        nextData[name] = value
       } else if (table === 'report_header') {
-        nextData.header = { ...(nextData.header || {}), [name]: value };
+        nextData.header = { ...(nextData.header || {}), [name]: value }
       } else if (table === 'report_comment') {
-        nextData.comment = { ...(nextData.comment || {}), [name]: value };
+        nextData.comment = { ...(nextData.comment || {}), [name]: value }
       } else if (category) {
-        let arrayKey = "";
-        if (table === 'report_course') arrayKey = 'courses';
-        else if (table === 'report_organizational') arrayKey = 'organizational';
-        else if (table === 'report_personal') arrayKey = 'personal';
-        else if (table === 'report_meeting') arrayKey = 'meeting';
-        else if (table === 'report_extra') arrayKey = 'extra';
+        let arrayKey = ""
+        if (table === 'report_course') arrayKey = 'courses'
+        else if (table === 'report_organizational') arrayKey = 'organizational'
+        else if (table === 'report_personal') arrayKey = 'personal'
+        else if (table === 'report_meeting') arrayKey = 'meeting'
+        else if (table === 'report_extra') arrayKey = 'extra'
 
         if (arrayKey && Array.isArray(nextData[arrayKey])) {
-           nextData[arrayKey] = nextData[arrayKey].map((row: any) => 
-              row.category === category ? { ...row, [name]: value } : row
-           );
+           nextData[arrayKey] = nextData[arrayKey].map((row: any) => {
+             const isMatch =
+               row.category === category ||
+               (table === 'report_course' && (row.course_name === category || row.category === category)) ||
+               (table === 'report_meeting' && (row.meeting_type === category || row.category === category))
+             return isMatch ? { ...row, [name]: value } : row
+           })
         }
       }
-      return nextData;
-    });
+      return nextData
+    })
 
     try {
-      let query = supabase.from(table).update({ [name]: value }).eq('report_id', reportId).select('id')
+      let query = supabase.from(table).update({ [name]: value }).eq('report_id', targetReportId).select('id')
       
       if (table === 'report') {
-        query = supabase.from('report').update({ [name]: value }).eq('id', reportId).select('id')
+        query = supabase.from('report').update({ [name]: value }).eq('id', targetReportId).select('id')
       } else if (category) {
         query = query.eq('category', category)
       }
 
       const { data: updated, error } = await query
+
+      // Discard response if report changed or newer edit was queued
+      if (activeReportIdRef.current !== targetReportId) {
+        return { success: false, error: new Error('Report switched while save was in flight') }
+      }
+      if (fieldSequenceRef.current[fieldKey] !== seq) {
+        return { success: true }
+      }
 
       if (!error && updated && updated.length > 0) {
         setLastSaved(new Date())
@@ -153,12 +198,19 @@ export function ReportProvider({ children }: { children: React.ReactNode }) {
             section,
             table,
             category,
-            error: 'সংরক্ষণ ব্যর্থ হয়েছে'
+            error: 'সংরক্ষণ ব্যর্থ হয়েছে',
+            reportId: targetReportId,
           }
         }))
         return { success: false, error: error || new Error(errMsg) }
       }
     } catch (err: any) {
+      if (activeReportIdRef.current !== targetReportId) {
+        return { success: false, error: new Error('Report switched while save was in flight') }
+      }
+      if (fieldSequenceRef.current[fieldKey] !== seq) {
+        return { success: true }
+      }
       console.error(`Unexpected save error on ${fieldKey}:`, err)
       setFailedFields(prev => ({
         ...prev,
@@ -168,23 +220,26 @@ export function ReportProvider({ children }: { children: React.ReactNode }) {
           section,
           table,
           category,
-          error: 'সংরক্ষণ ব্যর্থ হয়েছে'
+          error: 'সংরক্ষণ ব্যর্থ হয়েছে',
+          reportId: targetReportId,
         }
       }))
       return { success: false, error: err }
     } finally {
-      setPendingSavesCount(c => Math.max(0, c - 1))
+      pendingSavesCountRef.current = Math.max(0, pendingSavesCountRef.current - 1)
+      setPendingSavesCount(pendingSavesCountRef.current)
     }
   }, [reportId, supabase])
 
   const retryFailedField = useCallback(async (key: string) => {
     const item = failedFields[key]
-    if (!item) return
+    if (!item || item.reportId !== activeReportIdRef.current) return
     await updateField(item.name, item.value, item.section, item.table, item.category)
   }, [failedFields, updateField])
 
   const retryAllFailed = useCallback(async () => {
-    const items = Object.values(failedFields)
+    const currentId = activeReportIdRef.current
+    const items = Object.values(failedFields).filter(item => item.reportId === currentId)
     for (const item of items) {
       await updateField(item.name, item.value, item.section, item.table, item.category)
     }
@@ -194,7 +249,8 @@ export function ReportProvider({ children }: { children: React.ReactNode }) {
     reportId, 
     setReportId, 
     data, 
-    isSaving, 
+    isSaving,
+    pendingSavesCount,
     lastSaved,
     saveError,
     loadError,
@@ -203,11 +259,13 @@ export function ReportProvider({ children }: { children: React.ReactNode }) {
     updateField,
     loadReport,
     retryFailedField,
-    retryAllFailed
+    retryAllFailed,
+    drainPendingSaves,
   }), [
     reportId,
     data,
     isSaving,
+    pendingSavesCount,
     lastSaved,
     saveError,
     loadError,
@@ -216,7 +274,8 @@ export function ReportProvider({ children }: { children: React.ReactNode }) {
     updateField,
     loadReport,
     retryFailedField,
-    retryAllFailed
+    retryAllFailed,
+    drainPendingSaves,
   ])
 
   return (

@@ -68,6 +68,30 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ## Resolved Historical Issues
 
+### Track 2 Core Save Machine, Concurrency & Numeral Normalization (ADR 028, RS-20, RS-24, RS-25, RS-32, RS-50, RS-52, KI-008, KI-009, KI-014, KI-015)
+- **Date**: 2026-11-16
+- **Resolution Date**: 2026-11-16
+- **Affected Components**: `src/lib/report-utils.ts`, `src/lib/date-utils.ts`, `src/lib/i18n.ts`, `src/components/report/report-context.tsx`, `src/components/report/auto-save-field.tsx`, `src/components/admin/correction-button.tsx`, `src/components/report/sections/comments-form.tsx`, `src/app/(admin)/dashboard/page.tsx`
+- **Description**:
+  1. **RS-20 / KI-008 (`failedFields` Cross-Report Data Corruption)**: `failedFields` in `ReportContext` was a flat dictionary keyed by `${table}:${category || ''}:${name}` omitting `reportId`. `loadReport(newId)` never wiped `failedFields`. A user failing to save in Month 6 (`reportId=41`) and tapping "Retry All" in Month 7 (`reportId=42`) clobbered Month 6's data into Month 7.
+  2. **CommentsForm Submission Gate**: Toggling submission checkbox checked `is_submitted: true` directly with zero check on `isSaving` or `failedFields`, allowing incomplete reports to be submitted while saves were in flight or failing.
+  3. **RS-24 (Rapid Edit Concurrency & Out-of-Order Saves)**: Rapidly editing `"10"` then `"20"` on high-latency mobile networks risked the older save arriving at PostgreSQL after the newer one, committing stale data.
+  4. **RS-32 / KI-014 (Bangladeshi Mobile Keyboard Separator Truncation & Headcount Erasure)**: Android keyboards in Bangladesh with Islamic layouts produce Arabic comma `،` (`U+060C`), Arabic thousand separator `٬` (`U+066C`), or fullwidth comma `，` (`U+FF0C`). `replace(/[,\s]/g, "")` only stripped ASCII comma `,`. `parseFloat("1،50،000")` parsed `"1"` and aborted, silently saving `1` instead of `150,000` (a 150,000× headcount erasure). Voice typing inserted colloquial counting classifiers (`জন`, `টি`, `টা`, `খানা`).
+  5. **`toFiniteNumber` Comma-Blindness Bug**: `Number("1,500") === NaN`, zeroing out formatted numeric strings and overrides in `sumRows()` and PDF export.
+  6. **RS-25 / KI-009 (Mobile Task-Kill & Unmount Data Loss)**: Tab switches, app switches, or Android task-kills dropped unsaved dirty inputs before async network requests landed.
+  7. **RS-50 / KI-015 (Timezone Runtime Overhead & Fragility)**: `getDhakaDate()` instantiated `new Intl.DateTimeFormat` on every invocation with non-null assertion `!`, causing high CPU overhead on SSR.
+  8. **RS-52 (Admin Dashboard English/Bengali Parity)**: Admin dashboard hardcoded `BN_MONTHS`, unconditionally converted all numerals via `toBn()`, and hardcoded the `"টি"` suffix, forcing Bengali output even when English was selected.
+- **Fix Summary**:
+  1. Partitioned `failedFields` by `${reportId}:${table}:${category || ''}:${name}`. Reset state, sequence counters, and pending counts in `loadReport(id)`. Added in-flight closure guard (`activeReportIdRef.current !== targetReportId`) discarding stale responses across report transitions.
+  2. Implemented pre-flight drain in `CommentsForm`: force-blurs active input, drains in-flight saves up to 2,500ms via `drainPendingSaves(2500)`, blocks submission if `failedFields > 0` with explicit Bengali error, and requires user confirmation before marking submitted.
+  3. Added monotonic sequence counter per field (`fieldSequenceRef.current[fieldKey] = ++seq`), discarding superseded save responses. Fixed optimistic state array mapping for `report_course` (`course_name`) and `report_meeting` (`meeting_type`).
+  4. Created `parseBangladeshiNumber()` in `report-utils.ts` defending against `[,،٬，_\s\u00A0\u202F]`, extracting numeric tokens, stripping Bengali counting suffixes, and clamping non-negative integers (`col >= 0`). Integrated into `AutoSaveField` and `CorrectionButton`.
+  5. Updated `toFiniteNumber()` to strip all Unicode commas and normalize via `bnToEn()`, preserving valid float rates (`12.5`) and eliminating comma-blindness (`"1,500"` -> `1500`).
+  6. Added 1,000ms idle typing debounce timer and synchronous `localStorage` Write-Ahead Buffer (`draft:${reportId}:${fieldKey}`) in `AutoSaveField`, wrapped in `try/catch` for private browsing and restored on mount.
+  7. Hardened `getDhakaDate(date: Date = new Date())` with module-level cached `DHAKA_FORMATTER` singleton, safe loop part extraction, and mathematical UTC+6 fallback.
+  8. Added `months` arrays to `i18n.ts`, created `formatLocaleNumber` and `formatMonthYear`, and achieved 100% English/Bengali parity on the admin dashboard.
+  9. Added 14 automated unit tests covering `parseBangladeshiNumber`, `toFiniteNumber`, and boundary dates for Dhaka timezone. Verified across all 4 quality gates (58/58 tests passing).
+
 ### Track 1 Database DDL, RLS Hardening & Storage Hygiene (ADR 027, RS-10, RS-27, RS-43, RS-45, RS-73, KI-010, KI-011, Backlog Items 1–5)
 - **Date**: 2026-11-15
 - **Resolution Date**: 2026-11-15
