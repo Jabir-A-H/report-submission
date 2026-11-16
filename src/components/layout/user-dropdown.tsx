@@ -1,58 +1,30 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useLanguage } from "@/components/providers/language-provider";
+import { useUser } from "@/components/providers/user-provider";
 import { User, LogOut, HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { createClient } from "@/utils/supabase/client";
 import { LanguageToggle } from "./language-toggle";
 import { ThemeToggle } from "./theme-toggle";
 
 export function UserDropdown() {
   const { t } = useLanguage();
+  const { user: authUser, profile, role, zoneName, isLoading } = useUser();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const searchParams = useSearchParams();
-  const supabase = useMemo(() => createClient(), []);
-  const [user, setUser] = useState<{name: string, role: string, zone: string} | null>(null);
 
   // Build period query string — carries period context to Help page so back-navigation preserves it
   const paramsStr = searchParams.toString();
   const periodQuery = paramsStr ? `?${paramsStr}` : "";
 
-  const [isAuthChecked, setIsAuthChecked] = useState(false);
-
-  useEffect(() => {
-    async function loadUser() {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (authUser) {
-        const { data: profile } = await supabase
-          .from("people")
-          .select("name, role, zone(name)")
-          .eq("supabase_uid", authUser.id)
-          .single();
-        
-        if (profile) {
-          const zoneObj = profile.zone as any;
-          setUser({
-            name: profile.name || authUser.email?.split("@")[0] || "User",
-            role: profile.role,
-            zone: zoneObj?.name || "—",
-          });
-        } else {
-          setUser({
-            name: authUser.email?.split("@")[0] || "User",
-            role: "user",
-            zone: "—",
-          });
-        }
-      }
-      setIsAuthChecked(true);
-    }
-    loadUser();
-  }, [supabase]);
+  const isAuthChecked = !isLoading;
+  const displayName = profile?.name || authUser?.email?.split("@")[0] || "User";
+  const displayZone = zoneName || "—";
+  const displayRole = role || "user";
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -64,7 +36,7 @@ export function UserDropdown() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  if (isAuthChecked && !user) {
+  if (isAuthChecked && !authUser) {
     return (
       <Link
         href="/home"
@@ -86,16 +58,16 @@ export function UserDropdown() {
           <User className="w-5 h-5" />
         </div>
         <div className="hidden lg:flex flex-col items-start leading-tight">
-          <span className="text-sm font-black truncate max-w-[100px]">{user?.name || "..."}</span>
-          <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{user?.role || "..."}</span>
+          <span className="text-sm font-black truncate max-w-[100px]">{displayName}</span>
+          <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{displayRole}</span>
         </div>
       </button>
 
       {isOpen && (
         <div className="absolute right-0 mt-3 w-72 rounded-2xl border bg-card shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-100">
           <div className="p-5 bg-linear-to-br from-primary/5 to-transparent border-b">
-            <p className="text-sm font-black">{user?.name || "..."}</p>
-            <p className="text-xs text-muted-foreground font-bold">{user?.zone || "..."}</p>
+            <p className="text-sm font-black">{displayName}</p>
+            <p className="text-xs text-muted-foreground font-bold">{displayZone}</p>
           </div>
           
           <div className="p-3 space-y-2">

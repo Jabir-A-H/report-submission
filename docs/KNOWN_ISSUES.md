@@ -68,6 +68,30 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ## Resolved Historical Issues
 
+### Track 4 Canonical Navigation, Unified UserProvider, Viewport Ergonomics & Adaptive PDF Budget (ADR 030, RS-60, RS-65, RS-66, RS-67, C04-02, C06-01)
+- **Date**: 2026-11-16
+- **Resolution Date**: 2026-11-16
+- **Affected Components**: `src/components/providers/user-provider.tsx`, `src/app/layout.tsx`, `src/components/layout/navbar.tsx`, `src/components/layout/bottom-nav.tsx`, `src/components/layout/user-dropdown.tsx`, `src/components/dashboard/user-dashboard.tsx`, `src/app/report/[section]/page.tsx`, `src/components/report/section-layout.tsx`, `src/components/report/auto-save-field.tsx`, `src/app/api/export/pdf/route.tsx`, `src/components/report/sections/personal-form.tsx`, `src/components/report/sections/comments-form.tsx`, `src/app/help/help-diagram-client.tsx`
+- **Description**:
+  1. **RS-60 (Fragile 3-Tuple Query Routing & Redundant RPC Waterfall)**: `user-dashboard.tsx` resolved report identity via `get_or_create_report`, but linked to `/report/[section]?type=...&month=...&year=...`, discarding `reportId`. When section forms mounted, they re-queried `getUser()`, re-queried `people`, and re-invoked `get_or_create_report` a second time (~480ms mobile latency). Stepper and return-to-dashboard links passed raw query strings, while returning to `/` with `?reportId=42` caused `user-dashboard.tsx` to reset to the unselected period picker.
+  2. **RS-67 (Layout Auth Query Waterfall & Network Flooding)**: `Navbar`, `BottomNav`, and `UserDropdown` each executed independent parallel calls to `supabase.auth.getUser()` and `supabase.from("people")` on every route transition (6 duplicate queries per page mount).
+  3. **RS-66 / C06-03 (Mobile Viewport Clearance & Bottom Navigation 44px Clipping)**: Fixed `BottomNav` (64px) + fixed stepper bar (~76px) created 140px of permanent obstruction at the bottom of the screen. `SectionLayout` had only `pb-24` (96px). Exactly 44px of the form bottom was permanently hidden behind the navigation bars on mobile.
+  4. **RS-66 (Unbound Form Labels & Missing Input IDs)**: `AutoSaveField` inputs completely lacked `id`, `htmlFor`, and `aria-label` attributes. Screen readers announced "edit text, blank", and tapping field labels failed to focus inputs.
+  5. **C06-01 (PDF 2-Page Print Guarantee & Adaptive Comments Layout)**: Duplex-printed reports on A4 landscape paper had ~191 pt available for comments on Page 2 alongside tables and signatures. Manual newlines (`\n`) created unexpected line boxes in `@react-pdf/renderer`. However, half-yearly and yearly reports legitimately require long comments.
+  6. **C04-02 / C04-04 (`PersonalForm` Table Row Totals & Soft-Keyboard Immunity)**: Paper reporting sheets and PDF exports had a row total column (`মোট`) across the 3 categories (`সহযোগী`, `সক্রিয় সহযোগী`, `কর্মী`), which was missing from the web interface. Hoisting keystrokes to compute totals caused full-table re-renders, triggering virtual keyboard collapse (`C03-01`).
+  7. **CommentsForm Submission Checkbox Touch Target Floor**: Only the 24px checkbox `<input>` was interactive, resulting in high touch friction and missed taps on mobile.
+  8. **RS-65 (Help Manual Terminology Drift)**: `help-diagram-client.tsx` cited stale `"সাইন আপ"` instead of canonical `"নিবন্ধন"`.
+- **Fix Summary**:
+  1. Implemented canonical `?reportId=42` routing in `user-dashboard.tsx` and `report/[section]/page.tsx`. When `reportId` is present, `get_or_create_report` RPC is completely bypassed; report is loaded directly via `loadReport(id)` with in-memory caching. Catches `PGRST116` tampering and renders a clean authorization recovery card with a return button. Redirects admins to `/dashboard` (`WEB-006`).
+  2. Created unified memoized `<UserProvider>` context in `src/components/providers/user-provider.tsx` and mounted in `RootLayout`. Subscribes to `onAuthStateChange`. Refactored `Navbar`, `BottomNav`, and `UserDropdown` to consume `useUser()`, cutting 6 queries per route to 0.
+  3. Replaced bottom padding in `SectionLayout` with `pb-[calc(10.5rem+env(safe-area-inset-bottom,0px))] md:pb-28`, ensuring 36px clearance above mobile bars and 20px on desktop.
+  4. Implemented deterministic collision-free IDs (`field-${section}-${table}-${category || "root"}-${name}`) in `AutoSaveField` with clean sibling `<label htmlFor={fieldId}>`. Added `aria-label` to table-mode inputs.
+  5. Implemented smart adaptive PDF layout engine in `src/app/api/export/pdf/route.tsx`: comments `<= 7 lines` and `<= 500 chars` stay on Page 2 alongside the signature block (duplex 2-page print), while longer comments render an indicator note on Page 2 (`* বিস্তারিত মন্তব্য পরবর্তী পাতায় সংযোজিত (পৃষ্ঠা ৩)`) and cleanly dedicate Page 3 to full comments and signature block.
+  6. Added "সর্বমোট" column to `PersonalForm` table mode derived directly from `data?.personal` in ReportContext on blur/save. Guarantees 0ms input latency and zero soft-keyboard drops.
+  7. Converted submission container in `CommentsForm` into a clickable `<label htmlFor="report-submission-checkbox">` with a `44x44px+` touch target and locked pointer events during submission.
+  8. Synchronized all 10 occurrences of "সাইন আপ" to "নিবন্ধন" in `help-diagram-client.tsx`.
+  9. Verified all 4 quality gates: 70/70 tests passing, 0 TypeScript errors, 0 ESLint errors, and clean Turbopack build.
+
 ### Track 3 Auth Security, Middleware Cookie Forwarding & Server Actions (ADR 029, RS-42, RS-44, RS-45, RS-46, RS-48, KI-023)
 - **Date**: 2026-11-16
 - **Resolution Date**: 2026-11-16

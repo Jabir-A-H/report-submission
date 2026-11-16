@@ -96,11 +96,16 @@ export function CommentsForm() {
       )}
 
       {/* Report Submission Confirmation Checkbox Card */}
-      <div className={`p-5 rounded-2xl border-2 transition-all flex items-center justify-between gap-4 ${
-        isSubmitted 
-          ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-950 dark:text-emerald-100 shadow-sm" 
-          : "bg-primary/5 border-primary/20 text-foreground"
-      }`}>
+      <label
+        htmlFor="report-submission-checkbox"
+        className={`p-5 rounded-2xl border-2 transition-all flex items-center justify-between gap-4 cursor-pointer select-none ${
+          submitting ? "pointer-events-none opacity-60 cursor-wait" : ""
+        } ${
+          isSubmitted 
+            ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-950 dark:text-emerald-100 shadow-sm" 
+            : "bg-primary/5 border-primary/20 text-foreground hover:border-primary/40"
+        }`}
+      >
         <div className="flex items-start gap-3.5">
           <div className={`p-2.5 rounded-xl mt-0.5 ${
             isSubmitted ? "bg-emerald-500/20 text-emerald-600" : "bg-primary/10 text-primary"
@@ -137,7 +142,7 @@ export function CommentsForm() {
             id="report-submission-checkbox"
           />
         </div>
-      </div>
+      </label>
     </div>
   );
 }

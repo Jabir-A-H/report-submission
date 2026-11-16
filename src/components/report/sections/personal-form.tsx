@@ -4,13 +4,15 @@ import { useState } from "react";
 import { AutoSaveField } from "../auto-save-field";
 import { UserPlus, ChevronDown } from "lucide-react";
 import { useViewModeContext } from "../view-mode-toggle";
+import { useReport } from "../report-context";
 import { useLanguage } from "@/components/providers/language-provider";
 
-import { PERSONAL_CATEGORIES, PERSONAL_METRICS_ROWS } from "@/lib/report-utils";
+import { PERSONAL_CATEGORIES, PERSONAL_METRICS_ROWS, toBn } from "@/lib/report-utils";
 
 export function PersonalForm() {
   const { t, tc, language } = useLanguage();
   const { viewMode } = useViewModeContext();
+  const { data } = useReport();
   const [openCards, setOpenCards] = useState<Record<string, boolean>>({
     [PERSONAL_CATEGORIES[0]]: true,
   });
@@ -25,7 +27,7 @@ export function PersonalForm() {
   if (viewMode === "table") {
     return (
       <div className="bg-card border border-border/80 rounded-2xl p-4 shadow-xs overflow-x-auto animate-in fade-in duration-300">
-        <table className="w-full text-left border-collapse min-w-[550px]">
+        <table className="w-full text-left border-collapse min-w-[650px]">
           <thead>
             <tr className="border-b border-border bg-muted/50 text-muted-foreground text-xs font-black">
               <th className="p-3 w-52 sticky left-0 bg-muted/90 backdrop-blur z-10 border-r border-border/50 text-left">
@@ -36,29 +38,47 @@ export function PersonalForm() {
                   {cat === "সক্রিয় সহযোগী" ? t.labels.becameActiveAssociate : tc(cat as any)}
                 </th>
               ))}
+              <th className="p-2 text-center w-28 border-r border-border font-bold text-foreground bg-muted/30">
+                {t.labels.total}
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/60 text-sm">
-            {PERSONAL_METRICS_ROWS.map((metric) => (
-              <tr key={metric.key} className="hover:bg-muted/30 transition-colors">
-                <td className="p-3 w-52 font-bold text-foreground sticky left-0 bg-card z-10 border-r border-border/50 text-xs sm:text-sm">
-                  {tc(metric.label as any)}
-                </td>
-                {PERSONAL_CATEGORIES.map((cat) => (
-                  <td key={cat} className="p-1 border-r border-border/40">
-                    <AutoSaveField
-                      label=""
-                      name={metric.key}
-                      type="number"
-                      section="personal"
-                      table="report_personal"
-                      category={cat}
-                      tableMode
-                    />
+            {PERSONAL_METRICS_ROWS.map((metric) => {
+              const personalData = data?.personal;
+              const rowTotal = Array.isArray(personalData)
+                ? personalData.reduce((acc: number, row: any) => {
+                    if (PERSONAL_CATEGORIES.includes(row?.category)) {
+                      return acc + (Number(row?.[metric.key]) || 0);
+                    }
+                    return acc;
+                  }, 0)
+                : 0;
+
+              return (
+                <tr key={metric.key} className="hover:bg-muted/30 transition-colors">
+                  <td className="p-3 w-52 font-bold text-foreground sticky left-0 bg-card z-10 border-r border-border/50 text-xs sm:text-sm">
+                    {tc(metric.label as any)}
                   </td>
-                ))}
-              </tr>
-            ))}
+                  {PERSONAL_CATEGORIES.map((cat) => (
+                    <td key={cat} className="p-1 border-r border-border/40">
+                      <AutoSaveField
+                        label=""
+                        name={metric.key}
+                        type="number"
+                        section="personal"
+                        table="report_personal"
+                        category={cat}
+                        tableMode
+                      />
+                    </td>
+                  ))}
+                  <td className="p-2 text-center font-bold text-xs sm:text-sm text-foreground bg-muted/20 border-r border-border/40 tabular-nums">
+                    {toBn(rowTotal)}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

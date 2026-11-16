@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
+import { useUser } from "@/components/providers/user-provider";
 import { PeriodSelector } from "./period-selector";
 import { 
   FileText, 
@@ -29,7 +30,26 @@ const BENGALI_MONTHS = [
 
 const BENGALI_DIGITS = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
 
+const TYPE_REVERSE: Record<string, string> = {
+  "মাসিক": "monthly",
+  "ত্রৈমাসিক": "quarterly",
+  "ষান্মাসিক": "halfYearly",
+  "নয়-মাসিক": "nineMonth",
+  "বার্ষিক": "yearly",
+};
 
+const REPORT_TYPE_MAP: Record<string, string> = {
+  monthly: "মাসিক",
+  quarterly: "ত্রৈমাসিক",
+  halfYearly: "ষান্মাসিক",
+  nineMonth: "নয়-মাসিক",
+  yearly: "বার্ষিক",
+  "মাসিক": "মাসিক",
+  "ত্রৈমাসিক": "ত্রৈমাসিক",
+  "ষান্মাসিক": "ষান্মাসিক",
+  "নয়-মাসিক": "নয়-মাসিক",
+  "বার্ষিক": "বার্ষিক",
+};
 
 function toBn(n: number | string | null | undefined): string {
   if (n === null || n === undefined) return "০";
@@ -38,6 +58,7 @@ function toBn(n: number | string | null | undefined): string {
 
 export function UserDashboard() {
   const { t } = useLanguage();
+  const { user, zoneName: userZoneName, zoneId: userZoneId } = useUser();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -48,9 +69,17 @@ export function UserDashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPeriodSelectorExpanded, setIsPeriodSelectorExpanded] = useState(false);
-  const [zoneName, setZoneName] = useState<string>("");
+  const [zoneName, setZoneName] = useState<string>(userZoneName || "");
 
-  // Extract selected period parameters
+  // Update zone name when context updates
+  useEffect(() => {
+    if (userZoneName) {
+      setZoneName(userZoneName);
+    }
+  }, [userZoneName]);
+
+  // Extract selected period parameters or reportId
+  const reportIdParam = searchParams.get("reportId") || searchParams.get("report_id");
   const typeParam = searchParams.get("type");
   const monthParam = searchParams.get("month");
   const yearParam = searchParams.get("year");
@@ -60,7 +89,44 @@ export function UserDashboard() {
     !!val && val !== "null" && val !== "undefined";
   const hasParams = isValidParam(typeParam) && isValidParam(monthParam) && isValidParam(yearParam);
 
+  // If reportId is in URL, initialize or sync period state from it
   useEffect(() => {
+    if (!reportIdParam) return;
+    const numId = Number(reportIdParam);
+    if (isNaN(numId)) return;
+
+    if (reportId === numId && data && Object.keys(data).length > 0) {
+      // Already loaded in memory: populate year/month/type if missing from URL
+      if (!hasParams && data.year && data.month && data.report_type) {
+        const mappedType = TYPE_REVERSE[data.report_type] || "monthly";
+        router.replace(`/?type=${mappedType}&month=${data.month}&year=${data.year}&reportId=${numId}`);
+      }
+    } else {
+      // Not loaded yet: load directly by ID
+      let ignore = false;
+      setIsLoading(true);
+      setError(null);
+      loadReport(numId).then((res) => {
+        if (ignore) return;
+        setIsLoading(false);
+        if (res.success && res.error === undefined) {
+          setReportId(numId);
+        } else {
+          setError("রিপোর্ট লোড করতে সমস্যা হয়েছে।");
+        }
+      });
+      return () => {
+        ignore = true;
+      };
+    }
+  }, [reportIdParam, reportId, data, hasParams, loadReport, setReportId, router]);
+
+  useEffect(() => {
+    if (reportIdParam) {
+      // Already handled by reportId effect above
+      return;
+    }
+
     if (!hasParams) {
       // No valid params — show the PeriodSelector, reset any previous state
       setIsLoading(false);
@@ -112,49 +178,39 @@ export function UserDashboard() {
       }
 
       // Fetch user profile and zone
-      const { data: { user } } = await supabase.auth.getUser();
-      if (ignore) return;
-      if (!user) {
-        router.replace("/home");
-        return;
+      let targetZoneId = userZoneId;
+      if (!targetZoneId) {
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (ignore) return;
+        if (!authUser) {
+          router.replace("/home");
+          return;
+        }
+
+        const { data: person } = await supabase
+          .from("people")
+          .select("zone_id, zone(name)")
+          .eq("supabase_uid", authUser.id)
+          .single();
+
+        if (ignore) return;
+        if (!person?.zone_id) {
+          setError("আপনার জোন এখনও নির্ধারণ করা হয়নি।");
+          setIsLoading(false);
+          return;
+        }
+        targetZoneId = person.zone_id;
+        const zoneObj = person.zone as any;
+        if (zoneObj?.name) {
+          setZoneName(zoneObj.name);
+        }
       }
 
-      const { data: person } = await supabase
-        .from("people")
-        .select("zone_id, zone(name)")
-        .eq("supabase_uid", user.id)
-        .single();
-
-      if (ignore) return;
-      if (!person?.zone_id) {
-        setError("আপনার জোন এখনও নির্ধারণ করা হয়নি।");
-        setIsLoading(false);
-        return;
-      }
-
-      const zoneObj = person.zone as any;
-      if (zoneObj?.name) {
-        setZoneName(zoneObj.name);
-      }
-
-      // Map dynamic URL types to Bangla report types
-      const REPORT_TYPE_MAP: Record<string, string> = {
-        monthly: "মাসিক",
-        quarterly: "ত্রৈমাসিক",
-        halfYearly: "ষান্মাসিক",
-        nineMonth: "নয়-মাসিক",
-        yearly: "বার্ষিক",
-        "মাসিক": "মাসিক",
-        "ত্রৈমাসিক": "ত্রৈমাসিক",
-        "ষান্মাসিক": "ষান্মাসিক",
-        "নয়-মাসিক": "নয়-মাসিক",
-        "বার্ষিক": "বার্ষিক",
-      };
       const dbReportType = REPORT_TYPE_MAP[selectedType] || "মাসিক";
 
       // Call database RPC to get or create report
       const { data: repId, error: rpcErr } = await supabase.rpc("get_or_create_report", {
-        p_zone_id: person.zone_id,
+        p_zone_id: targetZoneId,
         p_year: selectedYear,
         p_month: dbReportType !== "মাসিক" ? 1 : selectedMonth,
         p_report_type: dbReportType,
@@ -178,7 +234,7 @@ export function UserDashboard() {
     return () => {
       ignore = true;
     };
-  }, [typeParam, monthParam, yearParam, supabase, setReportId, loadReport, hasParams, router]);
+  }, [typeParam, monthParam, yearParam, reportIdParam, userZoneId, supabase, setReportId, loadReport, hasParams, router]);
 
   const sections = [
     { id: "header", name: t.sections.header, icon: FileText },
@@ -189,19 +245,6 @@ export function UserDashboard() {
     { id: "extra", name: t.sections.extra, icon: PlusSquare },
     { id: "comment", name: t.sections.comment, icon: MessageSquare },
   ];
-
-  const REPORT_TYPE_MAP: Record<string, string> = {
-    monthly: "মাসিক",
-    quarterly: "ত্রৈমাসিক",
-    halfYearly: "ষান্মাসিক",
-    nineMonth: "নয়-মাসিক",
-    yearly: "বার্ষিক",
-    "মাসিক": "মাসিক",
-    "ত্রৈমাসিক": "ত্রৈমাসিক",
-    "ষান্মাসিক": "ষান্মাসিক",
-    "নয়-মাসিক": "নয়-মাসিক",
-    "বার্ষিক": "বার্ষিক",
-  };
 
   const displayReportType = typeParam ? (REPORT_TYPE_MAP[typeParam] || typeParam) : "মাসিক";
   const displayPeriodLabel = useMemo(() => {
@@ -282,6 +325,10 @@ export function UserDashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {sections.map((section, index) => {
             const Icon = section.icon;
+            const repId = reportId || data?.id;
+            const targetHref = repId 
+              ? `/report/${section.id}?reportId=${repId}`
+              : `/report/${section.id}?type=${typeParam}&month=${monthParam}&year=${yearParam}`;
             
             return (
               <div 
@@ -298,7 +345,7 @@ export function UserDashboard() {
                 <div>
                   <h3 className="text-base sm:text-lg font-bold mb-4 text-foreground">{section.name}</h3>
                   <Link 
-                    href={`/report/${section.id}?type=${typeParam}&month=${monthParam}&year=${yearParam}`}
+                    href={targetHref}
                     className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all bg-primary text-primary-foreground hover:shadow-lg hover:shadow-primary/20 bg-linear-to-r from-primary to-primary/80"
                   >
                     <span>{t.actions.edit}</span>

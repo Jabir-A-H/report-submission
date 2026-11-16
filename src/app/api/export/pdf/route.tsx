@@ -315,6 +315,12 @@ const ReportPDFDocument = ({
   comment,
   isCityAgg = false,
 }: ReportPDFProps) => {
+  // Comment budget calculation for smart adaptive layout
+  const rawComment = comment?.comment?.trim() || "";
+  const normalizedComment = rawComment.replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n");
+  const commentLines = normalizedComment ? normalizedComment.split("\n") : [];
+  const isLongComment = commentLines.length > 7 || normalizedComment.length > 500;
+
   // Helpers to calculate totals for Course Table
   const totalCourses = courses.reduce((acc, curr) => ({
     number: acc.number + (curr.number || 0),
@@ -701,18 +707,64 @@ const ReportPDFDocument = ({
         </View>
 
         {/* 6. Comments & Signature Section */}
-        <View style={styles.commentsContainer}>
-          <Text style={styles.commentsLabel}>মন্তব্য :</Text>
-          <Text style={styles.commentsText}>
-            {comment?.comment?.trim() ? comment.comment : "কোনো মন্তব্য যোগ করা হয়নি।"}
-          </Text>
-        </View>
+        {!isLongComment ? (
+          <View style={styles.commentsContainer}>
+            <Text style={styles.commentsLabel}>মন্তব্য :</Text>
+            <Text style={styles.commentsText} {...({ numberOfLines: 12 } as any)}>
+              {normalizedComment || "কোনো মন্তব্য যোগ করা হয়নি।"}
+            </Text>
+          </View>
+        ) : (
+          <View style={[styles.commentsContainer, { minHeight: 24, paddingVertical: 4, marginBottom: 8 }]}>
+            <Text style={styles.commentsLabel}>মন্তব্য :</Text>
+            <Text style={{ fontSize: 8, color: "#64748b", fontStyle: "italic" }}>
+              * বিস্তারিত মন্তব্য পরবর্তী পাতায় সংযোজিত (পৃষ্ঠা ৩)
+            </Text>
+          </View>
+        )}
 
         <View style={styles.signatureContainer}>
           <View style={styles.signatureLine}></View>
           <Text style={styles.signatureText}>{header?.responsible_name || "স্বাক্ষর"}</Text>
         </View>
       </Page>
+
+      {/* ── Page 3: Dedicated Comments Page (Only rendered when comment is long) ── */}
+      {isLongComment && (
+        <Page size="A4" orientation="landscape" style={styles.page}>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>তা&apos;লীমুল কুরআন বিভাগ</Text>
+            <Text style={styles.subtitle}>
+              বিশেষ মন্তব্য ও পর্যালোচনা — {isCityAgg ? "ডি সি এস রিপোর্ট" : `${zoneName} জোন`} ({periodLabel})
+            </Text>
+          </View>
+
+          {/* Full Comments Container */}
+          <View style={{
+            flex: 1,
+            backgroundColor: "#f8fafc",
+            borderWidth: 0.5,
+            borderColor: "#cbd5e1",
+            borderRadius: 4,
+            padding: 12,
+            marginBottom: 16,
+          }}>
+            <Text style={{ fontSize: 9.5, fontWeight: "bold", color: "#1e293b", marginBottom: 6 }}>
+              সম্পূর্ণ মন্তব্য ও পর্যালোচনা :
+            </Text>
+            <Text style={{ fontSize: 9, lineHeight: 1.4, color: "#334155" }}>
+              {normalizedComment}
+            </Text>
+          </View>
+
+          {/* Signature Block */}
+          <View style={styles.signatureContainer}>
+            <View style={styles.signatureLine}></View>
+            <Text style={styles.signatureText}>{header?.responsible_name || "স্বাক্ষর"}</Text>
+          </View>
+        </Page>
+      )}
     </Document>
   );
 };

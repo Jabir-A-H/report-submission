@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
-import { useReport, ReportProvider } from "@/components/report/report-context";
+import { useUser } from "@/components/providers/user-provider";
+import { useReport } from "@/components/report/report-context";
 import { SectionLayout } from "@/components/report/section-layout";
 import { ReportHeaderForm } from "@/components/report/sections/report-header-form";
 import { CoursesForm } from "@/components/report/sections/courses-form";
@@ -12,207 +13,141 @@ import { PersonalForm } from "@/components/report/sections/personal-form";
 import { MeetingsForm } from "@/components/report/sections/meetings-form";
 import { ExtrasForm } from "@/components/report/sections/extras-form";
 import { CommentsForm } from "@/components/report/sections/comments-form";
-import { createClient } from "@/utils/supabase/client";
-import { getDhakaDate } from "@/lib/date-utils";
 import { Loader2, AlertCircle } from "lucide-react";
-
-/** Returns true only when the param is a real value (not null, "null", undefined, "undefined") */
-function isValidParam(val: string | null): val is string {
-  return !!val && val !== "null" && val !== "undefined";
-}
 
 function SectionSwitcher() {
   const { section } = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { t, tc } = useLanguage();
+  const { t } = useLanguage();
+  const { isAdmin, isSuperAdmin, isLoading: isUserLoading } = useUser();
   const { reportId, setReportId, loadReport, data, loadError } = useReport();
-  const supabase = useMemo(() => createClient(), []);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [accessError, setAccessError] = useState<string | null>(null);
 
-  const lastLoadedKeyRef = useRef<string | null>(null);
-  const tRef = useRef(t);
-  const reportIdRef = useRef(reportId);
-  const dataRef = useRef(data);
+  const reportIdParam = searchParams.get("reportId") || searchParams.get("report_id");
+
+  // Admin access guard: admins must not access zone data-entry forms
+  useEffect(() => {
+    if (!isUserLoading && (isAdmin || isSuperAdmin)) {
+      router.replace("/dashboard");
+    }
+  }, [isAdmin, isSuperAdmin, isUserLoading, router]);
 
   useEffect(() => {
-    tRef.current = t;
-    reportIdRef.current = reportId;
-    dataRef.current = data;
-  });
-
-  // Extract selected period from URL params
-  const typeParam = searchParams.get("type");
-  const monthParam = searchParams.get("month");
-  const yearParam = searchParams.get("year");
-
-  const hasValidParams =
-    isValidParam(typeParam) && isValidParam(monthParam) && isValidParam(yearParam);
-
-  useEffect(() => {
-    // 1. Redirect to dashboard if params are missing or invalid (e.g. "null" strings)
-    if (!hasValidParams) {
-      // Preserve any valid params that did come through
-      router.replace("/");
-      return;
-    }
-
-    const selectedType = typeParam!;
-    const selectedMonth = parseInt(monthParam!);
-    const selectedYear = parseInt(yearParam!);
-
-    // Extra safety guard: if parseInt returns NaN, redirect
-    if (isNaN(selectedMonth) || isNaN(selectedYear)) {
-      router.replace("/");
-      return;
-    }
-
-    const periodKey = `${selectedType}-${selectedYear}-${selectedMonth}`;
-
-    // If report is already loaded into memory for this exact period, skip redundant re-fetch
-    if (
-      lastLoadedKeyRef.current === periodKey &&
-      reportIdRef.current &&
-      dataRef.current &&
-      Object.keys(dataRef.current).length > 0 &&
-      !loadError
-    ) {
-      setIsLoading(false);
-      return;
-    }
-
-    let ignore = false;
-
-    const fetchActiveReport = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      // RS-50: Validate future periods using centralized Asia/Dhaka time
-      const { month: currentMonth, year: currentYear } = getDhakaDate();
-
-      // RS-10: Data entry forms are strictly monthly. Field workers cannot create or edit non-monthly report rows.
-      const targetMonth = selectedMonth;
-      const dbReportType = "মাসিক";
-
-      if (selectedYear > currentYear || (selectedYear === currentYear && targetMonth > currentMonth)) {
-        if (!ignore) {
-          setError(tRef.current.futureReportError);
-          setIsLoading(false);
-        }
-        return;
-      }
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (ignore) return;
-      if (!user) {
-        router.replace("/home");
-        return;
-      }
-
-      // Get the user's person record for their zone and role
-      const { data: person } = await supabase
-        .from("people")
-        .select("zone_id, role")
-        .eq("supabase_uid", user.id)
-        .single();
-
-      if (ignore) return;
-
-      // WEB-006 fix (ADR-009): Admins must not access zone data-entry forms
-      if (person?.role === "admin" || person?.role === "superadmin") {
-        router.replace("/dashboard");
-        return;
-      }
-
-      if (!person || !person.zone_id) {
-        setError(tRef.current.zoneNotAssigned);
-        setIsLoading(false);
-        return;
-      }
-
-      // Call database RPC to get or create report (enforcing monthly for zone workers)
-      const { data: repId, error: rpcErr } = await supabase.rpc("get_or_create_report", {
-        p_zone_id: person.zone_id,
-        p_year: selectedYear,
-        p_month: targetMonth,
-        p_report_type: dbReportType,
-      });
-
-      if (ignore) return;
-      if (rpcErr || !repId) {
-        console.error("Error initializing report:", rpcErr);
-        setError(tRef.current.reportLoadError);
-        setIsLoading(false);
-        return;
-      }
-
-      // RS-23 Fix: If report is already in memory for this exact ID and has data, skip redundant re-fetch on section tab changes
-      if (reportIdRef.current === repId && dataRef.current && Object.keys(dataRef.current).length > 0 && !loadError) {
-        lastLoadedKeyRef.current = periodKey;
-        if (!ignore) setIsLoading(false);
-        return;
-      }
-
-      setReportId(repId);
-      const res = await loadReport(repId);
-      if (ignore) return;
-      if (!res.success) {
-        setError(tRef.current.reportLoadError || "রিপোর্ট ডেটা লোড করতে সমস্যা হয়েছে। অনুগ্রহ করে পেজটি রিফ্রেশ করুন।");
+    // 1. If no reportIdParam in URL:
+    if (!reportIdParam) {
+      if (reportId) {
+        // In-memory reportId exists: replace URL with canonical pointer
+        router.replace(`/report/${section}?reportId=${reportId}`);
       } else {
-        lastLoadedKeyRef.current = periodKey;
+        // No reportId in memory: redirect to dashboard
+        router.replace("/");
       }
-      if (!ignore) {
-        setIsLoading(false);
-      }
-    };
+      return;
+    }
 
-    fetchActiveReport();
+    const targetId = Number(reportIdParam);
+    if (isNaN(targetId)) {
+      router.replace("/");
+      return;
+    }
+
+    // 2. If in-memory reportId matches URL targetId and data is already loaded in context:
+    if (reportId === targetId && data && Object.keys(data).length > 0 && !loadError) {
+      setIsLoading(false);
+      setAccessError(null);
+      return;
+    }
+
+    // 3. Not in memory: load directly by ID (skip RPC)
+    let ignore = false;
+    setIsLoading(true);
+    setAccessError(null);
+
+    loadReport(targetId).then((res) => {
+      if (ignore) return;
+      setIsLoading(false);
+      if (res.success) {
+        setReportId(targetId);
+        setAccessError(null);
+      } else {
+        console.error("Failed to load report by canonical ID:", res.error);
+        // Handle PGRST116 / access-denied / not-found
+        setAccessError("রিপোর্টটি খুঁজে পাওয়া যায়নি অথবা এটি দেখার অনুমতি আপনার নেই");
+      }
+    });
 
     return () => {
       ignore = true;
     };
-  }, [typeParam, monthParam, yearParam, hasValidParams, supabase, router, setReportId, loadReport, loadError]);
+  }, [reportIdParam, reportId, data, loadError, section, router, loadReport, setReportId]);
 
-  const activeError = error || loadError;
-
-  if (activeError) {
+  // Handle access error (PGRST116 / unauthorized / tampering)
+  if (accessError) {
     return (
       <SectionLayout title="">
-        <div className="text-center py-16 text-destructive flex flex-col items-center gap-4 max-w-md mx-auto p-6 bg-destructive/5 rounded-2xl border border-destructive/20 shadow-sm animate-in fade-in">
-          <div className="flex items-center gap-2 text-lg font-bold">
+        <div className="text-center py-16 flex flex-col items-center gap-4 max-w-md mx-auto p-6 bg-card rounded-2xl border border-destructive/30 shadow-md animate-in fade-in">
+          <div className="flex items-center gap-2 text-lg font-bold text-destructive">
             <AlertCircle className="w-6 h-6 text-destructive shrink-0" />
-            <span>{activeError}</span>
+            <span>{accessError}</span>
           </div>
-          <p className="text-sm font-normal text-muted-foreground">
-            আপনার পূর্বের ডেটা সুরক্ষিত আছে। ইন্টারনেট সংযোগ পরীক্ষা করে পুনরায় চেষ্টা করুন।
+          <p className="text-sm text-muted-foreground">
+            অনুরোধকৃত রিপোর্টটি বিদ্যমান নেই অথবা আপনার জোনের সাথে সংশ্লিষ্ট নয়।
           </p>
           <button
             type="button"
-            onClick={() => {
-              setError(null);
-              setIsLoading(true);
-              if (reportId) {
-                loadReport(reportId).then((res) => {
-                  if (!res.success) {
-                    setError(t.reportLoadError || "রিপোর্ট ডেটা লোড করতে সমস্যা হয়েছে।");
-                  }
-                  setIsLoading(false);
-                });
-              } else {
-                router.refresh();
-              }
-            }}
-            className="modern-btn bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-2.5 rounded-xl font-bold text-sm shadow-md transition-all active:scale-95"
+            onClick={() => router.push("/")}
+            className="modern-btn bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-2.5 rounded-xl font-bold text-sm shadow-md transition-all active:scale-95 cursor-pointer"
           >
-            পুনরায় চেষ্টা করুন (Retry)
+            ড্যাশবোর্ডে ফিরে যান
           </button>
         </div>
       </SectionLayout>
     );
   }
 
-  if (!hasValidParams || isLoading || !data || Object.keys(data).length === 0) {
+  // Handle load error (network / transient)
+  if (loadError) {
+    return (
+      <SectionLayout title="">
+        <div className="text-center py-16 text-destructive flex flex-col items-center gap-4 max-w-md mx-auto p-6 bg-destructive/5 rounded-2xl border border-destructive/20 shadow-sm animate-in fade-in">
+          <div className="flex items-center gap-2 text-lg font-bold">
+            <AlertCircle className="w-6 h-6 text-destructive shrink-0" />
+            <span>{loadError}</span>
+          </div>
+          <p className="text-sm font-normal text-muted-foreground">
+            আপনার পূর্বের ডেটা সুরক্ষিত আছে। ইন্টারনেট সংযোগ পরীক্ষা করে পুনরায় চেষ্টা করুন।
+          </p>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                if (reportIdParam) {
+                  setIsLoading(true);
+                  loadReport(Number(reportIdParam)).then(() => setIsLoading(false));
+                } else {
+                  router.refresh();
+                }
+              }}
+              className="modern-btn bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-2.5 rounded-xl font-bold text-sm shadow-md transition-all active:scale-95 cursor-pointer"
+            >
+              পুনরায় চেষ্টা করুন (Retry)
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push("/")}
+              className="modern-btn border border-border bg-card hover:bg-muted px-5 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 cursor-pointer"
+            >
+              ড্যাশবোর্ডে ফিরে যান
+            </button>
+          </div>
+        </div>
+      </SectionLayout>
+    );
+  }
+
+  if (isLoading || !data || Object.keys(data).length === 0) {
     return (
       <SectionLayout title="">
         <div className="flex items-center justify-center py-20">

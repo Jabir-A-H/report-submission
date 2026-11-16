@@ -1,33 +1,16 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
-import { createClient } from "@/utils/supabase/client";
+import { useUser } from "@/components/providers/user-provider";
 import { UserDropdown } from "./user-dropdown";
 
 export function Navbar() {
   const { t } = useLanguage();
+  const { isAdmin } = useUser();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const supabase = useMemo(() => createClient(), []);
-
-  useEffect(() => {
-    (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data: profile } = await supabase
-        .from("people")
-        .select("role")
-        .eq("supabase_uid", user.id)
-        .single();
-      if (profile && (profile.role === "admin" || profile.role === "superadmin")) {
-        setIsAdmin(true);
-      }
-    })();
-  }, [supabase]);
 
   // Hide Navbar only on auth pages
   const isAuthPage = ["/home", "/auth", "/pending-approval", "/forgot-password", "/update-password"].includes(pathname);

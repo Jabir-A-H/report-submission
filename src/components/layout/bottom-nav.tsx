@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
-import { createClient } from "@/utils/supabase/client";
+import { useUser } from "@/components/providers/user-provider";
 import { Home, ClipboardList, User, HelpCircle, LogOut, FileText, Building2, Settings, LayoutDashboard } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import { LanguageToggle } from "./language-toggle";
@@ -13,48 +13,17 @@ export function BottomNav() {
   const { t } = useLanguage();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { user, profile, role, isAdmin, zoneName, isLoading } = useUser();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [userInfo, setUserInfo] = useState<{name: string, role: string, zone: string} | null>(null);
-  const supabase = useMemo(() => createClient(), []);
   const panelRef = useRef<HTMLDivElement>(null);
-  const [isAuthChecked, setIsAuthChecked] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setIsAuthChecked(true);
-        return;
-      }
-      const { data: profile } = await supabase
-        .from("people")
-        .select("name, role, zone(name)")
-        .eq("supabase_uid", user.id)
-        .single();
-      if (profile) {
-        const zoneObj = profile.zone as any;
-        if (profile.role === "admin" || profile.role === "superadmin") {
-          setIsAdmin(true);
-        }
-        setUserInfo({
-          name: profile.name || user.email?.split("@")[0] || "User",
-          role: profile.role,
-          zone: zoneObj?.name || "—",
-        });
-      } else {
-        setUserInfo({
-          name: user.email?.split("@")[0] || "User",
-          role: "user",
-          zone: "—",
-        });
-      }
-      setIsAuthChecked(true);
-    })();
-  }, [supabase]);
-
+  const isAuthChecked = !isLoading;
   const isAuthPage = ["/home", "/auth", "/pending-approval", "/forgot-password", "/update-password"].includes(pathname);
-  if (isAuthPage || (isAuthChecked && !userInfo && pathname === "/help")) return null;
+  if (isAuthPage || (isAuthChecked && !user && pathname === "/help")) return null;
+
+  const displayName = profile?.name || user?.email?.split("@")[0] || "User";
+  const displayZone = zoneName || "—";
+  const displayRole = role || "user";
 
   // Build period param string from current URL params — carries period context across navigation
   const paramsStr = searchParams.toString();
@@ -84,11 +53,11 @@ export function BottomNav() {
           className="fixed bottom-16 left-0 right-0 z-50 bg-card border-t border-b border-border shadow-2xl rounded-t-3xl max-h-[80vh] overflow-y-auto md:hidden animate-in slide-in-from-bottom duration-250 opacity-100"
         >
           <div className="p-5 bg-gradient-to-br from-primary/10 to-transparent border-b">
-            <p className="text-base font-black text-foreground">{userInfo?.name || "..."}</p>
+            <p className="text-base font-black text-foreground">{displayName}</p>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs text-primary font-bold">{userInfo?.zone || "..."}</span>
+              <span className="text-xs text-primary font-bold">{displayZone}</span>
               <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full uppercase font-black tracking-widest">
-                {userInfo?.role || "user"}
+                {displayRole}
               </span>
             </div>
           </div>

@@ -65,9 +65,9 @@ const USER_STEPS: StepItem[] = [
     id: "user-step-1",
     stepBn: "০১",
     stepEn: "01",
-    shortLabelBn: "সাইন আপ",
+    shortLabelBn: "নিবন্ধন",
     shortLabelEn: "Sign Up",
-    titleBn: "সাইন আপ ও অনুমোদন",
+    titleBn: "নিবন্ধন ও অনুমোদন",
     titleEn: "Register and get approved",
     descBn: "নিজের তথ্য দিয়ে অ্যাকাউন্ট খুলুন। ইমেইল যাচাই ও অ্যাডমিনের অনুমোদন শেষ হলে লগ-ইন করতে পারবেন।",
     descEn: "Create an account with your details. You can log in once your email is verified and an admin approves you.",
@@ -78,17 +78,17 @@ const USER_STEPS: StepItem[] = [
       labelEn: "Go to Sign Up",
     },
     pointsBn: [
-      "সাইন আপ ফর্মে আপনার পূর্ণ নাম, ইউজার আইডি, ইমেইল ও পাসওয়ার্ড (দুইবার) দিন এবং তালিকা থেকে আপনার জোন বেছে নিন। Google অ্যাকাউন্ট থাকলে “Google দিয়ে সাইন-ইন” ব্যবহার করতে পারেন।",
-      "“সাইন আপ করুন” চাপুন। এরপর ইমেইলে আসা যাচাই লিংকে ক্লিক করুন। ইমেইল না পেলে স্প্যাম ফোল্ডার দেখুন।",
+      "নিবন্ধন ফর্মে আপনার পূর্ণ নাম, ইউজার আইডি, ইমেইল ও পাসওয়ার্ড (দুইবার) দিন এবং তালিকা থেকে আপনার জোন বেছে নিন। Google অ্যাকাউন্ট থাকলে “Google দিয়ে সাইন-ইন” ব্যবহার করতে পারেন।",
+      "“নিবন্ধন করুন” চাপুন। এরপর ইমেইলে আসা যাচাই লিংকে ক্লিক করুন। ইমেইল না পেলে স্প্যাম ফোল্ডার দেখুন।",
       "অনুমোদনের অপেক্ষার পর্দা দেখা যাবে। কেন্দ্রীয় অ্যাডমিন অনুমোদন দিলে আপনি সরাসরি লগ-ইন করতে পারবেন।",
     ],
     pointsEn: [
       "On the sign-up form enter your name, user ID, email and password (twice), and pick your zone from the list. (Or use Google Sign-In if using a Google account).",
-      "Tap “সাইন আপ করুন” (Sign up). Then open the verification link sent to your email. If it does not arrive, check your spam folder.",
+      "Tap “নিবন্ধন করুন” (Sign up). Then open the verification link sent to your email. If it does not arrive, check your spam folder.",
       "You will see the waiting-for-approval screen. You can log in once an admin approves your account.",
     ],
     qaBn: {
-      q: "সাইন আপের পরেই কেন লগ-ইন করা যায় না?",
+      q: "নিবন্ধনের পরেই কেন লগ-ইন করা যায় না?",
       a: "দুটি কাজ বাকি থাকে: আপনার ইমেইল যাচাই এবং অ্যাডমিনের অনুমোদন। দুটোই শেষ হলে লগ-ইন করতে পারবেন। দেরি হলে আপনার জোন প্রতিনিধি বা অ্যাডমিনকে জানান।",
     },
     qaEn: {
@@ -113,7 +113,7 @@ const USER_STEPS: StepItem[] = [
       labelEn: "Go to Dashboard",
     },
     pointsBn: [
-      "লগ-ইন পেজে ইউজার আইডি (অথবা ইমেইল) ও পাসওয়ার্ড দিন। আইডি যেভাবে সাইন আপ করেছিলেন ঠিক সেভাবে লিখুন। ফোনের কিবোর্ড প্রথম অক্ষর বড় হাতের করে দিলে বা শেষে ফাঁকা (স্পেস) যোগ করলে লগ-ইন হবে না।",
+      "লগ-ইন পেজে ইউজার আইডি (অথবা ইমেইল) ও পাসওয়ার্ড দিন। আইডি যেভাবে নিবন্ধন করেছিলেন ঠিক সেভাবে লিখুন। ফোনের কিবোর্ড প্রথম অক্ষর বড় হাতের করে দিলে বা শেষে ফাঁকা (স্পেস) যোগ করলে লগ-ইন হবে না।",
       "“মাস” ও “বছর” বেছে নিয়ে “যান” চাপুন।",
       "সাতটি সেকশনের কার্ড দেখা যাবে। যে সেকশন পূরণ করবেন তার “সম্পাদনা করুন” চাপুন। মাস বদলাতে চাইলে উপরের সংক্ষিপ্ত মাস-বছরের পিলটিতে ট্যাপ করে পুনরায় মাস বেছে নিন।",
     ],
@@ -406,13 +406,13 @@ const COMMON_PROBLEMS: CommonProblem[] = [
   {
     qBn: "যাচাই ইমেইল আসেনি।",
     qEn: "The verification email did not arrive.",
-    aBn: "স্প্যাম বা প্রমোশন ফোল্ডার দেখুন এবং সাইন আপের সময় ইমেইল ঠিকঠাক লিখেছিলেন কিনা মিলিয়ে নিন। তবুও না এলে আপনার জোন প্রতিনিধি বা অ্যাডমিনকে জানান।",
+    aBn: "স্প্যাম বা প্রমোশন ফোল্ডার দেখুন এবং নিবন্ধনের সময় ইমেইল ঠিকঠাক লিখেছিলেন কিনা মিলিয়ে নিন। তবুও না এলে আপনার জোন প্রতিনিধি বা অ্যাডমিনকে জানান।",
     aEn: "Check your spam or promotions folder, and check that you typed the email correctly when registering. If it still does not come, tell your zone representative or the admin.",
   },
   {
     qBn: "পাসওয়ার্ড ভুলে গেছি।",
     qEn: "I forgot my password.",
-    aBn: "লগ-ইন পেজের পাসওয়ার্ড ভোলার লিংকে সাইন আপের সময় দেওয়া ইমেইল দিন, তারপর ইমেইলে আসা লিংক থেকে নতুন পাসওয়ার্ড দিন। সাইন আপের সময় দেওয়া ইমেইল মনে না থাকলে অ্যাডমিনকে জানান।",
+    aBn: "লগ-ইন পেজের পাসওয়ার্ড ভোলার লিংকে নিবন্ধনের সময় দেওয়া ইমেইল দিন, তারপর ইমেইলে আসা লিংক থেকে নতুন পাসওয়ার্ড দিন। নিবন্ধনের সময় দেওয়া ইমেইল মনে না থাকলে অ্যাডমিনকে জানান।",
     aEn: "Enter your registration email in the forgot-password link on the login page, then set a new password from the link in the email. If you do not remember the registration email, tell the admin.",
   },
   {

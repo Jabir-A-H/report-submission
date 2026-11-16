@@ -3,6 +3,7 @@
 
 
 import { useLanguage } from "@/components/providers/language-provider";
+import { useReport } from "./report-context";
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -15,12 +16,36 @@ import { CompactViewToggle, ViewModeProvider } from "./view-mode-toggle";
 
 export function SectionLayout({ children, title }: { children: React.ReactNode; title: string }) {
   const { t } = useLanguage();
+  const { data, reportId } = useReport();
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentSection = params.section as string;
 
   const queryString = searchParams.toString() ? `?${searchParams.toString()}` : "";
+
+  // Derive canonical dashboard URL with period params from context or URL
+  const dashboardParams = new URLSearchParams(searchParams.toString());
+  if (data?.year && !dashboardParams.has("year")) {
+    dashboardParams.set("year", String(data.year));
+  }
+  if (data?.month && !dashboardParams.has("month")) {
+    dashboardParams.set("month", String(data.month));
+  }
+  if (data?.report_type && !dashboardParams.has("type")) {
+    const TYPE_REVERSE: Record<string, string> = {
+      "মাসিক": "monthly",
+      "ত্রৈমাসিক": "quarterly",
+      "ষান্মাসিক": "halfYearly",
+      "নয়-মাসিক": "nineMonth",
+      "বার্ষিক": "yearly",
+    };
+    dashboardParams.set("type", TYPE_REVERSE[data.report_type] || "monthly");
+  }
+  if (reportId && !dashboardParams.has("reportId")) {
+    dashboardParams.set("reportId", String(reportId));
+  }
+  const dashboardHref = dashboardParams.toString() ? `/?${dashboardParams.toString()}` : "/";
 
   const toggleableSections = ["courses", "organizational", "personal", "meeting"];
   const supportsViewToggle = toggleableSections.includes(currentSection);
@@ -36,12 +61,12 @@ export function SectionLayout({ children, title }: { children: React.ReactNode; 
   const nextTitle = nextSection ? (t.sections as Record<string, string>)[nextSection] : "";
 
   const layoutContent = (
-    <div className="flex-1 flex flex-col pb-24 md:pb-12">
+    <div className="flex-1 flex flex-col pb-[calc(10.5rem+env(safe-area-inset-bottom,0px))] md:pb-28">
       {/* Secondary Top Nav for Section */}
       <div className="sticky top-0 md:top-16 z-40 w-full bg-card border-b border-border md:bg-background/80 md:backdrop-blur opacity-100">
         <div className="container py-3 flex items-center justify-between">
           <Link 
-            href={`/${queryString}`} 
+            href={dashboardHref} 
             className="flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-primary transition-colors hover:translate-x-[-4px] cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4 shrink-0" />
@@ -87,7 +112,7 @@ export function SectionLayout({ children, title }: { children: React.ReactNode; 
             </button>
           ) : (
             <button 
-              onClick={() => router.push(`/${queryString}`)}
+              onClick={() => router.push(dashboardHref)}
               className="modern-btn btn-primary bg-linear-to-r from-green-600 to-emerald-600 flex items-center gap-2 px-8 py-3 text-sm font-bold shadow-xl shadow-green-500/20 active:scale-95 transition-all flex-1 md:flex-none justify-center cursor-pointer"
             >
               <span>সম্পন্ন করুন</span>

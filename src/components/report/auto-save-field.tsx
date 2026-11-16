@@ -212,9 +212,15 @@ export function AutoSaveField({
 
   const isFailed = Boolean(failedFields && failedFields[fieldKey]);
 
+  const sanitizedCategory = category ? category.replace(/[\s/]+/g, "_").toLowerCase() : "root";
+  const sanitizedTable = (table || "report").replace(/[\s/]+/g, "_").toLowerCase();
+  const fieldId = `field-${section}-${sanitizedTable}-${sanitizedCategory}-${name}`;
+
   if (tableMode) {
     return (
       <input
+        id={fieldId}
+        name={name}
         type={inputType}
         inputMode={inputMode}
         enterKeyHint="next"
@@ -224,6 +230,7 @@ export function AutoSaveField({
         onBlur={handleBlur}
         placeholder={placeholder || (language === "bn" ? "০" : "0")}
         title={isFailed ? "সংরক্ষণ ব্যর্থ হয়েছে — পুনরায় চেষ্টা করুন" : undefined}
+        aria-label={`${category || section} ${label || name}`}
         className={`w-full h-9 text-center bg-transparent hover:bg-muted/40 focus:bg-background border rounded-lg px-1 font-bold text-xs sm:text-sm outline-none transition-all ${
           isFailed
             ? "border-destructive bg-destructive/10 text-destructive focus:border-destructive ring-1 ring-destructive/40"
@@ -243,13 +250,16 @@ export function AutoSaveField({
         }`}
       >
         <label
-          className={`text-sm font-bold shrink-0 truncate transition-colors ${
+          htmlFor={fieldId}
+          className={`text-sm font-bold shrink-0 truncate transition-colors cursor-pointer ${
             isFailed ? "text-destructive" : "text-foreground group-focus-within:text-primary"
           }`}
         >
           {label}
         </label>
         <input
+          id={fieldId}
+          name={name}
           type={inputType}
           inputMode={inputMode}
           enterKeyHint="next"
@@ -273,7 +283,8 @@ export function AutoSaveField({
     <div className="flex flex-col gap-1.5 w-full group">
       <div className="flex items-center justify-between">
         <label
-          className={`text-sm font-bold transition-colors ${
+          htmlFor={fieldId}
+          className={`text-sm font-bold transition-colors cursor-pointer ${
             isFailed ? "text-destructive" : "text-muted-foreground group-focus-within:text-primary"
           }`}
         >
@@ -288,6 +299,8 @@ export function AutoSaveField({
 
       {type === "textarea" ? (
         <textarea
+          id={fieldId}
+          name={name}
           value={localValue}
           onFocus={() => setIsFocused(true)}
           onChange={(e) => handleChange(e.target.value)}
@@ -302,6 +315,8 @@ export function AutoSaveField({
         />
       ) : (
         <input
+          id={fieldId}
+          name={name}
           type={inputType}
           inputMode={inputMode}
           enterKeyHint="next"
