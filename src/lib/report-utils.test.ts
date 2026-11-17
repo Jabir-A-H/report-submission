@@ -416,7 +416,7 @@ describe('report-utils', () => {
       const rows = [
         // Month 1: 2 meetings with average 10 attendees (total 20 attendees)
         {
-          category: 'কমিটি বৈঠক হয়েছে',
+          category: 'কমিটি বৈঠক হয়েছে',
           city_count: 2,
           city_avg_attendance: 10,
           thana_count: 3,
@@ -424,7 +424,7 @@ describe('report-utils', () => {
         },
         // Month 2: 3 meetings with average 15 attendees (total 45 attendees)
         {
-          category: 'কমিটি বৈঠক হয়েছে',
+          category: 'কমিটি বৈঠক হয়েছে',
           city_count: 3,
           city_avg_attendance: 15,
           thana_count: 1,

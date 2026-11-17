@@ -156,6 +156,11 @@ describe('report-data-loader', () => {
       assert.ok(course);
       assert.equal(course.number, 25);
 
+      // Root metadata populated
+      assert.equal(res.data.reportId, null);
+      assert.equal(res.data.isSubmitted, false);
+      assert.equal(res.data.zoneId, 1);
+
       // Qualitative city remarks attached to bundle
       assert.equal(
         res.data.comment?.comment,
@@ -224,6 +229,61 @@ describe('report-data-loader', () => {
       assert.equal(res.data.zoneName, 'ঢাকা মহানগরী');
       assert.equal(res.data.reportType, 'মাসিক');
     });
+
+    it('wires text overrides for meeting_name and comments in computedMeeting', async () => {
+      const mockDb = createMockSupabase({
+        view_city_header_agg: { data: [] },
+        view_city_course_agg: { data: [] },
+        view_city_organizational_agg: { data: [] },
+        view_city_personal_agg: { data: [] },
+        view_city_meeting_agg: {
+          data: [
+            {
+              category: 'অন্যান্য',
+              city_count: 1,
+              city_avg_attendance: 50,
+              meeting_name: 'মূল সেমিনার',
+              comments: 'মূল মন্তব্য',
+              month: 1,
+            },
+          ],
+        },
+        view_city_extra_agg: { data: [] },
+        city_report_override: {
+          data: [
+            {
+              section: 'meetings',
+              field: 'meeting_name',
+              category: 'অন্যান্য',
+              value: 'সংশোধিত বিশেষ সেমিনার',
+            },
+            {
+              section: 'meetings',
+              field: 'comments',
+              category: 'অন্যান্য',
+              value: 'সংশোধিত সভার বিবরণী',
+            },
+          ],
+        },
+      });
+
+      const res = await loadReportDataBundle(
+        mockDb,
+        {
+          cityReport: true,
+          reportType: 'monthly',
+          month: 1,
+          year: 2026,
+        },
+        adminRequester
+      );
+
+      assert.ok(res.data);
+      const meeting = res.data.meetings.find((m) => m.category === 'অন্যান্য');
+      assert.ok(meeting);
+      assert.equal(meeting.meeting_name, 'সংশোধিত বিশেষ সেমিনার');
+      assert.equal(meeting.comments, 'সংশোধিত সভার বিবরণী');
+    });
   });
 
   describe('Case A: Single Zone Reports', () => {
@@ -258,6 +318,8 @@ describe('report-data-loader', () => {
       assert.equal(res.data.isCityAgg, false);
       assert.equal(res.data.zoneName, 'মিরপুর');
       assert.equal(res.data.reportType, 'মাসিক');
+      assert.equal(res.data.reportId, 42);
+      assert.equal(res.data.zoneId, 3);
       assert.equal(res.data.header.responsible_name, 'ফাতেমা');
       assert.equal(res.data.courses[0].number, 8);
       assert.equal(res.data.comment?.comment, 'অগ্রগতি ভালো।');

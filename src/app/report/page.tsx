@@ -37,6 +37,7 @@ import {
   QUARTERS_BN,
   HALVES_BN,
 } from "@/lib/report-utils";
+import { loadReportDataBundle } from "@/lib/report-data-loader";
 
 import { useLanguage } from "@/components/providers/language-provider";
 import { getDhakaDate } from "@/lib/date-utils";
@@ -87,6 +88,7 @@ function ReportViewer() {
   // Loaded Report data
   const [reportId, setReportId] = useState<number | null>(null);
   const [reportInfo, setReportInfo] = useState<any>(null);
+  const [activeReport, setActiveReport] = useState<any>(null);
   const [headerData, setHeaderData] = useState<any>(null);
   const [coursesData, setCoursesData] = useState<any[]>([]);
   const [orgData, setOrgData] = useState<any[]>([]);
@@ -174,129 +176,28 @@ function ReportViewer() {
         targetZoneId = userZoneId;
       }
 
-      let activeReport = null;
-      let isMultiMonth = appliedReportType !== "monthly";
-      let targetYear = appliedYear;
-      let targetReportType = appliedReportType;
-      let targetMonth = appliedMonth;
-      let dbReportType = DB_TYPE_MAP[targetReportType] || targetReportType || "মাসিক";
-
-      // A. If report_id is provided, load it directly
-      if (targetReportId) {
-        const { data: reportObj, error: reportErr } = await supabase
-          .from("report")
-          .select("*, zone(name)")
-          .eq("id", targetReportId)
-          .single();
-
-        if (reportErr || !reportObj) {
-          throw new Error(t.reportNotFound);
+      const res = await loadReportDataBundle(
+        supabase,
+        {
+          reportId: targetReportId,
+          zoneId: targetZoneId,
+          year: appliedYear,
+          month: appliedMonth,
+          reportType: appliedReportType,
+          endMonth: searchParams.get("endMonth") || searchParams.get("end_month"),
+        },
+        {
+          role: userRole || "user",
+          zone_id: userZoneId,
+          active: true,
         }
-        activeReport = reportObj;
-        targetZoneId = reportObj.zone_id;
-        targetYear = reportObj.year;
-        targetReportType = URL_TO_ENGLISH_MAP[reportObj.report_type] || reportObj.report_type;
-        dbReportType = reportObj.report_type;
-        targetMonth = reportObj.month;
-      }
+      );
 
-      // If we are looking for a single monthly report (and not already loaded via reportId)
-      if (!targetReportId && !isMultiMonth && targetZoneId) {
-        const { data: reportObj } = await supabase
-          .from("report")
-          .select("*, zone(name)")
-          .eq("zone_id", targetZoneId)
-          .eq("year", targetYear)
-          .eq("report_type", "মাসিক")
-          .eq("month", targetMonth)
-          .maybeSingle();
-
-        if (reportObj) {
-          activeReport = reportObj;
-          targetReportId = reportObj.id;
-        }
-      }
-
-      // If it is multi-month, load and aggregate
-      if (!targetReportId && isMultiMonth && targetZoneId) {
-        const monthsRange = getMonthsForPeriod(targetReportType, targetMonth);
-        const { data: monthlyReports } = await supabase
-          .from("report")
-          .select("*, zone(name)")
-          .eq("zone_id", targetZoneId)
-          .eq("year", targetYear)
-          .eq("report_type", "মাসিক")
-          .in("month", monthsRange);
-
-        if (monthlyReports && monthlyReports.length > 0) {
-          activeReport = {
-            id: -1,
-            zone_id: targetZoneId,
-            year: targetYear,
-            month: targetMonth,
-            report_type: dbReportType,
-            zone: monthlyReports[0].zone
-          };
-
-          const reportIds = monthlyReports.map(r => r.id);
-
-          const [
-            headerRes,
-            coursesRes,
-            orgRes,
-            personalRes,
-            meetingRes,
-            extraRes,
-            commentRes,
-          ] = await Promise.all([
-            supabase.from("report_header").select("*").in("report_id", reportIds),
-            supabase.from("report_course").select("*").in("report_id", reportIds),
-            supabase.from("report_organizational").select("*").in("report_id", reportIds),
-            supabase.from("report_personal").select("*").in("report_id", reportIds),
-            supabase.from("report_meeting").select("*").in("report_id", reportIds),
-            supabase.from("report_extra").select("*").in("report_id", reportIds),
-            supabase.from("report_comment").select("*").in("report_id", reportIds),
-          ]);
-
-          const rawHeader = headerRes.data || [];
-          const rawCourse = coursesRes.data || [];
-          const rawOrg = orgRes.data || [];
-          const rawPersonal = personalRes.data || [];
-          const rawMeeting = meetingRes.data || [];
-          const rawExtra = extraRes.data || [];
-          const rawComment = commentRes.data || [];
-
-          setHeaderData(sumHeaderRows(rawHeader));
-          setCoursesData(sumRows(rawCourse, [
-            "number", "increase", "decrease", "sessions", "students",
-            "attendance", "status_board", "status_qayda", "status_ampara",
-            "status_quran", "completed", "correctly_learned"
-          ]));
-          setOrgData(sumRows(rawOrg, ["number", "increase", "amount"]));
-          setPersonalData(sumRows(rawPersonal, [
-            "teaching", "learning", "olama_invited", "became_shohojogi",
-            "became_sokrio_shohojogi", "became_kormi", "became_rukon"
-          ]));
-          setMeetingData(sumRows(rawMeeting, [
-            "city_count", "city_avg_attendance", "thana_count",
-            "thana_avg_attendance", "ward_count", "ward_avg_attendance"
-          ]));
-          setExtraData(sumRows(rawExtra, ["number"]));
-
-          const combinedComments = rawComment
-            .map(c => c.comment)
-            .filter(c => c && c.trim() !== "")
-            .join("\n");
-          setCommentData({ comment: combinedComments });
-
-          setReportId(-1);
-          setReportInfo(activeReport);
-          setIsDataLoaded(true);
-          setIsLoading(false);
-          return;
-        } else {
+      if (res.error) {
+        if (res.error.status === 404) {
           setReportId(null);
           setReportInfo(null);
+          setActiveReport(null);
           setHeaderData(null);
           setCoursesData([]);
           setOrgData([]);
@@ -305,47 +206,57 @@ function ReportViewer() {
           setExtraData([]);
           setCommentData(null);
           setIsDataLoaded(true);
-          setIsLoading(false);
           return;
         }
+        throw new Error(res.error.message || t.reportLoadError);
       }
 
-      if (activeReport && targetReportId && targetReportId !== -1) {
-        const repId = activeReport.id;
-        setReportId(repId);
-        setReportInfo(activeReport);
+      if (res.data) {
+        const bundle = res.data;
+        const resolvedRepId = bundle.reportId ?? (bundle.isCityAgg ? -1 : null);
 
-        const [
-          headerRes,
-          coursesRes,
-          orgRes,
-          personalRes,
-          meetingRes,
-          extraRes,
-          commentRes,
-        ] = await Promise.all([
-          supabase.from("report_header").select("*").eq("report_id", repId).maybeSingle(),
-          supabase.from("report_course").select("*").eq("report_id", repId),
-          supabase.from("report_organizational").select("*").eq("report_id", repId),
-          supabase.from("report_personal").select("*").eq("report_id", repId),
-          supabase.from("report_meeting").select("*").eq("report_id", repId),
-          supabase.from("report_extra").select("*").eq("report_id", repId),
-          supabase.from("report_comment").select("*").eq("report_id", repId).maybeSingle(),
-        ]);
+        if (!bundle.header && (!bundle.courses || bundle.courses.length === 0) && !bundle.reportId) {
+          setReportId(null);
+          setReportInfo(null);
+          setActiveReport(null);
+          setHeaderData(null);
+          setCoursesData([]);
+          setOrgData([]);
+          setPersonalData([]);
+          setMeetingData([]);
+          setExtraData([]);
+          setCommentData(null);
+          setIsDataLoaded(true);
+          return;
+        }
 
-        setHeaderData(headerRes.data);
-        setCoursesData(coursesRes.data || []);
-        setOrgData(orgRes.data || []);
-        setPersonalData(personalRes.data || []);
-        setMeetingData(meetingRes.data || []);
-        setExtraData(extraRes.data || []);
-        setCommentData(commentRes.data);
+        const activeReportObj = {
+          id: resolvedRepId,
+          is_submitted: bundle.isSubmitted ?? false,
+          zone_id: bundle.zoneId ?? targetZoneId,
+          year: appliedYear,
+          month: appliedMonth,
+          report_type: bundle.reportType,
+          zone: { name: bundle.zoneName },
+        };
+
+        setActiveReport(activeReportObj);
+        setReportInfo(activeReportObj);
+        setReportId(resolvedRepId);
+        setHeaderData(bundle.header);
+        setCoursesData(bundle.courses || []);
+        setOrgData(bundle.org || []);
+        setPersonalData(bundle.personal || []);
+        setMeetingData(bundle.meetings || []);
+        setExtraData(bundle.extras || []);
+        setCommentData(bundle.comment || { comment: "" });
         setIsDataLoaded(true);
       }
     } catch (err: any) {
       console.error(err);
       setError(err.message || t.reportLoadError);
       setReportInfo(null);
+      setActiveReport(null);
     } finally {
       setIsLoading(false);
     }
@@ -356,9 +267,10 @@ function ReportViewer() {
     appliedMonth,
     appliedYear,
     appliedReportType,
+    searchParams,
     userRole,
     userZoneId,
-    t
+    t,
   ]);
 
   // Load report when URL searchParams or currentUser/profile resolve

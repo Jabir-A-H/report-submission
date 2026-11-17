@@ -79,6 +79,7 @@ export default function ManagementPage() {
 
   // ── Zones state ──
   const [zonesWithStats, setZonesWithStats] = useState<ZoneWithStats[]>([]);
+  const [zoneStats, setZoneStats] = useState<Record<number, { userCount: number; reportCount: number }>>({});
   const [newZoneName, setNewZoneName] = useState("");
   const [newZoneType, setNewZoneType] = useState<string>("zone");
   const [newZoneParentId, setNewZoneParentId] = useState<number | "">("");
@@ -102,35 +103,34 @@ export default function ManagementPage() {
     setUsersLoading(false);
   }
 
-  // ── Zones data fetch ──
-  async function fetchZones() {
+  // ── Zones data fetch (Consolidated Declarative Query) ──
+  async function fetchZoneStats() {
     setZonesLoading(true);
-    const { data: zonesData } = await supabase.from("zone").select("*").order("name");
+    const { data, error } = await supabase
+      .from("view_zone_stats")
+      .select("*")
+      .order("id", { ascending: true });
 
-    if (zonesData) {
-      const enriched: ZoneWithStats[] = await Promise.all(
-        zonesData.map(async (zone) => {
-          const parentZone = zonesData.find((z) => z.id === zone.parent_id);
-          const [{ count: userCount }, { count: reportCount }] = await Promise.all([
-            supabase.from("people").select("*", { count: "exact", head: true }).eq("zone_id", zone.id),
-            supabase.from("report").select("*", { count: "exact", head: true }).eq("zone_id", zone.id),
-          ]);
-          return {
-            ...zone,
-            parent_name: parentZone?.name || null,
-            user_count: userCount ?? 0,
-            report_count: reportCount ?? 0,
-          };
-        })
-      );
-      setZonesWithStats(enriched);
+    if (error) {
+      console.error("Failed to fetch zone stats:", error);
+    } else if (data) {
+      const statsDict: Record<number, { userCount: number; reportCount: number }> = {};
+      data.forEach((row: any) => {
+        statsDict[row.id] = {
+          userCount: row.user_count ?? 0,
+          reportCount: row.report_count ?? 0,
+        };
+      });
+      setZoneStats(statsDict);
+      setZonesWithStats(data as ZoneWithStats[]);
     }
     setZonesLoading(false);
   }
+  const fetchZones = fetchZoneStats;
 
   useEffect(() => {
     fetchUsers();
-    fetchZones();
+    fetchZoneStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -208,6 +208,10 @@ export default function ManagementPage() {
           report_count: 0,
         },
       ]);
+      setZoneStats((prev) => ({
+        ...prev,
+        [data.id]: { userCount: 0, reportCount: 0 },
+      }));
       setUserZones((prev) => [
         ...prev,
         { id: data.id, name: data.name, zone_type: data.zone_type, parent_id: data.parent_id },
@@ -228,6 +232,11 @@ export default function ManagementPage() {
     if (res.success) {
       setZonesWithStats((prev) => prev.filter((z) => z.id !== zoneId));
       setUserZones((prev) => prev.filter((z) => z.id !== zoneId));
+      setZoneStats((prev) => {
+        const next = { ...prev };
+        delete next[zoneId];
+        return next;
+      });
     } else {
       setZoneError(res.error || "মুছতে সমস্যা হয়েছে।");
     }
@@ -324,7 +333,7 @@ export default function ManagementPage() {
   // ── Refresh handler ──
   function handleRefresh() {
     if (activeTab === "users") fetchUsers();
-    else fetchZones();
+    else fetchZoneStats();
   }
 
   const isLoading = activeTab === "users" ? usersLoading : zonesLoading;

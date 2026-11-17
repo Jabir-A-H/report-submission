@@ -45,7 +45,14 @@ export function LanguageProvider({
 
   const t = translations[language];
   const tc = (key: string) => {
-    return (t.categories as Record<string, string>)[key] || key;
+    if (!key) return "";
+    const catMap = t.categories as Record<string, string>;
+    return (
+      catMap[key] ||
+      catMap[key.replace(/\u09DF/g, "\u09AF\u09BC")] ||
+      catMap[key.replace(/\u09AF\u09BC/g, "\u09DF")] ||
+      key
+    );
   };
 
   return (

@@ -65,3 +65,4 @@ legacy/
 
 backups/
 *.sql
+!docs/migrations/*.sql

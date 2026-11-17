@@ -6,8 +6,8 @@ export const UNICODE_SEPARATOR_REGEX = /[,،٬，_\s\u00A0\u202F]/g;
 export const BENGALI_DIGITS = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
 
 export const MONTHS_BN = [
-  "জানুয়ারি",
-  "ফেব্রুয়ারি",
+  "জানুয়ারি",
+  "ফেব্রুয়ারি",
   "মার্চ",
   "এপ্রিল",
   "মে",
@@ -24,33 +24,33 @@ export const REPORT_TYPES = [
   { value: "monthly", label: "মাসিক" },
   { value: "quarterly", label: "ত্রৈমাসিক" },
   { value: "halfYearly", label: "ষান্মাসিক" },
-  { value: "nineMonth", label: "নয়-মাসিক" },
+  { value: "nineMonth", label: "নয়-মাসিক" },
   { value: "yearly", label: "বার্ষিক" },
   { value: "custom", label: "কাস্টম রেঞ্জ" },
 ];
 
 export const QUARTERS_BN = [
-  { quarter: 1, label: "১ম ত্রৈমাসিক (জানুয়ারি – মার্চ)", startMonth: 1, endMonth: 3 },
-  { quarter: 2, label: "২য় ত্রৈমাসিক (এপ্রিল – জুন)", startMonth: 4, endMonth: 6 },
-  { quarter: 3, label: "৩য় ত্রৈমাসিক (জুলাই – সেপ্টেম্বর)", startMonth: 7, endMonth: 9 },
+  { quarter: 1, label: "১ম ত্রৈমাসিক (জানুয়ারি – মার্চ)", startMonth: 1, endMonth: 3 },
+  { quarter: 2, label: "২য় ত্রৈমাসিক (এপ্রিল – জুন)", startMonth: 4, endMonth: 6 },
+  { quarter: 3, label: "৩য় ত্রৈমাসিক (জুলাই – সেপ্টেম্বর)", startMonth: 7, endMonth: 9 },
   { quarter: 4, label: "৪র্থ ত্রৈমাসিক (অক্টোবর – ডিসেম্বর)", startMonth: 10, endMonth: 12 },
 ];
 
 export const HALVES_BN = [
-  { half: 1, label: "১ম ষান্মাসিক (জানুয়ারি – জুন)", startMonth: 1, endMonth: 6 },
-  { half: 2, label: "২য় ষান্মাসিক (জুলাই – ডিসেম্বর)", startMonth: 7, endMonth: 12 },
+  { half: 1, label: "১ম ষান্মাসিক (জানুয়ারি – জুন)", startMonth: 1, endMonth: 6 },
+  { half: 2, label: "২য় ষান্মাসিক (জুলাই – ডিসেম্বর)", startMonth: 7, endMonth: 12 },
 ];
 
 export const DB_TYPE_MAP: Record<string, string> = {
   monthly: "মাসিক",
   quarterly: "ত্রৈমাসিক",
   halfYearly: "ষান্মাসিক",
-  nineMonth: "নয়-মাসিক",
+  nineMonth: "নয়-মাসিক",
   yearly: "বার্ষিক",
   "মাসিক": "মাসিক",
   "ত্রৈমাসিক": "ত্রৈমাসিক",
   "ষান্মাসিক": "ষান্মাসিক",
-  "নয়-মাসিক": "নয়-মাসিক",
+  "নয়-মাসিক": "নয়-মাসিক",
   "বার্ষিক": "বার্ষিক",
   custom: "কাস্টম",
   "কাস্টম": "কাস্টম",
@@ -61,7 +61,7 @@ export const URL_TO_ENGLISH_MAP: Record<string, string> = {
   "মাসিক": "monthly",
   "ত্রৈমাসিক": "quarterly",
   "ষান্মাসিক": "halfYearly",
-  "নয়-মাসিক": "nineMonth",
+  "নয়-মাসিক": "nineMonth",
   "বার্ষিক": "yearly",
   monthly: "monthly",
   quarterly: "quarterly",
@@ -85,24 +85,24 @@ export const COURSE_CATEGORIES = [
 ];
 
 export const ORG_CATEGORIES = [
-  "দাওয়াত দান",
+  "দাওয়াত দান",
   "কতজন ইসলামের আদর্শ মেনে চলার চেষ্টা করছেন",
-  "সহযোগী হয়েছেন",
-  "সম্মতি দিয়েছেন",
-  "সক্রিয় সহযোগী",
+  "সহযোগী হয়েছেন",
+  "সম্মতি দিয়েছেন",
+  "সক্রিয় সহযোগী",
   "কর্মী",
   "রুকন",
-  "দাওয়াতী ইউনিট",
+  "দাওয়াতী ইউনিট",
   "ইউনিট",
   "সুধী",
   "এককালীন",
-  "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতটি",
-  "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতজন",
+  "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতটি",
+  "জনশক্তির সহীহ্ কুরআন তিলাওয়াত অনুশীলনী (মাশক) : কতজন",
   "বই বিলি",
   "বই বিক্রি",
 ];
 
-export const PERSONAL_CATEGORIES = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"];
+export const PERSONAL_CATEGORIES = ["রুকন", "কর্মী", "সক্রিয় সহযোগী"];
 
 export const PERSONAL_METRICS_ROWS = [
   { key: "teaching", label: "কতজন শিখাচ্ছেন" },
@@ -115,8 +115,8 @@ export const PERSONAL_METRICS_ROWS = [
 ];
 
 export const MEETING_CATEGORIES = [
-  "কমিটি বৈঠক হয়েছে",
-  "মুয়াল্লিমাদের নিয়ে বৈঠক",
+  "কমিটি বৈঠক হয়েছে",
+  "মুয়াল্লিমাদের নিয়ে বৈঠক",
   "Committee Orientation",
   "Muallima Orientation",
   "অন্যান্য",
@@ -227,7 +227,7 @@ export function getMonthsForPeriod(
     case "ষান্মাসিক": {
       return m <= 6 ? [1, 2, 3, 4, 5, 6] : [7, 8, 9, 10, 11, 12];
     }
-    case "নয়-মাসিক":
+    case "নয়-মাসিক":
       return [1, 2, 3, 4, 5, 6, 7, 8, 9];
     case "বার্ষিক":
       return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -340,15 +340,15 @@ export function resolvePeriodConfig(input: {
     labelBn = `${MONTHS_BN[startMonth - 1]} ${toBn(year)}`;
   } else if (englishType === "quarterly") {
     const q = Math.ceil(startMonth / 3);
-    const qBn = ["১ম", "২য়", "৩য়", "৪র্থ"][q - 1];
+    const qBn = ["১ম", "২য়", "৩য়", "৪র্থ"][q - 1];
     labelBn = `${qBn} ত্রৈমাসিক (${MONTHS_BN[startMonth - 1]} – ${MONTHS_BN[endMonth - 1]} ${toBn(year)})`;
   } else if (englishType === "halfYearly") {
-    const h = startMonth <= 6 ? "১ম" : "২য়";
+    const h = startMonth <= 6 ? "১ম" : "২য়";
     labelBn = `${h} ষান্মাসিক (${MONTHS_BN[startMonth - 1]} – ${MONTHS_BN[endMonth - 1]} ${toBn(year)})`;
   } else if (englishType === "nineMonth") {
-    labelBn = `নয়-মাসিক (জানুয়ারি – সেপ্টেম্বর ${toBn(year)})`;
+    labelBn = `নয়-মাসিক (জানুয়ারি – সেপ্টেম্বর ${toBn(year)})`;
   } else if (englishType === "yearly") {
-    labelBn = `বার্ষিক (জানুয়ারি – ডিসেম্বর ${toBn(year)})`;
+    labelBn = `বার্ষিক (জানুয়ারি – ডিসেম্বর ${toBn(year)})`;
   } else {
     labelBn = `কাস্টম (${MONTHS_BN[startMonth - 1]} – ${MONTHS_BN[endMonth - 1]} ${toBn(year)})`;
   }
@@ -527,7 +527,7 @@ export function sumHeaderRows<T extends Record<string, any>>(rows: T[]): T | nul
   if (rows.length === 1) return { ...rows[0] };
 
   // Sort rows chronologically if month is available to capture the latest inventory snapshot
-  const sorted = [...rows].sort((a, b) => (Number(a.month) || 0) - (Number(b.month) || 0));
+  const sorted = [...rows].sort((a, b) => Number(a.month) - Number(b.month));
   const latest = sorted[sorted.length - 1];
 
   const base = { ...latest } as any;

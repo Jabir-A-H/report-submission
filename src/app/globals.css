@@ -116,7 +116,8 @@
     font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
   }
   
-  .lang-bn body {
+  html[lang="bn"] body,
+  :lang(bn) body {
     font-family: var(--font-tiro-bangla), serif;
   }
 

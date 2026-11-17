@@ -26,6 +26,9 @@ export interface ReportDataBundle {
   meetings: any[];
   extras: any[];
   comment: { comment: string } | null;
+  reportId?: number | null;
+  isSubmitted?: boolean;
+  zoneId?: number;
 }
 
 export interface ReportLoaderParams {
@@ -207,6 +210,12 @@ export async function loadReportDataBundle(
       return ov !== undefined ? toFiniteNumber(ov) : toFiniteNumber(computed);
     };
 
+    const getTextVal = (section: string, field: string, computed: string, cat?: string) => {
+      const key = `${section}:${field}:${cat || ""}`;
+      const ov = overrideMap.get(key);
+      return ov !== undefined ? ov : (computed || "");
+    };
+
     let header: any = null;
     if (computedHeader) {
       header = {};
@@ -256,7 +265,7 @@ export async function loadReportDataBundle(
         number: getVal("organizational", "number", item.number || 0, cat),
         increase: getVal("organizational", "increase", item.increase || 0, cat),
         amount: getVal("organizational", "amount", item.amount || 0, cat),
-        comments: item.comments || "",
+        comments: getTextVal("organizational", "comments", item.comments || "", cat),
       };
     });
 
@@ -304,8 +313,8 @@ export async function loadReportDataBundle(
           item.ward_avg_attendance || 0,
           cat
         ),
-        meeting_name: item.meeting_name || "",
-        comments: item.comments || "",
+        meeting_name: getTextVal("meetings", "meeting_name", item.meeting_name || "", cat),
+        comments: getTextVal("meetings", "comments", item.comments || "", cat),
       };
     });
 
@@ -337,6 +346,9 @@ export async function loadReportDataBundle(
         meetings,
         extras,
         comment,
+        reportId: null,
+        isSubmitted: false,
+        zoneId: 1,
       },
     };
   }
@@ -404,6 +416,9 @@ export async function loadReportDataBundle(
         comment: commentRes.data
           ? { comment: commentRes.data.comment || "" }
           : { comment: "" },
+        reportId: report.id,
+        isSubmitted: Boolean(report.is_submitted),
+        zoneId: report.zone_id,
       },
     };
   }
@@ -449,7 +464,7 @@ export async function loadReportDataBundle(
 
   const { data: monthlyReports } = await supabase
     .from("report")
-    .select("id, month")
+    .select("id, month, is_submitted")
     .eq("zone_id", targetZoneId)
     .eq("year", targetYear)
     .eq("report_type", "মাসিক")
@@ -538,6 +553,17 @@ export async function loadReportDataBundle(
     };
   }
 
+  const repId =
+    monthlyReports && monthlyReports.length === 1
+      ? monthlyReports[0].id
+      : monthlyReports && monthlyReports.length > 1
+      ? -1
+      : null;
+  const isSub =
+    monthlyReports && monthlyReports.length > 0
+      ? monthlyReports.every((r: any) => Boolean(r.is_submitted))
+      : false;
+
   return {
     data: {
       zoneName,
@@ -552,6 +578,9 @@ export async function loadReportDataBundle(
       meetings,
       extras,
       comment,
+      reportId: repId,
+      isSubmitted: isSub,
+      zoneId: targetZoneId,
     },
   };
 }

@@ -18,8 +18,8 @@
   "splashScreenFadeOutDuration": 300,
   "orientation": "portrait",
   "minSdkVersion": 24,
-  "appVersionName": "1.0.0",
-  "appVersionCode": 1,
+  "appVersionName": "2.5.0",
+  "appVersionCode": 250,
   "signingKey": {
     "path": "./android-keystore/release.keystore",
     "alias": "talimul_report"

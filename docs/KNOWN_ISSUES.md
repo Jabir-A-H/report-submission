@@ -68,6 +68,25 @@ This file tracks known bugs, temporary hacks, or design compromises made during 
 
 ## Resolved Historical Issues
 
+### Track 1 Pre-Production Database DDL, View Mathematics, and Query Consolidation (ADR 031, WEB-013, WEB-004, WEB-002, BL-06-01, DEF-07-02)
+- **Date**: 2026-11-17
+- **Resolution Date**: 2026-11-17
+- **Affected Components**: `public.view_city_meeting_agg`, `public.report_header`, `public.get_or_create_report`, `public.view_zone_stats`, `src/app/(admin)/management/page.tsx`, `src/components/admin/correction-button.tsx`, `src/lib/report-data-loader.ts`, `src/app/report/page.tsx`, `src/lib/report-utils.ts`, `package.json`, `postcss.config.js`, `src/app/globals.css`
+- **Description**:
+  1. **WEB-013 (Meeting Attendance 13x Arithmetic Inflation)**: `public.view_city_meeting_agg` performed raw arithmetic `sum(rm.city_avg_attendance)` over zone averages, inflating single-month attendance totals by 13x (e.g. 20 attendees displayed as 260) and zeroing products on null entries.
+  2. **WEB-004 (Stock Snapshot Desynchronization & Report Page Query Duplication)**: `report_header` lacked a native `month` column, forcing manual in-memory month shaping. `src/app/report/page.tsx` bypassed the shared data loader with 167 duplicate query lines and omitted `monthMap`, causing multi-month stock metrics (`total_muallima`, `total_unit`) to resolve from arbitrary row arrival order rather than latest-month inventory.
+  3. **WEB-002 (Management Page 30 HTTP HEAD Calls Cascade)**: In `src/app/(admin)/management/page.tsx`, `fetchZoneStats` looped over all zones executing two `head: true` queries per zone, generating 30 HTTP network requests on every page mount.
+  4. **BL-06-01 (Non-Atomic Check-Then-Act in CorrectionButton)**: Override saves executed a `SELECT` test followed conditionally by `UPDATE` or `UPSERT`, introducing race conditions under concurrent admin corrections.
+  5. **DEF-07-02 (Report 23 Duplicate Key Collision & Decomposed Nukta Disparity)**: Report 23 in `report_extra` contained both decomposed (`\u09af\u09bc`) and precomposed (`\u09df`) categories, crashing direct updates with unique key violation `23505`. Client category constants held decomposed bytes, causing `0-row update` dropouts against database NFC constraints.
+  6. **BLOAT-07-04 & DEFECT-07-01 (ESM Build Crash & Tiro Bangla Typography Failure)**: Node 22 test runner emitted typeless module warnings, but adding `"type": "module"` broke `postcss.config.js` with `ReferenceError: module is not defined in ES module scope`. In `globals.css`, selector `.lang-bn body` never matched `<body>`.
+- **Fix Summary**:
+  1. Re-architected `view_city_meeting_agg` with weighted average calculation `round(sum(COALESCE(count, 0) * COALESCE(avg, 0))::numeric / sum(COALESCE(count, 0))::numeric)` with `COALESCE` null protection and fallback to `avg()`, eliminating the 13x inflation at the storage tier.
+  2. Added `month smallint NOT NULL` to `report_header` via DDL, backfilled existing records, and updated `get_or_create_report` RPC to write `month` directly. Refactored `report/page.tsx` to consume `loadReportDataBundle()`, guaranteeing latest-month stock sorting.
+  3. Created declarative SQL view `view_zone_stats` with `security_invoker = true`. Replaced the 30 HTTP HEAD calls in `management/page.tsx` with a single declarative `.select('*')` query.
+  4. Replaced the check-then-act logic in `CorrectionButton` with a direct atomic `.upsert()` targeting constraint `city_report_override_period_unique` with `NULLS NOT DISTINCT`.
+  5. Executed idempotent CTE metric-merging deduplication on `report_extra` before standardizing categories to canonical precomposed `\u09df`. Aligned category constants and test fixtures, and added bidirectional normalizer in `tc()`.
+  6. Converted `postcss.config.js` to ESM coupled with `"type": "module"` in `package.json`, and upgraded `globals.css` selector to `html[lang="bn"] body, :lang(bn) body`.
+
 ### Track 4 Canonical Navigation, Unified UserProvider, Viewport Ergonomics & Adaptive PDF Budget (ADR 030, RS-60, RS-65, RS-66, RS-67, C04-02, C06-01)
 - **Date**: 2026-11-16
 - **Resolution Date**: 2026-11-16

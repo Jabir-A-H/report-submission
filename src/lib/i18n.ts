@@ -828,7 +828,14 @@ export async function getServerLanguage() {
   const t = translations[safeLang];
   
   const tc = (category: string) => {
-    return t.categories[category as keyof typeof t.categories] || category;
+    if (!category) return "";
+    const catMap = t.categories as Record<string, string>;
+    return (
+      catMap[category] ||
+      catMap[category.replace(/\u09DF/g, "\u09AF\u09BC")] ||
+      catMap[category.replace(/\u09AF\u09BC/g, "\u09DF")] ||
+      category
+    );
   };
 
   return { language: safeLang, t, tc };

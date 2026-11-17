@@ -67,48 +67,21 @@ export function CorrectionButton({
 
     setIsSaving(true)
     try {
-      // Step 1: Explicitly check if an override already exists for this exact combination
-      let query = supabase
+      const { error: saveError } = await supabase
         .from('city_report_override')
-        .select('id')
-        .eq('year', year)
-        .eq('month', overrideMonth)
-        .eq('end_month', endMonth || 0)
-        .eq('report_type', reportType)
-        .eq('section', section)
-        .eq('field', field)
-
-      if (category) {
-        query = query.eq('category', category)
-      } else {
-        query = query.is('category', null)
-      }
-
-      const { data: existing, error: findError } = await query.maybeSingle()
-      if (findError) throw findError
-
-      let saveError = null
-      if (existing) {
-        const { error } = await supabase
-          .from('city_report_override')
-          .update({ value: valueToSave })
-          .eq('id', existing.id)
-        saveError = error
-      } else {
-        const { error } = await supabase
-          .from('city_report_override')
-          .upsert({
+        .upsert(
+          {
             year,
             month: overrideMonth,
             end_month: endMonth || 0,
+            report_type: reportType,
             section,
             field,
             category: category || null,
             value: valueToSave,
-            report_type: reportType
-          }, { onConflict: 'year,month,end_month,report_type,section,field,category' })
-        saveError = error
-      }
+          },
+          { onConflict: 'year,month,end_month,report_type,section,field,category' }
+        )
 
       if (saveError) throw saveError
       setIsOpen(false)
